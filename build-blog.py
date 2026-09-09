@@ -13,8 +13,8 @@ except ImportError:
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SITE = {
-    "name": "Ask Me How I Know",
-    "tagline": "Field notes from campus networks, wireless, NAC, and the forum threads that keep asking the same question.",
+    "name": "Network Field Notes",
+    "tagline": "Campus networks, wireless, NAC, and the forum threads that keep asking the same question.",
     "author": "Dustin Burns",
     "role": "Lead Mobility Engineer · HPE Aruba Networking and HPE Juniper",
     "airheads": "https://airheads.hpe.com/profile?UserKey=94e7a1d9-a7e0-4e9f-abbc-faa06c06b759",
@@ -22,8 +22,8 @@ SITE = {
 
 # Public root of the site, no trailing slash. Change this one line when a
 # custom domain goes live, then rerun the build.
-BASE_URL = "https://loopdetectedlolz.github.io"
-CUSTOM_DOMAIN = ""   # e.g. "askmehowiknow.blog" -> writes a CNAME file
+BASE_URL = "https://networkfieldnotes.com"
+CUSTOM_DOMAIN = "networkfieldnotes.com"   # writes the CNAME file for GitHub Pages
 
 
 def svg(name):

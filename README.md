@@ -1,6 +1,8 @@
-# Ask Me How I Know
+# Network Field Notes
 
-Field notes from campus networks, wireless, NAC, and the forum threads that keep asking the same question.
+Campus networks, wireless, NAC, and the forum threads that keep asking the same question.
+
+Live at https://networkfieldnotes.com
 
 Written by Dustin Burns. Personal site, personal opinions. Configs are scrubbed placeholders, customers are never named.
 
