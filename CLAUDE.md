@@ -21,8 +21,10 @@ Pages redeploys about a minute after push.
 |---|---|
 | `build-blog.py` | The entire generator. `SITE`, `BASE_URL`, `CUSTOM_DOMAIN` at the top; page template below. |
 | `posts/*.md` | One file per post. Front matter plus markdown. The only place post content lives. |
-| `graphics/*.svg` | Hand-drawn heroes, one per post, plus `mark.svg` and `stats.svg`. |
-| `index.html` | GENERATED. Home, Community, About. Never edit by hand. |
+| `theme/style.css`, `theme/app.js` | The design system (liquid glass) and the small client script: header scroll state, rise stagger, zoom/genie transitions, index filter and search. Inlined into every page at build. |
+| `graphics/*.svg` | Hand-drawn heroes, one per post, plus `mark.svg`. |
+| `logo/`, `character/` | The brand kit: wordmark, mark, favicon, and Rig the mascot in seven poses. Do not redraw these. |
+| `index.html`, `about.html`, `socials.html` | GENERATED. Never edit by hand. |
 | `p/<slug>.html` | GENERATED. One standalone page per post, its own canonical URL and OG tags. |
 | `og/<slug>.png` | GENERATED. 1200x630 social preview cards, rendered from SVG. |
 | `sitemap.xml` `rss.xml` `robots.txt` `CNAME` | GENERATED. |
@@ -44,7 +46,13 @@ origin: One line on where it came from
 ---
 ```
 
-Read time is calculated from word count. Posts sort by date, newest first, and the newest becomes the featured card.
+Optional: `bot: nfn-bot-<pose>.svg` to pick which Rig pose sits on the post page (default is picked from the tags; see `BOTS` in `build-blog.py`).
+
+Read time is calculated from word count. Posts sort by date, newest first, and the newest becomes the featured hero on the index. The featured post also gets a hidden card in the grid so category filters and search still find it.
+
+## Categories and colours
+
+The card pill comes from the first tag via `CAT_MAP` in `build-blog.py` (clearpass -> NAC, wireless -> Wireless, switching -> Switching, process/documentation -> Docs; a survey or Ekahau tag -> RF survey). If `origin` mentions a lab build the category becomes Lab. Colours are fixed: Wireless green, NAC blue, Lab red, everything else neutral glass. The active nav pill is an orange three-quarter ring. Those are the only places red, orange or amber appear on the site.
 
 ## Rules that matter
 
@@ -58,11 +66,30 @@ Read time is calculated from word count. Posts sort by date, newest first, and t
 
 **Date-stamp claims about what a product can't do.** Name the version and when it was measured, so the statement stays true after the vendor ships a fix.
 
+**No contact or invitation copy in posts.** No "get in touch", "reach out", "send it my way", "corrections welcome", "I'd like to hear about it" or anything that asks the reader to contact Dustin. Not in the bottom line, not in the post-end card, not in the About page. Posts end on the takeaway.
+
 **Write SVGs with a shell heredoc, not a file-writing tool**, then check the byte count. File tools have silently written a few bytes of binary instead of the content. Always render and look at a hero before building: `rsvg-convert -w 900 -h 340 graphics/hero-x.svg -o /tmp/x.png`.
 
 ## Hero graphics
 
-`viewBox="0 0 900 340"`. Background `#0B0F14`, muted text `#8A99AB`, accent green `#8FDB69`, amber `#E0B34E`, blue `#7AB8E8`, red `#F0705F`. Green ALL-CAPS eyebrow at y=36, one white headline at y=66 under about 70 characters, the diagram, muted captions near y=300 to y=320. The graphic carries the one diagram the post needs. Not decoration.
+`viewBox="0 0 900 340"`, transparent background (the glass panel behind it supplies the ground; never paint a full-bleed rect). Palette is the design kit and nothing else:
+
+| Use | Token |
+|---|---|
+| Eyebrow, accents, pass state, arrows that matter | green `#8CE05E` |
+| Secondary accent, links between boxes | teal `#5ED2DA` |
+| Highlight, the "new" thing | blue-light `#4FBDEA` |
+| Headline, box titles | `#EAF2F6` or `#fff` |
+| Labels | `#B0C4CF` |
+| Captions, dimmed labels | `#8BA2AE` |
+| Text on a green fill | ink `#06202A` |
+| Box fill / stroke | `rgba(3,10,16,0.55)` / `rgba(255,255,255,0.12)` |
+
+No red, amber or orange in a hero. A failure state is a dimmed or dashed element, not a red one. Fonts: `Instrument Sans,-apple-system,Helvetica,sans-serif`, mono `JetBrains Mono,ui-monospace,Menlo,monospace`. Green ALL-CAPS eyebrow at y=36, one white headline at y=66 under about 70 characters, the diagram, muted caption near y=320. The graphic carries the one diagram the post needs. Not decoration. Give the root `<svg>` a `role="img"` and an `aria-label` that describes the diagram.
+
+## Design system
+
+`theme/style.css` is the source of truth. Tokens: `--ink #061019 --navy #0E2A3C --blue #2FA8E0 --blue-light #4FBDEA --teal #5ED2DA --green #8CE05E --orange #F5A524 --red #F0705F --text #EAF2F6 --text-dim #B0C4CF --text-muted #8BA2AE`. Three glass levels (`.g-chrome`, `.g-card`, `.g-hero`), one easing `cubic-bezier(0.32,0.72,0,1)`, only opacity and transform are animated, `-webkit-backdrop-filter` always paired, reduced motion redefines the keyframes. Rig is a fixed lower-right overlay (`.rig`, z-index 60) on every page and links to `socials.html`; `.page` and the footer reserve 144px at the bottom so he never covers content. One green CTA per view. Don't add a second font, a new colour, or a new animation without updating `DESIGN-KIT.md` first.
 
 ## Voice
 
@@ -72,9 +99,11 @@ First person, short blunt sentences, contractions always, casual section headers
 
 - `git pull --rebase` before pushing. GitHub commits to `CNAME` itself when the custom domain changes in repo settings, so the remote can be ahead with nobody having pushed.
 - DNS is Cloudflare, CNAME `@` and `www` to `loopdetectedlolz.github.io`, proxy OFF. The grey cloud is required; proxying breaks certificate issuance.
-- Old `#/post/<slug>` links redirect to `p/<slug>.html`. Keep that redirect in the router.
+- Old `#/post/<slug>` links redirect to `p/<slug>.html`. Keep that redirect in `theme/app.js`.
+- Category deep links are `index.html#cat=NAC`. The nav pills use them, and `app.js` listens for `hashchange`, so a filter change from any page works without a reload.
+- `build-blog.py` still finishes the HTML when `rsvg-convert` is missing; it warns and keeps the existing `og/*.png`. Run it on the Mac (Homebrew librsvg) to refresh OG cards.
 - Run a new post through `linkedin.com/post-inspector` before sharing it. LinkedIn caches the first scrape for weeks.
 
 ## Related skills
 
-`blog-post-generator` drafts and verifies a post. `blog-publish` builds and deploys. `my-writing-style` holds the voice profile.
+`blog-post-generator` drafts and verifies a post. `blog-publish` builds, checks, deploys and regression-tests. `my-writing-style` holds the voice profile. `WRITING-POSTS.md` is the human-facing guide.

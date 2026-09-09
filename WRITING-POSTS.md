@@ -22,7 +22,7 @@ You get a draft back. Read it. Tell it what to change. Then:
 
 > publish it
 
-That runs `blog-publish`: build, dash check, scrub check, graphics render, commit, push, verify the live URLs.
+That runs `blog-publish`: build, dash check, scrub check, contact-copy check, graphics render, commit, push, verify the live URLs, and a quick Playwright regression on the nav, filter, search and Rig.
 
 ## Editing a post that's already live
 
@@ -36,11 +36,13 @@ Then `publish it` again. Same pipeline. The build regenerates everything, so a w
 
 ## Changing the site itself
 
-Nav, the hero, the stat chips, On deck cards, Community, About, the tagline: all of it lives in `build-blog.py`. Never edit `index.html`, `p/`, `og/`, `sitemap.xml` or `rss.xml` by hand, they're regenerated on every build and your edit disappears.
+Nav, the featured hero, the filter chips, About, the socials page, the tagline: all of it lives in `build-blog.py`. Colours, glass, motion and the Rig placement live in `theme/style.css`. Never edit `index.html`, `about.html`, `socials.html`, `p/`, `og/`, `sitemap.xml` or `rss.xml` by hand, they're regenerated on every build and your edit disappears.
 
-> add an On deck card for the EAP-TLS post
+> change the tagline to ...
 
-> update the Airheads stats, I'm at 74 replies and 7 best answers
+> add a Central category, colour it teal
+
+The look is a design system (`DESIGN-KIT.md` in the design folder, tokens at the top of `theme/style.css`). Category colours are fixed: Wireless green, NAC blue, Lab red, active nav pill orange. If you want a new colour or animation, change the kit first, then the site.
 
 ## Capturing an idea when you're not at the Mac
 
@@ -58,11 +60,13 @@ You can draft a whole post in Cowork too. It just can't publish, because the rep
 2. Optionally request indexing in Google Search Console. The sitemap is already registered; this just jumps the queue.
 3. Link the specific post when you answer a forum thread, not the homepage.
 
-## The two rules that matter most
+## The three rules that matter most
 
 **The repo is public and git history is permanent.** Customers are never identifiable. Not the name, the site, the city, the address, AP serials, BSSIDs, client MACs, or internal SSID and profile names. The publish skill greps for these, but you're the last check.
 
 **Claims get verified before they go out.** An audit of the first seven posts found 15 claims flatly wrong and 50 overstated. Vendor docs are the standard of truth. Forum posts, including your own, are leads.
+
+**No "reach out" copy.** Posts end on the takeaway. No invitations to email, message or connect, anywhere on the site, until you decide you're ready for that.
 
 ## Where things live
 
