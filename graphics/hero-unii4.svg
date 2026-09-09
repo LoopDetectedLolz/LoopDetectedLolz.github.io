@@ -1,18 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="The 5 GHz band showing survey scan coverage ending at channel 165, with two access point radios operating on channel 173 in U-NII-4 outside the scanned range">
   <defs><style>
-    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
-    .band{fill:#8A99AB;font-size:11px;font-weight:600;letter-spacing:.5px}
-    .red{fill:#F0705F}
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
+    .band{fill:#B0C4CF;font-size:11px;font-weight:600;letter-spacing:.5px}
+    .red{fill:#8BA2AE}
   </style></defs>
-  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
   <text x="30" y="36" class="t eyebrow">TWO RADIOS, ZERO MEASUREMENTS</text>
   <text x="30" y="66" class="t big">The scan list stops at 165. The access points didn't.</text>
-  <rect x="40"  y="150" width="150" height="46" rx="4" fill="#3A2E12" stroke="#E0B34E" stroke-width="1.5"/>
-  <rect x="194" y="150" width="150" height="46" rx="4" fill="#14293A" stroke="#2B5378" stroke-width="1.5"/>
-  <rect x="348" y="150" width="260" height="46" rx="4" fill="#14293A" stroke="#7AB8E8" stroke-width="1.5"/>
-  <rect x="612" y="150" width="170" height="46" rx="4" fill="#3A2E12" stroke="#E0B34E" stroke-width="1.5"/>
-  <rect x="786" y="150" width="74"  height="46" rx="4" fill="#2A1210" stroke="#F0705F" stroke-width="2" stroke-dasharray="5 3"/>
+  <rect x="40"  y="150" width="150" height="46" rx="4" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.5"/>
+  <rect x="194" y="150" width="150" height="46" rx="4" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+  <rect x="348" y="150" width="260" height="46" rx="4" fill="rgba(3,10,16,0.55)" stroke="#4FBDEA" stroke-width="1.5"/>
+  <rect x="612" y="150" width="170" height="46" rx="4" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.5"/>
+  <rect x="786" y="150" width="74"  height="46" rx="4" fill="rgba(3,10,16,0.55)" stroke="#8BA2AE" stroke-width="2" stroke-dasharray="5 3"/>
   <g class="t band" text-anchor="middle">
     <text x="115" y="177">U-NII-1</text>
     <text x="269" y="177">U-NII-2A</text>
@@ -20,7 +19,7 @@
     <text x="697" y="177">U-NII-3</text>
     <text x="823" y="172" class="t band red">U-NII-4</text>
   </g>
-  <g class="t mono" fill="#5C6B7D" text-anchor="middle">
+  <g class="t mono" fill="#8BA2AE" text-anchor="middle">
     <text x="115" y="214">36-48</text>
     <text x="269" y="214">52-64</text>
     <text x="478" y="214">100-144</text>
@@ -28,12 +27,12 @@
     <text x="823" y="187" class="t mono red">169-177</text>
     <text x="823" y="214" class="t mono red">5.850-5.895</text>
   </g>
-  <path d="M40,236 L40,246 L782,246 L782,236" fill="none" stroke="#8A99AB" stroke-width="1.5"/>
+  <path d="M40,236 L40,246 L782,246 L782,236" fill="none" stroke="#B0C4CF" stroke-width="1.5"/>
   <text x="411" y="266" class="t lbl" text-anchor="middle">What the survey tool scans. Highest center frequency in the project file: 5825 MHz.</text>
-  <path d="M786,236 L786,246 L860,246 L860,236" fill="none" stroke="#F0705F" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <path d="M786,236 L786,246 L860,246 L860,236" fill="none" stroke="#8BA2AE" stroke-width="1.5" stroke-dasharray="4 3"/>
   <text x="823" y="266" class="t mono red" text-anchor="middle">no data</text>
-  <line x1="823" y1="146" x2="823" y2="112" stroke="#F0705F" stroke-width="1.5"/>
-  <circle cx="823" cy="108" r="4" fill="#F0705F"/>
+  <line x1="823" y1="146" x2="823" y2="112" stroke="#8BA2AE" stroke-width="1.5"/>
+  <circle cx="823" cy="108" r="4" fill="#8BA2AE"/>
   <text x="812" y="104" class="t mono red" text-anchor="end">2 radios beaconing on ch 173</text>
   <text x="40" y="300" class="t lbl">193 neighbour BSSs measured. 64-74 per channel in U-NII-1, 43-47 in U-NII-3, roughly 2 per channel up in 132-144.</text>
   <text x="40" y="320" class="t lbl">Every heatmap covers the solid bracket. The dashed block is a coverage hole you cannot see, because nothing measured it.</text>

@@ -1,36 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="VSX member reboot timeline showing the 180 second linkup delay">
   <defs><style>
-    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
   </style>
-  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8A99AB"/></marker></defs>
-  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#B0C4CF"/></marker></defs>
   <text x="30" y="36" class="t eyebrow">ONE MEMBER REBOOTS. WHAT THE CLOCK LOOKS LIKE.</text>
   <text x="30" y="66" class="t big">"A few minutes" is a suspiciously round number. It's 180 seconds.</text>
   <!-- timeline base -->
-  <line x1="60" y1="200" x2="860" y2="200" stroke="#243040" stroke-width="4"/>
+  <line x1="60" y1="200" x2="860" y2="200" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
   <!-- phases -->
   <g class="t">
-    <rect x="60" y="186" width="150" height="28" rx="6" fill="#F0705F" opacity="0.9"/><text x="135" y="205" text-anchor="middle" fill="#0B0F14" font-size="12" font-weight="700">reboot</text>
-    <rect x="215" y="186" width="90" height="28" rx="6" fill="#E0B34E" opacity="0.9"/><text x="260" y="205" text-anchor="middle" fill="#0B0F14" font-size="12" font-weight="700">ISL re-forms</text>
-    <rect x="310" y="186" width="420" height="28" rx="6" fill="#7AB8E8" opacity="0.9"/><text x="520" y="205" text-anchor="middle" fill="#0B0F14" font-size="12" font-weight="700">linkup-delay-timer 180 s (max 600): VSX LAGs held down</text>
-    <rect x="735" y="186" width="125" height="28" rx="6" fill="#8FDB69"/><text x="797" y="205" text-anchor="middle" fill="#0B0F14" font-size="12" font-weight="700">LAGs up</text>
+    <rect x="60" y="186" width="150" height="28" rx="6" fill="#8BA2AE" opacity="0.9"/><text x="135" y="205" text-anchor="middle" fill="#06202A" font-size="12" font-weight="700">reboot</text>
+    <rect x="215" y="186" width="90" height="28" rx="6" fill="#5ED2DA" opacity="0.9"/><text x="260" y="205" text-anchor="middle" fill="#06202A" font-size="12" font-weight="700">ISL re-forms</text>
+    <rect x="310" y="186" width="420" height="28" rx="6" fill="#4FBDEA" opacity="0.9"/><text x="520" y="205" text-anchor="middle" fill="#06202A" font-size="12" font-weight="700">linkup-delay-timer 180 s (max 600): VSX LAGs held down</text>
+    <rect x="735" y="186" width="125" height="28" rx="6" fill="#8CE05E"/><text x="797" y="205" text-anchor="middle" fill="#06202A" font-size="12" font-weight="700">LAGs up</text>
   </g>
   <!-- callouts above -->
   <g class="t lbl">
     <text x="60" y="140">ISL + keepalive down; survivor keeps its LAGs up</text>
-    <line x1="120" y1="148" x2="120" y2="182" stroke="#8A99AB" marker-end="url(#arr)"/>
+    <line x1="120" y1="148" x2="120" y2="182" stroke="#B0C4CF" marker-end="url(#arr)"/>
     <text x="380" y="140">Rebooted member syncs tables, then waits. Ports up early = black hole.</text>
-    <line x1="520" y1="148" x2="520" y2="182" stroke="#8A99AB" marker-end="url(#arr)"/>
+    <line x1="520" y1="148" x2="520" y2="182" stroke="#B0C4CF" marker-end="url(#arr)"/>
   </g>
   <!-- callouts below -->
   <g class="t">
-    <rect x="60" y="238" width="380" height="64" rx="8" fill="#141C26" stroke="#F0705F"/>
-    <text x="76" y="262" fill="#F0705F" font-size="13" font-weight="700">Single-homed to this member?</text>
+    <rect x="60" y="238" width="380" height="64" rx="8" fill="rgba(3,10,16,0.55)" stroke="#8BA2AE"/>
+    <text x="76" y="262" fill="#8BA2AE" font-size="13" font-weight="700">Single-homed to this member?</text>
     <text x="76" y="284" class="lbl">Down for the whole bar. Nothing fixes one cable.</text>
-    <rect x="460" y="238" width="400" height="64" rx="8" fill="#141C26" stroke="#8FDB69"/>
-    <text x="476" y="262" fill="#8FDB69" font-size="13" font-weight="700">eBGP peered to the rebooted member?</text>
+    <rect x="460" y="238" width="400" height="64" rx="8" fill="rgba(3,10,16,0.55)" stroke="#8CE05E"/>
+    <text x="476" y="262" fill="#8CE05E" font-size="13" font-weight="700">eBGP peered to the rebooted member?</text>
     <text x="476" y="284" class="lbl">Can't re-form until the timer expires. exclude lag-list for core LAGs.</text>
   </g>
-  <text x="60" y="326" class="t mono" fill="#8FDB69">vsx update-software: secondary first, primary second, non-active bank on both</text>
+  <text x="60" y="326" class="t mono" fill="#8CE05E">vsx update-software: secondary first, primary second, non-active bank on both</text>
 </svg>

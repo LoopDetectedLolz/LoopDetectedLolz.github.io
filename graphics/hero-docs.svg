@@ -1,32 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Order of trust when vendor documentation contradicts itself">
   <defs><style>
-    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
   </style></defs>
-  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
   <text x="30" y="36" class="t eyebrow">THREE OFFICIAL ANSWERS, NONE OF THEM DATED</text>
   <text x="30" y="66" class="t big">Trust the artifact whose job is to answer your exact question.</text>
   <g class="t" font-size="13">
     <g transform="translate(30,92)">
-      <rect width="840" height="30" rx="6" fill="#8FDB69"/><text x="14" y="20" fill="#0B0F14" font-weight="700">The box itself</text><text x="826" y="20" text-anchor="end" fill="#0B0F14">tab completion beats every web page, including this one</text>
+      <rect width="840" height="30" rx="6" fill="#8CE05E"/><text x="14" y="20" fill="#06202A" font-weight="700">The box itself</text><text x="826" y="20" text-anchor="end" fill="#06202A">tab completion beats every web page, including this one</text>
     </g>
     <g transform="translate(30,127)">
-      <rect width="760" height="30" rx="6" fill="#6FBF55"/><text x="14" y="20" fill="#0B0F14" font-weight="700">Release notes: Products Supported, Upgrade information</text><text x="746" y="20" text-anchor="end" fill="#0B0F14">built to answer version questions</text>
+      <rect width="760" height="30" rx="6" fill="#5ED2DA"/><text x="14" y="20" fill="#06202A" font-weight="700">Release notes: Products Supported, Upgrade information</text><text x="746" y="20" text-anchor="end" fill="#06202A">built to answer version questions</text>
     </g>
     <g transform="translate(30,162)">
-      <rect width="680" height="30" rx="6" fill="#4F9F62"/><text x="14" y="20" fill="#0B0F14" font-weight="700">Command History table on a CLI page</text><text x="666" y="20" text-anchor="end" fill="#0B0F14">the only CLI changelog there is</text>
+      <rect width="680" height="30" rx="6" fill="#4FBDEA"/><text x="14" y="20" fill="#06202A" font-weight="700">Command History table on a CLI page</text><text x="666" y="20" text-anchor="end" fill="#06202A">the only CLI changelog there is</text>
     </g>
     <g transform="translate(30,197)">
-      <rect width="580" height="30" rx="6" fill="#E0B34E"/><text x="14" y="20" fill="#0B0F14" font-weight="700">Command page prose</text><text x="566" y="20" text-anchor="end" fill="#0B0F14">demonstrably lags renames</text>
+      <rect width="580" height="30" rx="6" fill="#5ED2DA"/><text x="14" y="20" fill="#06202A" font-weight="700">Command page prose</text><text x="566" y="20" text-anchor="end" fill="#06202A">demonstrably lags renames</text>
     </g>
     <g transform="translate(30,232)">
-      <rect width="480" height="30" rx="6" fill="#C99A3B"/><text x="14" y="20" fill="#0B0F14" font-weight="700">Feature and config guides</text><text x="466" y="20" text-anchor="end" fill="#0B0F14">good on concepts, slow on specifics</text>
+      <rect width="480" height="30" rx="6" fill="#8BA2AE"/><text x="14" y="20" fill="#06202A" font-weight="700">Feature and config guides</text><text x="466" y="20" text-anchor="end" fill="#06202A">good on concepts, slow on specifics</text>
     </g>
     <g transform="translate(30,267)">
-      <rect width="380" height="30" rx="6" fill="#F0705F"/><text x="14" y="20" fill="#0B0F14" font-weight="700">Datasheets and marketing</text><text x="366" y="20" text-anchor="end" fill="#0B0F14">written to sell</text>
+      <rect width="380" height="30" rx="6" fill="#8BA2AE"/><text x="14" y="20" fill="#06202A" font-weight="700">Datasheets and marketing</text><text x="366" y="20" text-anchor="end" fill="#06202A">written to sell</text>
     </g>
     <g transform="translate(30,302)">
-      <rect width="280" height="30" rx="6" fill="#B3463A"/><text x="14" y="20" fill="#fff" font-weight="700">A forum post. Mine included.</text>
+      <rect width="280" height="30" rx="6" fill="#8BA2AE"/><text x="14" y="20" fill="#EAF2F6" font-weight="700">A forum post. Mine included.</text>
     </g>
   </g>
   <text x="440" y="322" class="t lbl">allow-unsafe-updates became allow-non-failsafe-updates at 10.15.1010.</text>

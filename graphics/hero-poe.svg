@@ -1,36 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="PoE tiers versus what a Wi-Fi 7 AP turns off">
   <defs><style>
-    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}
-    .lbl{fill:#8A99AB;font-size:13px}
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .lbl{fill:#B0C4CF;font-size:13px}
     .big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}
-    .mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;fill:#8FDB69}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px;fill:#8CE05E}
   </style></defs>
-  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
   <text x="30" y="36" class="t eyebrow">POWER IN VS. FEATURES OUT</text>
   <text x="30" y="66" class="t big">The AP doesn't fail. It negotiates, shrugs, and turns things off.</text>
   <!-- tiers -->
   <g class="t">
     <!-- 802.3af -->
-    <rect x="30" y="100" width="260" height="200" rx="10" fill="#141C26" stroke="#243040"/>
-    <rect x="30" y="100" width="260" height="6" rx="3" fill="#F0705F"/>
+    <rect x="30" y="100" width="260" height="200" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+    <rect x="30" y="100" width="260" height="6" rx="3" fill="#8BA2AE"/>
     <text x="50" y="135" class="big">802.3af</text><text x="150" y="135" class="lbl">15.4 / 13 W</text>
     <text x="50" y="165" class="lbl">Staging only (730/750). 725 still runs.</text>
-    <g fill="#F0705F" font-size="13"><text x="50" y="195">✕ No radios on 730/750</text><text x="50" y="217">✕ USB</text><text x="50" y="239">▽ 725: USB off, -3 dB</text><text x="50" y="261">13 W to the device</text></g>
+    <g fill="#8BA2AE" font-size="13"><text x="50" y="195">✕ No radios on 730/750</text><text x="50" y="217">✕ USB</text><text x="50" y="239">▽ 725: USB off, -3 dB</text><text x="50" y="261">13 W to the device</text></g>
     <text x="50" y="288" class="mono">Class 3</text>
     <!-- 802.3at -->
-    <rect x="320" y="100" width="260" height="200" rx="10" fill="#141C26" stroke="#E0B34E"/>
-    <rect x="320" y="100" width="260" height="6" rx="3" fill="#E0B34E"/>
+    <rect x="320" y="100" width="260" height="200" rx="10" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA"/>
+    <rect x="320" y="100" width="260" height="6" rx="3" fill="#5ED2DA"/>
     <text x="340" y="135" class="big">802.3at</text><text x="440" y="135" class="lbl">30 / 25.5 W</text>
     <text x="340" y="165" class="lbl">Degraded. Nothing turns red.</text>
-    <g font-size="13"><text x="340" y="195" fill="#F0705F">✕ USB (first to go)</text><text x="340" y="217" fill="#F0705F">✕ 2nd Ethernet (755)</text><text x="340" y="239" fill="#E0B34E">▽ 4x4 to 2x2, -3 dB (755)</text><text x="340" y="261" fill="#E0B34E">▽ radio off only via IPM step</text></g>
+    <g font-size="13"><text x="340" y="195" fill="#8BA2AE">✕ USB (first to go)</text><text x="340" y="217" fill="#8BA2AE">✕ 2nd Ethernet (755)</text><text x="340" y="239" fill="#5ED2DA">▽ 4x4 to 2x2, -3 dB (755)</text><text x="340" y="261" fill="#5ED2DA">▽ radio off only via IPM step</text></g>
     <text x="340" y="288" class="mono">Class 4 · the thread generator</text>
     <!-- 802.3bt -->
-    <rect x="610" y="100" width="260" height="200" rx="10" fill="#141C26" stroke="#243040"/>
-    <rect x="610" y="100" width="260" height="6" rx="3" fill="#8FDB69"/>
+    <rect x="610" y="100" width="260" height="200" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+    <rect x="610" y="100" width="260" height="6" rx="3" fill="#8CE05E"/>
     <text x="630" y="135" class="big">802.3bt</text><text x="730" y="135" class="lbl">51 W Class 6</text>
     <text x="630" y="165" class="lbl">Unrestricted (755 needs Class 6)</text>
-    <g fill="#7EE08A" font-size="13"><text x="630" y="195">✓ 2.4 + 5 + 6 GHz</text><text x="630" y="217">✓ All chains, full TX</text><text x="630" y="239">✓ USB, 2nd Ethernet</text><text x="630" y="261">✓ Multi-gig uplink</text></g>
+    <g fill="#8CE05E" font-size="13"><text x="630" y="195">✓ 2.4 + 5 + 6 GHz</text><text x="630" y="217">✓ All chains, full TX</text><text x="630" y="239">✓ USB, 2nd Ethernet</text><text x="630" y="261">✓ Multi-gig uplink</text></g>
     <text x="630" y="288" class="mono">Class 5 / 6</text>
   </g>
   <text x="30" y="326" class="t lbl">Check it: show power-over-ethernet brief · show power-over-ethernet &lt;iface&gt; · show ap power-mgmt-statistics</text>
