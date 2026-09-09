@@ -99,6 +99,8 @@ a:hover{color:#cbf4b3}
 .search.open{display:block}
 
 /* status + category pills */
+a.tag{text-decoration:none;transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+a.tag:hover{transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(0,0,0,0.7)}
 .tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
   color:var(--blue-light);border:1px solid rgba(79,189,234,0.45);background:rgba(47,168,224,0.10);border-radius:var(--r-pill);padding:5px 12px;white-space:nowrap}
 .tag.green{color:#bdf29c;border-color:rgba(140,224,94,0.45);background:rgba(140,224,94,0.10)}
@@ -108,8 +110,6 @@ a:hover{color:#cbf4b3}
 .chip.c-green{color:#bdf29c;border-color:rgba(140,224,94,0.45)}
 .chip.c-blue{color:#a8d9f2;border-color:rgba(79,189,234,0.5)}
 .chip.c-red{color:#ffb3a8;border-color:rgba(240,112,95,0.5)}
-.pill.cat.c-green{color:#bdf29c}
-.pill.cat.c-blue{color:#a8d9f2}
 .chip.on.c-green{background:rgba(140,224,94,0.16)}
 .chip.on.c-blue{background:rgba(47,168,224,0.18)}
 .chip.on.c-red{background:rgba(240,112,95,0.18)}
@@ -267,7 +267,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
   <a class="brand" href="../"><span class="mk"><img src="../logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
-  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill cat c-green" href="../index.html#cat=Wireless">Wireless</a><a class="pill cat c-blue" href="../index.html#cat=NAC">NAC</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
   
 </div></div></header>
 <main class="wrap">
@@ -275,7 +275,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
   <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
     <header class="post-head g-hero" data-view="zoom">
-      <div class="row" style="margin:0"><span class="tag c-green">Wireless</span><span class="meta">Aug 2, 2026 &#183; 13 min</span></div>
+      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Aug 2, 2026 &#183; 13 min</span></div>
       <h1 class="h-hero">84 Percent of Your Airtime Is Printers Saying Hello</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -588,12 +588,8 @@ show ap debug bss-stats ap-name &lt;ap&gt;
   var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
   var cat = 'all', q = '';
 
-  var navCats = $$('.pill.cat'), postsPill = $('.nav .pill:not(.cat):not(.outline)');
+  var postsPill = $('.nav .pill:not(.outline)');
   function apply() {
-    navCats.forEach(function (a) {
-      var c = (a.getAttribute('href') || '').split('cat=')[1] || '';
-      a.classList.toggle('on', decodeURIComponent(c) === cat);
-    });
     if (postsPill) postsPill.classList.toggle('on', cat === 'all');
     var shown = 0;
     cards.forEach(function (c) {
