@@ -218,6 +218,9 @@ page = f'''<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(SITE["name"])}</title>
 <meta name="description" content="{html.escape(SITE["tagline"])}">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="canonical" href="{BASE_URL}/">
 <link rel="alternate" type="application/rss+xml" title="{html.escape(SITE["name"])}" href="{BASE_URL}/rss.xml">
 <meta property="og:type" content="website">
@@ -355,6 +358,9 @@ PAGE_SHELL = """<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>@@TITLE@@</title>
 <meta name="description" content="@@DESC@@">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="canonical" href="@@URL@@">
 <link rel="alternate" type="application/rss+xml" title="@@SITENAME@@" href="@@BASE@@/rss.xml">
 <meta property="og:type" content="article">
