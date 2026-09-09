@@ -100,5 +100,3 @@ If you've got loop protect turned on, confirm the action is set to TX disable (`
 A VSX upgrade is hitless for anything with two legs and an outage for anything with one. The orchestration handles the sequencing, the link-up delay handles the tables, and neither of them can invent a redundant path you didn't build.
 
 So before the next window, go find your orphan ports and go look at your link-up delay timer. Those two things account for basically every "the upgrade was supposed to be seamless" conversation I've had this year.
-
-If you've got a pair coming up and you want a second set of eyes on the port map first, get in touch and we'll go through it.

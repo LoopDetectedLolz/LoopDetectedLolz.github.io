@@ -83,5 +83,3 @@ In this case the poster couldn't do that. The two networks were physically separ
 ## Bottom line
 
 The instinct to test on one AP is the right instinct. The virtual controller just doesn't offer that option unless you build it a cluster of one. Everything else about the plan was fine, and the poster ended up running exactly this: one isolated AP, then the rest.
-
-If you have an Instant to Campus conversion coming and you want a second set of eyes on the plan before the window, get in touch and we'll walk it.

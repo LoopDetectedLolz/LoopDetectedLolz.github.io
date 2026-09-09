@@ -98,5 +98,3 @@ One more setting worth knowing on the SSO page while you're building this for MF
 ## Bottom line
 
 SAML everywhere you can, RADIUS and TACACS+ where you must. That was the consensus on the thread and I agree with it. Just know that on ClearPass, SAML is two builds, not one, and the second one is the one that gives you a role.
-
-If you've got admin MFA on the security team's list and you'd rather not find gate 3 the hard way, get in touch.

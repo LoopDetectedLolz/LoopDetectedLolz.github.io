@@ -61,5 +61,3 @@ I've been doing this long enough to treat the survey as the source of truth, and
 Same shape as a packet capture on the wrong VLAN, or a monitoring system that's been quietly failing to poll a device for six months. The dashboard is green because nothing is reporting, and nothing reporting looks exactly like nothing wrong.
 
 When the measurements and the complaints disagree, it's worth one round of asking what the measurement isn't covering before deciding the users are imagining it. On this floor the users were right and my heatmap was wrong, and it took a stuck laptop and a 49-minute association to talk me into checking.
-
-If you hit one of these and want a second set of eyes, grab me and we'll figure it out.

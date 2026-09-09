@@ -4,7 +4,7 @@
 Design system: theme/style.css and theme/app.js, per DESIGN-KIT.md.
 Usage: python3 build-blog.py   ->  index.html, p/<slug>.html, socials.html, og/, sitemap, rss
 """
-import os, re, sys, glob, html, json, datetime, subprocess, textwrap, email.utils
+import os, re, sys, glob, html, json, datetime, subprocess, shutil, textwrap, email.utils
 
 try:
     import markdown
@@ -78,6 +78,7 @@ featured = posts[0]
 
 # ── categories, sources ─────────────────────────────────────────────────────
 CAT_MAP = {"clearpass": "NAC", "process": "Docs", "documentation": "Docs", "switching": "Switching", "wireless": "Wireless"}
+CAT_CLASS = {"Wireless": "c-green", "NAC": "c-blue", "Lab": "c-red"}
 def category(p):
     if any(t.lower() in ("survey", "ekahau") for t in p["tags"]):
         return "RF survey"
@@ -91,6 +92,8 @@ def source(p):
     return "Field note"
 for p in posts:
     p["cat"] = category(p); p["src"] = source(p)
+    if p["src"] == "Lab build": p["cat"] = "Lab"
+    p["ccls"] = CAT_CLASS.get(p["cat"], "")
 from collections import Counter
 _cnt = Counter(p["cat"] for p in posts)
 CATS = [c for c, _ in _cnt.most_common()]
@@ -111,7 +114,7 @@ def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False)
     root = up or "/"
     nav = ('<a class="pill%s" href="%s">Posts</a>' % (" on" if active == "posts" else "", root))
     for c in NAV_CATS:
-        nav += '<a class="pill cat" href="%sindex.html#cat=%s">%s</a>' % (up, E(c), E(c))
+        nav += '<a class="pill cat %s" href="%sindex.html#cat=%s">%s</a>' % (CAT_CLASS.get(c, ""), up, E(c), E(c))
     nav += '<a class="pill%s" href="%sabout.html">About</a>' % (" on" if active == "about" else "", up)
     if search:
         nav += '<a class="pill outline" id="search-toggle" href="#search" aria-label="Search">%s<span>Search</span></a>' % ICO_SEARCH
@@ -151,7 +154,9 @@ def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False)
 </div></div></header>
 <main class="wrap">'''
 
-FOOT = f'''</main>
+def foot(bot, up=""):
+    return f'''</main>
+<a class="rig" href="{up}socials.html" data-origin="genie" aria-label="Where else to find me"><img src="{up}character/{bot}" alt="" width="104" height="104"></a>
 <footer><div class="wrap">
   <span>&copy; {year} {E(SITE["author"])}. Personal site. Configs are placeholders; customers are never named.</span>
   <span><a href="/rss.xml">RSS</a></span>
@@ -160,10 +165,11 @@ FOOT = f'''</main>
 <script>{JS}</script>
 </body></html>'''
 
-def card(p):
+def card(p, featured=False):
     text = (p["title"] + " " + p["summary"] + " " + " ".join(p["tags"])).lower()
-    return f'''<a class="card g-card" href="p/{p["slug"]}.html" data-origin="zoom" data-rise data-cat="{E(p["cat"])}" data-text="{E(text)}">
-  <div class="card-top"><span class="tag">{E(p["cat"])}</span><span class="meta">{E(p["date_obj"].strftime("%b %d").replace(" 0"," "))}</span></div>
+    # the featured post already sits in the hero; its card only appears once a filter or search is active
+    return f'''<a class="card g-card{" hidden" if featured else ""}" href="p/{p["slug"]}.html" data-origin="zoom" data-rise data-cat="{E(p["cat"])}" data-text="{E(text)}"{" data-featured" if featured else ""}>
+  <div class="card-top"><span class="tag {p["ccls"]}">{E(p["cat"])}</span><span class="meta">{E(p["date_obj"].strftime("%b %d").replace(" 0"," "))}</span></div>
   <h3 class="h-card">{E(p["title"])}</h3>
   <p>{E(p["summary"])}</p>
   <div class="card-foot"><span class="src">{ICO_CHAT}{E(p["src"])}</span><b>{p["readtime"]} min</b></div>
@@ -172,8 +178,8 @@ def card(p):
 # ── index ───────────────────────────────────────────────────────────────────
 index = head(SITE["name"], SITE["tagline"], BASE_URL + "/", BASE_URL + "/og/home.png", search=True)
 chips = '<span class="chip on" data-cat="all">All</span>' + "".join(
-    '<span class="chip" data-cat="%s">%s</span>' % (E(c), E(c)) for c in CATS)
-cards = "".join(card(p) for p in posts[1:])
+    '<span class="chip %s" data-cat="%s">%s</span>' % (CAT_CLASS.get(c, ""), E(c), E(c)) for c in CATS)
+cards = card(posts[0], featured=True) + "".join(card(p) for p in posts[1:])
 index += f'''
 <section class="hero g-hero rise" data-view="pop">
   <div class="sheen"></div><div class="glow"></div>
@@ -190,7 +196,6 @@ index += f'''
 
 <section>
   <div class="grid" id="posts">
-    <img class="bot" src="character/nfn-bot-survey.svg" alt="" width="104" height="104" style="top:-52px;left:min(25%,300px)">
     {cards}
   </div>
   <div class="empty">Nothing matches that. Try a broader word, or clear the filter.</div>
@@ -198,16 +203,11 @@ index += f'''
 
 <section class="band g-card" data-rise>
   <div>
-    <h3>Where else to find me</h3>
+    <h3>Field notes, not a newsletter</h3>
     <p>{E(SITE["tagline"])}</p>
   </div>
-  <div class="row">
-    <a class="btn" href="{SITE["linkedin"]}" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-    <a class="btn" href="{SITE["airheads"]}" target="_blank" rel="noopener noreferrer">HPE Airheads</a>
-  </div>
-  <a class="bot-link bot-link--top" href="socials.html" data-origin="genie" aria-label="Where else to find me"><img class="bot" src="character/nfn-bot-wave.svg" alt="" width="104" height="104"></a>
 </section>
-''' + FOOT
+''' + foot("nfn-bot-wave.svg")
 open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8").write(index)
 
 # ── post pages ──────────────────────────────────────────────────────────────
@@ -233,7 +233,7 @@ for i, p in enumerate(posts):
   <div class="backbar"><a class="btn" href="../">{ICO_BACK}&nbsp;All posts</a></div>
   <article>
     <header class="post-head g-hero" data-view="zoom">
-      <div class="row" style="margin:0"><span class="tag">{E(p["cat"])}</span><span class="meta">{E(p["date_h"])} &#183; {p["readtime"]} min</span></div>
+      <div class="row" style="margin:0"><span class="tag {p["ccls"]}">{E(p["cat"])}</span><span class="meta">{E(p["date_h"])} &#183; {p["readtime"]} min</span></div>
       <h1 class="h-hero">{E(p["title"])}</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -242,14 +242,12 @@ for i, p in enumerate(posts):
       <div class="prose">{p["html"]}</div>
     </div>
     <section class="end g-card" data-rise>
-      <h3>Found this useful?</h3>
-      <p>Corrections welcome. Find me on Airheads and tell me where I got it wrong.</p>
+      <h3>More field notes</h3>
       <div class="postnav">{nav}</div>
-      <a class="bot-link" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img class="bot" src="../character/{p["bot"]}" alt="" width="104" height="104"></a>
     </section>
   </article>
 </div>
-''' + FOOT
+''' + foot(p["bot"], "../")
     open(os.path.join(ROOT, "p", p["slug"] + ".html"), "w", encoding="utf-8").write(page)
 
 # ── about ───────────────────────────────────────────────────────────────────
@@ -257,19 +255,17 @@ about = head("About · " + SITE["name"], "Who writes Network Field Notes and why
 about += f'''
 <div class="narrow">
   <section class="about g-hero" data-view="pop" style="position:relative">
-    <img class="bot bot--top-right" src="character/nfn-bot-wave.svg" alt="" width="104" height="104">
     <div><span class="eyebrow">About</span><h1 class="h-hero" style="margin-top:14px">{E(SITE["author"])}</h1>
     <p class="lede" style="margin-top:10px">{E(SITE["role"])}</p></div>
     <div class="prose">
       <p>I design, migrate, and fix campus networks for a living: HPE Aruba Networking wireless and switching, ClearPass and NAC, Juniper Mist, and the Ekahau surveys that decide where the APs actually go. Twenty-some years of it, most of that in New England, currently as Lead Mobility Engineer on the Campus and Mobility team at WEI.</p>
       <p>This site is mine. The opinions are mine, the mistakes are mine, and the configs are scrubbed placeholders, so don't paste them anywhere you care about without reading them first. Customers are never named. Forum posters are only ever "somebody."</p>
-      <p>I spend a lot of evenings on HPE Airheads answering the same questions in different clothes, which is where most of these posts come from. If you've got a plan with a trap in it, a doc that contradicts itself, or a room full of APs that "feel slow," I'd like to hear about it.</p>
+      <p>I spend a lot of evenings on HPE Airheads answering the same questions in different clothes, which is where most of these posts come from.</p>
     </div>
     <div class="chips">{"".join('<span class="tag">%s</span>' % E(c) for c in ["HPE Aruba Networking","AOS-CX","AOS-8 / AOS-10","ClearPass","Central","Juniper Mist","Ekahau","Wi-Fi 6E / 7","EVPN-VXLAN"])}</div>
-    <div class="row"><a class="btn cta" href="{SITE["airheads"]}" target="_blank" rel="noopener noreferrer">Find me on Airheads</a><a class="btn" href="{SITE["linkedin"]}" target="_blank" rel="noopener noreferrer">LinkedIn</a></div>
   </section>
 </div>
-''' + FOOT
+''' + foot("nfn-bot-wave.svg")
 open(os.path.join(ROOT, "about.html"), "w", encoding="utf-8").write(about)
 
 # ── socials (genie target) ──────────────────────────────────────────────────
@@ -279,19 +275,27 @@ soc = head("Elsewhere · " + SITE["name"], "Where to find Dustin Burns online.",
 soc += '''
 <div class="narrow">
 <section class="about g-hero" data-view="genie" style="position:relative">
-  <img class="bot bot--bottom-right" src="character/nfn-bot-wave.svg" alt="" width="104" height="104">
   <div><span class="eyebrow">Elsewhere</span><h1 class="h-hero" style="margin-top:14px">Where to find me</h1>
-  <p class="lede" style="margin-top:10px">Two places worth your time. Both get answered.</p></div>
+  <p class="lede" style="margin-top:10px">Two places worth your time.</p></div>
   <div class="socials">''' + "".join(
     f'''<a class="social g-card" href="{u}" target="_blank" rel="noopener noreferrer" data-rise>
       <span class="social-ico eyebrow">{E(ic)}</span><span><b>{E(n)}</b><span>{E(d)}</span></span></a>''' for n, d, u, ic in SOCIALS) + '''
   </div>
 </section>
 </div>
-''' + FOOT
+''' + foot("nfn-bot-wave.svg")
 open(os.path.join(ROOT, "socials.html"), "w", encoding="utf-8").write(soc)
 
 # ── social preview cards ────────────────────────────────────────────────────
+HAVE_RSVG = shutil.which("rsvg-convert") is not None
+if not HAVE_RSVG:
+    print("WARN: rsvg-convert not found; keeping the existing PNGs in og/ (install librsvg to regenerate them)")
+
+def rasterize(svg, png, w, h):
+    """SVG -> PNG. Skips quietly when no rasterizer is on this machine so the HTML build still completes."""
+    if HAVE_RSVG:
+        subprocess.run(["rsvg-convert", "-w", str(w), "-h", str(h), svg, "-o", png], check=True)
+
 def og_card(title, eyebrow, path):
     lines = textwrap.wrap(title, 26)[:4]
     y0 = 300 - (len(lines) - 1) * 37
@@ -316,18 +320,21 @@ def og_card(title, eyebrow, path):
            '<text x="80" y="556" fill="#B0C4CF" font-family="Helvetica Neue,Helvetica,Arial,sans-serif" '
            'font-size="27">' + E(SITE["author"]) + '  &#183;  ' + E(SITE["name"]) + '</text>'
            '<rect x="80" y="576" width="120" height="5" fill="#8CE05E"/></svg>')
-    tmp = os.path.join(ROOT, "_og_tmp.svg")
-    open(tmp, "w", encoding="utf-8").write(doc)
-    subprocess.run(["rsvg-convert", "-w", "1200", "-h", "630", tmp, "-o", path], check=True)
-    os.remove(tmp)
+    if not HAVE_RSVG:
+        return
+    import tempfile
+    with tempfile.NamedTemporaryFile("w", suffix=".svg", encoding="utf-8", delete=False) as fh:
+        fh.write(doc); tmp = fh.name
+    try:
+        rasterize(tmp, path, 1200, 630)
+    finally:
+        os.remove(tmp)
 
 for p in posts:
     og_card(p["title"], p["tags"][0] if p["tags"] else "Field note",
             os.path.join(ROOT, "og", p["slug"] + ".png"))
 og_card(SITE["tagline"][:110], "Field notes", os.path.join(ROOT, "og", "home.png"))
-subprocess.run(["rsvg-convert", "-w", "180", "-h", "180",
-                os.path.join(ROOT, "logo", "nfn-favicon.svg"),
-                "-o", os.path.join(ROOT, "apple-touch-icon.png")], check=True)
+rasterize(os.path.join(ROOT, "logo", "nfn-favicon.svg"), os.path.join(ROOT, "apple-touch-icon.png"), 180, 180)
 
 # ── sitemap, feed, housekeeping ─────────────────────────────────────────────
 urls = ['<url><loc>%s/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>' % BASE_URL,
