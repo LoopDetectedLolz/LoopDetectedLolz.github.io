@@ -1,18 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="84 percent of uplink frames were mDNS; airtime cost by basic rate">
   <defs><style>
-    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}
-    .lbl{fill:#8A99AB;font-size:13px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}
-    .mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .lbl{fill:#B0C4CF;font-size:13px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
   </style></defs>
-  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
   <text x="30" y="36" class="t eyebrow">ONE UPLINK, FIVE MINUTES FIFTY-TWO SECONDS</text>
   <text x="30" y="66" class="t big">269,253 mDNS frames. 765 per second. 84% of everything on the wire.</text>
   <!-- donut -->
   <g transform="translate(150,205)">
-    <circle r="78" fill="none" stroke="#243040" stroke-width="26"/>
-    <circle r="78" fill="none" stroke="#F0705F" stroke-width="26" stroke-dasharray="412 490" transform="rotate(-90)" stroke-linecap="butt"/>
-    <text y="-4" text-anchor="middle" class="t" fill="#fff" font-size="34" font-weight="800">84%</text>
+    <circle r="78" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="26"/>
+    <circle r="78" fill="none" stroke="#8BA2AE" stroke-width="26" stroke-dasharray="412 490" transform="rotate(-90)" stroke-linecap="butt"/>
+    <text y="-4" text-anchor="middle" class="t" fill="#EAF2F6" font-size="34" font-weight="800">84%</text>
     <text y="20" text-anchor="middle" class="t lbl">mDNS v4 + v6</text>
   </g>
   <text x="150" y="318" text-anchor="middle" class="t lbl">Everything else: 16%</text>
@@ -20,21 +19,21 @@
   <g class="t" transform="translate(320,110)">
     <text x="0" y="0" class="lbl">Channel time eaten at 765 pps, by 5 GHz basic rate</text>
     <g transform="translate(0,22)">
-      <text x="0" y="24" fill="#fff" font-size="14">6 Mbps</text><text x="70" y="24" class="lbl" font-size="11">(default)</text>
-      <rect x="130" y="8" width="400" height="22" rx="4" fill="#F0705F"/><text x="540" y="24" fill="#F0705F" font-size="14" font-weight="700">~40%</text>
+      <text x="0" y="24" fill="#EAF2F6" font-size="14">6 Mbps</text><text x="70" y="24" class="lbl" font-size="11">(default)</text>
+      <rect x="130" y="8" width="400" height="22" rx="4" fill="#8BA2AE"/><text x="540" y="24" fill="#8BA2AE" font-size="14" font-weight="700">~40%</text>
     </g>
     <g transform="translate(0,62)">
-      <text x="0" y="24" fill="#fff" font-size="14">12 Mbps</text>
-      <rect x="130" y="8" width="250" height="22" rx="4" fill="#E0B34E"/><text x="390" y="24" fill="#E0B34E" font-size="14" font-weight="700">~25%</text>
+      <text x="0" y="24" fill="#EAF2F6" font-size="14">12 Mbps</text>
+      <rect x="130" y="8" width="250" height="22" rx="4" fill="#5ED2DA"/><text x="390" y="24" fill="#5ED2DA" font-size="14" font-weight="700">~25%</text>
     </g>
     <g transform="translate(0,102)">
-      <text x="0" y="24" fill="#fff" font-size="14">24 Mbps</text>
-      <rect x="130" y="8" width="170" height="22" rx="4" fill="#8FDB69"/><text x="310" y="24" fill="#8FDB69" font-size="14" font-weight="700">~17%</text>
+      <text x="0" y="24" fill="#EAF2F6" font-size="14">24 Mbps</text>
+      <rect x="130" y="8" width="170" height="22" rx="4" fill="#8CE05E"/><text x="310" y="24" fill="#8CE05E" font-size="14" font-weight="700">~17%</text>
     </g>
     <g transform="translate(0,150)">
-      <rect x="0" y="0" width="540" height="52" rx="8" fill="#141C26" stroke="#243040"/>
+      <rect x="0" y="0" width="540" height="52" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
       <text x="14" y="21" class="lbl">2.4 GHz at the 1 Mbps default needs:</text>
-      <text x="14" y="42" fill="#F0705F" font-size="13" font-weight="700">2.3 s of airtime per wall-clock second. The radio just drops things.</text>
+      <text x="14" y="42" fill="#8BA2AE" font-size="13" font-weight="700">2.3 s of airtime per wall-clock second. The radio just drops things.</text>
     </g>
   </g>
 </svg>

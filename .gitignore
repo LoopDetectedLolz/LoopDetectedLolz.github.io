@@ -15,3 +15,7 @@ _og_tmp.svg
 *.pre-multipage
 
 .DS_Store
+.preview/
+graphics/.pre-glass/
+theme/style.v1.css
+build-blog.py.preglass

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Two lanes: an authentication lane using an Intune SCEP certificate with EAP-TLS and OCSP, and an authorization lane using Intune context, joined by keying the lookup on the certificate instead of the MAC address">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
+    .bx{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}.bt{fill:#fff;font-size:13px;font-weight:600}
+  </style>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#B0C4CF"/></marker>
+  <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker></defs>
+  <text x="30" y="36" class="t eyebrow">TWO QUESTIONS AT THE RADIUS SERVER. MOST BUILDS ANSWER ONE.</text>
+  <text x="30" y="66" class="t big">Intune answers what it's allowed to do. Never who it is.</text>
+
+  <!-- authentication lane -->
+  <text x="30" y="112" class="t eyebrow">AUTHENTICATION</text>
+  <g class="t">
+    <rect x="30"  y="124" width="160" height="42" rx="8" class="bx"/><text x="110" y="150" text-anchor="middle" class="bt">TPM-bound cert</text>
+    <rect x="216" y="124" width="120" height="42" rx="8" class="bx"/><text x="276" y="150" text-anchor="middle" class="bt">EAP-TLS</text>
+    <rect x="362" y="124" width="150" height="42" rx="8" class="bx"/><text x="437" y="150" text-anchor="middle" class="bt">chain + OCSP</text>
+    <rect x="538" y="124" width="150" height="42" rx="8" fill="#8CE05E"/><text x="613" y="150" text-anchor="middle" fill="#06202A" font-size="13" font-weight="700">identity proven</text>
+    <line x1="190" y1="145" x2="214" y2="145" stroke="#B0C4CF" marker-end="url(#arr)"/>
+    <line x1="336" y1="145" x2="360" y2="145" stroke="#B0C4CF" marker-end="url(#arr)"/>
+    <line x1="512" y1="145" x2="536" y2="145" stroke="#B0C4CF" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- the join -->
+  <line x1="110" y1="168" x2="110" y2="234" stroke="#8CE05E" stroke-width="2" marker-end="url(#arrg)"/>
+  <text x="124" y="196" class="t" fill="#8CE05E" font-size="12" font-weight="600">key the authorization lookup</text>
+  <text x="124" y="212" class="t" fill="#8CE05E" font-size="12" font-weight="600">on the certificate, not the MAC</text>
+
+  <!-- authorization lane -->
+  <text x="30" y="228" class="t eyebrow" fill="#5ED2DA">AUTHORIZATION</text>
+  <g class="t">
+    <rect x="30"  y="238" width="160" height="42" rx="8" class="bx"/><text x="110" y="264" text-anchor="middle" class="bt">Intune lookup</text>
+    <rect x="216" y="238" width="180" height="42" rx="8" class="bx"/><text x="306" y="264" text-anchor="middle" class="bt">compliant? jailbroken?</text>
+    <rect x="432" y="238" width="150" height="42" rx="8" fill="#5ED2DA"/><text x="507" y="264" text-anchor="middle" fill="#06202A" font-size="13" font-weight="700">role / VLAN</text>
+    <line x1="190" y1="259" x2="214" y2="259" stroke="#B0C4CF" marker-end="url(#arr)"/>
+    <line x1="396" y1="259" x2="430" y2="259" stroke="#B0C4CF" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- the usual build -->
+  <rect x="592" y="232" width="278" height="56" rx="8" fill="rgba(3,10,16,0.55)" stroke="#8BA2AE"/>
+  <text x="606" y="256" class="t" fill="#8BA2AE" font-size="12.5" font-weight="700">The usual build keys this on MAC</text>
+  <text x="606" y="276" class="t lbl">Spoofable, and randomization breaks it</text>
+
+  <text x="30" y="316" class="t mono" fill="#8CE05E">OCSP: Required, not Optional. Optional is a revocation check an attacker turns off.</text>
+</svg>

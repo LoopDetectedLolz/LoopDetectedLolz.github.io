@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Your ClearPass Intune Integration Probably Authenticates Nothing</title>
+<meta name="description" content="Most ClearPass and Intune builds look up a MAC address and call the result authentication. Here&#x27;s a full lab build that fixes that, with SCEP, OCSP, jailbreak checks, quarantine and a revocation test you can actually run.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/clearpass-intune-eap-tls-lab.html">
+<link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
+<meta property="og:site_name" content="Network Field Notes">
+<meta property="og:title" content="Your ClearPass Intune Integration Probably Authenticates Nothing">
+<meta property="og:description" content="Most ClearPass and Intune builds look up a MAC address and call the result authentication. Here&#x27;s a full lab build that fixes that, with SCEP, OCSP, jailbreak checks, quarantine and a revocation test you can actually run.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/clearpass-intune-eap-tls-lab.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/clearpass-intune-eap-tls-lab.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Your ClearPass Intune Integration Probably Authenticates Nothing">
+<meta name="twitter:description" content="Most ClearPass and Intune builds look up a MAC address and call the result authentication. Here&#x27;s a full lab build that fixes that, with SCEP, OCSP, jailbreak checks, quarantine and a revocation test you can actually run.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/clearpass-intune-eap-tls-lab.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-09"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your ClearPass Intune Integration Probably Authenticates Nothing", "description": "Most ClearPass and Intune builds look up a MAC address and call the result authentication. Here's a full lab build that fixes that, with SCEP, OCSP, jailbreak checks, quarantine and a revocation test you can actually run.", "datePublished": "2026-09-09", "image": "https://networkfieldnotes.com/og/clearpass-intune-eap-tls-lab.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/clearpass-intune-eap-tls-lab.html", "keywords": "ClearPass, Intune, EAP-TLS, NAC"}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
+:root{
+  --ink:#061019; --navy:#0E2A3C; --blue:#2FA8E0; --blue-light:#4FBDEA;
+  --teal:#5ED2DA; --green:#8CE05E; --text:#EAF2F6; --text-dim:#B0C4CF; --text-muted:#8BA2AE;
+  --solid:rgba(3,10,16,0.55); --line:rgba(255,255,255,0.10);
+  --r-pill:999px; --r-inner:16px; --r-chrome:22px; --r-card:26px; --r-hero:32px;
+  --s1:6px; --s2:10px; --s3:14px; --s4:20px; --s5:24px; --s6:28px; --s7:44px;
+  --gutter:20px; --maxw:1120px; --measure:68ch;
+  --ease:cubic-bezier(0.32,0.72,0,1);
+  --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0;overflow-x:hidden;overscroll-behavior-y:none}
+body{min-height:100vh;min-height:100svh;background:var(--ink);color:var(--text);font-family:var(--sans);
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.ground{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+  radial-gradient(900px 620px at 12% -6%,rgba(47,168,224,0.42),transparent 62%),
+  radial-gradient(760px 560px at 88% 8%,rgba(140,224,94,0.26),transparent 60%),
+  radial-gradient(1000px 700px at 60% 108%,rgba(23,138,168,0.34),transparent 62%),var(--ink)}
+.page{position:relative;z-index:1}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(var(--gutter),env(safe-area-inset-left));padding-right:max(var(--gutter),env(safe-area-inset-right))}
+.narrow{max-width:900px;margin:0 auto}
+
+/* glass: three levels, never nested */
+.g-chrome{background:rgba(255,255,255,0.07);-webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.16);border-radius:var(--r-chrome);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),inset 0 -1px 0 rgba(255,255,255,0.06),0 18px 44px -22px rgba(0,0,0,0.8)}
+.g-card{background:rgba(255,255,255,0.065);-webkit-backdrop-filter:blur(26px) saturate(175%);backdrop-filter:blur(26px) saturate(175%);
+  border:1px solid rgba(255,255,255,0.14);border-radius:var(--r-card);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 26px 54px -30px rgba(0,0,0,0.8)}
+.g-hero{background:rgba(255,255,255,0.075);-webkit-backdrop-filter:blur(34px) saturate(185%);backdrop-filter:blur(34px) saturate(185%);
+  border:1px solid rgba(255,255,255,0.17);border-radius:var(--r-hero);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.3),0 40px 80px -34px rgba(0,0,0,0.85)}
+.panel{background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+
+/* type */
+h1,h2,h3{margin:0;letter-spacing:-0.025em;text-wrap:pretty;font-weight:700}
+p{text-wrap:pretty;margin:0}
+.eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.16em;color:var(--text-muted)}
+.h-hero{font-size:clamp(30px,6vw,46px);line-height:1.06;letter-spacing:-0.035em}
+.h-card{font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-0.02em}
+.meta{font-family:var(--mono);font-size:13px;color:var(--text-muted)}
+.dim{color:var(--text-dim)}
+a{color:#a9ea82;text-decoration:none}
+a:hover{color:#cbf4b3}
+
+/* header */
+.hdr{position:sticky;top:var(--s4);z-index:40;margin:var(--s4) 0 var(--s6)}
+.hdr-in{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2);padding:var(--s2) var(--s3) var(--s2) var(--s3);
+  transition:background 320ms var(--ease),transform 320ms var(--ease),box-shadow 320ms var(--ease)}
+.hdr.scrolled .hdr-in{background:rgba(255,255,255,0.11);transform:scale(0.985);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 22px 54px -22px rgba(0,0,0,0.9)}
+.brand{display:flex;align-items:center;gap:var(--s2);min-height:44px;color:var(--text);font-weight:700;font-size:17px;letter-spacing:-0.02em}
+.brand:hover{color:var(--text)}
+.brand .mk{width:38px;height:38px;border-radius:12px;background:var(--solid);border:1px solid var(--line);display:grid;place-items:center}
+.brand .mk img{width:26px;height:26px;display:block}
+.brand .wm{white-space:nowrap}
+.nav{margin-left:auto;display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 var(--s3);border-radius:var(--r-pill);
+  border:1px solid transparent;color:var(--text-dim);font-size:15px;font-weight:500;
+  transition:transform 180ms var(--ease),background 220ms var(--ease),color 220ms var(--ease)}
+.pill:hover{color:var(--text);background:rgba(255,255,255,0.06)}
+.pill:active{transform:scale(0.94)}
+.pill.on{background:linear-gradient(180deg,rgba(255,255,255,0.55),rgba(255,255,255,0) 55%),var(--green);color:#06202A;font-weight:700;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.65),0 10px 24px -12px rgba(140,224,94,0.8)}
+.pill.on:hover{color:#06202A}
+.pill.soft{background:rgba(255,255,255,0.10);color:var(--text)}
+.pill.outline{border-color:rgba(255,255,255,0.16);background:rgba(255,255,255,0.05);font-family:var(--sans);color:var(--text-muted)}
+.pill.outline svg{width:15px;height:15px}
+.search{display:none;margin:var(--s3) 0 0;width:100%}
+.search input{width:100%;min-height:44px;font:16px var(--sans);color:var(--text);background:var(--solid);border:1px solid var(--line);
+  border-radius:var(--r-pill);padding:0 var(--s4);outline:none}
+.search input:focus{border-color:rgba(79,189,234,0.55)}
+.search.open{display:block}
+
+/* status + category pills */
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--blue-light);border:1px solid rgba(79,189,234,0.45);background:rgba(47,168,224,0.10);border-radius:var(--r-pill);padding:5px 12px;white-space:nowrap}
+.tag.green{color:#bdf29c;border-color:rgba(140,224,94,0.45);background:rgba(140,224,94,0.10)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(140,224,94,0.18)}
+
+/* hero = featured post */
+.hero{position:relative;overflow:hidden;padding:var(--s7) var(--s7) var(--s6);margin-bottom:var(--s6)}
+.hero .h-hero{margin:var(--s4) 0 var(--s3);max-width:20ch}
+.hero .lede{max-width:var(--measure)}
+.lede{color:var(--text-dim);font-size:18px;line-height:1.55}
+.sheen{position:absolute;top:-40%;left:0;width:38%;height:180%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,0.13),transparent);filter:blur(14px);animation:nfnSheen 7s linear infinite}
+.glow{position:absolute;right:-8%;top:-30%;width:55%;height:160%;pointer-events:none;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(255,255,255,0.10),transparent 70%)}
+.row{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;margin-top:var(--s5)}
+.btn{display:inline-flex;align-items:center;min-height:46px;padding:0 var(--s5);border-radius:var(--r-pill);
+  border:1px solid rgba(255,255,255,0.16);background:rgba(255,255,255,0.06);color:var(--text);font-weight:600;font-size:16px;
+  transition:transform 180ms var(--ease),background 220ms var(--ease)}
+.btn:hover{background:rgba(255,255,255,0.11);color:var(--text)}
+.btn:active{transform:scale(0.94)}
+.btn.cta{background:linear-gradient(180deg,rgba(255,255,255,0.55),rgba(255,255,255,0) 55%),var(--green);color:#06202A;border-color:transparent;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.65),0 14px 30px -14px rgba(140,224,94,0.9)}
+.btn.cta:hover{color:#06202A}
+
+/* filter */
+.filter{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;margin:0 0 var(--s5)}
+.filter .eyebrow{margin-right:var(--s1)}
+.chip{display:inline-flex;align-items:center;min-height:38px;padding:0 var(--s3);border-radius:var(--r-pill);border:1px solid rgba(255,255,255,0.16);
+  background:rgba(255,255,255,0.05);color:var(--text-dim);font-size:14px;font-weight:500;cursor:pointer;
+  transition:transform 180ms var(--ease),background 220ms var(--ease),color 220ms var(--ease)}
+.chip:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.chip:active{transform:scale(0.94)}
+.chip.on{background:rgba(255,255,255,0.14);color:var(--text);border-color:rgba(255,255,255,0.28)}
+
+/* cards */
+.grid{margin-top:var(--s7);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:var(--s4);position:relative}
+.card{position:relative;display:flex;flex-direction:column;gap:var(--s3);padding:var(--s5);color:var(--text);
+  transition:transform 260ms var(--ease),background 260ms var(--ease)}
+.card:hover{color:var(--text)}
+.card:active{transform:scale(0.975)}
+@media (hover:hover){.card:hover{transform:translateY(-4px);background:rgba(255,255,255,0.10)}}
+.card.hidden{display:none}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)}
+.card .h-card{margin:var(--s1) 0 0}
+.card p{color:var(--text-dim);font-size:15px;line-height:1.55}
+.card-foot{margin-top:auto;padding-top:var(--s3);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:var(--s2);
+  font-family:var(--mono);font-size:12.5px;color:var(--text-muted)}
+.card-foot b{color:var(--green);font-weight:600}
+.src{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:14px;color:var(--text-dim)}
+.src svg{width:14px;height:14px;color:var(--green)}
+.empty{display:none;padding:var(--s7) var(--s5);text-align:center;color:var(--text-muted)}
+.empty.show{display:block}
+
+/* bottom band */
+.band{position:relative;margin-top:var(--s7);padding:var(--s6) var(--s6);display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}
+.band h3{font-size:22px;letter-spacing:-0.02em}
+.band p{color:var(--text-dim);margin-top:4px}
+.band .row{margin-top:0}
+
+/* post page */
+.backbar{margin:0 0 var(--s4)}
+.post-head{padding:var(--s7) var(--s7) var(--s6)}
+.post-head .h-hero{margin:var(--s4) 0 0;max-width:24ch}
+.post-body{padding:var(--s7);margin-top:var(--s4)}
+.prose{max-width:var(--measure);font-size:16.5px;line-height:1.65}
+.prose h2{font-size:26px;margin:var(--s7) 0 var(--s3);letter-spacing:-0.03em}
+.prose h2:first-child{margin-top:0}
+.prose h3{font-size:19px;margin:var(--s6) 0 var(--s2);font-weight:600}
+.prose p{margin:0 0 var(--s4)}
+.prose strong{color:#fff}
+.prose ul,.prose ol{margin:0 0 var(--s4);padding-left:var(--s4)}
+.prose li{margin:var(--s1) 0}
+.prose blockquote,.callout{margin:0 0 var(--s4);padding:var(--s3) var(--s4);border:1px solid rgba(140,224,94,0.45);
+  background:rgba(140,224,94,0.08);border-radius:var(--r-inner);color:#e6f6db}
+.prose blockquote p:last-child{margin:0}
+.prose pre{background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);padding:var(--s4) var(--s5);overflow-x:auto;
+  -webkit-overflow-scrolling:touch;margin:0 0 var(--s4)}
+.prose code,.prose pre{font-family:var(--mono);font-size:14px;line-height:1.7}
+.prose :not(pre)>code{background:var(--solid);border:1px solid var(--line);border-radius:8px;padding:1px 6px;color:var(--green);font-size:0.88em}
+.prose pre code{background:none;border:0;padding:0;color:#D3E3EC}
+.prose table{width:100%;border-collapse:collapse;margin:0 0 var(--s4);font-size:14.5px;display:block;overflow-x:auto}
+.prose th{background:var(--solid);color:var(--blue-light);text-align:left;padding:var(--s2) var(--s3);border:1px solid var(--line);font-family:var(--mono);font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase}
+.prose td{padding:var(--s2) var(--s3);border:1px solid var(--line);vertical-align:top;color:var(--text-dim)}
+.figure{margin:0 0 var(--s5);padding:var(--s4);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.figure svg{display:block;width:100%;height:auto;min-width:0}
+.origin{margin:0 0 var(--s5)}
+.origin .eyebrow{display:block;color:var(--teal);margin-bottom:4px}
+.end{position:relative;margin-top:var(--s4);padding:var(--s6) var(--s7)}
+.end h3{font-size:22px}
+.end p{color:var(--text-dim);margin-top:4px}
+.postnav{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--s3);margin-top:var(--s4)}
+.pn{padding:var(--s3) var(--s4);color:var(--text);font-weight:600;font-size:15px;transition:transform 180ms var(--ease),background 220ms var(--ease)}
+.pn:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.pn:active{transform:scale(0.975)}
+.pn .eyebrow{display:block;margin-bottom:2px}
+
+/* about + socials */
+.about{padding:var(--s7);display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s5)}
+.about .prose{max-width:var(--measure)}
+.chips{display:flex;gap:var(--s1);flex-wrap:wrap}
+.chips .tag{color:var(--text-dim);border-color:var(--line);background:var(--solid)}
+.socials{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:var(--s4);margin-top:var(--s5)}
+.social{display:flex;align-items:center;gap:var(--s3);padding:var(--s5);color:var(--text);transition:transform 260ms var(--ease),background 260ms var(--ease)}
+.social:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.social:active{transform:scale(0.975)}
+.social b{display:block;font-size:17px}
+.social span{font-size:14px;color:var(--text-muted)}
+.social-ico{width:44px;height:44px;flex:0 0 44px;border-radius:var(--r-inner);background:var(--solid);display:grid;place-items:center;border:1px solid var(--line)}
+
+/* mascot */
+.bot{position:absolute;width:104px;height:auto;pointer-events:none;z-index:5;filter:drop-shadow(0 14px 24px rgba(0,0,0,0.55))}
+.bot--top-right{top:-46px;right:28px}
+.bot--bottom-right{bottom:-34px;right:24px}
+.bot--bottom-left{bottom:-34px;left:24px}
+.bot--peek-top{top:-58px;left:50%;transform:translateX(-50%)}
+.bot-link{position:absolute;bottom:-34px;right:24px;z-index:6;display:block;width:104px;line-height:0;transition:transform 200ms var(--ease)}
+.bot-link .bot{position:static;pointer-events:none}
+.bot-link--top{bottom:auto;top:-46px;right:28px}
+.bot-link:hover{transform:translateY(-4px)}
+.bot-link:active{transform:scale(0.92)}
+@media (prefers-reduced-motion:no-preference){.bot{animation:botFloat 5s ease-in-out infinite}.bot--peek-top{animation:none}}
+@media (max-width:520px){.bot{width:84px}.bot--top-right{top:-38px;right:16px}.bot-link{width:84px}}
+
+footer{padding:var(--s6) 0 var(--s7);color:var(--text-muted);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--s2)}
+
+/* motion */
+@keyframes nfnSheen{0%{transform:translateX(-120%)}100%{transform:translateX(220%)}}
+@keyframes botFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes nfnRise{from{opacity:0;transform:translate3d(0,22px,0) scale(0.985)}to{opacity:1;transform:none}}
+@keyframes nfnPush{from{opacity:0.4;transform:translate3d(28px,0,0)}to{opacity:1;transform:none}}
+@keyframes nfnPop{from{opacity:0.4;transform:translate3d(-22px,0,0)}to{opacity:1;transform:none}}
+@keyframes nfnZoom{from{opacity:0;transform:scale(0.78)}60%{opacity:1}to{opacity:1;transform:none}}
+@keyframes nfnGenie{0%{opacity:0;transform:scale(0.07,0.02) skewX(-14deg)}35%{opacity:1;transform:scale(0.42,0.55) skewX(-7deg)}70%{transform:scale(0.92,1.03) skewX(-1.5deg)}to{opacity:1;transform:none}}
+.rise{animation:nfnRise 520ms var(--ease) both}
+.hero.rise{animation-duration:560ms}
+.zoom{animation:nfnZoom 480ms var(--ease) both;will-change:transform}
+.genie{animation:nfnGenie 560ms var(--ease) both;will-change:transform}
+.pop{animation:nfnPop 420ms var(--ease) both}
+@media (prefers-reduced-motion:reduce){
+  @keyframes nfnRise{from{opacity:0}to{opacity:1}}@keyframes nfnPush{from{opacity:0}to{opacity:1}}@keyframes nfnPop{from{opacity:0}to{opacity:1}}
+  @keyframes nfnZoom{from{opacity:0}to{opacity:1}}@keyframes nfnGenie{from{opacity:0}to{opacity:1}}
+  @keyframes nfnSheen{0%,100%{opacity:0}}@keyframes botFloat{0%,100%{transform:none}}
+}
+
+/* narrow screens */
+@media (max-width:700px){
+  .nav .cat{display:none}
+  .brand .wm{display:none}
+  .hero{padding:var(--s6) var(--s4)}
+  .post-head,.post-body,.about,.end{padding:var(--s6) var(--s4)}
+  .band{padding:var(--s5) var(--s4)}
+}
+</style></head>
+<body>
+<div class="ground"></div>
+<div class="page">
+<header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
+  <a class="brand" href="../"><span class="mk"><img src="../logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
+  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill cat" href="../index.html#cat=Wireless">Wireless</a><a class="pill cat" href="../index.html#cat=NAC">NAC</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  
+</div></div></header>
+<main class="wrap">
+<div class="narrow">
+  <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
+  <article>
+    <header class="post-head g-hero" data-view="zoom">
+      <div class="row" style="margin:0"><span class="tag">NAC</span><span class="meta">Sep 9, 2026 &#183; 23 min</span></div>
+      <h1 class="h-hero">Your ClearPass Intune Integration Probably Authenticates Nothing</h1>
+    </header>
+    <div class="post-body g-card" data-rise>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Two lanes: an authentication lane using an Intune SCEP certificate with EAP-TLS and OCSP, and an authorization lane using Intune context, joined by keying the lookup on the certificate instead of the MAC address">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
+    .bx{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}.bt{fill:#fff;font-size:13px;font-weight:600}
+  </style>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#B0C4CF"/></marker>
+  <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker></defs>
+  <text x="30" y="36" class="t eyebrow">TWO QUESTIONS AT THE RADIUS SERVER. MOST BUILDS ANSWER ONE.</text>
+  <text x="30" y="66" class="t big">Intune answers what it's allowed to do. Never who it is.</text>
+
+  <!-- authentication lane -->
+  <text x="30" y="112" class="t eyebrow">AUTHENTICATION</text>
+  <g class="t">
+    <rect x="30"  y="124" width="160" height="42" rx="8" class="bx"/><text x="110" y="150" text-anchor="middle" class="bt">TPM-bound cert</text>
+    <rect x="216" y="124" width="120" height="42" rx="8" class="bx"/><text x="276" y="150" text-anchor="middle" class="bt">EAP-TLS</text>
+    <rect x="362" y="124" width="150" height="42" rx="8" class="bx"/><text x="437" y="150" text-anchor="middle" class="bt">chain + OCSP</text>
+    <rect x="538" y="124" width="150" height="42" rx="8" fill="#8CE05E"/><text x="613" y="150" text-anchor="middle" fill="#06202A" font-size="13" font-weight="700">identity proven</text>
+    <line x1="190" y1="145" x2="214" y2="145" stroke="#B0C4CF" marker-end="url(#arr)"/>
+    <line x1="336" y1="145" x2="360" y2="145" stroke="#B0C4CF" marker-end="url(#arr)"/>
+    <line x1="512" y1="145" x2="536" y2="145" stroke="#B0C4CF" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- the join -->
+  <line x1="110" y1="168" x2="110" y2="234" stroke="#8CE05E" stroke-width="2" marker-end="url(#arrg)"/>
+  <text x="124" y="196" class="t" fill="#8CE05E" font-size="12" font-weight="600">key the authorization lookup</text>
+  <text x="124" y="212" class="t" fill="#8CE05E" font-size="12" font-weight="600">on the certificate, not the MAC</text>
+
+  <!-- authorization lane -->
+  <text x="30" y="228" class="t eyebrow" fill="#5ED2DA">AUTHORIZATION</text>
+  <g class="t">
+    <rect x="30"  y="238" width="160" height="42" rx="8" class="bx"/><text x="110" y="264" text-anchor="middle" class="bt">Intune lookup</text>
+    <rect x="216" y="238" width="180" height="42" rx="8" class="bx"/><text x="306" y="264" text-anchor="middle" class="bt">compliant? jailbroken?</text>
+    <rect x="432" y="238" width="150" height="42" rx="8" fill="#5ED2DA"/><text x="507" y="264" text-anchor="middle" fill="#06202A" font-size="13" font-weight="700">role / VLAN</text>
+    <line x1="190" y1="259" x2="214" y2="259" stroke="#B0C4CF" marker-end="url(#arr)"/>
+    <line x1="396" y1="259" x2="430" y2="259" stroke="#B0C4CF" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- the usual build -->
+  <rect x="592" y="232" width="278" height="56" rx="8" fill="rgba(3,10,16,0.55)" stroke="#8BA2AE"/>
+  <text x="606" y="256" class="t" fill="#8BA2AE" font-size="12.5" font-weight="700">The usual build keys this on MAC</text>
+  <text x="606" y="276" class="t lbl">Spoofable, and randomization breaks it</text>
+
+  <text x="30" y="316" class="t mono" fill="#8CE05E">OCSP: Required, not Optional. Optional is a revocation check an attacker turns off.</text>
+</svg></div>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>A lab build, because I got tired of not being able to answer what the Intune integration actually proves</div>
+      <div class="prose"><p>I built this in the lab because I kept hearing the same sentence and it kept bothering me. "We authenticate devices against Intune."</p>
+<p>You don't. Nobody does. Intune doesn't have a RADIUS server in it.</p>
+<p>What people mean is that their RADIUS server looks up a device in Intune and reads back some attributes. That's a lookup. It's useful, I use it, but it's authorization, and if you built it the way most guides tell you to then the thing anchoring the whole policy is a MAC address the client just told you.</p>
+<p>So this is the lab I built to get it right, written up so you can build it too. Both halves, Intune and ClearPass, from empty VMs. If you only have one of the two environments, the Intune half stands on its own and so does the ClearPass half.</p>
+<p>Fair warning on length. This is a build guide, not a hot take. Skip to the test matrix at the bottom if you just want the part where you break things.</p>
+<h2>The two questions</h2>
+<p>A RADIUS server answers two questions and they're not the same question.</p>
+<p><strong>Who is this?</strong> That's authentication. Something has to prove it holds a secret. A password, or a private key.</p>
+<p><strong>What are they allowed to do?</strong> That's authorization. Roles, VLANs, ACLs, and every context source you can bolt on.</p>
+<p>The Intune integration only ever answers the second one. It is a context source. When ClearPass asks Intune "is this thing compliant," Intune answers based on a record it looked up, and the only reason ClearPass thinks that record belongs to this client is whatever key it used for the lookup.</p>
+<p>In the default build, that key is the MAC address.</p>
+<p>Sit with that for a second. Your compliance policy, your jailbreak check, your entire "only managed devices get on the network" story, hanging off a field the client puts in a frame header. Spoof the MAC of a compliant device and you inherit its compliance state. And that's the attacker case. The boring case is worse in practice: MAC randomization means the compliant device shows up with a MAC that isn't in the endpoint database at all, and your policy quietly falls through to whatever your catch-all rule does.</p>
+<p>So the goal of this lab is to make the authentication real, and then key the authorization to the authentication instead of to a header field.</p>
+<h2>What you need</h2>
+<p>Everything here runs as VMs on one host. I used about 24 GB of RAM total.</p>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>What it does</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ClearPass Policy Manager</td>
+<td>The RADIUS server</td>
+<td>Lab VM. 6.11 minimum for what's below, 6.12 or newer if you want Entra device group lookups</td>
+</tr>
+<tr>
+<td>Windows Server (AD DS + AD CS)</td>
+<td>Domain and issuing CA</td>
+<td>Must be an Enterprise CA. Standalone isn't supported by the connector</td>
+</tr>
+<tr>
+<td>Windows Server (NDES)</td>
+<td>SCEP endpoint</td>
+<td>Domain joined, same forest as the CA, <strong>not</strong> the CA and <strong>not</strong> a DC</td>
+</tr>
+<tr>
+<td>Intune tenant</td>
+<td>Issues the profiles</td>
+<td>A trial tenant works. So does a Microsoft 365 developer tenant</td>
+</tr>
+<tr>
+<td>A NAS</td>
+<td>Wireless controller, AP or switch</td>
+<td>Optional, see below</td>
+</tr>
+<tr>
+<td>Test clients</td>
+<td>Windows 11, an iPhone</td>
+<td>The iPhone is for the jailbreak section</td>
+</tr>
+</tbody>
+</table>
+<p>That NAS row says optional on purpose. You do not need a controller to test EAP-TLS. <code>eapol_test</code>, which ships with <code>wpa_supplicant</code>, will drive a full EAP-TLS conversation straight at ClearPass from a Linux box and print you the result. It's the single best thing in this lab because it takes the AP, the client supplicant and the driver out of the picture and leaves you looking at exactly one thing.</p>
+<pre><code># /tmp/eaptls.conf
+network={
+  key_mgmt=WPA-EAP
+  eap=TLS
+  identity=&quot;host/testclient.lab.example&quot;
+  ca_cert=&quot;/etc/lab/root-ca.pem&quot;
+  client_cert=&quot;/etc/lab/device.pem&quot;
+  private_key=&quot;/etc/lab/device.key&quot;
+}
+</code></pre>
+<pre><code>eapol_test -c /tmp/eaptls.conf -a 192.0.2.10 -p 1812 -s &lt;SHARED-SECRET&gt; -r 0
+</code></pre>
+<p><code>SUCCESS</code> or <code>FAILURE</code> on the last line, and the full RADIUS exchange above it. You will run this a lot in the revocation section.</p>
+<p>Addressing below is RFC 5737. Substitute your own.</p>
+<h2>Part 1: teach Intune to hand out certificates</h2>
+<p>Intune does not have a CA. Intune has a way to tell devices to go get a certificate from your CA. That's all SCEP is here. If you have an on-premises Microsoft CA, that means NDES plus the Certificate Connector for Microsoft Intune.</p>
+<p>Yes, the cloud management story still needs an on-premises Windows box. I'll come back to that.</p>
+<h3>The CA and the template</h3>
+<p>On the issuing CA, duplicate a template and set it up as the SCEP template. The settings that matter:</p>
+<ul>
+<li><strong>General</strong>: uncheck <em>Publish certificate in Active Directory</em>. Give it a display name you'll recognise.</li>
+<li><strong>Subject Name</strong>: <em>Supply in the request</em>. This looks alarming. It isn't, because the Intune policy module on the NDES server validates the request against a signed challenge blob before anything gets issued.</li>
+<li><strong>Extensions</strong>: Application Policies must include <em>Client Authentication</em>. Add nothing you don't need.</li>
+<li><strong>Extensions, for iOS and macOS templates</strong>: edit Key Usage and make sure <em>Signature is proof of origin</em> is <strong>not</strong> selected.</li>
+<li><strong>Security</strong>: the NDES service account needs <em>Read</em> and <em>Enroll</em>.</li>
+</ul>
+<p>Then publish it: <em>Certificate Templates &gt; Action &gt; New &gt; Certificate Template to Issue</em>.</p>
+<p>Now the setting everybody forgets, and it's the one that quietly breaks revocation two weeks later. On the CA, right click the CA name, <em>Properties</em>, <em>Security</em>, and grant <strong>Issue and Manage Certificates</strong> to either the NDES server's machine account or the NDES service account. Without it, Intune will happily tell you it revoked a certificate and the CA will never hear about it.</p>
+<p>Validity period: Microsoft's guidance is five days minimum, and Intune supports up to 24 months. In the lab I set the template to one year and let the profile ask for less. Under five days and the MDM agent can reject the certificate for being nearly expired before it even installs.</p>
+<h3>NDES</h3>
+<p>Add Roles and Features, <em>Active Directory Certificate Services</em>, tick <strong>Network Device Enrollment Service</strong>, untick <em>Certification Authority</em>. IIS comes along with it. Confirm these are present:</p>
+<ul>
+<li>Web Server &gt; Security &gt; Request Filtering</li>
+<li>Web Server &gt; Application Development &gt; ASP.NET 3.5 (installs .NET 3.5, add HTTP Activation)</li>
+<li>Web Server &gt; Application Development &gt; ASP.NET 4.7.2 (core feature, ASP.NET 4.7.2, and WCF Services &gt; HTTP Activation)</li>
+<li>Management Tools &gt; IIS 6 Management Compatibility &gt; IIS 6 Metabase Compatibility</li>
+<li>Management Tools &gt; IIS 6 Management Compatibility &gt; IIS 6 WMI Compatibility</li>
+</ul>
+<p>Add the NDES service account to the local <strong>IIS_IUSRS</strong> group. Then run the AD CS Configuration wizard, pick the NDES role service, give it the service account, and point it at your issuing CA.</p>
+<p>Then the registry. This one is a classic:</p>
+<pre><code>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\MSCEP\
+</code></pre>
+<p>Set the value that matches your template's Purpose (from its Request Handling tab) to the template <strong>name</strong>, not the display name. Signature purpose sets <code>SignatureTemplate</code>, Encryption sets <code>EncryptionTemplate</code>, Signature and encryption sets <code>GeneralPurposeTemplate</code>. Get the name wrong and you get a request that's rejected with nothing useful in the log.</p>
+<p>Reboot the server afterwards. Not <code>iisreset</code>. The docs are explicit about this and I ignored them once, so now I don't.</p>
+<p>Then request a server authentication certificate, bind it to the Default Web Site on 443 in IIS, and browse to:</p>
+<pre><code>https://&lt;NDES-FQDN&gt;/certsrv/mscep/mscep.dll
+</code></pre>
+<p>You should get the NDES page. A <strong>503</strong> here almost always means the app pool died because the service account is missing a permission.</p>
+<p>Install the Certificate Connector on the NDES server. Not on the CA. The connector is explicitly unsupported on the issuing CA and it also means your CA would be one hop from the internet, which is a terrible idea on its own merits.</p>
+<h3>Publishing NDES</h3>
+<p>For a lab on one subnet you can skip this. For anything resembling reality, put NDES behind a reverse proxy: Entra application proxy, Web Application Proxy, or a third party.</p>
+<p>Two things bite people here.</p>
+<p><strong>Pre-authentication must be set to Passthrough.</strong> SCEP can't do pre-auth, full stop. Whatever your proxy calls it, it needs to be off.</p>
+<p><strong>The proxy has to handle long URIs.</strong> The certificate request rides in the query string and can reach 40 KB. A proxy with a stock URI limit will chop it and you'll get a failure with no obvious cause.</p>
+<p>If you browse directly to the published NDES URL and get <strong>403 Forbidden</strong>, that's correct. The Intune policy module does that deliberately. It's not a misconfiguration, it's the module refusing to talk to anything that isn't a well formed Intune request.</p>
+<h3>The trusted root profile</h3>
+<p>Devices &gt; Configuration &gt; Create &gt; platform &gt; <em>Trusted certificate</em>. Upload your root CA. If you have a two tier PKI, this is the top level root that validates your issuing CA.</p>
+<p>Deploy it to the same group as the SCEP profile. Deploy it <strong>first</strong>. A SCEP profile references the trusted certificate profile directly and it goes nowhere without it.</p>
+<h3>The SCEP profile, and the variables that matter</h3>
+<p>Devices &gt; Configuration &gt; Create &gt; platform &gt; <em>SCEP certificate</em>.</p>
+<p>For a Windows device certificate:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Value</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Certificate type</td>
+<td>Device</td>
+<td>Lands in the Local Computer store</td>
+</tr>
+<tr>
+<td>Subject name format</td>
+<td><code>CN={{AAD_Device_ID}}</code></td>
+<td>The Entra device ID. Stable, and it's what you'll key the Intune lookup on</td>
+</tr>
+<tr>
+<td>SAN</td>
+<td>URI = <code>AzureDeviceId://{{AAD_Device_ID}}</code></td>
+<td>Gives ClearPass a second place to find the ID</td>
+</tr>
+<tr>
+<td>Key storage provider</td>
+<td>Enroll to TPM KSP, otherwise fail</td>
+<td>Non negotiable, see below</td>
+</tr>
+<tr>
+<td>Key usage</td>
+<td>Digital signature, Key encipherment</td>
+<td>Match your template</td>
+</tr>
+<tr>
+<td>Key size</td>
+<td>2048</td>
+<td>4096 does not work with a hardware TPM. Software KSP only</td>
+</tr>
+<tr>
+<td>Extended key usage</td>
+<td>Client Authentication</td>
+<td></td>
+</tr>
+<tr>
+<td>Renewal threshold</td>
+<td>20</td>
+<td>Renews at 80 percent of life</td>
+</tr>
+<tr>
+<td>SCEP Server URL</td>
+<td><code>https://&lt;NDES-FQDN&gt;/certsrv/mscep/mscep.dll</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Do not use <code>CN={{DeviceId}}</code> on Windows.</strong> Microsoft's own documentation says to avoid it, because in some cases a certificate with that subject name causes Intune sync on the device to fail. Use <code>{{AAD_Device_ID}}</code> (or its alias <code>{{AzureADDeviceId}}</code>) instead.</p>
+<p>That TPM row is the whole ballgame. "Enroll to TPM KSP if present, otherwise Software KSP" sounds like sensible defensive configuration and it isn't. The software KSP writes an exportable key to disk. If your device authentication can be copied off the device with a script then it isn't device authentication, it's a shared secret with extra steps. Set it to fail, then go find out which of your machines have no usable TPM. Better to know.</p>
+<p>While we're on things that can be lied about, Microsoft puts this warning right in the SCEP docs, and it's worth reading twice: device properties like <strong>IMEI</strong>, <strong>SerialNumber</strong> and <strong>FullyQualifiedDomainName</strong> used in the subject or SAN "could be spoofed by a person with access to the device." Build the identity out of the Entra device ID, not out of the serial number.</p>
+<p>For a user certificate, same profile type with Certificate type set to <em>User</em>, <code>CN={{UserPrincipalName}}</code>, and a SAN of UPN = <code>{{UserPrincipalName}}</code>.</p>
+<h3>Order of deployment</h3>
+<p>Trusted root, then SCEP, then the Wi-Fi or wired profile that tells the device to actually use the certificate. That last one is the one people forget and then spend an afternoon wondering why a device with a perfectly good certificate is still sitting there asking for a password.</p>
+<h2>Part 2: make ClearPass trust it properly</h2>
+<h3>Trust list</h3>
+<p>Import the root CA and the issuing CA into the ClearPass trust list. Mark them for the EAP usage. Don't import the client certificate. I've watched someone do it and then wonder why one laptop worked.</p>
+<h3>The EAP-TLS method</h3>
+<p>Duplicate the built in <code>[EAP TLS]</code> method under <em>Configuration &gt; Authentication &gt; Methods</em> and work on the copy. Never edit the built in one, you will want it back.</p>
+<p>Two settings decide whether this is real.</p>
+<p><strong>Certificate Comparison.</strong> By default, EAP-TLS in ClearPass validates the chain and stops. That means any certificate from a CA you trust gets in. If your issuing CA also signs certificates for web servers, VPN, or anything else, all of those are now valid Wi-Fi credentials. Certificate comparison forces ClearPass to check the identity in the certificate against a record in an authorization source, so the certificate has to belong to something you know about, not just be signed by someone you trust.</p>
+<p><strong>Verify Certificate using OCSP.</strong> Set it to <strong>Required</strong>. More on that next.</p>
+<h3>The service</h3>
+<p>Wireless 802.1X service, EAP-TLS method, and for authentication source you want the sources you'll be checking the certificate identity against. Add your NAS as a network device with a shared secret and the right vendor.</p>
+<p>Point <code>eapol_test</code> at it and get a <code>SUCCESS</code> before you build a single enforcement rule. Every extra thing you add from here can only make this fail, so establish that it passes first.</p>
+<h2>Part 3: OCSP, and why the CRL isn't enough</h2>
+<p>A certificate is a claim that was true when it was signed. Revocation is how you find out it stopped being true. If you don't check revocation, then a certificate you revoked this morning still works this afternoon, and it keeps working until it expires. On a 24 month certificate, that's not a gap, that's a career.</p>
+<p><strong>CRL</strong> is a list your CA publishes on a schedule. ClearPass downloads it and caches it. Between publications it's stale. Your effective revocation delay is the CRL publication interval, and the default on a Microsoft CA is a week.</p>
+<p><strong>OCSP</strong> is a per certificate question asked at authentication time. The answer is current.</p>
+<p>Set the EAP-TLS method to OCSP <strong>Required</strong>, not Optional. Optional means "check, and if the responder doesn't answer, let it through." That's a revocation check that an attacker turns off by making one host unreachable. Required means a dead responder blocks authentication, which is a real availability tradeoff and you should know you're making it. Make the responder redundant instead of making the check optional.</p>
+<p>Leave ClearPass taking the OCSP URL from the certificate's Authority Information Access extension if you can, so a certificate carries its own answer location. There's an override field for when your responder lives somewhere the AIA doesn't point, which in a lab is often.</p>
+<p>Keep the CRL configured as well. OCSP first, CRL as the backstop. Note that ClearPass wants the CRL over HTTP, so if your CA is only publishing to an LDAP distribution point you need to add an HTTP one and republish.</p>
+<p>Prove the responder works before you trust it. From any box with <code>openssl</code>:</p>
+<pre><code>openssl ocsp -issuer issuing-ca.pem -cert device.pem \
+  -url http://ocsp.lab.example/ocsp -resp_text -noverify
+</code></pre>
+<p>You want <code>Cert Status: good</code>. You'll want to run this again in a few minutes and see <code>revoked</code>.</p>
+<h2>Part 4: the authorization half, keyed properly</h2>
+<p>Now the Intune side.</p>
+<p>ClearPass gets Intune data one of two ways and you probably want both.</p>
+<p><strong>Periodic sync.</strong> ClearPass polls Intune and writes attributes into the endpoint database. Cheap at authentication time because it's a local read. Stale by definition. Install it on one node.</p>
+<p><strong>Real time authorization source.</strong> An HTTP authorization source that calls Intune during the authentication. Current, but you've put a cloud API call in the critical path of every association. If you run it, it has to be installed on every node that processes authentications, and every node's copy has to be set to the same address, because the authorization source config propagates cluster wide.</p>
+<p>The sensible build is both: sync nightly for the bulk, real time for the lookups the sync missed, and on newer ClearPass there's a TTL cache on the real time queries so you're not hammering the tenant.</p>
+<h3>The Entra app registration</h3>
+<p>App registrations &gt; New registration. Under API permissions, Microsoft Graph &gt; <strong>Application permissions</strong>:</p>
+<ul>
+<li><code>DeviceManagementManagedDevices.Read.All</code></li>
+<li><code>DeviceManagementManagedDevices.PrivilegedOperations.All</code> if you want ClearPass to be able to trigger device actions</li>
+</ul>
+<p>Grant admin consent. Save the Application (client) ID, the Directory (tenant) ID and the client secret.</p>
+<p>Put a calendar reminder on the secret expiry. A client secret maxes out at 24 months, and when it lapses the sync stops and enforcement changes behaviour with no alarm that says "your certificate infrastructure is fine, your context source expired." If your ClearPass version supports connecting to Entra with a certificate instead of a secret, do that.</p>
+<h3>The bit that fixes the MAC problem</h3>
+<p>Once the sync is running you get attributes on the endpoint record with names like <em>Intune Compliance State</em>, <em>Intune Jail Broken</em>, <em>Intune Azure AD Device Id</em>, <em>Intune Management Agent</em>, <em>Intune Managed Device Owner Type</em> and <em>Intune User Principal Name</em>.</p>
+<p>The endpoint database is keyed on MAC. That's the problem from the top of the post.</p>
+<p>The fix is to stop asking "what do we know about this MAC" and start asking "what do we know about the device ID in this certificate." The certificate is signed. The MAC isn't.</p>
+<p>ClearPass exposes the certificate fields as attributes you can reference in a filter:</p>
+<ul>
+<li><code>%{Certificate:Subject-CN}</code></li>
+<li><code>%{Certificate:Subject-AltName-URI}</code></li>
+</ul>
+<p>So you build an authorization source that looks up the Intune record by the ID in the certificate. Against the local endpoint database that's a generic SQL source pointed at <code>tipsdb</code>, with a filter along the lines of:</p>
+<pre><code>WHERE attributes-&gt;&gt;'Intune ID' = LOWER('%{Certificate:Subject-CN}')
+</code></pre>
+<p>Against Intune directly it's the HTTP authorization source with the device ID substituted into the query instead of the MAC. Newer ClearPass will parse the device ID out of the comma separated SAN URI field for you, which saves a regex you'd otherwise have to write and maintain.</p>
+<p>Either way, the property you now have is the one that was missing: the compliance state you're enforcing on belongs to the device that just proved it holds a private key. That is the difference between authorization and authentication theatre, and it is one filter string.</p>
+<h2>Part 5: jailbreak, and what ClearPass can actually see</h2>
+<p>ClearPass cannot detect a jailbroken device. Nothing on the network can. There's no packet that says "this phone is rooted." What ClearPass can do is read Intune's opinion, and Intune's opinion comes from the management agent on the device.</p>
+<p>So the chain is: Intune compliance policy has a jailbreak rule, the agent evaluates it, the device gets marked non compliant, ClearPass reads that state, ClearPass acts.</p>
+<p>In Intune: Devices &gt; Compliance &gt; Create policy &gt; iOS/iPadOS. Under <strong>Device health</strong>, set <strong>Jailbroken devices</strong> to <strong>Block</strong>. As measured in September 2026 this setting is documented as supported for iOS 17.0 and later, along with <strong>Require the device to be at or under the Device Threat Level</strong>, which is the same idea handed off to a mobile threat defence product. Android has the equivalent rooted device setting.</p>
+<p>Give it no grace period. A grace period on a password complexity rule is reasonable. A grace period on "the security model of this device has been dismantled" is not.</p>
+<p>Then in ClearPass the check is boring, which is the point:</p>
+<pre><code>Authorization:[Intune]:Intune Compliance State  EQUALS  Compliant
+Authorization:[Intune]:Intune Jail Broken       NOT_EQUALS  True
+</code></pre>
+<p>Two things to be honest about here.</p>
+<p>A jailbroken device is a device where the user has root. The Intune agent runs on that device. Detection is a best effort check running inside the environment it's checking, and the jailbreak community's entire business is defeating exactly this. Treat it as a filter that catches the careless, not a control that stops the determined.</p>
+<p>And second, this only works if the agent checked in. Which brings us to the failure mode nobody tests: what does your policy do when the Intune lookup returns nothing at all? Not "non compliant." Nothing. Device isn't enrolled, or the sync is broken, or that expired client secret. Write the rule for that case explicitly, and make the default deny, because a policy that only handles Compliant and NonCompliant has a third branch you didn't write.</p>
+<h2>Part 6: quarantine that can actually remediate</h2>
+<p>Two enforcement profiles, minimum.</p>
+<p><strong>Full access.</strong> Certificate valid, OCSP good, Intune says compliant, not jailbroken. Production role.</p>
+<p><strong>Quarantine.</strong> Everything else that authenticated but failed a posture check.</p>
+<p>The design question that matters is what the quarantine role can reach, and it's the one people get backwards. A device is quarantined because it's non compliant. For it to stop being non compliant, the Intune agent has to check in, download policy, do whatever remediation is required, and report back. If your quarantine role blocks the Microsoft endpoints, that device is in quarantine permanently and the only exit is a human with a cable.</p>
+<p>So the quarantine role needs DNS, DHCP, whatever your remediation page is, and the Intune and Entra service endpoints. Nothing else. Not "internet minus a few things." Allowlist it.</p>
+<p>On the enforcement side you want a role and a session bounce. Import the RADIUS Dynamic Authorization templates for your NAS platform under <em>Administration &gt; Dictionaries &gt; RADIUS Dynamic Authorization Templates</em>, then build the enforcement profiles under <em>Configuration &gt; Enforcement &gt; Profiles</em>.</p>
+<p>The bounce matters because of a timing problem that's easy to miss. A device authenticates at 09:00 as compliant. At 09:20 the user jailbreaks it, or drops off VPN, or fails a policy. Intune notices. ClearPass gets the update. And the device carries on using the session it was granted at 09:00, because RADIUS enforcement happens at authentication and nothing about a compliance change generates a new one.</p>
+<p>You need something to force a reauthentication. A post-auth action that fires a CoA when the endpoint's compliance attribute changes, or a session timeout short enough that the window is acceptable, or both. Pick a number and know what it is. "It'll pick that up eventually" is not a number.</p>
+<h2>Part 7: revoke it, and prove it</h2>
+<p>This is the part I actually built the lab for, because the revocation path has five links and four of them fail silently.</p>
+<p>The chain: you retire the device in Intune, Intune tells the connector, the connector revokes at the CA, the CA updates its database, the OCSP responder answers "revoked," ClearPass denies at the next authentication.</p>
+<h3>The test</h3>
+<p><strong>1. Get a baseline.</strong> Run <code>eapol_test</code>, confirm <code>SUCCESS</code>, and note the certificate serial number.</p>
+<p><strong>2. Confirm OCSP says good.</strong> Run the <code>openssl ocsp</code> command from Part 3. <code>Cert Status: good</code>.</p>
+<p><strong>3. Revoke it.</strong> In Intune, retire the device. Or remove it from the group the SCEP profile targets, which is the subtler test and the one closer to what actually happens when someone leaves.</p>
+<p><strong>4. Check the CA, not Intune.</strong> This is the step people skip, and it's the step that catches the missing permission.</p>
+<pre><code>certutil -view -restrict &quot;SerialNumber=&lt;SERIAL&gt;&quot; -out &quot;SerialNumber,Disposition,RevocationDate&quot;
+</code></pre>
+<p>If Intune says revoked and the CA says the certificate is still issued, go back to Part 1 and grant <em>Issue and Manage Certificates</em>. Nothing downstream will ever work until that's fixed, and nothing will tell you.</p>
+<p><strong>5. Force a CRL publish</strong> so you're not waiting on the schedule:</p>
+<pre><code>certutil -crl
+</code></pre>
+<p><strong>6. Ask the responder again.</strong> <code>Cert Status: revoked</code>, with a revocation time.</p>
+<p><strong>7. Reauthenticate.</strong> Run <code>eapol_test</code> again. You want <code>FAILURE</code>, and you want ClearPass Access Tracker to show the OCSP check as the reason. If it shows <code>SUCCESS</code>, your OCSP setting is Optional, or ClearPass has a cached response, or it's falling back to a stale CRL. All three are worth finding now.</p>
+<p><strong>8. Check the existing session.</strong> If you had a live client on the network through all of that, go look at it. It's probably still online. Revocation is evaluated at authentication. Everything in Part 6 about CoA applies here too, and revoking a certificate does not drop a session by itself.</p>
+<h3>What the revocation matrix actually says</h3>
+<p>Intune's behaviour is per platform and per action, and "revoked" and "removed" are different outcomes. On Windows, iOS and macOS, a SCEP certificate is both revoked and removed on unenroll, wipe, retire, removal from the targeted Entra group, or removal of the profile from the group assignment. Changing the SCEP profile revokes the old certificate.</p>
+<p>Two traps.</p>
+<p><strong>Losing an Intune licence doesn't revoke anything.</strong> Neither does an admin pulling the licence, or removing the user from Entra ID. The certificate stays on the device and stays valid. Microsoft's documented order of operations is wipe or retire the device <strong>first</strong>, then remove the user from the directory. Do it the other way round and you've orphaned a valid credential. Given that offboarding usually starts in the directory, this is worth writing into whatever runbook your identity team uses.</p>
+<p><strong>Android Enterprise Device Owner and Android AOSP cannot be revoked by Intune at all.</strong> Fully managed, dedicated, corporate owned work profile. The documentation is direct about it: you manage revocation through an external process or at the CA yourself. If your kiosk fleet is Android dedicated, your revocation story for those devices is a person opening the CA console. Find that out in the lab, not during an incident.</p>
+<p>And if you're using a third party CA rather than a Microsoft one, check what your CA does with Intune's revocation list. SCEP certificates are removed but not revoked with a third party CA unless the CA specifically implements the fetch-and-revoke behaviour.</p>
+<h2>The cloud managed device question</h2>
+<p>Here's where this ties back to the top.</p>
+<p>A Microsoft Entra joined device, cloud only, no on-premises AD. There's no machine account. There's no domain to check against. Historically that's exactly why people fell back to "authorize by Intune lookup," because the thing they used to authenticate with was gone.</p>
+<p>It doesn't have to be. The device still gets a SCEP device certificate with a TPM bound private key, and EAP-TLS with that certificate is a stronger authentication than machine password auth against a domain ever was. There's no domain in the path because there doesn't need to be one. ClearPass validates the chain, checks OCSP, and reads the Entra device ID out of the subject. That's genuine device authentication with no on-premises identity involved.</p>
+<p>With one asterisk, and it's a good one to know because it makes people think cloud only certificates are broken when they aren't.</p>
+<p>The <code>{{OnPremisesSecurityIdentifier}}</code> variable, the one that satisfies the strong certificate mapping requirements from KB5014754, is documented as supported in <strong>device</strong> certificates only for Entra <strong>hybrid</strong> joined devices. A cloud only device has no on-premises SID to put in there. So a cloud only device certificate can't satisfy strong mapping.</p>
+<p>That matters to a Windows domain controller doing certificate based authentication. It does not matter to ClearPass, which is validating a chain and a revocation status, not consulting AD for a SID. Two different problems that happen to involve the same certificate. If someone tells you cloud only devices can't do certificate authentication, they're describing the KDC's problem, not yours.</p>
+<h3>Getting user and device together</h3>
+<p>Device certificate proves the device. User certificate proves the user. Most people want both, and want to know both in a single session rather than inferring one from the other.</p>
+<p>That's EAP chaining, and on ClearPass it's TEAP, with EAP-TLS as both inner methods. Deploy a device SCEP profile and a user SCEP profile, and the supplicant presents both inside one tunnel. ClearPass ends up with a machine identity and a user identity in the same authentication and you can write the policy you actually wanted: this user, on this device, both of them proven, both of them checked against Intune.</p>
+<p>TEAP needs a modern ClearPass and a Windows 10 build 2004 or later supplicant. It's fussier to get working than plain EAP-TLS. Build plain EAP-TLS first, confirm it, then add the second method. Don't debug both at once.</p>
+<p>For authorization on cloud only devices, newer ClearPass can query Entra ID for device group membership as well as user group membership, which closes the last gap where people were falling back to AD.</p>
+<h2>Test matrix</h2>
+<p>Everything below should be a distinct, observable outcome. If two rows produce the same result, one of your rules isn't doing anything.</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>How to trigger it</th>
+<th>Expected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Healthy managed device</td>
+<td>Baseline</td>
+<td>Full access role</td>
+</tr>
+<tr>
+<td>No certificate</td>
+<td>Client with no cert</td>
+<td>Reject at EAP</td>
+</tr>
+<tr>
+<td>Certificate from an untrusted CA</td>
+<td>Self signed cert</td>
+<td>Reject, chain failure</td>
+</tr>
+<tr>
+<td>Valid cert, unknown to Intune</td>
+<td>Issue manually, skip enrollment</td>
+<td>Quarantine, not full access</td>
+</tr>
+<tr>
+<td>Revoked certificate</td>
+<td>Retire in Intune, republish CRL</td>
+<td>Reject, OCSP failure in Access Tracker</td>
+</tr>
+<tr>
+<td>Revoked, but responder is down</td>
+<td>Block the responder</td>
+<td>Reject if OCSP is Required. If it passes, yours is set to Optional</td>
+</tr>
+<tr>
+<td>Non compliant device</td>
+<td>Break a compliance rule</td>
+<td>Quarantine role</td>
+</tr>
+<tr>
+<td>Jailbroken iOS</td>
+<td>Compliance policy set to Block</td>
+<td>Quarantine role</td>
+</tr>
+<tr>
+<td>Compliance changes mid session</td>
+<td>Break a rule on a connected client</td>
+<td>Session bounced by CoA, or note how long it took</td>
+</tr>
+<tr>
+<td>Quarantine can self remediate</td>
+<td>Fix the device from inside quarantine</td>
+<td>Reaches Intune, becomes compliant, gets bounced to full access</td>
+</tr>
+<tr>
+<td>Intune lookup returns nothing</td>
+<td>Stop the sync, clear the endpoint</td>
+<td>Explicit deny, not a fall through</td>
+</tr>
+<tr>
+<td>Client secret expired</td>
+<td>Set a short expiry, wait</td>
+<td>You should find out from an alert, not from users</td>
+</tr>
+<tr>
+<td>MAC spoofed</td>
+<td>Clone a compliant device's MAC</td>
+<td>No change in outcome. If it grants access, your authorization is still keyed on MAC</td>
+</tr>
+</tbody>
+</table>
+<p>That last row is the whole post. Run it before you build anything, and run it again at the end. If the result changes, you fixed something real.</p>
+<h2>Bottom line</h2>
+<p>The Intune integration is a context source and it's a good one. It is not authentication and no amount of documentation calling it "Intune authentication" makes it one.</p>
+<p>Make the authentication real with EAP-TLS and a TPM bound key. Make revocation real with OCSP set to Required and a tested path from Intune all the way to the responder. Then key the Intune lookup to something inside the signed certificate rather than to a MAC address, and the authorization inherits the strength of the authentication instead of undercutting it.</p>
+<p>Build the lab. The revocation test in Part 7 takes twenty minutes and I'd bet a decent lunch it fails the first time on the CA permission.</p></div>
+    </div>
+    <section class="end g-card" data-rise>
+      <h3>Found this useful?</h3>
+      <p>Corrections welcome. Find me on Airheads and tell me where I got it wrong.</p>
+      <div class="postnav"><a class="pn g-card" href="channel-173-survey-blind-spot.html"><span class="eyebrow">Older</span>Your Survey Tool Can&#x27;t See Channel 173</a></div>
+      <a class="bot-link" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img class="bot" src="../character/nfn-bot-lab.svg" alt="" width="104" height="104"></a>
+    </section>
+  </article>
+</div>
+</main>
+<footer><div class="wrap">
+  <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
+  <span><a href="/rss.xml">RSS</a></span>
+</div></footer>
+</div>
+<script>/* Network Field Notes. Only opacity and transform are animated. */
+(function () {
+  var KEY = 'nfn:origin';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
+
+  /* header tightens past 12px */
+  var hdr = $('.hdr');
+  if (hdr) {
+    var onScroll = function () { hdr.classList.toggle('scrolled', (window.scrollY || 0) > 12); };
+    onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  /* entrance, staggered 60ms, capped at 340ms */
+  $$('[data-rise]').forEach(function (el, i) {
+    el.style.animationDelay = Math.min(i * 60, 340) + 'ms';
+    el.classList.add('rise');
+  });
+
+  /* remember where a card or mascot was tapped, in page coordinates */
+  $$('[data-origin]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      var r = e.currentTarget.getBoundingClientRect();
+      try {
+        sessionStorage.setItem(KEY, JSON.stringify({
+          x: r.left + r.width / 2 + window.scrollX, y: r.top + r.height / 2 + window.scrollY,
+          kind: e.currentTarget.getAttribute('data-origin') || 'zoom'
+        }));
+      } catch (err) {}
+    });
+  });
+
+  /* incoming view: pin transform-origin to the tapped point */
+  var view = $('[data-view]');
+  if (view) {
+    var saved = null;
+    try { var raw = sessionStorage.getItem(KEY); if (raw) { saved = JSON.parse(raw); sessionStorage.removeItem(KEY); } } catch (err) {}
+    var wants = view.getAttribute('data-view');
+    var cls = wants === 'genie' ? 'genie' : wants === 'zoom' ? 'zoom' : 'pop';
+    if (saved && saved.kind === wants) {
+      var clamp = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
+      var box = view.getBoundingClientRect();
+      view.style.transformOrigin = clamp(saved.x - (box.left + window.scrollX), 0, box.width) + 'px ' +
+                                   clamp(saved.y - (box.top + window.scrollY), 0, box.height) + 'px';
+    }
+    view.classList.add(cls);
+  }
+
+  /* index only: category filter + search */
+  var grid = $('#posts');
+  if (!grid) return;
+  var cards = $$('.card[data-cat]', grid), chips = $$('.chip[data-cat]'), empty = $('.empty');
+  var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
+  var cat = 'all', q = '';
+
+  function apply() {
+    var shown = 0;
+    cards.forEach(function (c) {
+      var okCat = cat === 'all' || c.getAttribute('data-cat') === cat;
+      var okQ = !q || (c.getAttribute('data-text') || '').indexOf(q) !== -1;
+      var on = okCat && okQ; c.classList.toggle('hidden', !on); if (on) shown++;
+    });
+    chips.forEach(function (ch) { ch.classList.toggle('on', ch.getAttribute('data-cat') === cat); });
+    if (empty) empty.classList.toggle('show', shown === 0);
+  }
+  chips.forEach(function (ch) { ch.addEventListener('click', function () { cat = ch.getAttribute('data-cat'); apply(); }); });
+  if (toggle && box && input) {
+    toggle.addEventListener('click', function (e) {
+      e.preventDefault(); box.classList.toggle('open');
+      if (box.classList.contains('open')) input.focus();
+    });
+    input.addEventListener('input', function () { q = input.value.trim().toLowerCase(); apply(); });
+  }
+  /* deep link: index.html#cat=NAC */
+  var m = (location.hash || '').match(/cat=([^&]+)/);
+  if (m) { cat = decodeURIComponent(m[1]); }
+  apply();
+})();
+</script>
+</body></html>
