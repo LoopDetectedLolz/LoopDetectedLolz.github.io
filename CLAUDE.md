@@ -91,6 +91,15 @@ No red, amber or orange in a hero. A failure state is a dimmed or dashed element
 
 `theme/style.css` is the source of truth. Tokens: `--ink #061019 --navy #0E2A3C --blue #2FA8E0 --blue-light #4FBDEA --teal #5ED2DA --green #8CE05E --orange #F5A524 --red #F0705F --text #EAF2F6 --text-dim #B0C4CF --text-muted #8BA2AE`. Three glass levels (`.g-chrome`, `.g-card`, `.g-hero`), one easing `cubic-bezier(0.32,0.72,0,1)`, only opacity and transform are animated, `-webkit-backdrop-filter` always paired, reduced motion redefines the keyframes. Rig is a fixed lower-right overlay (`.rig`, z-index 60) on every page and links to `socials.html`; `.page` and the footer reserve 144px at the bottom so he never covers content. One green CTA per view. Don't add a second font, a new colour, or a new animation without updating `DESIGN-KIT.md` first.
 
+## Vendor documentation sources
+
+ClearPass docs live on HPE Support Center now, not arubanetworking.hpe.com/techdocs. The content API returns page HTML directly, so audits can script it:
+
+- Policy Manager 6.12 User Guide: docId `sd00007001en_us`. `https://support.hpe.com/hpesc/public/api/document/sd00007001en_us?page=<GUID>.html`; `?page=content.json` is the full TOC (topicName, topicLink, children), grep it by title.
+- ClearPass Integration Guide, Microsoft Intune: docId `a00112290en_us` (PDF; Appendix A lists every Intune attribute with sample values).
+- ClearPass release notes: docId `sd00007015en_us`.
+- Human-readable form of any of these: `https://support.hpe.com/hpesc/public/docDisplay?docId=<docId>&page=<GUID>.html`, which needs a real browser.
+
 ## Voice
 
 First person, short blunt sentences, contractions always, casual section headers, dry humor about one line per section. An engineer talking to his own team, not a magazine article or a vendor whitepaper. Never mention the tooling used to research or draft; the observations are Dustin's.
