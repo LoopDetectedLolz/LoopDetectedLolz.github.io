@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>84 Percent of Your Airtime Is Printers Saying Hello</title>
+<meta name="description" content="Someone counted. 269,253 mDNS frames in under six minutes, 84 percent of an uplink, and every one of them going out over the air at 6 Mbps. Here&#x27;s the math nobody does.">
+<link rel="canonical" href="https://loopdetectedlolz.github.io/p/mdns-bridge-mode-airtime.html">
+<link rel="alternate" type="application/rss+xml" title="Ask Me How I Know" href="https://loopdetectedlolz.github.io/rss.xml">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Ask Me How I Know">
+<meta property="og:title" content="84 Percent of Your Airtime Is Printers Saying Hello">
+<meta property="og:description" content="Someone counted. 269,253 mDNS frames in under six minutes, 84 percent of an uplink, and every one of them going out over the air at 6 Mbps. Here&#x27;s the math nobody does.">
+<meta property="og:url" content="https://loopdetectedlolz.github.io/p/mdns-bridge-mode-airtime.html">
+<meta property="og:image" content="https://loopdetectedlolz.github.io/og/mdns-bridge-mode-airtime.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="article:published_time" content="2026-08-02">
+<meta property="article:author" content="Dustin Burns">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="84 Percent of Your Airtime Is Printers Saying Hello">
+<meta name="twitter:description" content="Someone counted. 269,253 mDNS frames in under six minutes, 84 percent of an uplink, and every one of them going out over the air at 6 Mbps. Here&#x27;s the math nobody does.">
+<meta name="twitter:image" content="https://loopdetectedlolz.github.io/og/mdns-bridge-mode-airtime.png">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "84 Percent of Your Airtime Is Printers Saying Hello", "description": "Someone counted. 269,253 mDNS frames in under six minutes, 84 percent of an uplink, and every one of them going out over the air at 6 Mbps. Here's the math nobody does.", "datePublished": "2026-08-02", "image": "https://loopdetectedlolz.github.io/og/mdns-bridge-mode-airtime.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://loopdetectedlolz.github.io/p/mdns-bridge-mode-airtime.html", "keywords": "Wireless, AOS-8, Multicast"}</script>
+<style>
+:root{color-scheme:dark;--bg:#0B0F14;--panel:#141C26;--panel2:#18222E;--line:#243040;--txt:#F2F5F8;--muted:#8A99AB;--dim:#5C6B7D;--acc:#8FDB69;--amber:#E0B34E;--blue:#7AB8E8;--red:#F0705F}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.6 Inter,"Segoe UI",system-ui,-apple-system,sans-serif}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+code,pre{font-family:ui-monospace,Menlo,Consolas,monospace}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+header.top{position:sticky;top:0;z-index:5;background:rgba(11,15,20,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:14px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--txt);font-weight:800;letter-spacing:.2px}
+.brand svg{width:34px;height:34px}
+.brand:hover{text-decoration:none}
+nav.pills{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+nav.pills a{padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:13px;font-weight:600}
+nav.pills a.on,nav.pills a:hover{color:#0B0F14;background:var(--acc);border-color:var(--acc);text-decoration:none}
+.eyebrow{color:var(--acc);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700}
+.hero{padding:56px 0 28px}
+.hero h1{font-size:clamp(34px,5vw,56px);line-height:1.05;margin:10px 0 14px;letter-spacing:-.5px}
+.hero p.tag{color:var(--muted);font-size:18px;max-width:680px;margin:0 0 22px}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{padding:10px 16px;border-radius:10px;font-weight:700;border:1px solid var(--line);color:var(--txt);background:var(--panel)}
+.btn.primary{background:var(--acc);color:#0B0F14;border-color:var(--acc)}
+.btn:hover{text-decoration:none;filter:brightness(1.08)}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:120px}
+.stat b{display:block;font-size:22px}.stat span{color:var(--muted);font-size:12px}
+section{padding:26px 0}
+h2.sec{font-size:24px;margin:6px 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;color:var(--txt);transition:transform .15s,border-color .15s}
+.card:hover{transform:translateY(-2px);border-color:var(--acc);text-decoration:none}
+.card-art svg{display:block;width:100%;height:auto}
+.card-body{padding:16px}
+.card h3{margin:6px 0 8px;font-size:18px;line-height:1.3}
+.card p{color:var(--muted);margin:0 0 12px;font-size:14px}
+.card.featured{grid-column:1/-1;display:grid;grid-template-columns:1.3fr 1fr}
+.card.featured .card-art{border-right:1px solid var(--line)}
+.card.featured h3{font-size:26px}
+.card.featured p{font-size:16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:999px;background:#0F1620;border:1px solid var(--line);color:var(--muted)}
+.view{display:none}.view.on{display:block}
+article.post{max-width:760px;margin:0 auto;padding:30px 0 60px}
+article.post h1{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:8px 0 10px;letter-spacing:-.4px}
+.lede{color:var(--muted);font-size:18px;margin:0 0 14px}
+.back{display:inline-block;margin-bottom:16px;color:var(--muted);font-size:14px}
+.hero-art{margin:20px 0 14px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.hero-art svg{display:block;width:100%;height:auto}
+.origin{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:10px;padding:12px 16px;color:var(--muted);font-size:14px;margin:0 0 22px}
+.origin .eyebrow{display:block;color:var(--amber);margin-bottom:2px}
+.prose h2{font-size:22px;margin:34px 0 10px;padding-top:6px}
+.prose h3{font-size:18px;margin:26px 0 8px}
+.prose p{margin:0 0 16px}
+.prose strong{color:#fff}
+.prose blockquote{margin:0 0 16px;padding:10px 16px;border-left:3px solid var(--blue);background:var(--panel);color:var(--muted);border-radius:0 8px 8px 0}
+.prose pre{background:#0F1620;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;font-size:13px;line-height:1.5;margin:0 0 18px}
+.prose code{background:#0F1620;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.9em;color:var(--acc)}
+.prose pre code{background:none;border:0;padding:0;color:#D8E4EE}
+.prose table{width:100%;border-collapse:collapse;margin:0 0 20px;font-size:14px}
+.prose th{background:#0F1620;color:var(--acc);text-align:left;padding:9px 10px;border:1px solid var(--line);font-size:12px;letter-spacing:.5px;text-transform:uppercase}
+.prose td{padding:9px 10px;border:1px solid var(--line);vertical-align:top}
+.prose tr:nth-child(even) td{background:#121A24}
+.prose ul,.prose ol{margin:0 0 16px;padding-left:22px}
+.prose li{margin:4px 0}
+.postnav{display:flex;gap:12px;margin-top:40px;border-top:1px solid var(--line);padding-top:20px}
+.pn{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--txt);font-weight:600}
+.pn.right{text-align:right}.pn .eyebrow{display:block;margin-bottom:2px}.pn:hover{border-color:var(--acc);text-decoration:none}
+.two{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+.panel h3{margin:0 0 8px}
+.panel p{color:var(--muted);margin:0 0 10px}
+.panel ul{margin:0;padding-left:20px;color:var(--muted)}
+.panel li{margin:6px 0}
+.panel li b{color:var(--txt)}
+.wide svg{display:block;width:100%;height:auto;border-radius:12px}
+.about{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:start}
+.avatar{width:200px;height:200px;border-radius:16px;background:linear-gradient(160deg,#18222E,#0F1620);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:64px;font-weight:800}
+.contact{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+footer{border-top:1px solid var(--line);padding:28px 0;color:var(--dim);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.badge.green{background:#15351D;color:#7EE08A;border:1px solid #2E6B3A}
+.badge.amber{background:#3A2E12;color:#E0B34E;border:1px solid #6B5320}
+.badge.blue{background:#14293A;color:#7AB8E8;border:1px solid #2B5378}
+.ep{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line);align-items:baseline}
+.ep .n{font-family:ui-monospace,Menlo,monospace;color:var(--acc);font-weight:700}
+.ep b{display:block}
+.ep span{color:var(--muted);font-size:14px}
+.missing{padding:20px;color:var(--red)}
+@media (max-width:820px){.card.featured{grid-template-columns:1fr}.card.featured .card-art{border-right:0;border-bottom:1px solid var(--line)}.two,.about{grid-template-columns:1fr}.avatar{width:120px;height:120px;font-size:40px}}
+</style></head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="../"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Ask Me How I Know mark">
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#141C26" stroke="#243040" stroke-width="2"/>
+  <g stroke="#8FDB69" stroke-width="4" stroke-linecap="round">
+    <line x1="14" y1="40" x2="14" y2="30"/>
+    <line x1="23" y1="44" x2="23" y2="22"/>
+    <line x1="32" y1="48" x2="32" y2="16"/>
+    <line x1="41" y1="44" x2="41" y2="22"/>
+    <line x1="50" y1="40" x2="50" y2="30"/>
+  </g>
+  <circle cx="32" cy="12" r="3" fill="#E0B34E"/>
+</svg><span>Ask Me How I Know</span></a>
+  <nav class="pills">
+    <a href="../">Posts</a>
+    <a href="../#/community">Community</a>
+    <a href="../#/about">About</a>
+  </nav>
+</div></header>
+<main class="wrap">
+<article class="post"><a class="back" href="../">&larr; All field notes</a><div class="eyebrow">Aug 2, 2026 &#183; 13 min read</div><h1>84 Percent of Your Airtime Is Printers Saying Hello</h1><p class="lede">Someone counted. 269,253 mDNS frames in under six minutes, 84 percent of an uplink, and every one of them going out over the air at 6 Mbps. Here&#x27;s the math nobody does.</p><div class="chips"><span class="chip">Wireless</span><span class="chip">AOS-8</span><span class="chip">Multicast</span></div><div class="hero-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="84 percent of uplink frames were mDNS; airtime cost by basic rate">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}
+    .lbl{fill:#8A99AB;font-size:13px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}
+    .mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+  </style></defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">ONE UPLINK, FIVE MINUTES FIFTY-TWO SECONDS</text>
+  <text x="30" y="66" class="t big">269,253 mDNS frames. 765 per second. 84% of everything on the wire.</text>
+  <!-- donut -->
+  <g transform="translate(150,205)">
+    <circle r="78" fill="none" stroke="#243040" stroke-width="26"/>
+    <circle r="78" fill="none" stroke="#F0705F" stroke-width="26" stroke-dasharray="412 490" transform="rotate(-90)" stroke-linecap="butt"/>
+    <text y="-4" text-anchor="middle" class="t" fill="#fff" font-size="34" font-weight="800">84%</text>
+    <text y="20" text-anchor="middle" class="t lbl">mDNS v4 + v6</text>
+  </g>
+  <text x="150" y="318" text-anchor="middle" class="t lbl">Everything else: 16%</text>
+  <!-- bars: channel consumed at 765 pps -->
+  <g class="t" transform="translate(320,110)">
+    <text x="0" y="0" class="lbl">Channel time eaten at 765 pps, by 5 GHz basic rate</text>
+    <g transform="translate(0,22)">
+      <text x="0" y="24" fill="#fff" font-size="14">6 Mbps</text><text x="70" y="24" class="lbl" font-size="11">(default)</text>
+      <rect x="130" y="8" width="400" height="22" rx="4" fill="#F0705F"/><text x="540" y="24" fill="#F0705F" font-size="14" font-weight="700">~40%</text>
+    </g>
+    <g transform="translate(0,62)">
+      <text x="0" y="24" fill="#fff" font-size="14">12 Mbps</text>
+      <rect x="130" y="8" width="250" height="22" rx="4" fill="#E0B34E"/><text x="390" y="24" fill="#E0B34E" font-size="14" font-weight="700">~25%</text>
+    </g>
+    <g transform="translate(0,102)">
+      <text x="0" y="24" fill="#fff" font-size="14">24 Mbps</text>
+      <rect x="130" y="8" width="170" height="22" rx="4" fill="#8FDB69"/><text x="310" y="24" fill="#8FDB69" font-size="14" font-weight="700">~17%</text>
+    </g>
+    <g transform="translate(0,150)">
+      <rect x="0" y="0" width="540" height="52" rx="8" fill="#141C26" stroke="#243040"/>
+      <text x="14" y="21" class="lbl">2.4 GHz at the 1 Mbps default needs:</text>
+      <text x="14" y="42" fill="#F0705F" font-size="13" font-weight="700">2.3 s of airtime per wall-clock second. The radio just drops things.</text>
+    </g>
+  </g>
+</svg></div><div class="origin"><span class="eyebrow">Where this came from</span>An Airheads thread where the poster did the isolation test most people skip</div><div class="prose"><h2>Why I'm writing this</h2>
+<p>Somebody posted a wireless performance problem on Airheads last week that I want to walk through, because the shape of it comes up constantly and almost nobody gets it right the first time.</p>
+<p>The setup: a 7030 on AOS 8.10, AP-515s, bridge mode SSID, clients on VLAN 20, no PEF license. Users complaining about throughput, ping spikes, and packet loss. Worst first thing in the morning when everyone badges in, gradually improving through the day. 5 GHz channel utilization sitting between 50 and 80 percent. Every AP on a different channel, so it wasn't co-channel interference.</p>
+<p>Then he did something most people skip. He built an isolated test switch with one uplink and one AP port, hung a MAC ACL on it, and counted. In five minutes and 52 seconds that uplink carried 141,291 IPv4 mDNS frames and 127,962 IPv6 mDNS frames. Call it 269,253 frames, about 765 packets per second, and by his count 84 percent of the frames crossing the link.</p>
+<p>Every one of those frames was being put on the air by every AP in VLAN 20.</p>
+<p>One scoping note up front, because I got this wrong the first time I wrote it up. Everything below about the controller being unable to help is specific to <strong>AOS-8 controller-managed</strong> bridge mode. AOS-10 with Central behaves differently, and I cover that in its own section further down.</p>
+<h2>The math nobody does</h2>
+<p>Here's the part I think people skip, and it's the part that makes this lethal.</p>
+<p>Broadcast and multicast go out at the lowest configured basic rate. No acknowledgment, no block ack, no aggregation, no rate adaptation. One frame, one shot, at whatever the slowest mandatory rate on that radio happens to be.</p>
+<p>On 5 GHz the AOS-8 default for <code>a-basic-rates</code> includes 6 Mbps, so that's the rate. A 300 byte mDNS frame at 6 Mbps is roughly 424 microseconds of actual transmission. Add DIFS and average backoff and you're at about 525 microseconds of medium time per frame.</p>
+<p>Multiply by 765 frames per second.</p>
+<table>
+<thead>
+<tr>
+<th>5 GHz basic rate</th>
+<th>Medium time per frame</th>
+<th>Channel consumed at 765 pps</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6 Mbps (the default)</td>
+<td>~525 us</td>
+<td><strong>~40%</strong></td>
+</tr>
+<tr>
+<td>12 Mbps</td>
+<td>~325 us</td>
+<td>~25%</td>
+</tr>
+<tr>
+<td>24 Mbps</td>
+<td>~225 us</td>
+<td>~17%</td>
+</tr>
+</tbody>
+</table>
+<p>Forty percent of the channel gone before a single client transmits anything. That's why 50 to 80 percent utilization can look survivable on a graph and feel awful to the people using it. Utilization tells you the medium is busy. It doesn't tell you the medium is busy doing something useless.</p>
+<p>And if you're still running 2.4 GHz with the default <code>g-basic-rates</code> of 1 and 2 Mbps, the same traffic needs roughly 3 milliseconds per frame. At 765 pps that works out to 2.3 seconds of airtime for every second of wall clock. The radio does not have 2.3 seconds. It just drops things.</p>
+<p>The morning peak makes sense once you see it this way. That's when laptops boot and start announcing themselves.</p>
+<h2>On AOS-8, bridge mode is why your controller can't help</h2>
+<p>In tunnel mode the controller sits in the data path and you have options: broadcast-filter on the virtual AP, DMO, <code>bcmc-optimization</code> on the VLAN interface, AirGroup.</p>
+<p>In bridge mode the AP handles association, encryption, and firewall enforcement locally, then bridges the VAP straight onto its own Ethernet segment. Wired VLAN traffic arrives at the AP's switchport and goes out over the BSS. The controller sees almost none of it (the docs say "most" data traffic stays local to the AP, and for this problem "most" is all of it). The AOS-8 docs say this outright, and it's the sentence I wish more people had read: in bridge forwarding mode the managed device isn't able to filter out that broadcast traffic.</p>
+<p>Which means the two settings everybody reaches for are the wrong ones.</p>
+<p><strong>Drop Broadcast and Multicast</strong> is <code>broadcast-filter all</code> in the virtual-ap profile, not the SSID profile, and the documentation specifically tells you not to use it on bridge mode VAPs, because the filtering happens on a box that isn't in the path. Same story for Convert Broadcast ARP Requests to Unicast.</p>
+<p><strong>DMO</strong> is the other reflex, and here I'll correct something I got wrong in an earlier version of this. On AOS-8 it needs PEFNG, so people assume the license is the blocker and go get a quote. I used to say the docs were silent on whether DMO works in bridge mode. They aren't. The AOS-8 user guide's mode-support table, under Behavior and Defaults, lists DMO by name as supported in bridge mode, right alongside AirGroup, broadcast filter and rate limiting. So DMO is on the table in bridge mode if you have PEF. Whether it helps with this specific mDNS flood is a different question, because it converts multicast to unicast per subscribed client rather than filtering, and mDNS has no proper group membership to speak of. If you already have PEF, test it. If you'd be buying it specifically for this, test it in a lab first.</p>
+<h2>What AOS-10 and Central change</h2>
+<p>If you're on AOS-10 with Central, most of the above doesn't apply to you, and it's worth understanding why, because this is a different architecture rather than a feature bump.</p>
+<p>AOS-10 inherited its broadcast handling from the InstantOS line, not the controller line, and the AP does the filtering. The design guide is unambiguous about what that means: all filtering and optimization options configured in a WLAN profile apply to all forwarding modes. So on a bridge-mode AOS-10 SSID you have broadcast filtering with the usual All, ARP, Unicast-ARP-Only and Disabled values, ARP unicast conversion, IPv6 RA and ND conversion, minimum transmit data rates, Multicast Transmission Optimization, DMO and AirGroup. In classic Central they sit under the SSID's General tab, Advanced Settings, in the Broadcast/Multicast block. In New Central they ride the Network Configuration preset, and you pick Custom to get at the raw control.</p>
+<p>The only piece that's genuinely tunnel-only in AOS-10 is the gateway-side broadcast and multicast optimization applied per user VLAN, and that's tunnel-only by definition since bridge mode has no gateway in the path. In bridge mode that job belongs to the access switch, which is where we ended up anyway.</p>
+<p>Two things to know before you go turn DMO on. Enabling it forwards mDNS and SSDP as unicast regardless of your broadcast filter setting, so DMO without AirGroup can reopen the exact firehose you were trying to close. And check what your profile actually has rather than assuming the default. The Instant CLI reference, classic Central and the design guide all say <code>broadcast-filter</code> defaults to ARP, but the New Central "Most Compatible" network preset turns it off, so two SSIDs built a month apart can disagree.</p>
+<h2>IGMP snooping won't save you either</h2>
+<p>This is the one that catches experienced people, so it's worth being precise about.</p>
+<p>mDNS is 224.0.0.251. LLMNR is 224.0.0.252. Both live in 224.0.0.0/24, the link-local control block, which switches flood by design and never constrain through snooping. That isn't a bug or a vendor gap, it's the entire point of that range. It also carries OSPF hellos on 224.0.0.5 and .6, VRRP on 224.0.0.18, HSRP, and IGMP itself on 224.0.0.1 and .2. A switch that suppressed 224.0.0.0/24 based on group membership would take your routing protocols down with it.</p>
+<p>IPv6 mDNS at ff02::fb is the same story for MLD snooping. SSDP and WS-Discovery at 239.255.255.250 are technically snoopable, but almost nothing joins the group properly, so in practice they flood too.</p>
+<p>Turn IGMP snooping on anyway. It's the right thing for real application multicast. Just don't expect it to touch your top talkers.</p>
+<h2>What good looks like</h2>
+<p>Filter the specific noisy groups on the wired side, as close to the AP as you can get, and raise your basic rates so whatever survives costs less airtime. That's the whole design.</p>
+<p>The thing to be careful about is scope. Do not drop 224.0.0.0/24 or the whole <code>0100.5e00.0000</code> MAC range wholesale, for the reasons above. Name the groups you want gone:</p>
+<table>
+<thead>
+<tr>
+<th>Protocol</th>
+<th>IPv4 group</th>
+<th>Multicast MAC</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mDNS</td>
+<td>224.0.0.251</td>
+<td>0100-5e00-00fb</td>
+<td>Bonjour, AirPrint, Chromecast</td>
+</tr>
+<tr>
+<td>mDNS v6</td>
+<td>ff02::fb</td>
+<td>3333-0000-00fb</td>
+<td>Same, IPv6 side</td>
+</tr>
+<tr>
+<td>LLMNR</td>
+<td>224.0.0.252</td>
+<td>0100-5e00-00fc</td>
+<td>Windows name resolution fallback</td>
+</tr>
+<tr>
+<td>SSDP / WS-Discovery</td>
+<td>239.255.255.250</td>
+<td>0100-5e7f-fffa</td>
+<td>WSD printers and scanners, DLNA</td>
+</tr>
+</tbody>
+</table>
+<h2>The wired side</h2>
+<p>The original poster was on Comware, and this is the ACL he proved it with. Worth keeping as a reference because it's short and it works:</p>
+<pre><code>acl mac 4000
+ rule 10 deny dest-mac 0100-5e00-00fb ffff-ffff-ffff counting
+ rule 20 deny dest-mac 3333-0000-00fb ffff-ffff-ffff counting
+ rule 100 permit counting
+</code></pre>
+<p>That's Comware 7 syntax. On Comware 5 it's <code>acl number 4000</code> in Ethernet frame header ACL view and there's no <code>counting</code> keyword. Apply it with <code>packet-filter mac 4000 inbound</code> on the uplink toward the access layer, or outbound on the AP-facing ports. Check it with <code>display packet-filter statistics interface &lt;intf&gt; inbound</code>. Comware also gives you per-port <code>multicast-suppression</code> and <code>broadcast-suppression</code> as a pps safety net for whatever you didn't explicitly match.</p>
+<p>On AOS-CX I'd do it with an IP ACL instead, since it's more readable six months later:</p>
+<pre><code>access-list ip MCAST-CHATTER
+    10 deny udp any 224.0.0.251/255.255.255.255 eq 5353 count
+    20 deny udp any 224.0.0.252/255.255.255.255 eq 5355 count
+    30 deny udp any 239.255.255.250/255.255.255.255 eq 1900 count
+    40 deny udp any 239.255.255.250/255.255.255.255 eq 3702 count
+    50 permit any any any
+</code></pre>
+<p>Sequence 50, <code>permit any any any</code>, is not optional. Same rule as any other ACL: leave it off and the implicit deny at the end takes everything with it. The <code>count</code> keyword on the deny entries is what makes this maintainable, because <code>show access-list hitcounts</code> then tells you exactly how much you're dropping and whether it's still worth having.</p>
+<p>Apply it on the AP-facing port:</p>
+<pre><code>interface 1/1/10
+    apply access-list ip MCAST-CHATTER out
+</code></pre>
+<p>One platform caveat: egress ACLs on a layer 2 port work on the 6300, 6400, 8100 and 8360. On the 8325, 9300 and 10000 the docs only allow egress IPv4 ACLs on routed ports, and applying one to a layer 2 interface errors out. On those boxes apply it inbound on the uplink instead.</p>
+<p>IPv6 mDNS needs its own IPv6 ACL on CX, or a MAC ACL if you'd rather do both in one place. CX MAC ACLs use dot notation and the ethertype field is mandatory, so the entry looks like <code>10 deny any 3333.0000.00fb any count</code>.</p>
+<p>On the Juniper side the same job is a <code>family ethernet-switching</code> filter with a term per group, count and discard on each, and a final term that accepts everything else. The shape is identical, only the syntax changes. Check the term options on your Junos version before you paste, because what you can match on in an ethernet-switching filter varies more than you'd like.</p>
+<h2>The wireless side, such as it is</h2>
+<p>On AOS-8 you have one lever in bridge mode and it's your basic rates:</p>
+<pre><code>wlan ssid-profile CORP
+   a-basic-rates 12 24
+</code></pre>
+<p>The default is 6, 12, and 24, so multicast is going out at 6. Moving the floor to 12 halves the airtime per frame and 24 quarters it. Do the same on 2.4 GHz if you still have it, where the default of 1 and 2 Mbps is dramatically worse.</p>
+<p>The cost is cell edge. Clients that can't hold 12 Mbps drop off, which at normal campus AP density is usually fine and occasionally isn't. Survey before you do it in a warehouse.</p>
+<p>One thing to leave alone: <code>mcast-rate-opt</code>. The CLI reference says not to enable it unless support tells you to, and says the default is disabled; the user guide doesn't state a default at all. Check <code>show wlan ssid-profile &lt;name&gt;</code> on the actual box rather than trusting either.</p>
+<h2>What breaks when you do this</h2>
+<p>Be honest with yourself about this list before you push it, because these are all things users notice:</p>
+<p>AirPrint and Bonjour printer discovery. Chromecast and AirPlay. WSD printer and scanner discovery. DLNA. The Network view in Windows Explorer.</p>
+<p>If any of those actually matter in the environment, the clean answer on AOS-8 is AirGroup, which needs tunnel or decrypt-tunnel mode (the docs rule out split-tunnel too). On AOS-10 it's a different story again: AirGroup runs on each AP rather than the gateway, so it works in bridge mode as long as the server VLANs are trunked to the AP switchports. Which brings us to the strategic version of this problem: if you're running bridge mode mainly because that's how it was built five years ago, moving to tunnel or decrypt-tunnel puts the controller back in the path and hands you broadcast-filter, DMO, <code>bcmc-optimization</code> on the SVI, and AirGroup all at once. Check controller capacity against your AP and client count first, obviously.</p>
+<h2>Test it or it doesn't count</h2>
+<p>Do the isolation test before you touch production, the same way the original poster did. One switch, one uplink, one AP, and a counter. It takes twenty minutes and it turns an argument into a number.</p>
+<p>The direction matters and it's the actual diagnostic:</p>
+<p>Block multicast inbound on the uplink and if performance improves, the noise is coming from the wired network. Block it inbound from the AP port and if nothing changes, your wireless clients aren't the source. That combination is the whole diagnosis, and it's why I could tell this poster his read was right rather than guessing with him.</p>
+<p>For the wireless side, capture at the AP's own wired port, not on the controller. In bridge mode the controller has nothing to show you:</p>
+<pre><code>ap packet-capture open-port &lt;port&gt;
+ap packet-capture wired-start ap-name &lt;ap&gt; &lt;your-pc-ip&gt; &lt;port&gt;
+show ap packet-capture status ap-name &lt;ap&gt;
+ap packet-capture stop ap-name &lt;ap&gt; &lt;pcap-id&gt;
+</code></pre>
+<p>And the supporting show commands:</p>
+<pre><code>show wlan virtual-ap &lt;vap-profile&gt;
+show wlan ssid-profile &lt;ssid-profile&gt;
+show ap arm rf-summary ap-name &lt;ap&gt;
+show ap debug radio-stats ap-name &lt;ap&gt; radio 0 advanced
+show ap debug datapath ap-name &lt;ap&gt;
+show ap debug bss-stats ap-name &lt;ap&gt;
+</code></pre>
+<p>Radio 0 is 5 GHz on an AP-515 in every one I've touched, but the docs don't pin radio index to band, so confirm with <code>show ap radio-summary ap-name &lt;ap&gt;</code> before you read the wrong stats.</p>
+<h2>Checklist</h2>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Count before you fix</td>
+<td>A MAC ACL with <code>count</code> on an isolated switch turns opinion into pps</td>
+</tr>
+<tr>
+<td>Test filter direction both ways</td>
+<td>Proves wired versus wireless source, which is the actual diagnosis</td>
+</tr>
+<tr>
+<td>Name specific groups</td>
+<td>Dropping 224.0.0.0/24 wholesale takes OSPF, VRRP and IGMP with it</td>
+</tr>
+<tr>
+<td>Keep the final permit</td>
+<td>Same trap as every other ACL, and you'll find it the hard way</td>
+</tr>
+<tr>
+<td>Put <code>count</code> on every deny</td>
+<td>Six months from now you'll want to know if the rule still earns its place</td>
+</tr>
+<tr>
+<td>Raise <code>a-basic-rates</code> to 12</td>
+<td>Halves the cost of whatever multicast survives the filter</td>
+</tr>
+<tr>
+<td>Survey cell edge after</td>
+<td>Raising basic rates shrinks coverage, usually fine, occasionally not</td>
+</tr>
+<tr>
+<td>Write down what you broke</td>
+<td>AirPrint and Chromecast disappearing needs to be a decision, not a surprise</td>
+</tr>
+<tr>
+<td>Ask why it's bridge mode</td>
+<td>If there's no good reason, tunnel mode gives you real tools</td>
+</tr>
+</tbody>
+</table>
+<h2>Bottom line</h2>
+<p>Bridge mode SSIDs on AOS-8 are a blind spot. Everything we're used to reaching for lives on the controller, and in bridge mode the controller isn't in the path, so the levers are on the switch and in your basic rates instead. On AOS-10 that flips, because the AP does the filtering and bridge mode stops being a limitation. Meanwhile a few hundred Windows machines announcing themselves can eat close to half a channel without anything showing up as an error anywhere.</p>
+<p>The diagnostic is cheap. One isolated switch, one ACL with counters, twenty minutes. If you're chasing a wireless performance problem that gets worse when more people show up and better as the day goes on, count your multicast before you start moving channels around.</p>
+<p>If you hit one of these and want a second set of eyes, get in touch and we'll figure it out.</p></div><div class="postnav"><a class="pn" href="aos8-to-aos10-is-a-rebuild.html"><span class="eyebrow">Older</span>AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade</a><a class="pn right" href="when-the-docs-disagree.html"><span class="eyebrow">Newer</span>When the Docs Disagree With Themselves, Somebody Has to Decide</a></div></article>
+</main>
+<footer><div class="wrap"><span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span><span><a href="../rss.xml">RSS</a></span></div></footer>
+</body></html>

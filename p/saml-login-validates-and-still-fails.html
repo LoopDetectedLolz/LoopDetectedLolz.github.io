@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Your ClearPass SAML Login Validates and Still Fails</title>
+<meta name="description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
+<link rel="canonical" href="https://loopdetectedlolz.github.io/p/saml-login-validates-and-still-fails.html">
+<link rel="alternate" type="application/rss+xml" title="Ask Me How I Know" href="https://loopdetectedlolz.github.io/rss.xml">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Ask Me How I Know">
+<meta property="og:title" content="Your ClearPass SAML Login Validates and Still Fails">
+<meta property="og:description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
+<meta property="og:url" content="https://loopdetectedlolz.github.io/p/saml-login-validates-and-still-fails.html">
+<meta property="og:image" content="https://loopdetectedlolz.github.io/og/saml-login-validates-and-still-fails.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="article:published_time" content="2026-09-05">
+<meta property="article:author" content="Dustin Burns">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Your ClearPass SAML Login Validates and Still Fails">
+<meta name="twitter:description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
+<meta name="twitter:image" content="https://loopdetectedlolz.github.io/og/saml-login-validates-and-still-fails.png">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your ClearPass SAML Login Validates and Still Fails", "description": "Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.", "datePublished": "2026-09-05", "image": "https://loopdetectedlolz.github.io/og/saml-login-validates-and-still-fails.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://loopdetectedlolz.github.io/p/saml-login-validates-and-still-fails.html", "keywords": "ClearPass, Security, Entra ID, SAML"}</script>
+<style>
+:root{color-scheme:dark;--bg:#0B0F14;--panel:#141C26;--panel2:#18222E;--line:#243040;--txt:#F2F5F8;--muted:#8A99AB;--dim:#5C6B7D;--acc:#8FDB69;--amber:#E0B34E;--blue:#7AB8E8;--red:#F0705F}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.6 Inter,"Segoe UI",system-ui,-apple-system,sans-serif}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+code,pre{font-family:ui-monospace,Menlo,Consolas,monospace}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+header.top{position:sticky;top:0;z-index:5;background:rgba(11,15,20,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:14px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--txt);font-weight:800;letter-spacing:.2px}
+.brand svg{width:34px;height:34px}
+.brand:hover{text-decoration:none}
+nav.pills{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+nav.pills a{padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:13px;font-weight:600}
+nav.pills a.on,nav.pills a:hover{color:#0B0F14;background:var(--acc);border-color:var(--acc);text-decoration:none}
+.eyebrow{color:var(--acc);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700}
+.hero{padding:56px 0 28px}
+.hero h1{font-size:clamp(34px,5vw,56px);line-height:1.05;margin:10px 0 14px;letter-spacing:-.5px}
+.hero p.tag{color:var(--muted);font-size:18px;max-width:680px;margin:0 0 22px}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{padding:10px 16px;border-radius:10px;font-weight:700;border:1px solid var(--line);color:var(--txt);background:var(--panel)}
+.btn.primary{background:var(--acc);color:#0B0F14;border-color:var(--acc)}
+.btn:hover{text-decoration:none;filter:brightness(1.08)}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:120px}
+.stat b{display:block;font-size:22px}.stat span{color:var(--muted);font-size:12px}
+section{padding:26px 0}
+h2.sec{font-size:24px;margin:6px 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;color:var(--txt);transition:transform .15s,border-color .15s}
+.card:hover{transform:translateY(-2px);border-color:var(--acc);text-decoration:none}
+.card-art svg{display:block;width:100%;height:auto}
+.card-body{padding:16px}
+.card h3{margin:6px 0 8px;font-size:18px;line-height:1.3}
+.card p{color:var(--muted);margin:0 0 12px;font-size:14px}
+.card.featured{grid-column:1/-1;display:grid;grid-template-columns:1.3fr 1fr}
+.card.featured .card-art{border-right:1px solid var(--line)}
+.card.featured h3{font-size:26px}
+.card.featured p{font-size:16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:999px;background:#0F1620;border:1px solid var(--line);color:var(--muted)}
+.view{display:none}.view.on{display:block}
+article.post{max-width:760px;margin:0 auto;padding:30px 0 60px}
+article.post h1{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:8px 0 10px;letter-spacing:-.4px}
+.lede{color:var(--muted);font-size:18px;margin:0 0 14px}
+.back{display:inline-block;margin-bottom:16px;color:var(--muted);font-size:14px}
+.hero-art{margin:20px 0 14px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.hero-art svg{display:block;width:100%;height:auto}
+.origin{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:10px;padding:12px 16px;color:var(--muted);font-size:14px;margin:0 0 22px}
+.origin .eyebrow{display:block;color:var(--amber);margin-bottom:2px}
+.prose h2{font-size:22px;margin:34px 0 10px;padding-top:6px}
+.prose h3{font-size:18px;margin:26px 0 8px}
+.prose p{margin:0 0 16px}
+.prose strong{color:#fff}
+.prose blockquote{margin:0 0 16px;padding:10px 16px;border-left:3px solid var(--blue);background:var(--panel);color:var(--muted);border-radius:0 8px 8px 0}
+.prose pre{background:#0F1620;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;font-size:13px;line-height:1.5;margin:0 0 18px}
+.prose code{background:#0F1620;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.9em;color:var(--acc)}
+.prose pre code{background:none;border:0;padding:0;color:#D8E4EE}
+.prose table{width:100%;border-collapse:collapse;margin:0 0 20px;font-size:14px}
+.prose th{background:#0F1620;color:var(--acc);text-align:left;padding:9px 10px;border:1px solid var(--line);font-size:12px;letter-spacing:.5px;text-transform:uppercase}
+.prose td{padding:9px 10px;border:1px solid var(--line);vertical-align:top}
+.prose tr:nth-child(even) td{background:#121A24}
+.prose ul,.prose ol{margin:0 0 16px;padding-left:22px}
+.prose li{margin:4px 0}
+.postnav{display:flex;gap:12px;margin-top:40px;border-top:1px solid var(--line);padding-top:20px}
+.pn{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--txt);font-weight:600}
+.pn.right{text-align:right}.pn .eyebrow{display:block;margin-bottom:2px}.pn:hover{border-color:var(--acc);text-decoration:none}
+.two{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+.panel h3{margin:0 0 8px}
+.panel p{color:var(--muted);margin:0 0 10px}
+.panel ul{margin:0;padding-left:20px;color:var(--muted)}
+.panel li{margin:6px 0}
+.panel li b{color:var(--txt)}
+.wide svg{display:block;width:100%;height:auto;border-radius:12px}
+.about{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:start}
+.avatar{width:200px;height:200px;border-radius:16px;background:linear-gradient(160deg,#18222E,#0F1620);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:64px;font-weight:800}
+.contact{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+footer{border-top:1px solid var(--line);padding:28px 0;color:var(--dim);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.badge.green{background:#15351D;color:#7EE08A;border:1px solid #2E6B3A}
+.badge.amber{background:#3A2E12;color:#E0B34E;border:1px solid #6B5320}
+.badge.blue{background:#14293A;color:#7AB8E8;border:1px solid #2B5378}
+.ep{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line);align-items:baseline}
+.ep .n{font-family:ui-monospace,Menlo,monospace;color:var(--acc);font-weight:700}
+.ep b{display:block}
+.ep span{color:var(--muted);font-size:14px}
+.missing{padding:20px;color:var(--red)}
+@media (max-width:820px){.card.featured{grid-template-columns:1fr}.card.featured .card-art{border-right:0;border-bottom:1px solid var(--line)}.two,.about{grid-template-columns:1fr}.avatar{width:120px;height:120px;font-size:40px}}
+</style></head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="../"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Ask Me How I Know mark">
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#141C26" stroke="#243040" stroke-width="2"/>
+  <g stroke="#8FDB69" stroke-width="4" stroke-linecap="round">
+    <line x1="14" y1="40" x2="14" y2="30"/>
+    <line x1="23" y1="44" x2="23" y2="22"/>
+    <line x1="32" y1="48" x2="32" y2="16"/>
+    <line x1="41" y1="44" x2="41" y2="22"/>
+    <line x1="50" y1="40" x2="50" y2="30"/>
+  </g>
+  <circle cx="32" cy="12" r="3" fill="#E0B34E"/>
+</svg><span>Ask Me How I Know</span></a>
+  <nav class="pills">
+    <a href="../">Posts</a>
+    <a href="../#/community">Community</a>
+    <a href="../#/about">About</a>
+  </nav>
+</div></header>
+<main class="wrap">
+<article class="post"><a class="back" href="../">&larr; All field notes</a><div class="eyebrow">Sep 5, 2026 &#183; 7 min read</div><h1>Your ClearPass SAML Login Validates and Still Fails</h1><p class="lede">Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.</p><div class="chips"><span class="chip">ClearPass</span><span class="chip">Security</span><span class="chip">Entra ID</span><span class="chip">SAML</span></div><div class="hero-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Three places a ClearPass admin SAML login fails silently">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:11px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:ui-monospace,Menlo,monospace;font-size:10px;fill:#8FDB69}
+  </style>
+  <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8A99AB"/></marker></defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">"SSO IS SET UP AND LOGIN FAILS"</text>
+  <text x="30" y="66" class="t big">Trust is half the job. The other half hands out the privilege.</text>
+  <g class="t">
+    <!-- admin -->
+    <rect x="20" y="150" width="70" height="60" rx="10" fill="#141C26" stroke="#243040"/><text x="55" y="185" text-anchor="middle" fill="#fff" font-size="13">Admin</text>
+    <line x1="90" y1="180" x2="115" y2="180" stroke="#8A99AB" stroke-width="2" marker-end="url(#arr3)"/>
+    <!-- gate 1 -->
+    <rect x="120" y="110" width="230" height="140" rx="10" fill="#141C26" stroke="#E0B34E"/>
+    <text x="235" y="136" text-anchor="middle" fill="#E0B34E" font-size="13" font-weight="700">Gate 1 · redirect at all?</text>
+    <text x="235" y="160" text-anchor="middle" fill="#fff" font-size="12">Single Sign-On page</text>
+    <text x="235" y="180" text-anchor="middle" class="lbl">Enable SSO for: Policy Manager ticked?</text>
+    <text x="235" y="200" text-anchor="middle" class="lbl">IdP URL set?</text>
+    <text x="235" y="232" text-anchor="middle" class="mono">Configuration › Identity › Single Sign-On</text>
+    <line x1="350" y1="180" x2="378" y2="180" stroke="#8A99AB" stroke-width="2" marker-end="url(#arr3)"/>
+    <!-- gate 2 -->
+    <rect x="383" y="110" width="240" height="140" rx="10" fill="#141C26" stroke="#7AB8E8"/>
+    <text x="503" y="136" text-anchor="middle" fill="#7AB8E8" font-size="13" font-weight="700">Gate 2 · assertion valid?</text>
+    <text x="503" y="160" text-anchor="middle" fill="#fff" font-size="12">Entra ⇄ ClearPass trust</text>
+    <text x="503" y="180" text-anchor="middle" class="lbl">IdP signing cert required, in CTL first</text>
+    <text x="503" y="200" text-anchor="middle" class="lbl">Entity ID + Reply URL = SP metadata</text>
+    <text x="503" y="232" text-anchor="middle" class="mono">Name ID defaults to UPN</text>
+    <line x1="623" y1="180" x2="651" y2="180" stroke="#8A99AB" stroke-width="2" marker-end="url(#arr3)"/>
+    <!-- gate 3 -->
+    <rect x="656" y="110" width="224" height="140" rx="10" fill="#141C26" stroke="#8FDB69"/>
+    <text x="768" y="136" text-anchor="middle" fill="#8FDB69" font-size="13" font-weight="700">Gate 3 · any privilege?</text>
+    <text x="768" y="160" text-anchor="middle" fill="#fff" font-size="12">Admin SSO Login service</text>
+    <text x="768" y="180" text-anchor="middle" class="lbl">Aruba Application Authorization</text>
+    <text x="768" y="200" text-anchor="middle" class="lbl">enforcement → admin privilege</text>
+    <text x="768" y="232" text-anchor="middle" class="mono">Service Templates &amp; Wizards</text>
+  </g>
+  <rect x="30" y="272" width="840" height="44" rx="8" fill="#141C26" stroke="#243040"/>
+  <text x="450" y="290" text-anchor="middle" class="t lbl">All three fail the same way from the login page. Authenticated with no role looks exactly like a failed login.</text>
+  <text x="450" y="308" text-anchor="middle" class="t" fill="#8FDB69" font-size="12">SAML everywhere you can. RADIUS and TACACS+ where you must.</text>
+</svg></div><div class="origin"><span class="eyebrow">Where this came from</span>A year-old Airheads thread about admin MFA, revived by someone who had &quot;set up SSO&quot; and couldn&#x27;t log in</div><div class="prose"><h2>Why I'm writing this</h2>
+<p>Every ClearPass deployment I touch now gets the same question from the security team within a week: can we put MFA on the admin GUI? The answer is yes, and the way you do it is SAML to whatever identity provider already has MFA in front of it, which these days is usually Entra ID.</p>
+<p>That's the easy part. The part that generates forum threads is what happens next. You configure single sign-on, the login page redirects to Microsoft, you authenticate, you get bounced back to ClearPass, and it says no. No error worth reading. Just no.</p>
+<p>Someone hit exactly this on the forums and asked what they'd missed. Turns out there are three different things you can miss, and they all fail the same way from the login page, so here they are in the order to check them.</p>
+<h2>The two halves nobody explains together</h2>
+<p>ClearPass admin SSO is two separate jobs, and the documentation treats them as two separate pages, which is why people finish one and think they're done.</p>
+<p><strong>The trust half</strong> lives under Configuration, Identity, Single Sign-On. That's where you tell ClearPass who the IdP is, what certificate to trust, and which applications should use SSO at all. When this half is right, the SAML assertion comes back and validates.</p>
+<p><strong>The privilege half</strong> is a service. ClearPass doesn't hand out admin rights because Microsoft said you're a real person. It hands them out because a service ran, matched you, and an enforcement profile said Super Administrator or Read-only Administrator or whatever the role is. If that service doesn't exist, you're authenticated and you have nothing, and authenticated with nothing looks exactly like a failed login.</p>
+<p>Most "SSO is set up but login fails" threads are people who built the trust half and never built the service half.</p>
+<h2>Gate 1: does it redirect at all?</h2>
+<p>On the Single Sign-On page there's a field called Enable SSO for, and it's a list of applications (Policy Manager, Guest, Insight, Onboard, and the Guest operator login). Policy Manager has to be ticked. If it isn't, the admin login page never redirects to your IdP in the first place, and you'll sit there wondering why your carefully built Entra app never sees a request.</p>
+<p>While you're on that page, confirm the IdP URL is the actual sign-on endpoint from the Entra enterprise app, not the tenant login page.</p>
+<h2>Gate 2: does the assertion validate?</h2>
+<p>The Identity Provider Signing Certificate field is required, and there's a step before it: the cert has to be in the Certificate Trust List first, or it won't appear in that dropdown. Download the signing cert from the Entra app (Base64), import it under Administration, Certificates, Trust List with the Usage set to SAML, then come back and select it. It shows up with a CN of Microsoft Azure Federated SSO. Miss that and the assertion arrives, fails signature validation, and you get the same silent no.</p>
+<p>Two more things have to agree between the two sides. The Entity ID and the Reply URL in the Entra app need to match what ClearPass publishes in its SP metadata, which you can download from the same page. They're of the form <code>https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp</code> and <code>https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp/acs</code>. Copy them out of the metadata rather than typing them; a trailing slash is enough to break it.</p>
+<p>If you run a cluster, that FQDN is per node. Every node has its own ACS URL, and the Entra app has to carry all of them as Reply URLs, or SSO works against the publisher and fails against everything else. HPE's own Okta write-up makes the same point with Okta's "requestable SSO URLs," and it applies just as much to Entra.</p>
+<p>And one that isn't on either page: NTP. ClearPass's own SSO doc says flatly that if the clocks are out of sync, SAML will not function. Assertions carry validity windows measured in minutes. Check <code>show ntp</code> or the Server Configuration page before you touch anything else. Call it gate zero.</p>
+<h2>Gate 3: does anybody get a privilege?</h2>
+<p>This is the one the original thread was missing. Go to Configuration, Service Templates and Wizards, and use the Policy Manager Admin SSO Login (SAML SP Service) template. It was called ClearPass Admin SSO Login in 6.8 and earlier, which is why half the guides you'll find use the old name. It builds the service and the enforcement policy that actually maps a user to an admin privilege level. You can hand-build the same thing, and if you do, the service type is Aruba Application Authorization. The user guide describes that type as providing authorization for users of Aruba applications, sending a Generic Application Enforcement profile to grant the privilege. So: service type Aruba Application Authorization, enforcement policy type Application, enforcement profile Generic Application Enforcement pointed at Super Administrator or Read-only Administrator or whichever level you mean. I had Authentication in an earlier draft of this. HPE's own Entra write-up says Authorization, and so does the user guide.</p>
+<p>One more thing that isn't obvious until you try group-based roles. Entra sends its group and tenant claims with long schema-style attribute names that aren't in the ClearPass SSO dictionary out of the box. To match on them you export the SSO dictionary under Administration, Dictionaries, Applications, add the attributes, and import it back. Until you do, the group claim is in the assertion (a SAML tracer will show it) and ClearPass just can't see it.</p>
+<p>Then check what the service is matching on. Entra sends the user principal name as the Name ID by default. If your enforcement conditions or your authorization source lookup expect sAMAccountName, nothing matches, nobody gets a role, same silent failure. Either change the Entra claim to send the attribute ClearPass expects, or change the ClearPass side to look up by UPN. Pick one and write it down.</p>
+<pre><code>Configuration &gt; Identity &gt; Single Sign-On
+  Enable SSO for: [x] Policy Manager
+  IdP URL: https://login.microsoftonline.com/&lt;TENANT-ID&gt;/saml2
+  IdP Signing Certificate: &lt;cert already in Trust List&gt;
+
+Configuration &gt; Service Templates &amp; Wizards &gt; Policy Manager Admin SSO Login (SAML SP Service)
+  Service type:             Aruba Application Authorization
+  Enforcement policy type:  Application
+  Enforcement profile:      Generic Application Enforcement -&gt; admin privilege level
+                            (Super Administrator, Read-only Administrator, ...)
+
+Administration &gt; Certificates &gt; Trust List
+  Entra signing cert, Usage: SAML
+
+Entra enterprise app
+  Identifier (Entity ID): https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp
+  Reply URL (ACS):        https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp/acs   (one per cluster node)
+  Name ID:                user.userprincipalname (default)
+</code></pre>
+<h2>Where to look when it still fails</h2>
+<p>Access Tracker. A SAML admin login that reaches the service shows up there as an Application Auth request (HPE's own SSO write-ups show exactly that), and the reject reason tells you which gate you're stuck at. If there's nothing in Access Tracker at all, you're at gate 1 or gate 2: the request never got far enough to hit a service. A SAML tracer extension in the browser shows you the assertion itself, which is the fastest way to see whether a claim is actually being sent.</p>
+<p>And a bit of sequencing advice straight from HPE support: enable SSO for Guest or Insight first, prove the round trip works, then tick Policy Manager. A broken SSO build on Policy Manager is a lockout, and you'd rather find gate 3 on the Insight login page.</p>
+<p>One more setting worth knowing on the SSO page while you're building this for MFA: Force Authentication, off by default. Turn it on and ClearPass makes the IdP re-authenticate even when the admin already has a live session with Microsoft, which is usually what the security team meant when they asked for MFA on the GUI.</p>
+<h2>Checklist</h2>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Clocks in sync</td>
+<td>NTP on every node</td>
+</tr>
+<tr>
+<td>Policy Manager ticked under Enable SSO for</td>
+<td>Configuration, Identity, Single Sign-On</td>
+</tr>
+<tr>
+<td>IdP signing cert imported to the Trust List, then selected</td>
+<td>Same page, after Certificate Trust List</td>
+</tr>
+<tr>
+<td>Entity ID and Reply URL copied from SP metadata</td>
+<td>Entra enterprise app</td>
+</tr>
+<tr>
+<td>Every cluster node's ACS URL is a Reply URL in Entra</td>
+<td>Entra enterprise app</td>
+</tr>
+<tr>
+<td>Policy Manager Admin SSO Login service exists, type Aruba Application Authorization</td>
+<td>Service Templates and Wizards</td>
+</tr>
+<tr>
+<td>Generic Application Enforcement profile maps to a real admin privilege level</td>
+<td>The service's enforcement policy</td>
+</tr>
+<tr>
+<td>Group claim attributes added to the SSO dictionary, if you map roles on groups</td>
+<td>Administration, Dictionaries, Applications</td>
+</tr>
+<tr>
+<td>Force Authentication on, if MFA every time is the requirement</td>
+<td>Single Sign-On page</td>
+</tr>
+<tr>
+<td>Name ID attribute matches what the service looks up</td>
+<td>Entra claims vs ClearPass conditions</td>
+</tr>
+<tr>
+<td>Request visible in Access Tracker</td>
+<td>Monitoring</td>
+</tr>
+</tbody>
+</table>
+<h2>Bottom line</h2>
+<p>SAML everywhere you can, RADIUS and TACACS+ where you must. That was the consensus on the thread and I agree with it. Just know that on ClearPass, SAML is two builds, not one, and the second one is the one that gives you a role.</p>
+<p>If you've got admin MFA on the security team's list and you'd rather not find gate 3 the hard way, get in touch.</p></div><div class="postnav"><a class="pn" href="one-pilot-ap-converts-all-of-them.html"><span class="eyebrow">Older</span>One Pilot AP Converts All Hundred of Them</a></div></article>
+</main>
+<footer><div class="wrap"><span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span><span><a href="../rss.xml">RSS</a></span></div></footer>
+</body></html>

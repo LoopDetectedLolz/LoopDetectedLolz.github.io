@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="AOS-8 to AOS-10: what carries over and what does not">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+  </style>
+  <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8FDB69"/></marker></defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">"MIGRATION" IS DOING A LOT OF WORK IN THAT SENTENCE</text>
+  <text x="30" y="66" class="t big">Config doesn't come along. You're standing up a new management plane.</text>
+  <g class="t">
+    <!-- AOS-8 box -->
+    <rect x="30" y="95" width="300" height="220" rx="10" fill="#141C26" stroke="#243040"/>
+    <text x="50" y="122" fill="#fff" font-size="15" font-weight="700">AOS-8 · Mobility Conductor</text>
+    <g font-size="13" fill="#8A99AB">
+      <text x="50" y="152">Internal user DB</text>
+      <text x="50" y="176">AAA FastConnect</text>
+      <text x="50" y="200">Hand-tuned RF (power, width, DFS)</text>
+      <text x="50" y="224">AirWave + Conductor</text>
+      <text x="50" y="248">RADIUS NAD = controller IP</text>
+      <text x="50" y="272">IAP 8.x Central group</text>
+      <text x="50" y="296">Native VLAN on AP switchport</text>
+    </g>
+    <!-- arrow -->
+    <line x1="340" y1="205" x2="545" y2="205" stroke="#8FDB69" stroke-width="3" marker-end="url(#arr2)"/>
+    <text x="442" y="192" text-anchor="middle" class="mono" fill="#8FDB69">ap convert active</text>
+    <text x="442" y="228" text-anchor="middle" class="lbl">rebuild, not upgrade</text>
+    <!-- AOS-10 box -->
+    <rect x="560" y="95" width="310" height="220" rx="10" fill="#141C26" stroke="#243040"/>
+    <text x="580" y="122" fill="#fff" font-size="15" font-weight="700">AOS-10 · Central</text>
+    <g font-size="13">
+      <text x="580" y="152" fill="#F0705F">✕ gone: real RADIUS server required</text>
+      <text x="580" y="176" fill="#F0705F">✕ gone: not supported</text>
+      <text x="580" y="200" fill="#E0B34E">→ AirMatch + ClientMatch, no knobs</text>
+      <text x="580" y="224" fill="#E0B34E">→ Central only</text>
+      <text x="580" y="248" fill="#E0B34E">→ gateway IP, or every AP in bridge</text>
+      <text x="580" y="272" fill="#F0705F">✕ can't convert: build a new group</text>
+      <text x="580" y="296" fill="#F0705F">✕ AP assumes untagged VID 1</text>
+    </g>
+  </g>
+  <text x="30" y="332" class="t lbl">Pre-validate "dns error" on 8.10.0.5? AOS-253282 / AOS-253299, fixed in 8.10.0.11. Central handed back IPv6.</text>
+</svg>

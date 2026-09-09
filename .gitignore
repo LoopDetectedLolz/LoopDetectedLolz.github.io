@@ -1,0 +1,15 @@
+# working notes, not for publication
+audit/
+evidence/
+verification-register.md
+
+# build scratch and one-off tooling
+data-url.txt
+preview-graphics.png
+patch-build.py
+_emitters.py
+_og_tmp.svg
+*.bak
+*.pre-multipage
+
+.DS_Store

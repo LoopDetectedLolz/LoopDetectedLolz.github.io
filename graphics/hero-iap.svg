@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Instant cluster conversion is cluster-wide; pilot on an isolated cluster">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+  </style>
+  <symbol id="ap" viewBox="0 0 40 24"><rect x="2" y="6" width="36" height="14" rx="6" fill="#141C26" stroke="#8A99AB" stroke-width="1.5"/><circle cx="20" cy="13" r="3" fill="#8A99AB"/><path d="M12 4 q8 -6 16 0" fill="none" stroke="#8A99AB" stroke-width="1.5"/></symbol>
+  <symbol id="apx" viewBox="0 0 40 24"><rect x="2" y="6" width="36" height="14" rx="6" fill="#3A1712" stroke="#F0705F" stroke-width="1.5"/><circle cx="20" cy="13" r="3" fill="#F0705F"/><path d="M12 4 q8 -6 16 0" fill="none" stroke="#F0705F" stroke-width="1.5"/></symbol>
+  <symbol id="apg" viewBox="0 0 40 24"><rect x="2" y="6" width="36" height="14" rx="6" fill="#15351D" stroke="#7EE08A" stroke-width="1.5"/><circle cx="20" cy="13" r="3" fill="#7EE08A"/><path d="M12 4 q8 -6 16 0" fill="none" stroke="#7EE08A" stroke-width="1.5"/></symbol>
+  </defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">"I'LL PILOT WITH ONE AP FIRST"</text>
+  <text x="30" y="66" class="t big">The virtual controller converts every member. One AP converts a hundred.</text>
+  <!-- left: production cluster -->
+  <g class="t">
+    <rect x="30" y="90" width="520" height="220" rx="10" fill="#141C26" stroke="#F0705F"/>
+    <text x="50" y="116" fill="#fff" font-size="14" font-weight="700">Production Instant cluster · 100 APs · one VLAN</text>
+    <rect x="240" y="130" width="100" height="28" rx="6" fill="#0B0F14" stroke="#E0B34E"/><text x="290" y="149" text-anchor="middle" fill="#E0B34E" font-size="12" font-weight="700">Virtual Ctrl</text>
+    <!-- fan-out lines -->
+    <g stroke="#F0705F" stroke-width="1" opacity="0.7">
+      <line x1="290" y1="158" x2="80" y2="200"/><line x1="290" y1="158" x2="150" y2="200"/><line x1="290" y1="158" x2="220" y2="200"/><line x1="290" y1="158" x2="290" y2="200"/><line x1="290" y1="158" x2="360" y2="200"/><line x1="290" y1="158" x2="430" y2="200"/><line x1="290" y1="158" x2="500" y2="200"/>
+    </g>
+    <g>
+      <use href="#apx" x="60" y="200" width="40" height="24"/><use href="#apx" x="130" y="200" width="40" height="24"/><use href="#apx" x="200" y="200" width="40" height="24"/><use href="#apx" x="270" y="200" width="40" height="24"/><use href="#apx" x="340" y="200" width="40" height="24"/><use href="#apx" x="410" y="200" width="40" height="24"/><use href="#apx" x="480" y="200" width="40" height="24"/>
+    </g>
+    <text x="290" y="250" text-anchor="middle" fill="#F0705F" font-size="13" font-weight="700">convert → all of them, at once, during business hours</text>
+    <text x="290" y="272" text-anchor="middle" class="lbl">AirWave isn't the control plane. Losing it changes nothing here.</text>
+    <text x="290" y="292" text-anchor="middle" class="lbl">The cluster is.</text>
+  </g>
+  <!-- right: isolated pilot -->
+  <g class="t">
+    <rect x="580" y="90" width="290" height="220" rx="10" fill="#141C26" stroke="#8FDB69"/>
+    <text x="600" y="116" fill="#fff" font-size="14" font-weight="700">Real pilot</text>
+    <rect x="675" y="130" width="100" height="28" rx="6" fill="#0B0F14" stroke="#8FDB69"/><text x="725" y="149" text-anchor="middle" fill="#8FDB69" font-size="12" font-weight="700">own VC</text>
+    <line x1="725" y1="158" x2="725" y2="200" stroke="#7EE08A"/>
+    <use href="#apg" x="705" y="200" width="40" height="24"/>
+    <text x="725" y="250" text-anchor="middle" fill="#7EE08A" font-size="13" font-weight="700">1 AP, own VLAN, no L2 path back</text>
+    <text x="725" y="272" text-anchor="middle" class="lbl">Convert it. Watch it land on the gateways</text>
+    <text x="725" y="292" text-anchor="middle" class="lbl">and pull its image. Then scale.</text>
+  </g>
+  <text x="30" y="332" class="t lbl">CAPs find a controller by IP. Routed is fine. If you can leave the management VLAN alone, leave it alone.</text>
+</svg>

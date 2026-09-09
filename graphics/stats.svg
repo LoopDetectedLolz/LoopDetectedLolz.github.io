@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 200" role="img" aria-label="Airheads community activity since July 2026">
+  <defs><style>.t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.n{fill:#fff;font-size:34px;font-weight:800}</style></defs>
+  <rect width="900" height="200" rx="14" fill="#141C26" stroke="#243040"/>
+  <text x="30" y="34" class="t eyebrow">HPE AIRHEADS · SINCE JULY 2026</text>
+  <g class="t">
+    <text x="30" y="90" class="n">69</text><text x="30" y="112" class="lbl">replies posted</text>
+    <text x="180" y="90" class="n" fill="#8FDB69">6</text><text x="180" y="112" class="lbl">Best Answers</text>
+    <text x="330" y="90" class="n" fill="#7AB8E8">13</text><text x="330" y="112" class="lbl">confirmed by the OP</text>
+    <text x="520" y="90" class="n" fill="#E0B34E">19</text><text x="520" y="112" class="lbl">kudos</text>
+  </g>
+  <!-- monthly bars -->
+  <g class="t" transform="translate(660,34)">
+    <text x="0" y="0" class="lbl">replies by month</text>
+    <rect x="0" y="14" width="50" height="6" rx="3" fill="#243040"/><rect x="0" y="14" width="4" height="6" rx="2" fill="#8FDB69"/><text x="60" y="20" class="lbl">Jul · 2</text>
+    <rect x="0" y="32" width="50" height="6" rx="3" fill="#243040"/><rect x="0" y="32" width="50" height="6" rx="3" fill="#8FDB69"/><text x="60" y="38" class="lbl">Aug · 58</text>
+    <rect x="0" y="50" width="50" height="6" rx="3" fill="#243040"/><rect x="0" y="50" width="8" height="6" rx="3" fill="#8FDB69"/><text x="60" y="56" class="lbl">Sep · 5 so far</text>
+  </g>
+  <text x="30" y="150" class="t lbl">Recent Best Answers: VSX traffic loss during upgrade · VSX cores not failing over · AOS-CX cached-clients table empty</text>
+  <text x="30" y="172" class="t lbl">Corroborated in-thread by HPE engineers and MVP Gurus on Comware MAC auth, Entra ID timeouts, and New Central profiles.</text>
+</svg>
