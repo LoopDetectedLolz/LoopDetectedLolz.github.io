@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade</title>
+<meta name="description" content="Three threads in one week, three symptoms, one cause: people planned an upgrade and got handed a rebuild. What doesn&#x27;t come with you, the pre-validate defect everyone blames on DNS, and the order of operations.">
+<link rel="canonical" href="https://loopdetectedlolz.github.io/p/aos8-to-aos10-is-a-rebuild.html">
+<link rel="alternate" type="application/rss+xml" title="Ask Me How I Know" href="https://loopdetectedlolz.github.io/rss.xml">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Ask Me How I Know">
+<meta property="og:title" content="AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade">
+<meta property="og:description" content="Three threads in one week, three symptoms, one cause: people planned an upgrade and got handed a rebuild. What doesn&#x27;t come with you, the pre-validate defect everyone blames on DNS, and the order of operations.">
+<meta property="og:url" content="https://loopdetectedlolz.github.io/p/aos8-to-aos10-is-a-rebuild.html">
+<meta property="og:image" content="https://loopdetectedlolz.github.io/og/aos8-to-aos10-is-a-rebuild.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="article:published_time" content="2026-07-30">
+<meta property="article:author" content="Dustin Burns">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade">
+<meta name="twitter:description" content="Three threads in one week, three symptoms, one cause: people planned an upgrade and got handed a rebuild. What doesn&#x27;t come with you, the pre-validate defect everyone blames on DNS, and the order of operations.">
+<meta name="twitter:image" content="https://loopdetectedlolz.github.io/og/aos8-to-aos10-is-a-rebuild.png">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade", "description": "Three threads in one week, three symptoms, one cause: people planned an upgrade and got handed a rebuild. What doesn't come with you, the pre-validate defect everyone blames on DNS, and the order of operations.", "datePublished": "2026-07-30", "image": "https://loopdetectedlolz.github.io/og/aos8-to-aos10-is-a-rebuild.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://loopdetectedlolz.github.io/p/aos8-to-aos10-is-a-rebuild.html", "keywords": "Wireless, AOS-10, Central, Migration"}</script>
+<style>
+:root{color-scheme:dark;--bg:#0B0F14;--panel:#141C26;--panel2:#18222E;--line:#243040;--txt:#F2F5F8;--muted:#8A99AB;--dim:#5C6B7D;--acc:#8FDB69;--amber:#E0B34E;--blue:#7AB8E8;--red:#F0705F}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.6 Inter,"Segoe UI",system-ui,-apple-system,sans-serif}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+code,pre{font-family:ui-monospace,Menlo,Consolas,monospace}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+header.top{position:sticky;top:0;z-index:5;background:rgba(11,15,20,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:14px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--txt);font-weight:800;letter-spacing:.2px}
+.brand svg{width:34px;height:34px}
+.brand:hover{text-decoration:none}
+nav.pills{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+nav.pills a{padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:13px;font-weight:600}
+nav.pills a.on,nav.pills a:hover{color:#0B0F14;background:var(--acc);border-color:var(--acc);text-decoration:none}
+.eyebrow{color:var(--acc);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700}
+.hero{padding:56px 0 28px}
+.hero h1{font-size:clamp(34px,5vw,56px);line-height:1.05;margin:10px 0 14px;letter-spacing:-.5px}
+.hero p.tag{color:var(--muted);font-size:18px;max-width:680px;margin:0 0 22px}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{padding:10px 16px;border-radius:10px;font-weight:700;border:1px solid var(--line);color:var(--txt);background:var(--panel)}
+.btn.primary{background:var(--acc);color:#0B0F14;border-color:var(--acc)}
+.btn:hover{text-decoration:none;filter:brightness(1.08)}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:120px}
+.stat b{display:block;font-size:22px}.stat span{color:var(--muted);font-size:12px}
+section{padding:26px 0}
+h2.sec{font-size:24px;margin:6px 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;color:var(--txt);transition:transform .15s,border-color .15s}
+.card:hover{transform:translateY(-2px);border-color:var(--acc);text-decoration:none}
+.card-art svg{display:block;width:100%;height:auto}
+.card-body{padding:16px}
+.card h3{margin:6px 0 8px;font-size:18px;line-height:1.3}
+.card p{color:var(--muted);margin:0 0 12px;font-size:14px}
+.card.featured{grid-column:1/-1;display:grid;grid-template-columns:1.3fr 1fr}
+.card.featured .card-art{border-right:1px solid var(--line)}
+.card.featured h3{font-size:26px}
+.card.featured p{font-size:16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:999px;background:#0F1620;border:1px solid var(--line);color:var(--muted)}
+.view{display:none}.view.on{display:block}
+article.post{max-width:760px;margin:0 auto;padding:30px 0 60px}
+article.post h1{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:8px 0 10px;letter-spacing:-.4px}
+.lede{color:var(--muted);font-size:18px;margin:0 0 14px}
+.back{display:inline-block;margin-bottom:16px;color:var(--muted);font-size:14px}
+.hero-art{margin:20px 0 14px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.hero-art svg{display:block;width:100%;height:auto}
+.origin{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:10px;padding:12px 16px;color:var(--muted);font-size:14px;margin:0 0 22px}
+.origin .eyebrow{display:block;color:var(--amber);margin-bottom:2px}
+.prose h2{font-size:22px;margin:34px 0 10px;padding-top:6px}
+.prose h3{font-size:18px;margin:26px 0 8px}
+.prose p{margin:0 0 16px}
+.prose strong{color:#fff}
+.prose blockquote{margin:0 0 16px;padding:10px 16px;border-left:3px solid var(--blue);background:var(--panel);color:var(--muted);border-radius:0 8px 8px 0}
+.prose pre{background:#0F1620;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;font-size:13px;line-height:1.5;margin:0 0 18px}
+.prose code{background:#0F1620;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.9em;color:var(--acc)}
+.prose pre code{background:none;border:0;padding:0;color:#D8E4EE}
+.prose table{width:100%;border-collapse:collapse;margin:0 0 20px;font-size:14px}
+.prose th{background:#0F1620;color:var(--acc);text-align:left;padding:9px 10px;border:1px solid var(--line);font-size:12px;letter-spacing:.5px;text-transform:uppercase}
+.prose td{padding:9px 10px;border:1px solid var(--line);vertical-align:top}
+.prose tr:nth-child(even) td{background:#121A24}
+.prose ul,.prose ol{margin:0 0 16px;padding-left:22px}
+.prose li{margin:4px 0}
+.postnav{display:flex;gap:12px;margin-top:40px;border-top:1px solid var(--line);padding-top:20px}
+.pn{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--txt);font-weight:600}
+.pn.right{text-align:right}.pn .eyebrow{display:block;margin-bottom:2px}.pn:hover{border-color:var(--acc);text-decoration:none}
+.two{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+.panel h3{margin:0 0 8px}
+.panel p{color:var(--muted);margin:0 0 10px}
+.panel ul{margin:0;padding-left:20px;color:var(--muted)}
+.panel li{margin:6px 0}
+.panel li b{color:var(--txt)}
+.wide svg{display:block;width:100%;height:auto;border-radius:12px}
+.about{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:start}
+.avatar{width:200px;height:200px;border-radius:16px;background:linear-gradient(160deg,#18222E,#0F1620);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:64px;font-weight:800}
+.contact{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+footer{border-top:1px solid var(--line);padding:28px 0;color:var(--dim);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.badge.green{background:#15351D;color:#7EE08A;border:1px solid #2E6B3A}
+.badge.amber{background:#3A2E12;color:#E0B34E;border:1px solid #6B5320}
+.badge.blue{background:#14293A;color:#7AB8E8;border:1px solid #2B5378}
+.ep{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line);align-items:baseline}
+.ep .n{font-family:ui-monospace,Menlo,monospace;color:var(--acc);font-weight:700}
+.ep b{display:block}
+.ep span{color:var(--muted);font-size:14px}
+.missing{padding:20px;color:var(--red)}
+@media (max-width:820px){.card.featured{grid-template-columns:1fr}.card.featured .card-art{border-right:0;border-bottom:1px solid var(--line)}.two,.about{grid-template-columns:1fr}.avatar{width:120px;height:120px;font-size:40px}}
+</style></head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="../"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Ask Me How I Know mark">
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#141C26" stroke="#243040" stroke-width="2"/>
+  <g stroke="#8FDB69" stroke-width="4" stroke-linecap="round">
+    <line x1="14" y1="40" x2="14" y2="30"/>
+    <line x1="23" y1="44" x2="23" y2="22"/>
+    <line x1="32" y1="48" x2="32" y2="16"/>
+    <line x1="41" y1="44" x2="41" y2="22"/>
+    <line x1="50" y1="40" x2="50" y2="30"/>
+  </g>
+  <circle cx="32" cy="12" r="3" fill="#E0B34E"/>
+</svg><span>Ask Me How I Know</span></a>
+  <nav class="pills">
+    <a href="../">Posts</a>
+    <a href="../#/community">Community</a>
+    <a href="../#/about">About</a>
+  </nav>
+</div></header>
+<main class="wrap">
+<article class="post"><a class="back" href="../">&larr; All field notes</a><div class="eyebrow">Jul 30, 2026 &#183; 13 min read</div><h1>AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade</h1><p class="lede">Three threads in one week, three symptoms, one cause: people planned an upgrade and got handed a rebuild. What doesn&#x27;t come with you, the pre-validate defect everyone blames on DNS, and the order of operations.</p><div class="chips"><span class="chip">Wireless</span><span class="chip">AOS-10</span><span class="chip">Central</span><span class="chip">Migration</span></div><div class="hero-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="AOS-8 to AOS-10: what carries over and what does not">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+  </style>
+  <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8FDB69"/></marker></defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">"MIGRATION" IS DOING A LOT OF WORK IN THAT SENTENCE</text>
+  <text x="30" y="66" class="t big">Config doesn't come along. You're standing up a new management plane.</text>
+  <g class="t">
+    <!-- AOS-8 box -->
+    <rect x="30" y="95" width="300" height="220" rx="10" fill="#141C26" stroke="#243040"/>
+    <text x="50" y="122" fill="#fff" font-size="15" font-weight="700">AOS-8 · Mobility Conductor</text>
+    <g font-size="13" fill="#8A99AB">
+      <text x="50" y="152">Internal user DB</text>
+      <text x="50" y="176">AAA FastConnect</text>
+      <text x="50" y="200">Hand-tuned RF (power, width, DFS)</text>
+      <text x="50" y="224">AirWave + Conductor</text>
+      <text x="50" y="248">RADIUS NAD = controller IP</text>
+      <text x="50" y="272">IAP 8.x Central group</text>
+      <text x="50" y="296">Native VLAN on AP switchport</text>
+    </g>
+    <!-- arrow -->
+    <line x1="340" y1="205" x2="545" y2="205" stroke="#8FDB69" stroke-width="3" marker-end="url(#arr2)"/>
+    <text x="442" y="192" text-anchor="middle" class="mono" fill="#8FDB69">ap convert active</text>
+    <text x="442" y="228" text-anchor="middle" class="lbl">rebuild, not upgrade</text>
+    <!-- AOS-10 box -->
+    <rect x="560" y="95" width="310" height="220" rx="10" fill="#141C26" stroke="#243040"/>
+    <text x="580" y="122" fill="#fff" font-size="15" font-weight="700">AOS-10 · Central</text>
+    <g font-size="13">
+      <text x="580" y="152" fill="#F0705F">✕ gone: real RADIUS server required</text>
+      <text x="580" y="176" fill="#F0705F">✕ gone: not supported</text>
+      <text x="580" y="200" fill="#E0B34E">→ AirMatch + ClientMatch, no knobs</text>
+      <text x="580" y="224" fill="#E0B34E">→ Central only</text>
+      <text x="580" y="248" fill="#E0B34E">→ gateway IP, or every AP in bridge</text>
+      <text x="580" y="272" fill="#F0705F">✕ can't convert: build a new group</text>
+      <text x="580" y="296" fill="#F0705F">✕ AP assumes untagged VID 1</text>
+    </g>
+  </g>
+  <text x="30" y="332" class="t lbl">Pre-validate "dns error" on 8.10.0.5? AOS-253282 / AOS-253299, fixed in 8.10.0.11. Central handed back IPv6.</text>
+</svg></div><div class="origin"><span class="eyebrow">Where this came from</span>Three Airheads threads in the same week, same root cause</div><div class="prose"><h2>Why I'm writing this</h2>
+<p>Three threads crossed my desk in one week. A pre-validate failing with a DNS error on a few hundred APs. Somebody moving a standalone 7030 to a 9240. Somebody else with a hundred AP-735s trying to get them onto AOS-8.13.3 without touching each one. Different boards, different symptoms, and underneath all three the same thing: people planned an upgrade and got handed a rebuild.</p>
+<p>That's the whole post. If you take one thing from it, make it this: <strong>the word "migration" is doing a lot of work in the HPE documentation, and it does not mean what it means everywhere else in networking.</strong> You are not carrying your config forward. You are standing up a new management plane and re-homing devices into it.</p>
+<p>Once you accept that, the rest of this gets a lot easier to plan.</p>
+<h2>What actually doesn't come with you</h2>
+<p>This is the part that should drive your project plan, and it's buried in a Validated Solution Guide table rather than anywhere you'd trip over it.</p>
+<p><strong>The internal authentication server is gone.</strong> The local user DB on the Mobility Conductor has no equivalent. HPE's own wording is "local user authentication service is not supported." If you're using it for guest, for a handful of service accounts, for lab clients, that's a workstream, not a footnote. Run <code>show local-user db</code> during discovery so you know what you're dealing with before somebody finds out the hard way.</p>
+<p><strong>AAA FastConnect is gone.</strong> Same table, same blunt "not supported." If the controller is acting as the authentication server rather than relaying to one, you need a real RADIUS server before you migrate.</p>
+<p><strong>Mobility Conductor and AirWave both go away.</strong> Everything moves to Central. And AirWave 8.2.15.1 and later can't perform the AOS-10 upgrade for you, so it isn't even useful as a migration tool.</p>
+<p><strong>Manual radio tuning goes away.</strong> Transmit power, channel width, DFS handling, all of it moves to AirMatch. ClientMatch band steering, sticky client and load balancing move to Central too, and the VSG is explicit that those settings can't be tuned. If you have a site with hand-tuned RF because of some peculiar building, plan to re-solve that problem a different way.</p>
+<p><strong>The Instant Virtual Controller is deprecated</strong>, which took Dynamic RADIUS Proxy with it in bridge mode. Worth knowing if you rely on DRP today.</p>
+<p>And one that isn't a feature loss but will absolutely generate a ticket: <strong>your RADIUS source IP changes.</strong> On AOS-8 the NAD is the Mobility Controller. On AOS-10 in mixed mode it's the gateway's management address, and in bridge mode it's each individual AP's management address. Every RADIUS server you talk to needs its client list updated, and in bridge mode that means every AP. Sort that before cutover, not during.</p>
+<h2>The AP conversion itself</h2>
+<p>The command lives on the Mobility Conductor and it's been there since 8.6:</p>
+<pre><code>ap convert active {all-aps|specific-aps} {activate | local-flash &lt;file&gt; | server &lt;URL&gt;}
+                  [max-downloads] [no-pre-validation] [no-reboot]
+ap convert pre-validate {all-aps|specific-aps}
+ap convert cancel
+show ap convert-status
+show ap convert-status-summary
+show ap convert-status-list
+</code></pre>
+<p>Note it's <code>ap convert cancel</code>, two words, not <code>ap convert-cancel</code>. The status command is hyphenated the other way, <code>show ap convert-status</code>. That inconsistency has cost me more time than I'd like to admit.</p>
+<p><code>max-downloads</code> defaults to 10 concurrent AP image downloads. <code>server</code> takes ftp, tftp, http, https or scp. The <code>activate</code> option exists but the migration guide says it's "not currently recommended for use," so use <code>server</code> or <code>local-flash</code>. (The CLI reference for <code>show ap convert-status-summary</code> still calls Activate the recommended value. Two HPE pages, two answers; the migration guide is the newer one.)</p>
+<p>If you're doing multiple AP models in one shot, semicolon-separate the images:</p>
+<pre><code>ap convert active specific-aps server http common.cloud.hpe.com \
+  path ccssvc/ccs-system-firmware-registry/IAP ArubaOS_Norma_10.6.0.1_89990;ArubaOS_Scorpio_10.6.0.1_89990
+</code></pre>
+<p>Those constellation names are per-model image families. Get the right one for your hardware, because the wrong image just fails the download.</p>
+<p><strong>What conversion does:</strong> the AP pulls the AOS-10 image, saves its uplink parameters into <code>ap-env</code> so it can find its way back onto the network, boots AOS-10, gets a provisioning rule from Activate pointing it at Central, joins its assigned group, and then Central audits it and wipes almost everything else. What survives is a short list: DHCP/IPv4, static IPv4, dual Ethernet, PPPoE, AP1X, proxy, LACP and mesh.</p>
+<p>Handy field check while you're watching it happen: look at LLDP neighbor info on the access switch. Still on AOS-8 and the AP reports as CAP. Converted and it reports as IAP.</p>
+<h2>Pre-validate, and the failure everybody hits</h2>
+<p>Pre-validate checks that the AP has NTP sync, can reach Activate and the Central URL, and <strong>is licensed in Central with a group already assigned</strong>. That last one catches people, because it means you have to pre-provision APs into an AOS-10 group before you can validate them.</p>
+<p>Now the failure. One of the threads that prompted this post had pre-validate failing with <code>Pre Validate Failed dns error(Central) device-uswest4.central.arubanetworks.com</code> on 8.10.0.5, on a controller where the AP could resolve that exact name and reach the internet. A packet capture showed the AP resolving the record and then never attempting a connection to the returned addresses. An Aruba SE reproduced it in a lab.</p>
+<p>There is a defect for this, and it's a better answer than any of the theories that got floated on the thread. <strong>AOS-253282, AOS-253299 and AOS-252424</strong>, three linked defect records with identical text, resolved in <strong>8.10.0.11</strong> (and in 8.12.0.1 and 8.13.0.1 on the other trains), observed on controllers running AOS-8.7.1.9 and later. HPE's wording, straight from the defect record:</p>
+<blockquote>
+<p>The AP image conversion failed in controllers. The output of the <code>show ap convert-status</code> command shows Pre Validate Failed as the failure reason. This issue occurred when Central used an IPv6 address.</p>
+</blockquote>
+<p>That last sentence is the whole thing. Central handed back an IPv6 address and the controller couldn't do anything with it. Which is exactly what the packet capture showed: resolution succeeds, records come back, no session is ever opened. It was never a DNS failure. It was an address family failure wearing a DNS error string, and the string sent an entire thread off to audit their resolvers.</p>
+<p>Keep it in mind alongside the other IPv6 constraint in this migration, that APs have to be IPv4 or dual-stack because native IPv6 on APs isn't supported. Same fault line, showing up somewhere you wouldn't look for it. If you're below 8.10.0.11 and pre-validate is throwing DNS errors, go to 8.10.0.12 or later and stop debugging.</p>
+<p>HPE also documents a second, independent cause of the exact same symptom on the same releases: on any 8.10 build before 8.10.0.11 with CPsec enabled, pre-validate fails because of the packet routing CPsec uses. Different mechanism, identical error, same fix. Get to 8.10.0.11 or later.</p>
+<p>The workaround everybody lands on is <code>no-pre-validation</code>, and HPE documents the tradeoff honestly, in that CPsec note: bypassing validation "will allow the upgrade to complete at the risk of incomplete setup of the APs." In practice that risk is concrete. You're skipping the check that the AP is licensed and has a group, which is precisely the failure that leaves you with a converted AP sitting there unadopted. One poster in that thread reported needing a physical reset on APs converted this way. That isn't in any HPE doc, so treat it as a field report rather than gospel, but it's the right kind of thing to be nervous about when you're doing hundreds.</p>
+<p>There's a second early-8.10 gotcha worth knowing: on releases before <strong>8.10.0.5</strong>, images transferred to the controller over SCP get the wrong permissions. Use something other than SCP on those versions.</p>
+<h2>Version minimums, and a documentation contradiction</h2>
+<p>Three HPE sources, three different answers:</p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Minimum controller version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AOS-10 migration prerequisites</td>
+<td>8.10.0.12 or 8.12.0.1 and later</td>
+</tr>
+<tr>
+<td>VSG Campus Migrate</td>
+<td>8.10.0.12 or 8.12.0.1 and later</td>
+</tr>
+<tr>
+<td>Central 2.5.8 AP migration page</td>
+<td>8.7.1.9 or 8.10.0.5 and later</td>
+</tr>
+</tbody>
+</table>
+<p>Our DNS-error poster was on 8.10.0.5. He met the Central doc's bar and missed the other two by seven maintenance releases. I'd treat 8.10.0.12 as the real floor and ignore the Central page.</p>
+<p>While we're here: 6.x straight to 10 isn't supported, you go via 8.7.1.0. And APs must be IPv4 or dual-stack, because native IPv6 on APs isn't supported.</p>
+<h2>The stuff that bites you on the way through</h2>
+<p><strong>VLAN 1 is the AP uplink VLAN in AOS-10, and at conversion time you don't get a vote.</strong> Your AP's native/management VLAN config is neither retained nor migrated. HPE's wording is that the AP "will always assume VID 1 for the native VLAN on the uplink," so it boots AOS-10 expecting untagged VID 1 and loses its mind if the switchport says otherwise. AOS-10.5 added the ability to set native and management VLANs from Central, but only after the AP is up on 10.5, which does nothing for you during the conversion. Fix the switchports first. (The VSG still says the uplink VLAN "cannot be updated"; the AOS-10 migration prerequisites page is the newer word.)</p>
+<p><strong>A tunnel-mode client VLAN can't exist on the AP's trunk uplink.</strong> That's deliberate, so the AP never learns client MACs on its wired side, but it means your uplink trunk config probably needs changing too. And don't use VLAN 1 for tunneled clients.</p>
+<p><strong>Some config is retained on the AP but not migrated into Central.</strong> AP1X, HTTP proxy and PPPoE all fall in this gap, and PPPoE is only retained at all when the target firmware is 10.4.1.4 or newer. When the AP's local setting and the Central group config disagree, you get AP flapping and auto-restore loops. Pre-stage those in the group before you convert anything. Also note LACP defaults to Passive in AOS-10.</p>
+<p><strong>VLAN 3333 has to be clear of clients.</strong> The magic-VLAN captive portal logon/logout role trick doesn't exist in AOS-10.</p>
+<p><strong>Your LMS-IP needs to point at the cluster VRRP VIP, not an individual controller's management IP.</strong> Otherwise you upgrade that one controller first and strand the APs pointed at it.</p>
+<p><strong>Conversion can only be kicked off from the AP's currently active controller.</strong> On a large cluster the AOS-10 migration guide suggests a separate non-clustered staging controller, which sounds like overkill until you're trying to sequence four hundred APs.</p>
+<p><strong>Build a brand new Central group.</strong> You cannot convert an existing IAP 8.x group to AOS-10. HPE's FAQ says the configuration constructs behind the scenes don't allow it. Set the group architecture to ArubaOS 10, set the network role, set firmware compliance, and get country code, time zone, NTP and your WLANs in place before a single AP shows up. And split any mixed-model Instant cluster containing an AP that AOS-10 doesn't support, because otherwise the download errors and none of them upgrade.</p>
+<h2>When hardware is in the mix</h2>
+<p>Two of my three threads had a hardware angle, and it changes the shape of the job.</p>
+<p><strong>Controller to gateway.</strong> A 7030 going to a 9240 isn't just an OS decision. The 9240 runs AOS-8 from 8.10, so you can stay on AOS-8 and treat it as a box swap, or go AOS-10 and accept that there's no config restore at all, because AOS-10 gateways take everything from Central. There's no HPE-supplied config converter. And the ports are completely different: 8 combo copper on the 7030, 4 SFP28 and no copper data ports on the 9240 (the RJ-45s it does have are management and console), so every <code>interface gigabitethernet 0/0/4</code> through <code>0/0/7</code> stanza silently evaporates along with whatever VLANs lived on it. Usually including your management path. Console access is not optional.</p>
+<p><strong>New APs that only speak AOS-10.</strong> This one is field observation rather than something I can point you to in a doc, so weigh it accordingly. The AP-7xx series ships AOS-10, and in my experience the AOS-8 image lands in a separate partition fetched via Activate rather than by controller discovery. Pull them out of the box, upgrade them, drop them straight onto your AP VLAN, and that fetch never happens; no amount of DHCP option 43 convinces them to find a controller. Check <code>show image</code> for a second partition build before you go hunting for a config problem.</p>
+<p><strong>Old APs that can't come at all.</strong> 320 Series APs with 256 MB of RAM (serials starting DD, built between August 2015 and January 2016) can't be converted, full stop. Screen the inventory for them before you plan the wave.</p>
+<h2>Rollback</h2>
+<p>Yes, you can go back, and it's documented. The order matters:</p>
+<ol>
+<li>Confirm the target controller is licensed and has AP capacity.</li>
+<li><code>show ap convert-status</code>. If anything is Active, <code>ap convert cancel</code> first, or your APs will immediately try to convert forward again.</li>
+<li>Get to the AP console, serial or SSH or Central Remote Console.</li>
+<li>On the AP: <code>convert-aos-ap cap &lt;controller-address&gt;</code>.</li>
+<li>Once it's back, remove the Central subscription in GreenLake so the AP drops out of Central management.</li>
+</ol>
+<p>Note that <code>convert-aos-ap</code> runs on the AP, not the controller, and it's the reverse of <code>ap convert</code>. Two commands, similar names, opposite directions, different boxes. Worth writing on the whiteboard during a cutover.</p>
+<h2>About TAC telling you it isn't supported</h2>
+<p>One of the three posters opened a case and was told AOS-8 to AOS-10 migration isn't supported and he'd need Professional Services. That's worth pushing back on.</p>
+<p>HPE publishes a full customer-facing migration guide series covering APs and gateways, plus a Validated Solution Guide, <strong>VSG 035 Campus Migrate</strong>, with a chapter specifically on AOS-8 Campus to AOS-10 and another on upgrade steps, walking a two-controller cluster end to end with real CLI. That is not what an unsupported path looks like.</p>
+<p>What I think happened is a conflation. There's an older use of <code>ap convert</code> to turn campus APs into Instant APs on AOS-8, and the CLI reference itself says HPE does not support that for Instant APs managed through AirWave or the local UI and recommends it only in lab or test environments. That caveat attaches to the Instant-on-AOS-8 destination. It does not attach to the documented CAP to AOS-10 and Central path. If you get the same answer, cite the VSG.</p>
+<h2>Order of operations</h2>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Why it's in this position</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inventory what you lose first</td>
+<td>Internal auth DB, FastConnect and hand-tuned RF are workstreams, not config lines</td>
+</tr>
+<tr>
+<td>Get devices into GreenLake with subscriptions</td>
+<td>Pre-validate checks this, and skipping it is how APs end up orphaned</td>
+</tr>
+<tr>
+<td>Build a new Central group, never clone an IAP 8.x one</td>
+<td>HPE says the underlying constructs don't convert</td>
+</tr>
+<tr>
+<td>Pre-stage AP1X, proxy, PPPoE, mesh and country code in the group</td>
+<td>Mismatch causes flapping and auto-restore loops</td>
+</tr>
+<tr>
+<td>Fix switchports: no native VLAN, no tunnel client VLAN on the AP trunk</td>
+<td>The AP comes up assuming untagged VID 1</td>
+</tr>
+<tr>
+<td>Update RADIUS NAD lists</td>
+<td>Source IP moves to the gateway or to every individual AP</td>
+</tr>
+<tr>
+<td>Point LMS-IP at the cluster VIP</td>
+<td>Or the first controller you upgrade strands its APs</td>
+</tr>
+<tr>
+<td>Get to 8.10.0.12 or later before converting</td>
+<td>Two of three HPE sources say so, and AOS-253299 alone is worth the jump</td>
+</tr>
+<tr>
+<td>Convert a pilot group, verify adoption, then scale</td>
+<td><code>show ap convert-status-summary</code> and LLDP CAP versus IAP</td>
+</tr>
+<tr>
+<td>Keep console access and a rollback plan</td>
+<td><code>ap convert cancel</code> then <code>convert-aos-ap cap</code></td>
+</tr>
+</tbody>
+</table>
+<h2>Bottom line</h2>
+<p>Plan it as a rebuild and it goes fine. Plan it as an upgrade and you'll discover the internal user database halfway through a maintenance window, which is a bad time to learn about it.</p>
+<p>The technology is not the hard part. <code>ap convert</code> works, rollback works, the guides are decent once you find them. What gets people is walking in expecting the config to come along for the ride, and then meeting the feature deltas one at a time in production.</p>
+<p>If you've got one of these coming up, get in touch before you build the project plan rather than after. Most of the pain in this post is scheduling pain, and scheduling pain is cheap to avoid and expensive to fix.</p></div><div class="postnav"><a class="pn" href="poe-budgets-wifi7-aps.html"><span class="eyebrow">Older</span>Your New AP Isn&#x27;t Broken, It&#x27;s Hungry: PoE Budgets in the Wi-Fi 7 Era</a><a class="pn right" href="mdns-bridge-mode-airtime.html"><span class="eyebrow">Newer</span>84 Percent of Your Airtime Is Printers Saying Hello</a></div></article>
+</main>
+<footer><div class="wrap"><span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span><span><a href="../rss.xml">RSS</a></span></div></footer>
+</body></html>

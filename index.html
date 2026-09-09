@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ask Me How I Know</title>
+<meta name="description" content="Field notes from campus networks, wireless, NAC, and the forum threads that keep asking the same question.">
+<link rel="canonical" href="https://loopdetectedlolz.github.io/">
+<link rel="alternate" type="application/rss+xml" title="Ask Me How I Know" href="https://loopdetectedlolz.github.io/rss.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ask Me How I Know">
+<meta property="og:title" content="Ask Me How I Know">
+<meta property="og:description" content="Field notes from campus networks, wireless, NAC, and the forum threads that keep asking the same question.">
+<meta property="og:url" content="https://loopdetectedlolz.github.io/">
+<meta property="og:image" content="https://loopdetectedlolz.github.io/og/home.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ask Me How I Know">
+<meta name="twitter:description" content="Field notes from campus networks, wireless, NAC, and the forum threads that keep asking the same question.">
+<meta name="twitter:image" content="https://loopdetectedlolz.github.io/og/home.png">
+<style>
+:root{color-scheme:dark;--bg:#0B0F14;--panel:#141C26;--panel2:#18222E;--line:#243040;--txt:#F2F5F8;--muted:#8A99AB;--dim:#5C6B7D;--acc:#8FDB69;--amber:#E0B34E;--blue:#7AB8E8;--red:#F0705F}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.6 Inter,"Segoe UI",system-ui,-apple-system,sans-serif}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+code,pre{font-family:ui-monospace,Menlo,Consolas,monospace}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+header.top{position:sticky;top:0;z-index:5;background:rgba(11,15,20,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:14px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--txt);font-weight:800;letter-spacing:.2px}
+.brand svg{width:34px;height:34px}
+.brand:hover{text-decoration:none}
+nav.pills{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+nav.pills a{padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:13px;font-weight:600}
+nav.pills a.on,nav.pills a:hover{color:#0B0F14;background:var(--acc);border-color:var(--acc);text-decoration:none}
+.eyebrow{color:var(--acc);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700}
+.hero{padding:56px 0 28px}
+.hero h1{font-size:clamp(34px,5vw,56px);line-height:1.05;margin:10px 0 14px;letter-spacing:-.5px}
+.hero p.tag{color:var(--muted);font-size:18px;max-width:680px;margin:0 0 22px}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{padding:10px 16px;border-radius:10px;font-weight:700;border:1px solid var(--line);color:var(--txt);background:var(--panel)}
+.btn.primary{background:var(--acc);color:#0B0F14;border-color:var(--acc)}
+.btn:hover{text-decoration:none;filter:brightness(1.08)}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:120px}
+.stat b{display:block;font-size:22px}.stat span{color:var(--muted);font-size:12px}
+section{padding:26px 0}
+h2.sec{font-size:24px;margin:6px 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;color:var(--txt);transition:transform .15s,border-color .15s}
+.card:hover{transform:translateY(-2px);border-color:var(--acc);text-decoration:none}
+.card-art svg{display:block;width:100%;height:auto}
+.card-body{padding:16px}
+.card h3{margin:6px 0 8px;font-size:18px;line-height:1.3}
+.card p{color:var(--muted);margin:0 0 12px;font-size:14px}
+.card.featured{grid-column:1/-1;display:grid;grid-template-columns:1.3fr 1fr}
+.card.featured .card-art{border-right:1px solid var(--line)}
+.card.featured h3{font-size:26px}
+.card.featured p{font-size:16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:999px;background:#0F1620;border:1px solid var(--line);color:var(--muted)}
+.view{display:none}.view.on{display:block}
+article.post{max-width:760px;margin:0 auto;padding:30px 0 60px}
+article.post h1{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:8px 0 10px;letter-spacing:-.4px}
+.lede{color:var(--muted);font-size:18px;margin:0 0 14px}
+.back{display:inline-block;margin-bottom:16px;color:var(--muted);font-size:14px}
+.hero-art{margin:20px 0 14px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.hero-art svg{display:block;width:100%;height:auto}
+.origin{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:10px;padding:12px 16px;color:var(--muted);font-size:14px;margin:0 0 22px}
+.origin .eyebrow{display:block;color:var(--amber);margin-bottom:2px}
+.prose h2{font-size:22px;margin:34px 0 10px;padding-top:6px}
+.prose h3{font-size:18px;margin:26px 0 8px}
+.prose p{margin:0 0 16px}
+.prose strong{color:#fff}
+.prose blockquote{margin:0 0 16px;padding:10px 16px;border-left:3px solid var(--blue);background:var(--panel);color:var(--muted);border-radius:0 8px 8px 0}
+.prose pre{background:#0F1620;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;font-size:13px;line-height:1.5;margin:0 0 18px}
+.prose code{background:#0F1620;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.9em;color:var(--acc)}
+.prose pre code{background:none;border:0;padding:0;color:#D8E4EE}
+.prose table{width:100%;border-collapse:collapse;margin:0 0 20px;font-size:14px}
+.prose th{background:#0F1620;color:var(--acc);text-align:left;padding:9px 10px;border:1px solid var(--line);font-size:12px;letter-spacing:.5px;text-transform:uppercase}
+.prose td{padding:9px 10px;border:1px solid var(--line);vertical-align:top}
+.prose tr:nth-child(even) td{background:#121A24}
+.prose ul,.prose ol{margin:0 0 16px;padding-left:22px}
+.prose li{margin:4px 0}
+.postnav{display:flex;gap:12px;margin-top:40px;border-top:1px solid var(--line);padding-top:20px}
+.pn{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--txt);font-weight:600}
+.pn.right{text-align:right}.pn .eyebrow{display:block;margin-bottom:2px}.pn:hover{border-color:var(--acc);text-decoration:none}
+.two{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+.panel h3{margin:0 0 8px}
+.panel p{color:var(--muted);margin:0 0 10px}
+.panel ul{margin:0;padding-left:20px;color:var(--muted)}
+.panel li{margin:6px 0}
+.panel li b{color:var(--txt)}
+.wide svg{display:block;width:100%;height:auto;border-radius:12px}
+.about{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:start}
+.avatar{width:200px;height:200px;border-radius:16px;background:linear-gradient(160deg,#18222E,#0F1620);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc);font-size:64px;font-weight:800}
+.contact{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+footer{border-top:1px solid var(--line);padding:28px 0;color:var(--dim);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.badge.green{background:#15351D;color:#7EE08A;border:1px solid #2E6B3A}
+.badge.amber{background:#3A2E12;color:#E0B34E;border:1px solid #6B5320}
+.badge.blue{background:#14293A;color:#7AB8E8;border:1px solid #2B5378}
+.ep{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line);align-items:baseline}
+.ep .n{font-family:ui-monospace,Menlo,monospace;color:var(--acc);font-weight:700}
+.ep b{display:block}
+.ep span{color:var(--muted);font-size:14px}
+.missing{padding:20px;color:var(--red)}
+@media (max-width:820px){.card.featured{grid-template-columns:1fr}.card.featured .card-art{border-right:0;border-bottom:1px solid var(--line)}.two,.about{grid-template-columns:1fr}.avatar{width:120px;height:120px;font-size:40px}}
+</style></head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="#/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Ask Me How I Know mark">
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#141C26" stroke="#243040" stroke-width="2"/>
+  <g stroke="#8FDB69" stroke-width="4" stroke-linecap="round">
+    <line x1="14" y1="40" x2="14" y2="30"/>
+    <line x1="23" y1="44" x2="23" y2="22"/>
+    <line x1="32" y1="48" x2="32" y2="16"/>
+    <line x1="41" y1="44" x2="41" y2="22"/>
+    <line x1="50" y1="40" x2="50" y2="30"/>
+  </g>
+  <circle cx="32" cy="12" r="3" fill="#E0B34E"/>
+</svg><span>Ask Me How I Know</span></a>
+  <nav class="pills">
+    <a href="#/" data-v="home">Posts</a>
+    <a href="#/community" data-v="community">Community</a>
+    <a href="#/about" data-v="about">About</a>
+  </nav>
+</div></header>
+
+<main class="wrap">
+
+<div class="view" id="home" data-title="">
+  <div class="hero">
+    <div class="eyebrow">Dustin Burns · Lead Mobility Engineer · HPE Aruba Networking and HPE Juniper</div>
+    <h1>Ask Me How I Know</h1>
+    <p class="tag">Field notes from campus networks, wireless, NAC, and the forum threads that keep asking the same question.</p>
+    <div class="btns"><a class="btn primary" href="p/saml-login-validates-and-still-fails.html">Read the latest</a><a class="btn" href="#/about">Who's writing this</a></div>
+    <div class="stats">
+      <div class="stat"><b>7</b><span>field notes</span></div>
+      <div class="stat"><b>69</b><span>forum replies since July</span></div>
+      <div class="stat"><b>6</b><span>Best Answers</span></div>
+      <div class="stat"><b>20+</b><span>years in the field</span></div>
+    </div>
+  </div>
+  <section>
+    <div class="eyebrow">Latest</div>
+    <div class="grid">
+<a class="card featured" href="p/saml-login-validates-and-still-fails.html">
+  <div class="card-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Three places a ClearPass admin SAML login fails silently">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:11px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:ui-monospace,Menlo,monospace;font-size:10px;fill:#8FDB69}
+  </style>
+  <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8A99AB"/></marker></defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">"SSO IS SET UP AND LOGIN FAILS"</text>
+  <text x="30" y="66" class="t big">Trust is half the job. The other half hands out the privilege.</text>
+  <g class="t">
+    <!-- admin -->
+    <rect x="20" y="150" width="70" height="60" rx="10" fill="#141C26" stroke="#243040"/><text x="55" y="185" text-anchor="middle" fill="#fff" font-size="13">Admin</text>
+    <line x1="90" y1="180" x2="115" y2="180" stroke="#8A99AB" stroke-width="2" marker-end="url(#arr3)"/>
+    <!-- gate 1 -->
+    <rect x="120" y="110" width="230" height="140" rx="10" fill="#141C26" stroke="#E0B34E"/>
+    <text x="235" y="136" text-anchor="middle" fill="#E0B34E" font-size="13" font-weight="700">Gate 1 · redirect at all?</text>
+    <text x="235" y="160" text-anchor="middle" fill="#fff" font-size="12">Single Sign-On page</text>
+    <text x="235" y="180" text-anchor="middle" class="lbl">Enable SSO for: Policy Manager ticked?</text>
+    <text x="235" y="200" text-anchor="middle" class="lbl">IdP URL set?</text>
+    <text x="235" y="232" text-anchor="middle" class="mono">Configuration › Identity › Single Sign-On</text>
+    <line x1="350" y1="180" x2="378" y2="180" stroke="#8A99AB" stroke-width="2" marker-end="url(#arr3)"/>
+    <!-- gate 2 -->
+    <rect x="383" y="110" width="240" height="140" rx="10" fill="#141C26" stroke="#7AB8E8"/>
+    <text x="503" y="136" text-anchor="middle" fill="#7AB8E8" font-size="13" font-weight="700">Gate 2 · assertion valid?</text>
+    <text x="503" y="160" text-anchor="middle" fill="#fff" font-size="12">Entra ⇄ ClearPass trust</text>
+    <text x="503" y="180" text-anchor="middle" class="lbl">IdP signing cert required, in CTL first</text>
+    <text x="503" y="200" text-anchor="middle" class="lbl">Entity ID + Reply URL = SP metadata</text>
+    <text x="503" y="232" text-anchor="middle" class="mono">Name ID defaults to UPN</text>
+    <line x1="623" y1="180" x2="651" y2="180" stroke="#8A99AB" stroke-width="2" marker-end="url(#arr3)"/>
+    <!-- gate 3 -->
+    <rect x="656" y="110" width="224" height="140" rx="10" fill="#141C26" stroke="#8FDB69"/>
+    <text x="768" y="136" text-anchor="middle" fill="#8FDB69" font-size="13" font-weight="700">Gate 3 · any privilege?</text>
+    <text x="768" y="160" text-anchor="middle" fill="#fff" font-size="12">Admin SSO Login service</text>
+    <text x="768" y="180" text-anchor="middle" class="lbl">Aruba Application Authorization</text>
+    <text x="768" y="200" text-anchor="middle" class="lbl">enforcement → admin privilege</text>
+    <text x="768" y="232" text-anchor="middle" class="mono">Service Templates &amp; Wizards</text>
+  </g>
+  <rect x="30" y="272" width="840" height="44" rx="8" fill="#141C26" stroke="#243040"/>
+  <text x="450" y="290" text-anchor="middle" class="t lbl">All three fail the same way from the login page. Authenticated with no role looks exactly like a failed login.</text>
+  <text x="450" y="308" text-anchor="middle" class="t" fill="#8FDB69" font-size="12">SAML everywhere you can. RADIUS and TACACS+ where you must.</text>
+</svg></div>
+  <div class="card-body">
+    <div class="eyebrow">Sep 5, 2026 · 7 min read</div>
+    <h3>Your ClearPass SAML Login Validates and Still Fails</h3>
+    <p>Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.</p>
+    <div class="chips"><span class="chip">ClearPass</span><span class="chip">Security</span><span class="chip">Entra ID</span><span class="chip">SAML</span></div>
+  </div>
+</a></div>
+  </section>
+  <section>
+    <div class="eyebrow">More field notes</div>
+    <div class="grid">
+<a class="card" href="p/one-pilot-ap-converts-all-of-them.html">
+  <div class="card-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Instant cluster conversion is cluster-wide; pilot on an isolated cluster">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+  </style>
+  <symbol id="ap" viewBox="0 0 40 24"><rect x="2" y="6" width="36" height="14" rx="6" fill="#141C26" stroke="#8A99AB" stroke-width="1.5"/><circle cx="20" cy="13" r="3" fill="#8A99AB"/><path d="M12 4 q8 -6 16 0" fill="none" stroke="#8A99AB" stroke-width="1.5"/></symbol>
+  <symbol id="apx" viewBox="0 0 40 24"><rect x="2" y="6" width="36" height="14" rx="6" fill="#3A1712" stroke="#F0705F" stroke-width="1.5"/><circle cx="20" cy="13" r="3" fill="#F0705F"/><path d="M12 4 q8 -6 16 0" fill="none" stroke="#F0705F" stroke-width="1.5"/></symbol>
+  <symbol id="apg" viewBox="0 0 40 24"><rect x="2" y="6" width="36" height="14" rx="6" fill="#15351D" stroke="#7EE08A" stroke-width="1.5"/><circle cx="20" cy="13" r="3" fill="#7EE08A"/><path d="M12 4 q8 -6 16 0" fill="none" stroke="#7EE08A" stroke-width="1.5"/></symbol>
+  </defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">"I'LL PILOT WITH ONE AP FIRST"</text>
+  <text x="30" y="66" class="t big">The virtual controller converts every member. One AP converts a hundred.</text>
+  <!-- left: production cluster -->
+  <g class="t">
+    <rect x="30" y="90" width="520" height="220" rx="10" fill="#141C26" stroke="#F0705F"/>
+    <text x="50" y="116" fill="#fff" font-size="14" font-weight="700">Production Instant cluster · 100 APs · one VLAN</text>
+    <rect x="240" y="130" width="100" height="28" rx="6" fill="#0B0F14" stroke="#E0B34E"/><text x="290" y="149" text-anchor="middle" fill="#E0B34E" font-size="12" font-weight="700">Virtual Ctrl</text>
+    <!-- fan-out lines -->
+    <g stroke="#F0705F" stroke-width="1" opacity="0.7">
+      <line x1="290" y1="158" x2="80" y2="200"/><line x1="290" y1="158" x2="150" y2="200"/><line x1="290" y1="158" x2="220" y2="200"/><line x1="290" y1="158" x2="290" y2="200"/><line x1="290" y1="158" x2="360" y2="200"/><line x1="290" y1="158" x2="430" y2="200"/><line x1="290" y1="158" x2="500" y2="200"/>
+    </g>
+    <g>
+      <use href="#apx" x="60" y="200" width="40" height="24"/><use href="#apx" x="130" y="200" width="40" height="24"/><use href="#apx" x="200" y="200" width="40" height="24"/><use href="#apx" x="270" y="200" width="40" height="24"/><use href="#apx" x="340" y="200" width="40" height="24"/><use href="#apx" x="410" y="200" width="40" height="24"/><use href="#apx" x="480" y="200" width="40" height="24"/>
+    </g>
+    <text x="290" y="250" text-anchor="middle" fill="#F0705F" font-size="13" font-weight="700">convert → all of them, at once, during business hours</text>
+    <text x="290" y="272" text-anchor="middle" class="lbl">AirWave isn't the control plane. Losing it changes nothing here.</text>
+    <text x="290" y="292" text-anchor="middle" class="lbl">The cluster is.</text>
+  </g>
+  <!-- right: isolated pilot -->
+  <g class="t">
+    <rect x="580" y="90" width="290" height="220" rx="10" fill="#141C26" stroke="#8FDB69"/>
+    <text x="600" y="116" fill="#fff" font-size="14" font-weight="700">Real pilot</text>
+    <rect x="675" y="130" width="100" height="28" rx="6" fill="#0B0F14" stroke="#8FDB69"/><text x="725" y="149" text-anchor="middle" fill="#8FDB69" font-size="12" font-weight="700">own VC</text>
+    <line x1="725" y1="158" x2="725" y2="200" stroke="#7EE08A"/>
+    <use href="#apg" x="705" y="200" width="40" height="24"/>
+    <text x="725" y="250" text-anchor="middle" fill="#7EE08A" font-size="13" font-weight="700">1 AP, own VLAN, no L2 path back</text>
+    <text x="725" y="272" text-anchor="middle" class="lbl">Convert it. Watch it land on the gateways</text>
+    <text x="725" y="292" text-anchor="middle" class="lbl">and pull its image. Then scale.</text>
+  </g>
+  <text x="30" y="332" class="t lbl">CAPs find a controller by IP. Routed is fine. If you can leave the management VLAN alone, leave it alone.</text>
+</svg></div>
+  <div class="card-body">
+    <div class="eyebrow">Sep 5, 2026 · 6 min read</div>
+    <h3>One Pilot AP Converts All Hundred of Them</h3>
+    <p>Someone with a hundred Instant APs on AirWave wanted to move them to a controller cluster and, sensibly, test on one AP first. The virtual controller had other plans.</p>
+    <div class="chips"><span class="chip">Wireless</span><span class="chip">Instant</span><span class="chip">AOS-8</span><span class="chip">Migration</span></div>
+  </div>
+</a>
+<a class="card" href="p/vsx-upgrade-hitless.html">
+  <div class="card-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="VSX member reboot timeline showing the 180 second linkup delay">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+  </style>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8A99AB"/></marker></defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">ONE MEMBER REBOOTS. WHAT THE CLOCK LOOKS LIKE.</text>
+  <text x="30" y="66" class="t big">"A few minutes" is a suspiciously round number. It's 180 seconds.</text>
+  <!-- timeline base -->
+  <line x1="60" y1="200" x2="860" y2="200" stroke="#243040" stroke-width="4"/>
+  <!-- phases -->
+  <g class="t">
+    <rect x="60" y="186" width="150" height="28" rx="6" fill="#F0705F" opacity="0.9"/><text x="135" y="205" text-anchor="middle" fill="#0B0F14" font-size="12" font-weight="700">reboot</text>
+    <rect x="215" y="186" width="90" height="28" rx="6" fill="#E0B34E" opacity="0.9"/><text x="260" y="205" text-anchor="middle" fill="#0B0F14" font-size="12" font-weight="700">ISL re-forms</text>
+    <rect x="310" y="186" width="420" height="28" rx="6" fill="#7AB8E8" opacity="0.9"/><text x="520" y="205" text-anchor="middle" fill="#0B0F14" font-size="12" font-weight="700">linkup-delay-timer 180 s (max 600): VSX LAGs held down</text>
+    <rect x="735" y="186" width="125" height="28" rx="6" fill="#8FDB69"/><text x="797" y="205" text-anchor="middle" fill="#0B0F14" font-size="12" font-weight="700">LAGs up</text>
+  </g>
+  <!-- callouts above -->
+  <g class="t lbl">
+    <text x="60" y="140">ISL + keepalive down; survivor keeps its LAGs up</text>
+    <line x1="120" y1="148" x2="120" y2="182" stroke="#8A99AB" marker-end="url(#arr)"/>
+    <text x="380" y="140">Rebooted member syncs tables, then waits. Ports up early = black hole.</text>
+    <line x1="520" y1="148" x2="520" y2="182" stroke="#8A99AB" marker-end="url(#arr)"/>
+  </g>
+  <!-- callouts below -->
+  <g class="t">
+    <rect x="60" y="238" width="380" height="64" rx="8" fill="#141C26" stroke="#F0705F"/>
+    <text x="76" y="262" fill="#F0705F" font-size="13" font-weight="700">Single-homed to this member?</text>
+    <text x="76" y="284" class="lbl">Down for the whole bar. Nothing fixes one cable.</text>
+    <rect x="460" y="238" width="400" height="64" rx="8" fill="#141C26" stroke="#8FDB69"/>
+    <text x="476" y="262" fill="#8FDB69" font-size="13" font-weight="700">eBGP peered to the rebooted member?</text>
+    <text x="476" y="284" class="lbl">Can't re-form until the timer expires. exclude lag-list for core LAGs.</text>
+  </g>
+  <text x="60" y="326" class="t mono" fill="#8FDB69">vsx update-software: secondary first, primary second, non-active bank on both</text>
+</svg></div>
+  <div class="card-body">
+    <div class="eyebrow">Sep 4, 2026 · 8 min read</div>
+    <h3>Your VSX Upgrade Is Hitless Right Up Until It Isn&#x27;t</h3>
+    <p>Everybody has heard a VSX upgrade is hitless. Almost nobody has been told what hitless is conditional on. It&#x27;s a single cable and a 180 second timer.</p>
+    <div class="chips"><span class="chip">Switching</span><span class="chip">AOS-CX</span><span class="chip">VSX</span></div>
+  </div>
+</a>
+<a class="card" href="p/when-the-docs-disagree.html">
+  <div class="card-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Order of trust when vendor documentation contradicts itself">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}
+  </style></defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">THREE OFFICIAL ANSWERS, NONE OF THEM DATED</text>
+  <text x="30" y="66" class="t big">Trust the artifact whose job is to answer your exact question.</text>
+  <g class="t" font-size="13">
+    <g transform="translate(30,92)">
+      <rect width="840" height="30" rx="6" fill="#8FDB69"/><text x="14" y="20" fill="#0B0F14" font-weight="700">The box itself</text><text x="826" y="20" text-anchor="end" fill="#0B0F14">tab completion beats every web page, including this one</text>
+    </g>
+    <g transform="translate(30,127)">
+      <rect width="760" height="30" rx="6" fill="#6FBF55"/><text x="14" y="20" fill="#0B0F14" font-weight="700">Release notes: Products Supported, Upgrade information</text><text x="746" y="20" text-anchor="end" fill="#0B0F14">built to answer version questions</text>
+    </g>
+    <g transform="translate(30,162)">
+      <rect width="680" height="30" rx="6" fill="#4F9F62"/><text x="14" y="20" fill="#0B0F14" font-weight="700">Command History table on a CLI page</text><text x="666" y="20" text-anchor="end" fill="#0B0F14">the only CLI changelog there is</text>
+    </g>
+    <g transform="translate(30,197)">
+      <rect width="580" height="30" rx="6" fill="#E0B34E"/><text x="14" y="20" fill="#0B0F14" font-weight="700">Command page prose</text><text x="566" y="20" text-anchor="end" fill="#0B0F14">demonstrably lags renames</text>
+    </g>
+    <g transform="translate(30,232)">
+      <rect width="480" height="30" rx="6" fill="#C99A3B"/><text x="14" y="20" fill="#0B0F14" font-weight="700">Feature and config guides</text><text x="466" y="20" text-anchor="end" fill="#0B0F14">good on concepts, slow on specifics</text>
+    </g>
+    <g transform="translate(30,267)">
+      <rect width="380" height="30" rx="6" fill="#F0705F"/><text x="14" y="20" fill="#0B0F14" font-weight="700">Datasheets and marketing</text><text x="366" y="20" text-anchor="end" fill="#0B0F14">written to sell</text>
+    </g>
+    <g transform="translate(30,302)">
+      <rect width="280" height="30" rx="6" fill="#B3463A"/><text x="14" y="20" fill="#fff" font-weight="700">A forum post. Mine included.</text>
+    </g>
+  </g>
+  <text x="440" y="322" class="t lbl">allow-unsafe-updates became allow-non-failsafe-updates at 10.15.1010.</text>
+  <text x="440" y="336" class="t lbl">Nobody sent a memo. The URL still has the old name.</text>
+</svg></div>
+  <div class="card-body">
+    <div class="eyebrow">Sep 4, 2026 · 6 min read</div>
+    <h3>When the Docs Disagree With Themselves, Somebody Has to Decide</h3>
+    <p>Three official minimum versions, a withdrawn release note, and a command renamed without a memo. How to get to a decision you can put in a change record.</p>
+    <div class="chips"><span class="chip">Process</span><span class="chip">Documentation</span><span class="chip">AOS-CX</span></div>
+  </div>
+</a>
+<a class="card" href="p/mdns-bridge-mode-airtime.html">
+  <div class="card-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="84 percent of uplink frames were mDNS; airtime cost by basic rate">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}
+    .lbl{fill:#8A99AB;font-size:13px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}
+    .mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+  </style></defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">ONE UPLINK, FIVE MINUTES FIFTY-TWO SECONDS</text>
+  <text x="30" y="66" class="t big">269,253 mDNS frames. 765 per second. 84% of everything on the wire.</text>
+  <!-- donut -->
+  <g transform="translate(150,205)">
+    <circle r="78" fill="none" stroke="#243040" stroke-width="26"/>
+    <circle r="78" fill="none" stroke="#F0705F" stroke-width="26" stroke-dasharray="412 490" transform="rotate(-90)" stroke-linecap="butt"/>
+    <text y="-4" text-anchor="middle" class="t" fill="#fff" font-size="34" font-weight="800">84%</text>
+    <text y="20" text-anchor="middle" class="t lbl">mDNS v4 + v6</text>
+  </g>
+  <text x="150" y="318" text-anchor="middle" class="t lbl">Everything else: 16%</text>
+  <!-- bars: channel consumed at 765 pps -->
+  <g class="t" transform="translate(320,110)">
+    <text x="0" y="0" class="lbl">Channel time eaten at 765 pps, by 5 GHz basic rate</text>
+    <g transform="translate(0,22)">
+      <text x="0" y="24" fill="#fff" font-size="14">6 Mbps</text><text x="70" y="24" class="lbl" font-size="11">(default)</text>
+      <rect x="130" y="8" width="400" height="22" rx="4" fill="#F0705F"/><text x="540" y="24" fill="#F0705F" font-size="14" font-weight="700">~40%</text>
+    </g>
+    <g transform="translate(0,62)">
+      <text x="0" y="24" fill="#fff" font-size="14">12 Mbps</text>
+      <rect x="130" y="8" width="250" height="22" rx="4" fill="#E0B34E"/><text x="390" y="24" fill="#E0B34E" font-size="14" font-weight="700">~25%</text>
+    </g>
+    <g transform="translate(0,102)">
+      <text x="0" y="24" fill="#fff" font-size="14">24 Mbps</text>
+      <rect x="130" y="8" width="170" height="22" rx="4" fill="#8FDB69"/><text x="310" y="24" fill="#8FDB69" font-size="14" font-weight="700">~17%</text>
+    </g>
+    <g transform="translate(0,150)">
+      <rect x="0" y="0" width="540" height="52" rx="8" fill="#141C26" stroke="#243040"/>
+      <text x="14" y="21" class="lbl">2.4 GHz at the 1 Mbps default needs:</text>
+      <text x="14" y="42" fill="#F0705F" font-size="13" font-weight="700">2.3 s of airtime per wall-clock second. The radio just drops things.</text>
+    </g>
+  </g>
+</svg></div>
+  <div class="card-body">
+    <div class="eyebrow">Aug 2, 2026 · 13 min read</div>
+    <h3>84 Percent of Your Airtime Is Printers Saying Hello</h3>
+    <p>Someone counted. 269,253 mDNS frames in under six minutes, 84 percent of an uplink, and every one of them going out over the air at 6 Mbps. Here&#x27;s the math nobody does.</p>
+    <div class="chips"><span class="chip">Wireless</span><span class="chip">AOS-8</span><span class="chip">Multicast</span></div>
+  </div>
+</a>
+<a class="card" href="p/aos8-to-aos10-is-a-rebuild.html">
+  <div class="card-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="AOS-8 to AOS-10: what carries over and what does not">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+  </style>
+  <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8FDB69"/></marker></defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">"MIGRATION" IS DOING A LOT OF WORK IN THAT SENTENCE</text>
+  <text x="30" y="66" class="t big">Config doesn't come along. You're standing up a new management plane.</text>
+  <g class="t">
+    <!-- AOS-8 box -->
+    <rect x="30" y="95" width="300" height="220" rx="10" fill="#141C26" stroke="#243040"/>
+    <text x="50" y="122" fill="#fff" font-size="15" font-weight="700">AOS-8 · Mobility Conductor</text>
+    <g font-size="13" fill="#8A99AB">
+      <text x="50" y="152">Internal user DB</text>
+      <text x="50" y="176">AAA FastConnect</text>
+      <text x="50" y="200">Hand-tuned RF (power, width, DFS)</text>
+      <text x="50" y="224">AirWave + Conductor</text>
+      <text x="50" y="248">RADIUS NAD = controller IP</text>
+      <text x="50" y="272">IAP 8.x Central group</text>
+      <text x="50" y="296">Native VLAN on AP switchport</text>
+    </g>
+    <!-- arrow -->
+    <line x1="340" y1="205" x2="545" y2="205" stroke="#8FDB69" stroke-width="3" marker-end="url(#arr2)"/>
+    <text x="442" y="192" text-anchor="middle" class="mono" fill="#8FDB69">ap convert active</text>
+    <text x="442" y="228" text-anchor="middle" class="lbl">rebuild, not upgrade</text>
+    <!-- AOS-10 box -->
+    <rect x="560" y="95" width="310" height="220" rx="10" fill="#141C26" stroke="#243040"/>
+    <text x="580" y="122" fill="#fff" font-size="15" font-weight="700">AOS-10 · Central</text>
+    <g font-size="13">
+      <text x="580" y="152" fill="#F0705F">✕ gone: real RADIUS server required</text>
+      <text x="580" y="176" fill="#F0705F">✕ gone: not supported</text>
+      <text x="580" y="200" fill="#E0B34E">→ AirMatch + ClientMatch, no knobs</text>
+      <text x="580" y="224" fill="#E0B34E">→ Central only</text>
+      <text x="580" y="248" fill="#E0B34E">→ gateway IP, or every AP in bridge</text>
+      <text x="580" y="272" fill="#F0705F">✕ can't convert: build a new group</text>
+      <text x="580" y="296" fill="#F0705F">✕ AP assumes untagged VID 1</text>
+    </g>
+  </g>
+  <text x="30" y="332" class="t lbl">Pre-validate "dns error" on 8.10.0.5? AOS-253282 / AOS-253299, fixed in 8.10.0.11. Central handed back IPv6.</text>
+</svg></div>
+  <div class="card-body">
+    <div class="eyebrow">Jul 30, 2026 · 13 min read</div>
+    <h3>AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade</h3>
+    <p>Three threads in one week, three symptoms, one cause: people planned an upgrade and got handed a rebuild. What doesn&#x27;t come with you, the pre-validate defect everyone blames on DNS, and the order of operations.</p>
+    <div class="chips"><span class="chip">Wireless</span><span class="chip">AOS-10</span><span class="chip">Central</span><span class="chip">Migration</span></div>
+  </div>
+</a>
+<a class="card" href="p/poe-budgets-wifi7-aps.html">
+  <div class="card-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="PoE tiers versus what a Wi-Fi 7 AP turns off">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}
+    .lbl{fill:#8A99AB;font-size:13px}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}
+    .mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;fill:#8FDB69}
+  </style></defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">POWER IN VS. FEATURES OUT</text>
+  <text x="30" y="66" class="t big">The AP doesn't fail. It negotiates, shrugs, and turns things off.</text>
+  <!-- tiers -->
+  <g class="t">
+    <!-- 802.3af -->
+    <rect x="30" y="100" width="260" height="200" rx="10" fill="#141C26" stroke="#243040"/>
+    <rect x="30" y="100" width="260" height="6" rx="3" fill="#F0705F"/>
+    <text x="50" y="135" class="big">802.3af</text><text x="150" y="135" class="lbl">15.4 / 13 W</text>
+    <text x="50" y="165" class="lbl">Staging only (730/750). 725 still runs.</text>
+    <g fill="#F0705F" font-size="13"><text x="50" y="195">✕ No radios on 730/750</text><text x="50" y="217">✕ USB</text><text x="50" y="239">▽ 725: USB off, -3 dB</text><text x="50" y="261">13 W to the device</text></g>
+    <text x="50" y="288" class="mono">Class 3</text>
+    <!-- 802.3at -->
+    <rect x="320" y="100" width="260" height="200" rx="10" fill="#141C26" stroke="#E0B34E"/>
+    <rect x="320" y="100" width="260" height="6" rx="3" fill="#E0B34E"/>
+    <text x="340" y="135" class="big">802.3at</text><text x="440" y="135" class="lbl">30 / 25.5 W</text>
+    <text x="340" y="165" class="lbl">Degraded. Nothing turns red.</text>
+    <g font-size="13"><text x="340" y="195" fill="#F0705F">✕ USB (first to go)</text><text x="340" y="217" fill="#F0705F">✕ 2nd Ethernet (755)</text><text x="340" y="239" fill="#E0B34E">▽ 4x4 to 2x2, -3 dB (755)</text><text x="340" y="261" fill="#E0B34E">▽ radio off only via IPM step</text></g>
+    <text x="340" y="288" class="mono">Class 4 · the thread generator</text>
+    <!-- 802.3bt -->
+    <rect x="610" y="100" width="260" height="200" rx="10" fill="#141C26" stroke="#243040"/>
+    <rect x="610" y="100" width="260" height="6" rx="3" fill="#8FDB69"/>
+    <text x="630" y="135" class="big">802.3bt</text><text x="730" y="135" class="lbl">51 W Class 6</text>
+    <text x="630" y="165" class="lbl">Unrestricted (755 needs Class 6)</text>
+    <g fill="#7EE08A" font-size="13"><text x="630" y="195">✓ 2.4 + 5 + 6 GHz</text><text x="630" y="217">✓ All chains, full TX</text><text x="630" y="239">✓ USB, 2nd Ethernet</text><text x="630" y="261">✓ Multi-gig uplink</text></g>
+    <text x="630" y="288" class="mono">Class 5 / 6</text>
+  </g>
+  <text x="30" y="326" class="t lbl">Check it: show power-over-ethernet brief · show power-over-ethernet &lt;iface&gt; · show ap power-mgmt-statistics</text>
+</svg></div>
+  <div class="card-body">
+    <div class="eyebrow">Jul 29, 2026 · 5 min read</div>
+    <h3>Your New AP Isn&#x27;t Broken, It&#x27;s Hungry: PoE Budgets in the Wi-Fi 7 Era</h3>
+    <p>Wi-Fi 7 APs don&#x27;t fail when they&#x27;re underpowered. They negotiate, shrug, and come up in a reduced mode with the 6 GHz radio dark. Nothing turns red.</p>
+    <div class="chips"><span class="chip">Wireless</span><span class="chip">PoE</span><span class="chip">Wi-Fi 7</span></div>
+  </div>
+</a></div>
+  </section>
+  <section>
+    <div class="eyebrow">On deck</div>
+    <div class="grid">
+      <div class="card"><div class="card-body"><span class="badge amber">DRAFTING</span><h3>EAP-TLS in ClearPass: the ask list is half the project</h3><p>We own ClearPass. The customer owns the Windows CA and Intune. Everything that goes wrong goes wrong in the gap, so here's the ask list and why OCSP isn't optional.</p></div></div>
+      <div class="card"><div class="card-body"><span class="badge amber">DRAFTING</span><h3>Wi-Fi 7 without the marketing</h3><p>What the features actually are, when deploying it makes sense, and which ones you turn on without thinking versus which ones you test first.</p></div></div>
+      <div class="card"><div class="card-body"><span class="badge blue">CANDIDATE</span><h3>Shared vs local profiles in New Central</h3><p>They look identical in the UI, they're a different object class, and several features silently refuse to work with the wrong one.</p></div></div>
+    </div>
+  </section>
+</div>
+
+
+<div class="view" id="community" data-title="Community">
+  <section>
+    <div class="eyebrow">HPE Airheads</div>
+    <h2 class="sec">Where the posts come from</h2>
+    <div class="wide"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 200" role="img" aria-label="Airheads community activity since July 2026">
+  <defs><style>.t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.n{fill:#fff;font-size:34px;font-weight:800}</style></defs>
+  <rect width="900" height="200" rx="14" fill="#141C26" stroke="#243040"/>
+  <text x="30" y="34" class="t eyebrow">HPE AIRHEADS · SINCE JULY 2026</text>
+  <g class="t">
+    <text x="30" y="90" class="n">69</text><text x="30" y="112" class="lbl">replies posted</text>
+    <text x="180" y="90" class="n" fill="#8FDB69">6</text><text x="180" y="112" class="lbl">Best Answers</text>
+    <text x="330" y="90" class="n" fill="#7AB8E8">13</text><text x="330" y="112" class="lbl">confirmed by the OP</text>
+    <text x="520" y="90" class="n" fill="#E0B34E">19</text><text x="520" y="112" class="lbl">kudos</text>
+  </g>
+  <!-- monthly bars -->
+  <g class="t" transform="translate(660,34)">
+    <text x="0" y="0" class="lbl">replies by month</text>
+    <rect x="0" y="14" width="50" height="6" rx="3" fill="#243040"/><rect x="0" y="14" width="4" height="6" rx="2" fill="#8FDB69"/><text x="60" y="20" class="lbl">Jul · 2</text>
+    <rect x="0" y="32" width="50" height="6" rx="3" fill="#243040"/><rect x="0" y="32" width="50" height="6" rx="3" fill="#8FDB69"/><text x="60" y="38" class="lbl">Aug · 58</text>
+    <rect x="0" y="50" width="50" height="6" rx="3" fill="#243040"/><rect x="0" y="50" width="8" height="6" rx="3" fill="#8FDB69"/><text x="60" y="56" class="lbl">Sep · 5 so far</text>
+  </g>
+  <text x="30" y="150" class="t lbl">Recent Best Answers: VSX traffic loss during upgrade · VSX cores not failing over · AOS-CX cached-clients table empty</text>
+  <text x="30" y="172" class="t lbl">Corroborated in-thread by HPE engineers and MVP Gurus on Comware MAC auth, Entra ID timeouts, and New Central profiles.</text>
+</svg></div>
+  </section>
+  <section class="two">
+    <div class="panel">
+      <h3>The rule for turning a thread into a post</h3>
+      <p>I answer a lot of forum threads. Most of them are one-offs. A topic earns a write-up here when it clears a bar I've been keeping myself honest with:</p>
+      <ul>
+        <li><b>Same root cause, three different titles.</b> "6 GHz radio stays down," "radio disabled due to low power," and "new AP slower than the old one" are one problem.</li>
+        <li><b>A misconception, not a bug.</b> People misunderstanding how a feature or a piece of hardware behaves. Bugs get fixed; misconceptions get re-asked forever.</li>
+        <li><b>Stable enough to write down.</b> If the answer changes every maintenance release, it's a forum reply, not a post.</li>
+        <li><b>A post lets me answer the next thread with a link.</b> That's the whole point.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>What I've noticed after seventy replies</h3>
+      <p>The threads that go unanswered longest aren't the hard ones. They're the mis-filed ones: an AOS-CX question on the Comware board, an Instant question on a switching board. Nobody who knows the answer is reading that board.</p>
+      <p>The second pattern is a plan with a trap in it. The poster's end goal is achievable, but the exact steps they've written down will do something they don't expect. Those are the replies worth the most, because the thread looks fine until you read the plan as a sequence.</p>
+      <p>And the best answers I've written weren't the longest. The 6410 VSX one was three short paragraphs and a question. The question was the answer.</p>
+      <div class="chips" style="margin-top:12px"><span class="badge green">MVP EXPERT</span><span class="chip">Wireless Access</span><span class="chip">Security</span><span class="chip">Wired Intelligent Edge</span><span class="chip">Cloud Managed Networks</span><span class="chip">Comware</span></div>
+    </div>
+  </section>
+  <section>
+    <div class="panel">
+      <h3>Recent threads that turned into something</h3>
+      <div class="ep"><span class="n">BEST</span><div><b>c6400 VSX peer failing to forward traffic during upgrade</b><span>Manual reboot, 180 second linkup delay, BGP holdtimer. Marked Best Answer inside a day and became the VSX post above.</span></div></div>
+      <div class="ep"><span class="n">CONFIRMED</span><div><b>Migrating Instant APs from AirWave to AOS-8 controllers</b><span>The one-AP pilot that would have converted all hundred. The poster changed the plan to an isolated cluster of one.</span></div></div>
+      <div class="ep"><span class="n">CONFIRMED</span><div><b>Comware 5140 port-based MAC auth</b><span>No dynamic port mode for MAC auth on Comware; make the AP an 802.1X supplicant instead. An HPE engineer independently landed on the same answer.</span></div></div>
+      <div class="ep"><span class="n">CONFIRMED</span><div><b>New Central blocking VLAN creation on AOS-S</b><span>Library versus local profile model. Looks identical in the UI, isn't.</span></div></div>
+      <div class="ep"><span class="n">BEST</span><div><b>AOS-10 Framed-IP missing from Accounting-Start</b><span>Where the IP actually shows up in the accounting stream and why the start record can't carry it.</span></div></div>
+    </div>
+  </section>
+</div>
+
+
+<div class="view" id="about" data-title="About">
+  <section class="about">
+    <div class="avatar">DB</div>
+    <div>
+      <div class="eyebrow">About</div>
+      <h2 class="sec">Dustin Burns</h2>
+      <p style="color:var(--muted);font-size:17px">I design, migrate, and fix campus networks for a living: HPE Aruba Networking wireless and switching, ClearPass and NAC, Juniper Mist, and the Ekahau surveys that decide where the APs actually go. Twenty-some years of it, most of that in New England, currently as Lead Mobility Engineer on the Campus and Mobility team at WEI.</p>
+      <p style="color:var(--muted)">This site is mine. The opinions are mine, the mistakes are mine, and the configs are scrubbed placeholders, so don't paste them anywhere you care about without reading them first. Customers are never named. Forum posters are only ever "somebody."</p>
+      <p style="color:var(--muted)">I spend a lot of evenings on HPE Airheads answering the same questions in different clothes, which is where most of these posts come from. If you've got a plan with a trap in it, a doc that contradicts itself, or a room full of APs that "feel slow," I'd like to hear about it.</p>
+      <div class="contact">
+        <a class="btn primary" href="mailto:dustin.burns@wei.com">Email</a>
+        <a class="btn" href="https://airheads.hpe.com/profile?UserKey=94e7a1d9-a7e0-4e9f-abbc-faa06c06b759" target="_blank" rel="noopener">Airheads profile</a>
+        <a class="btn" href="https://www.linkedin.com/in/" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+      <div class="chips" style="margin-top:18px"><span class="chip">HPE Aruba Networking</span><span class="chip">AOS-CX</span><span class="chip">AOS-8 / AOS-10</span><span class="chip">ClearPass</span><span class="chip">Central</span><span class="chip">Juniper Mist</span><span class="chip">Ekahau</span><span class="chip">Wi-Fi 6E / 7</span><span class="chip">EVPN-VXLAN</span></div>
+    </div>
+  </section>
+</div>
+
+</main>
+<footer><div class="wrap"><span>© 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span><span>Built from 7 posts and 10 hand-drawn graphics.</span></div></footer>
+<script>
+(function(){
+  const views=[...document.querySelectorAll('.view')];
+  const pills=[...document.querySelectorAll('nav.pills a')];
+  function show(id){
+    views.forEach(v=>v.classList.toggle('on',v.id===id));
+    const sec=id.startsWith('post-')?'home':id;
+    pills.forEach(p=>p.classList.toggle('on',p.dataset.v===sec));
+    const t=document.getElementById(id);
+    document.title=(t&&t.dataset.title?t.dataset.title+' · ':'')+'Ask Me How I Know';
+    window.scrollTo({top:0});
+  }
+  function route(){
+    const h=location.hash||'#/';
+    const m=h.match(/^#\/post\/([\w-]+)/);
+    if(m) return location.replace('p/'+m[1]+'.html');
+    const s=h.replace(/^#\/?/,'')||'home';
+    show(document.getElementById(s)?s:'home');
+  }
+  window.addEventListener('hashchange',route); route();
+})();
+</script>
+</body></html>
