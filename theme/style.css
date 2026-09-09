@@ -77,6 +77,8 @@ a:hover{color:#cbf4b3}
 .search.open{display:block}
 
 /* status + category pills */
+a.tag{text-decoration:none;transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+a.tag:hover{transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(0,0,0,0.7)}
 .tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
   color:var(--blue-light);border:1px solid rgba(79,189,234,0.45);background:rgba(47,168,224,0.10);border-radius:var(--r-pill);padding:5px 12px;white-space:nowrap}
 .tag.green{color:#bdf29c;border-color:rgba(140,224,94,0.45);background:rgba(140,224,94,0.10)}
@@ -86,8 +88,6 @@ a:hover{color:#cbf4b3}
 .chip.c-green{color:#bdf29c;border-color:rgba(140,224,94,0.45)}
 .chip.c-blue{color:#a8d9f2;border-color:rgba(79,189,234,0.5)}
 .chip.c-red{color:#ffb3a8;border-color:rgba(240,112,95,0.5)}
-.pill.cat.c-green{color:#bdf29c}
-.pill.cat.c-blue{color:#a8d9f2}
 .chip.on.c-green{background:rgba(140,224,94,0.16)}
 .chip.on.c-blue{background:rgba(47,168,224,0.18)}
 .chip.on.c-red{background:rgba(240,112,95,0.18)}

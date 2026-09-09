@@ -53,12 +53,8 @@
   var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
   var cat = 'all', q = '';
 
-  var navCats = $$('.pill.cat'), postsPill = $('.nav .pill:not(.cat):not(.outline)');
+  var postsPill = $('.nav .pill:not(.outline)');
   function apply() {
-    navCats.forEach(function (a) {
-      var c = (a.getAttribute('href') || '').split('cat=')[1] || '';
-      a.classList.toggle('on', decodeURIComponent(c) === cat);
-    });
     if (postsPill) postsPill.classList.toggle('on', cat === 'all');
     var shown = 0;
     cards.forEach(function (c) {

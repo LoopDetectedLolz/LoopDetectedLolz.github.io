@@ -97,7 +97,6 @@ for p in posts:
 from collections import Counter
 _cnt = Counter(p["cat"] for p in posts)
 CATS = [c for c, _ in _cnt.most_common()]
-NAV_CATS = [c for c in ("Wireless", "NAC") if c in _cnt]
 
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
          '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
@@ -113,8 +112,6 @@ ICO_BACK = ('<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke=
 def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False):
     root = up or "/"
     nav = ('<a class="pill%s" href="%s">Posts</a>' % (" on" if active == "posts" else "", root))
-    for c in NAV_CATS:
-        nav += '<a class="pill cat %s" href="%sindex.html#cat=%s">%s</a>' % (CAT_CLASS.get(c, ""), up, E(c), E(c))
     nav += '<a class="pill%s" href="%sabout.html">About</a>' % (" on" if active == "about" else "", up)
     if search:
         nav += '<a class="pill outline" id="search-toggle" href="#search" aria-label="Search">%s<span>Search</span></a>' % ICO_SEARCH
@@ -233,7 +230,7 @@ for i, p in enumerate(posts):
   <div class="backbar"><a class="btn" href="../">{ICO_BACK}&nbsp;All posts</a></div>
   <article>
     <header class="post-head g-hero" data-view="zoom">
-      <div class="row" style="margin:0"><span class="tag {p["ccls"]}">{E(p["cat"])}</span><span class="meta">{E(p["date_h"])} &#183; {p["readtime"]} min</span></div>
+      <div class="row" style="margin:0"><a class="tag {p["ccls"]}" href="../index.html#cat={E(p["cat"])}" title="All {E(p["cat"])} posts">{E(p["cat"])}</a><span class="meta">{E(p["date_h"])} &#183; {p["readtime"]} min</span></div>
       <h1 class="h-hero">{E(p["title"])}</h1>
     </header>
     <div class="post-body g-card" data-rise>
