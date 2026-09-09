@@ -23,7 +23,7 @@
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
   --ink:#061019; --navy:#0E2A3C; --blue:#2FA8E0; --blue-light:#4FBDEA;
-  --teal:#5ED2DA; --green:#8CE05E; --text:#EAF2F6; --text-dim:#B0C4CF; --text-muted:#8BA2AE;
+  --teal:#5ED2DA; --green:#8CE05E; --orange:#F5A524; --red:#F0705F; --text:#EAF2F6; --text-dim:#B0C4CF; --text-muted:#8BA2AE;
   --solid:rgba(3,10,16,0.55); --line:rgba(255,255,255,0.10);
   --r-pill:999px; --r-inner:16px; --r-chrome:22px; --r-card:26px; --r-hero:32px;
   --s1:6px; --s2:10px; --s3:14px; --s4:20px; --s5:24px; --s6:28px; --s7:44px;
@@ -85,9 +85,10 @@ a:hover{color:#cbf4b3}
   transition:transform 180ms var(--ease),background 220ms var(--ease),color 220ms var(--ease)}
 .pill:hover{color:var(--text);background:rgba(255,255,255,0.06)}
 .pill:active{transform:scale(0.94)}
-.pill.on{background:linear-gradient(180deg,rgba(255,255,255,0.55),rgba(255,255,255,0) 55%),var(--green);color:#06202A;font-weight:700;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.65),0 10px 24px -12px rgba(140,224,94,0.8)}
-.pill.on:hover{color:#06202A}
+.pill.on{position:relative;color:var(--text);font-weight:700;background:rgba(245,165,36,0.12);
+  border-color:rgba(245,165,36,0.9);border-bottom-color:transparent;
+  box-shadow:0 0 0 1px rgba(245,165,36,0.25),0 10px 26px -10px rgba(245,165,36,0.85),inset 0 1px 0 rgba(255,255,255,0.18)}
+.pill.on:hover{color:var(--text);background:rgba(245,165,36,0.16)}
 .pill.soft{background:rgba(255,255,255,0.10);color:var(--text)}
 .pill.outline{border-color:rgba(255,255,255,0.16);background:rgba(255,255,255,0.05);font-family:var(--sans);color:var(--text-muted)}
 .pill.outline svg{width:15px;height:15px}
@@ -101,6 +102,17 @@ a:hover{color:#cbf4b3}
 .tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
   color:var(--blue-light);border:1px solid rgba(79,189,234,0.45);background:rgba(47,168,224,0.10);border-radius:var(--r-pill);padding:5px 12px;white-space:nowrap}
 .tag.green{color:#bdf29c;border-color:rgba(140,224,94,0.45);background:rgba(140,224,94,0.10)}
+.tag.c-green{color:#bdf29c;border-color:rgba(140,224,94,0.55);background:rgba(140,224,94,0.12)}
+.tag.c-blue{color:#a8d9f2;border-color:rgba(79,189,234,0.6);background:rgba(47,168,224,0.14)}
+.tag.c-red{color:#ffb3a8;border-color:rgba(240,112,95,0.6);background:rgba(240,112,95,0.14)}
+.chip.c-green{color:#bdf29c;border-color:rgba(140,224,94,0.45)}
+.chip.c-blue{color:#a8d9f2;border-color:rgba(79,189,234,0.5)}
+.chip.c-red{color:#ffb3a8;border-color:rgba(240,112,95,0.5)}
+.pill.cat.c-green{color:#bdf29c}
+.pill.cat.c-blue{color:#a8d9f2}
+.chip.on.c-green{background:rgba(140,224,94,0.16)}
+.chip.on.c-blue{background:rgba(47,168,224,0.18)}
+.chip.on.c-red{background:rgba(240,112,95,0.18)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(140,224,94,0.18)}
 
 /* hero = featured post */
@@ -207,22 +219,20 @@ a:hover{color:#cbf4b3}
 .social span{font-size:14px;color:var(--text-muted)}
 .social-ico{width:44px;height:44px;flex:0 0 44px;border-radius:var(--r-inner);background:var(--solid);display:grid;place-items:center;border:1px solid var(--line)}
 
-/* mascot */
-.bot{position:absolute;width:104px;height:auto;pointer-events:none;z-index:5;filter:drop-shadow(0 14px 24px rgba(0,0,0,0.55))}
-.bot--top-right{top:-46px;right:28px}
-.bot--bottom-right{bottom:-34px;right:24px}
-.bot--bottom-left{bottom:-34px;left:24px}
-.bot--peek-top{top:-58px;left:50%;transform:translateX(-50%)}
-.bot-link{position:absolute;bottom:-34px;right:24px;z-index:6;display:block;width:104px;line-height:0;transition:transform 200ms var(--ease)}
-.bot-link .bot{position:static;pointer-events:none}
-.bot-link--top{bottom:auto;top:-46px;right:28px}
-.bot-link:hover{transform:translateY(-4px)}
-.bot-link:active{transform:scale(0.92)}
-@media (prefers-reduced-motion:no-preference){.bot{animation:botFloat 5s ease-in-out infinite}.bot--peek-top{animation:none}}
-@media (max-width:520px){.bot{width:84px}.bot--top-right{top:-38px;right:16px}.bot-link{width:84px}}
+/* mascot: one Rig per page, fixed in the lower-right, above everything */
+.rig{position:fixed;z-index:60;display:block;width:104px;line-height:0;
+  right:max(20px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));
+  filter:drop-shadow(0 14px 24px rgba(0,0,0,0.55));transition:transform 200ms var(--ease)}
+.rig img{display:block;width:100%;height:auto}
+.rig:hover{transform:translateY(-4px)}
+.rig:active{transform:scale(0.92)}
+@media (prefers-reduced-motion:no-preference){.rig img{animation:botFloat 5s ease-in-out infinite}}
+@media (max-width:520px){.rig{width:84px}}
+/* the page always ends with room for him, so nothing is permanently covered */
+.page{padding-bottom:calc(104px + 40px)}
 
-footer{padding:var(--s6) 0 var(--s7);color:var(--text-muted);font-size:13px}
-footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--s2)}
+footer{padding:var(--s6) 0 var(--s4);color:var(--text-muted);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--s2);padding-right:calc(104px + 40px)}
 
 /* motion */
 @keyframes nfnSheen{0%{transform:translateX(-120%)}100%{transform:translateX(220%)}}
@@ -257,7 +267,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
   <a class="brand" href="../"><span class="mk"><img src="../logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
-  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill cat" href="../index.html#cat=Wireless">Wireless</a><a class="pill cat" href="../index.html#cat=NAC">NAC</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill cat c-green" href="../index.html#cat=Wireless">Wireless</a><a class="pill cat c-blue" href="../index.html#cat=NAC">NAC</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
   
 </div></div></header>
 <main class="wrap">
@@ -265,7 +275,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
   <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
     <header class="post-head g-hero" data-view="zoom">
-      <div class="row" style="margin:0"><span class="tag">Wireless</span><span class="meta">Jul 30, 2026 &#183; 13 min</span></div>
+      <div class="row" style="margin:0"><span class="tag c-green">Wireless</span><span class="meta">Jul 30, 2026 &#183; 13 min</span></div>
       <h1 class="h-hero">AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -460,17 +470,16 @@ show ap convert-status-list
 <h2>Bottom line</h2>
 <p>Plan it as a rebuild and it goes fine. Plan it as an upgrade and you'll discover the internal user database halfway through a maintenance window, which is a bad time to learn about it.</p>
 <p>The technology is not the hard part. <code>ap convert</code> works, rollback works, the guides are decent once you find them. What gets people is walking in expecting the config to come along for the ride, and then meeting the feature deltas one at a time in production.</p>
-<p>If you've got one of these coming up, get in touch before you build the project plan rather than after. Most of the pain in this post is scheduling pain, and scheduling pain is cheap to avoid and expensive to fix.</p></div>
+<p>Most of the pain in this post is scheduling pain, and scheduling pain is cheap to avoid and expensive to fix. Plan for it before the project plan exists, not after.</p></div>
     </div>
     <section class="end g-card" data-rise>
-      <h3>Found this useful?</h3>
-      <p>Corrections welcome. Find me on Airheads and tell me where I got it wrong.</p>
+      <h3>More field notes</h3>
       <div class="postnav"><a class="pn g-card" href="poe-budgets-wifi7-aps.html"><span class="eyebrow">Older</span>Your New AP Isn&#x27;t Broken, It&#x27;s Hungry: PoE Budgets in the Wi-Fi 7 Era</a><a class="pn g-card" href="mdns-bridge-mode-airtime.html"><span class="eyebrow">Newer</span>84 Percent of Your Airtime Is Printers Saying Hello</a></div>
-      <a class="bot-link" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img class="bot" src="../character/nfn-bot-signal.svg" alt="" width="104" height="104"></a>
     </section>
   </article>
 </div>
 </main>
+<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-signal.svg" alt="" width="104" height="104"></a>
 <footer><div class="wrap">
   <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
   <span><a href="/rss.xml">RSS</a></span>
@@ -531,17 +540,33 @@ show ap convert-status-list
   var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
   var cat = 'all', q = '';
 
+  var navCats = $$('.pill.cat'), postsPill = $('.nav .pill:not(.cat):not(.outline)');
   function apply() {
+    navCats.forEach(function (a) {
+      var c = (a.getAttribute('href') || '').split('cat=')[1] || '';
+      a.classList.toggle('on', decodeURIComponent(c) === cat);
+    });
+    if (postsPill) postsPill.classList.toggle('on', cat === 'all');
     var shown = 0;
     cards.forEach(function (c) {
       var okCat = cat === 'all' || c.getAttribute('data-cat') === cat;
       var okQ = !q || (c.getAttribute('data-text') || '').indexOf(q) !== -1;
-      var on = okCat && okQ; c.classList.toggle('hidden', !on); if (on) shown++;
+      /* the featured post lives in the hero; only surface its card while a filter or search is active */
+      var okFeat = !c.hasAttribute('data-featured') || cat !== 'all' || !!q;
+      var on = okCat && okQ && okFeat; c.classList.toggle('hidden', !on); if (on) shown++;
     });
     chips.forEach(function (ch) { ch.classList.toggle('on', ch.getAttribute('data-cat') === cat); });
     if (empty) empty.classList.toggle('show', shown === 0);
   }
-  chips.forEach(function (ch) { ch.addEventListener('click', function () { cat = ch.getAttribute('data-cat'); apply(); }); });
+  chips.forEach(function (ch) {
+    ch.addEventListener('click', function () {
+      cat = ch.getAttribute('data-cat');
+      /* keep the URL honest so back/forward and the nav agree with the chips */
+      var h = cat === 'all' ? '' : '#cat=' + encodeURIComponent(cat);
+      if (history.replaceState) history.replaceState(null, '', location.pathname + h); else location.hash = h;
+      apply();
+    });
+  });
   if (toggle && box && input) {
     toggle.addEventListener('click', function (e) {
       e.preventDefault(); box.classList.toggle('open');
@@ -549,10 +574,16 @@ show ap convert-status-list
     });
     input.addEventListener('input', function () { q = input.value.trim().toLowerCase(); apply(); });
   }
-  /* deep link: index.html#cat=NAC */
-  var m = (location.hash || '').match(/cat=([^&]+)/);
-  if (m) { cat = decodeURIComponent(m[1]); }
-  apply();
+  /* deep link: index.html#cat=NAC, on load AND on every hash change (nav pills, back/forward) */
+  function fromHash() {
+    var h = location.hash || '';
+    var m = h.match(/cat=([^&]+)/);
+    cat = m ? decodeURIComponent(m[1]) : 'all';
+    if (h.indexOf('search') !== -1 && box) { box.classList.add('open'); if (input) input.focus(); }
+    apply();
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
 })();
 </script>
 </body></html>

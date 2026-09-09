@@ -197,5 +197,3 @@ Radio 0 is 5 GHz on an AP-515 in every one I've touched, but the docs don't pin 
 Bridge mode SSIDs on AOS-8 are a blind spot. Everything we're used to reaching for lives on the controller, and in bridge mode the controller isn't in the path, so the levers are on the switch and in your basic rates instead. On AOS-10 that flips, because the AP does the filtering and bridge mode stops being a limitation. Meanwhile a few hundred Windows machines announcing themselves can eat close to half a channel without anything showing up as an error anywhere.
 
 The diagnostic is cheap. One isolated switch, one ACL with counters, twenty minutes. If you're chasing a wireless performance problem that gets worse when more people show up and better as the day goes on, count your multicast before you start moving channels around.
-
-If you hit one of these and want a second set of eyes, get in touch and we'll figure it out.

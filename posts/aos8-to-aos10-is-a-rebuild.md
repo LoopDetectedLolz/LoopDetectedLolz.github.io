@@ -163,4 +163,4 @@ Plan it as a rebuild and it goes fine. Plan it as an upgrade and you'll discover
 
 The technology is not the hard part. `ap convert` works, rollback works, the guides are decent once you find them. What gets people is walking in expecting the config to come along for the ride, and then meeting the feature deltas one at a time in production.
 
-If you've got one of these coming up, get in touch before you build the project plan rather than after. Most of the pain in this post is scheduling pain, and scheduling pain is cheap to avoid and expensive to fix.
+Most of the pain in this post is scheduling pain, and scheduling pain is cheap to avoid and expensive to fix. Plan for it before the project plan exists, not after.

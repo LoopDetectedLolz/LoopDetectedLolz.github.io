@@ -68,5 +68,3 @@ And two habits that have saved me more than the table has. Write down which sour
 ## Bottom line
 
 The docs aren't going to stop contradicting themselves, so the skill isn't finding the right page. It's knowing which page was built to answer the question you're actually asking, and being willing to write "unverified, here's why" when nothing was.
-
-If you're stuck between two official answers on something that's going in a window this week, send it my way. Two of us reading the same conflicting page is still faster than one of us guessing.

@@ -53,17 +53,33 @@
   var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
   var cat = 'all', q = '';
 
+  var navCats = $$('.pill.cat'), postsPill = $('.nav .pill:not(.cat):not(.outline)');
   function apply() {
+    navCats.forEach(function (a) {
+      var c = (a.getAttribute('href') || '').split('cat=')[1] || '';
+      a.classList.toggle('on', decodeURIComponent(c) === cat);
+    });
+    if (postsPill) postsPill.classList.toggle('on', cat === 'all');
     var shown = 0;
     cards.forEach(function (c) {
       var okCat = cat === 'all' || c.getAttribute('data-cat') === cat;
       var okQ = !q || (c.getAttribute('data-text') || '').indexOf(q) !== -1;
-      var on = okCat && okQ; c.classList.toggle('hidden', !on); if (on) shown++;
+      /* the featured post lives in the hero; only surface its card while a filter or search is active */
+      var okFeat = !c.hasAttribute('data-featured') || cat !== 'all' || !!q;
+      var on = okCat && okQ && okFeat; c.classList.toggle('hidden', !on); if (on) shown++;
     });
     chips.forEach(function (ch) { ch.classList.toggle('on', ch.getAttribute('data-cat') === cat); });
     if (empty) empty.classList.toggle('show', shown === 0);
   }
-  chips.forEach(function (ch) { ch.addEventListener('click', function () { cat = ch.getAttribute('data-cat'); apply(); }); });
+  chips.forEach(function (ch) {
+    ch.addEventListener('click', function () {
+      cat = ch.getAttribute('data-cat');
+      /* keep the URL honest so back/forward and the nav agree with the chips */
+      var h = cat === 'all' ? '' : '#cat=' + encodeURIComponent(cat);
+      if (history.replaceState) history.replaceState(null, '', location.pathname + h); else location.hash = h;
+      apply();
+    });
+  });
   if (toggle && box && input) {
     toggle.addEventListener('click', function (e) {
       e.preventDefault(); box.classList.toggle('open');
@@ -71,8 +87,14 @@
     });
     input.addEventListener('input', function () { q = input.value.trim().toLowerCase(); apply(); });
   }
-  /* deep link: index.html#cat=NAC */
-  var m = (location.hash || '').match(/cat=([^&]+)/);
-  if (m) { cat = decodeURIComponent(m[1]); }
-  apply();
+  /* deep link: index.html#cat=NAC, on load AND on every hash change (nav pills, back/forward) */
+  function fromHash() {
+    var h = location.hash || '';
+    var m = h.match(/cat=([^&]+)/);
+    cat = m ? decodeURIComponent(m[1]) : 'all';
+    if (h.indexOf('search') !== -1 && box) { box.classList.add('open'); if (input) input.focus(); }
+    apply();
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
 })();
