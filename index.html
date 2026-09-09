@@ -2,6 +2,9 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Network Field Notes</title>
 <meta name="description" content="Campus networks, wireless, NAC, and the forum threads that keep asking the same question.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="canonical" href="https://networkfieldnotes.com/">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:type" content="website">
@@ -109,16 +112,11 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 </style></head>
 <body>
 <header class="top"><div class="wrap">
-  <a class="brand" href="#/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Network Field Notes mark">
-  <rect x="2" y="2" width="60" height="60" rx="14" fill="#141C26" stroke="#243040" stroke-width="2"/>
-  <g stroke="#8FDB69" stroke-width="4" stroke-linecap="round">
-    <line x1="14" y1="40" x2="14" y2="30"/>
-    <line x1="23" y1="44" x2="23" y2="22"/>
-    <line x1="32" y1="48" x2="32" y2="16"/>
-    <line x1="41" y1="44" x2="41" y2="22"/>
-    <line x1="50" y1="40" x2="50" y2="30"/>
-  </g>
-  <circle cx="32" cy="12" r="3" fill="#E0B34E"/>
+  <a class="brand" href="#/"><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Network Field Notes mark">
+  <rect x="12" y="8" width="40" height="48" rx="6" fill="none" stroke="#2FA8E0" stroke-width="4"></rect>
+  <rect x="20" y="19" width="24" height="4" rx="2" fill="#8CE05E"></rect>
+  <rect x="20" y="30" width="17" height="4" rx="2" fill="#49BFC9"></rect>
+  <rect x="20" y="41" width="21" height="4" rx="2" fill="#8CE05E"></rect>
 </svg><span>Network Field Notes</span></a>
   <nav class="pills">
     <a href="#/" data-v="home">Posts</a>
@@ -134,9 +132,9 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
     <div class="eyebrow">Dustin Burns · Lead Mobility Engineer · HPE Aruba Networking and HPE Juniper</div>
     <h1>Network Field Notes</h1>
     <p class="tag">Campus networks, wireless, NAC, and the forum threads that keep asking the same question.</p>
-    <div class="btns"><a class="btn primary" href="p/saml-login-validates-and-still-fails.html">Read the latest</a><a class="btn" href="#/about">Who's writing this</a></div>
+    <div class="btns"><a class="btn primary" href="p/channel-173-survey-blind-spot.html">Read the latest</a><a class="btn" href="#/about">Who's writing this</a></div>
     <div class="stats">
-      <div class="stat"><b>7</b><span>field notes</span></div>
+      <div class="stat"><b>8</b><span>field notes</span></div>
       <div class="stat"><b>69</b><span>forum replies since July</span></div>
       <div class="stat"><b>6</b><span>Best Answers</span></div>
       <div class="stat"><b>20+</b><span>years in the field</span></div>
@@ -145,7 +143,59 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
   <section>
     <div class="eyebrow">Latest</div>
     <div class="grid">
-<a class="card featured" href="p/saml-login-validates-and-still-fails.html">
+<a class="card featured" href="p/channel-173-survey-blind-spot.html">
+  <div class="card-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="The 5 GHz band showing survey scan coverage ending at channel 165, with two access point radios operating on channel 173 in U-NII-4 outside the scanned range">
+  <defs><style>
+    .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8FDB69;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+    .band{fill:#8A99AB;font-size:11px;font-weight:600;letter-spacing:.5px}
+    .red{fill:#F0705F}
+  </style></defs>
+  <rect width="900" height="340" rx="14" fill="#0B0F14"/>
+  <text x="30" y="36" class="t eyebrow">TWO RADIOS, ZERO MEASUREMENTS</text>
+  <text x="30" y="66" class="t big">The scan list stops at 165. The access points didn't.</text>
+  <rect x="40"  y="150" width="150" height="46" rx="4" fill="#3A2E12" stroke="#E0B34E" stroke-width="1.5"/>
+  <rect x="194" y="150" width="150" height="46" rx="4" fill="#14293A" stroke="#2B5378" stroke-width="1.5"/>
+  <rect x="348" y="150" width="260" height="46" rx="4" fill="#14293A" stroke="#7AB8E8" stroke-width="1.5"/>
+  <rect x="612" y="150" width="170" height="46" rx="4" fill="#3A2E12" stroke="#E0B34E" stroke-width="1.5"/>
+  <rect x="786" y="150" width="74"  height="46" rx="4" fill="#2A1210" stroke="#F0705F" stroke-width="2" stroke-dasharray="5 3"/>
+  <g class="t band" text-anchor="middle">
+    <text x="115" y="177">U-NII-1</text>
+    <text x="269" y="177">U-NII-2A</text>
+    <text x="478" y="177">U-NII-2C</text>
+    <text x="697" y="177">U-NII-3</text>
+    <text x="823" y="172" class="t band red">U-NII-4</text>
+  </g>
+  <g class="t mono" fill="#5C6B7D" text-anchor="middle">
+    <text x="115" y="214">36-48</text>
+    <text x="269" y="214">52-64</text>
+    <text x="478" y="214">100-144</text>
+    <text x="697" y="214">149-165</text>
+    <text x="823" y="187" class="t mono red">169-177</text>
+    <text x="823" y="214" class="t mono red">5.850-5.895</text>
+  </g>
+  <path d="M40,236 L40,246 L782,246 L782,236" fill="none" stroke="#8A99AB" stroke-width="1.5"/>
+  <text x="411" y="266" class="t lbl" text-anchor="middle">What the survey tool scans. Highest center frequency in the project file: 5825 MHz.</text>
+  <path d="M786,236 L786,246 L860,246 L860,236" fill="none" stroke="#F0705F" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="823" y="266" class="t mono red" text-anchor="middle">no data</text>
+  <line x1="823" y1="146" x2="823" y2="112" stroke="#F0705F" stroke-width="1.5"/>
+  <circle cx="823" cy="108" r="4" fill="#F0705F"/>
+  <text x="812" y="104" class="t mono red" text-anchor="end">2 radios beaconing on ch 173</text>
+  <text x="40" y="300" class="t lbl">193 neighbour BSSs measured. 64-74 per channel in U-NII-1, 43-47 in U-NII-3, roughly 2 per channel up in 132-144.</text>
+  <text x="40" y="320" class="t lbl">Every heatmap covers the solid bracket. The dashed block is a coverage hole you cannot see, because nothing measured it.</text>
+</svg></div>
+  <div class="card-body">
+    <div class="eyebrow">Sep 9, 2026 · 5 min read</div>
+    <h3>Your Survey Tool Can&#x27;t See Channel 173</h3>
+    <p>A client sat on one AP for 49 minutes while the signal fell to -69 dBm, and every heatmap said coverage was fine. The radio it was stuck to was on a channel the survey never scanned.</p>
+    <div class="chips"><span class="chip">Wireless</span><span class="chip">Survey</span><span class="chip">Ekahau</span><span class="chip">RF Design</span></div>
+  </div>
+</a></div>
+  </section>
+  <section>
+    <div class="eyebrow">More field notes</div>
+    <div class="grid">
+<a class="card" href="p/saml-login-validates-and-still-fails.html">
   <div class="card-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Three places a ClearPass admin SAML login fails silently">
   <defs><style>
     .t{font-family:Inter,Segoe UI,system-ui,sans-serif}.lbl{fill:#8A99AB;font-size:11px}.big{fill:#fff;font-size:20px;font-weight:700}
@@ -193,11 +243,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
     <p>Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.</p>
     <div class="chips"><span class="chip">ClearPass</span><span class="chip">Security</span><span class="chip">Entra ID</span><span class="chip">SAML</span></div>
   </div>
-</a></div>
-  </section>
-  <section>
-    <div class="eyebrow">More field notes</div>
-    <div class="grid">
+</a>
 <a class="card" href="p/one-pilot-ap-converts-all-of-them.html">
   <div class="card-art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Instant cluster conversion is cluster-wide; pilot on an isolated cluster">
   <defs><style>
@@ -562,7 +608,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 </div>
 
 </main>
-<footer><div class="wrap"><span>© 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span><span>Built from 7 posts and 10 hand-drawn graphics.</span></div></footer>
+<footer><div class="wrap"><span>© 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span><span>Built from 8 posts and 11 hand-drawn graphics.</span></div></footer>
 <script>
 (function(){
   const views=[...document.querySelectorAll('.view')];
