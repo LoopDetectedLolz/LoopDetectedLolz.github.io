@@ -17,9 +17,7 @@ SITE = {
     "tagline": "Field notes from campus networks, wireless, NAC, and the forum threads that keep asking the same question.",
     "author": "Dustin Burns",
     "role": "Lead Mobility Engineer · HPE Aruba Networking and HPE Juniper",
-    "email": "dustin.burns@wei.com",
     "airheads": "https://airheads.hpe.com/profile?UserKey=94e7a1d9-a7e0-4e9f-abbc-faa06c06b759",
-    "linkedin": "https://www.linkedin.com/in/",
 }
 
 # Public root of the site, no trailing slash. Change this one line when a
@@ -327,9 +325,7 @@ page = f'''<!DOCTYPE html>
       <p style="color:var(--muted)">This site is mine. The opinions are mine, the mistakes are mine, and the configs are scrubbed placeholders, so don't paste them anywhere you care about without reading them first. Customers are never named. Forum posters are only ever "somebody."</p>
       <p style="color:var(--muted)">I spend a lot of evenings on HPE Airheads answering the same questions in different clothes, which is where most of these posts come from. If you've got a plan with a trap in it, a doc that contradicts itself, or a room full of APs that "feel slow," I'd like to hear about it.</p>
       <div class="contact">
-        <a class="btn primary" href="mailto:{SITE["email"]}">Email</a>
-        <a class="btn" href="{SITE["airheads"]}" target="_blank" rel="noopener">Airheads profile</a>
-        <a class="btn" href="{SITE["linkedin"]}" target="_blank" rel="noopener">LinkedIn</a>
+        <a class="btn primary" href="{SITE["airheads"]}" target="_blank" rel="noopener">Find me on Airheads</a>
       </div>
       <div class="chips" style="margin-top:18px"><span class="chip">HPE Aruba Networking</span><span class="chip">AOS-CX</span><span class="chip">AOS-8 / AOS-10</span><span class="chip">ClearPass</span><span class="chip">Central</span><span class="chip">Juniper Mist</span><span class="chip">Ekahau</span><span class="chip">Wi-Fi 6E / 7</span><span class="chip">EVPN-VXLAN</span></div>
     </div>
