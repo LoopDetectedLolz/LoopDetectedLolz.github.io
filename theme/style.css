@@ -379,8 +379,10 @@ body.acad .callout.origin .eyebrow{color:#ffd28a}
 .qam-ctl{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;font-size:12px;color:var(--text-dim)}
 .qam-ctl label{display:inline-flex;align-items:center;gap:8px}
 .qam-ctl select{font:13px var(--sans);color:var(--text);background:rgba(3,10,16,0.7);border:1px solid var(--line);border-radius:10px;min-height:38px;padding:0 8px}
-.qam-speed input{width:110px;accent-color:var(--green)}
-.qam-speed b{font:600 12px var(--mono);color:var(--green);min-width:34px}
+.qam-speed input{width:150px;accent-color:var(--green)}
+.qam-speed b{font:600 12px var(--mono);color:var(--green);min-width:84px;white-space:nowrap}
+.qam-band{font:10px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);padding:2px 7px;border:1px solid var(--line);border-radius:999px;white-space:nowrap}
+.qam[data-band="frames"] .qam-band{color:#ffd28a;border-color:rgba(245,165,36,0.5)}.qam[data-band="symbols"] .qam-band{color:var(--green);border-color:rgba(140,224,94,0.5)}.qam[data-band="waves"] .qam-band{color:var(--blue-light);border-color:rgba(79,189,234,0.5)}.qam[data-band="photons"] .qam-band{color:var(--teal);border-color:rgba(94,210,218,0.5)}
 .qam-ctl .chip{min-height:40px;padding:0 12px}
 .qam-ctl .chip.on{border-color:rgba(94,210,218,0.9);color:#bfeff2;background:rgba(94,210,218,0.14)}
 .qam canvas{display:block;width:100%;height:280px;margin-top:var(--s2);touch-action:pan-y;cursor:crosshair;border-radius:var(--r-inner)}
