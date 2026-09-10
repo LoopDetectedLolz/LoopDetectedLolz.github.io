@@ -34,6 +34,14 @@ That runs `blog-publish`: build, dash check, scrub check, contact-copy check, gr
 
 **RF motif.** Wireless and RF survey posts get a faint concentric-ring watermark on the header automatically. Nothing to do.
 
+## Publishing an Academy lesson
+
+Every Sunday night a scheduled task drafts the next lesson into the Cowork project (`academy/drafts/lesson-NN.md` plus its audit). Your part: run the lab on real gear, replace the expected numbers with what the box actually said, then in Claude Code:
+
+> publish academy lesson 2 from the project draft
+
+That copies the markdown into `posts/`, writes the hero SVG (it's at the bottom of the draft under "Hero SVG") into `graphics/` with a heredoc, runs the gates and the build, and pushes. The landing page updates itself. If you skip a week, the task waits; it never drafts two ahead.
+
 ## Editing a post that's already live
 
 Posts are markdown in `posts/`. Say what you want changed:

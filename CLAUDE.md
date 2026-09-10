@@ -87,6 +87,10 @@ The card pill comes from the first tag via `CAT_MAP` in `build-blog.py` (clearpa
 
 No red, amber or orange in a hero. A failure state is a dimmed or dashed element, not a red one. Fonts: `Instrument Sans,-apple-system,Helvetica,sans-serif`, mono `JetBrains Mono,ui-monospace,Menlo,monospace`. Green ALL-CAPS eyebrow at y=36, one white headline at y=66 under about 70 characters, the diagram, muted caption near y=320. The graphic carries the one diagram the post needs. Not decoration. Give the root `<svg>` a `role="img"` and an `aria-label` that describes the diagram.
 
+## Wireless Academy
+
+Lessons are posts with `academy: N` in the front matter. That alone makes the post category "Academy" (orange), puts it in the "Wireless Academy" reading path at position N, gives it Rig's think pose, and switches the page to the orange theme (`body.acad`: orange ground, near-black glass, orange accents). The landing page `academy.html` is generated from the `ACADEMY` list in `build-blog.py` (title, blurb, lab) with `ACADEMY_START` as lesson 1's date and one lesson a week after; published lessons link, planned ones are greyed with their week. The index hero stays the latest field note; lessons still appear as cards. Academy heroes may use orange `#F5A524` as the accent. Drafts arrive weekly in the Cowork project under `academy/drafts/lesson-NN.md` with their audit; publishing means copying the markdown into `posts/`, the SVG into `graphics/`, running the gates, building and pushing. The syllabus lives in the project (`academy/syllabus.md`) and in `ACADEMY`; change both.
+
 ## Post extras
 
 Front matter can also carry `series:` and `series_order:` (reading-path card), and `interactive: poe|channel173` (widget from `theme/widgets/<name>.html` inlined under the hero). ```term fences render as terminal panels; a trailing `  <<` highlights that line. Wireless and RF survey post headers get the RF ring motif via `.post-head.cat-*`. The About page's "In the bag" strip is the `KIT` list in `build-blog.py`. Rig reactions (sleep on hidden tab, think on empty search, wave at page bottom) live in `theme/app.js` and are off under reduced motion.
