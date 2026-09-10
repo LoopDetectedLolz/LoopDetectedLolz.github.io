@@ -31,7 +31,7 @@
   var k,sx,sy,bits=[],syms=[],next=0,fly=[],landed=[],errors=0,attempt=1,phase='tx',pt=0,emitT=0;
   var retries=0,frames=0,frameUs=0,cleanUs=0,okRun=0,failRun=0,cw=CWMIN,adaptNote='';
   var cur={x:0,y:0,on:false}, specks=[], tsec=0, lastNow=0, IR=48;
-  var mp=false, echoes=[], lastFade=null, ladderPos=7, rateShown=0, flash=null;
+  var mp=false, echoes=[], lastFade=null, ladderPos=7, rateShown=0, flash=null, rxBits=[];
   function gray(n){return n^(n>>1)}
   function utf8(s){return unescape(encodeURIComponent(s))}
   function rate(m,s,w){return s*NSD[w]*MCS[m][1]*MCS[m][2]/TSYM}
@@ -43,8 +43,8 @@
     var pad=bits.slice(); while(pad.length%k)pad.push(0);
     syms=[]; for(var p=0;p<pad.length;p+=k){var hx=Math.ceil(k/2),hy=Math.floor(k/2),a=0,b=0,i; for(i=0;i<hx;i++)a=(a<<1)|pad[p+i]; for(i=0;i<hy;i++)b=(b<<1)|pad[p+hx+i]; syms.push({ix:gray(a),iy:gray(b),bits:pad.slice(p,p+k).join('')});}
   }
-  function newFrame(){next=0;fly=[];echoes=[];landed=[];errors=0;attempt=1;phase='tx';pt=0;emitT=0;frameUs=0;cleanUs=airtime(mcsSel,ss,bw)+SIFS+ACK;cw=CWMIN;buildSyms();frames++;}
-  function retry(){next=0;fly=[];echoes=[];landed=[];errors=0;attempt++;phase='tx';pt=0;emitT=0;}
+  function newFrame(){rxBits=[];next=0;fly=[];echoes=[];landed=[];errors=0;attempt=1;phase='tx';pt=0;emitT=0;frameUs=0;cleanUs=airtime(mcsSel,ss,bw)+SIFS+ACK;cw=CWMIN;buildSyms();frames++;}
+  function retry(){rxBits=[];next=0;fly=[];echoes=[];landed=[];errors=0;attempt++;phase='tx';pt=0;emitT=0;}
   function resize(){var r=c.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);W=Math.max(320,Math.round(r.width));H=W<600?260:280;IR=W<600?36:48;c.width=W*dpr;c.height=H*dpr;c.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);}
   function layout(){var mob=W<600,R=mob?Math.min(W*0.20,64):Math.min(H*0.36,100);var ax=mob?52:Math.round(W*0.11),ay=Math.round(H*0.5);var cx=W-R-(mob?36:56),cy=ay;return{mob:mob,R:R,ax:ax,ay:ay,ex:ax+(mob?26:46),cx:cx,cy:cy,cell:(2*R)/Math.max(sx,sy)};}
   function wall(L){var x0=L.ex+(L.cx-L.R-L.ex)*0.30,x1=L.ex+(L.cx-L.R-L.ex)*0.72;return{x0:x0,x1:x1,y:L.ay+L.R*(L.mob?0.95:0.82)};}
@@ -141,7 +141,7 @@
       var g1=Math.hypot(1+a*Math.cos(ph),a*Math.sin(ph));var g=g1;
       if(ss>=2){var ph2=ph+2.1;var g2=Math.hypot(1+a*Math.cos(ph2),a*Math.sin(ph2));g=Math.sqrt((g1*g1+g2*g2)/2);}
       lastFade={db:20*Math.log10(g)};jx/=g;jy/=g;}
-    var ex=jx+gx,ey=jy+gy;var bad=Math.abs(ex)>T.w/2||Math.abs(ey)>T.h/2;if(bad)errors++;landed.push({x:T.x+ex,y:T.y+ey,bad:bad});if(landed.length>600)landed.shift();}
+    var ex=jx+gx,ey=jy+gy;var bad=Math.abs(ex)>T.w/2||Math.abs(ey)>T.h/2;if(bad)errors++;var rb=syms[f.i].bits;if(bad){var fb=Math.floor(Math.random()*rb.length);rb=rb.slice(0,fb)+(rb[fb]==='1'?'0':'1')+rb.slice(fb+1);}rxBits[f.i]=rb;landed.push({x:T.x+ex,y:T.y+ey,bad:bad,i:f.i});if(landed.length>600)landed.shift();}
   function L_mob(){return W<600}
   function fmt(us){return us>=1000?(us/1000).toFixed(2)+' ms':Math.round(us)+' µs'}
   function stat(){
@@ -150,7 +150,9 @@
     s+='Frame '+frames+', attempt <b>'+attempt+'</b>'+(errors?', <b class="warn">'+errors+' corrupted</b>':'')+'. On the air so far <b>'+fmt(frameUs)+'</b>'+(frameUs>cleanUs*1.05?' <b class="warn">('+(frameUs/cleanUs).toFixed(1)+'× the clean '+fmt(cleanUs)+')</b>':' (clean: '+fmt(cleanUs)+')')+'. Retries this session: <b>'+retries+'</b>.';
     if(adaptNote)s+=' <b class="warn">'+adaptNote+'</b>';
     el.innerHTML=s;
-    var rx=document.getElementById('qam-rxt');var got=Math.floor(landed.length*k/8);var b=utf8(title).slice(0,got);var dec='';try{dec=decodeURIComponent(escape(b))}catch(e){dec=b}rx.textContent=dec+(phase==='tx'?'█':'');rx.classList.toggle('bad',errors>0);
+    var rx=document.getElementById('qam-rxt');var bstr='';for(var si=0;si<syms.length;si++){if(rxBits[si]===undefined)break;bstr+=rxBits[si];}
+    var tb2=utf8(title),got=Math.floor(bstr.length/8),html='';for(var ci=0;ci<got;ci++){var code=parseInt(bstr.slice(ci*8,ci*8+8),2);var chr=code>=32&&code<127?String.fromCharCode(code):'\u2593';chr=chr==='<'?'&lt;':chr==='&'?'&amp;':chr;html+=(tb2.charCodeAt(ci)===code)?chr:'<b class="garble">'+chr+'</b>';}
+    if(L_mob()&&got>34)html='\u2026'+html.slice(-90);rx.innerHTML=html+(phase==='tx'?'\u2588':'');rx.classList.toggle('bad',errors>0);
   }
   var statT=0;
   function step(now){
@@ -159,9 +161,9 @@
       var sd=dt*speed;tsec+=sd;
       for(var i=0;i<specks.length;i++){var q=specks[i];q.s+=q.v*sd;if(q.s>1){q.s=0;q.lane=Math.random()*2-1;q.col=Math.random();}}
       if(phase==='tx'){
-        emitT+=sd;var iv=0.075;while(emitT>=iv&&next<syms.length){emitT-=iv;emit(L);}
-        for(i=echoes.length-1;i>=0;i--){var e2=echoes[i];var dlen=Math.hypot(e2.T.x-L.ex,e2.T.y-L.ay);e2.s+=sd/1.25*(dlen/echoLen(L,e2));var ep=echoAt(L,e2,Math.min(1,e2.s));e2.trail.push(ep);if(e2.trail.length>8)e2.trail.shift();if(e2.s>=1)echoes.splice(i,1);}
-        for(i=fly.length-1;i>=0;i--){var f=fly[i];var sub=Math.max(1,Math.ceil(speed));for(var u2=0;u2<sub;u2++){f.s+=sd/1.25/sub;var p=pathAt(L,f,Math.min(1,f.s));
+        emitT+=sd;var iv=0.055;while(emitT>=iv&&next<syms.length){emitT-=iv;emit(L);}
+        for(i=echoes.length-1;i>=0;i--){var e2=echoes[i];var dlen=Math.hypot(e2.T.x-L.ex,e2.T.y-L.ay);e2.s+=sd/1.1*(dlen/echoLen(L,e2));var ep=echoAt(L,e2,Math.min(1,e2.s));e2.trail.push(ep);if(e2.trail.length>8)e2.trail.shift();if(e2.s>=1)echoes.splice(i,1);}
+        for(i=fly.length-1;i>=0;i--){var f=fly[i];var sub=Math.max(1,Math.ceil(speed));for(var u2=0;u2<sub;u2++){f.s+=sd/1.1/sub;var p=pathAt(L,f,Math.min(1,f.s));
             if(cur.on){var near=Math.max(0,1-Math.hypot(p.x-cur.x,p.y-cur.y)/IR);if(near>0){f.noise=Math.max(f.noise,near);f.hit=Math.max(f.hit,near);f.push+=(Math.random()-0.5)*near*14;}}
             f.trail.push(p);if(f.trail.length>22)f.trail.shift();if(f.s>=1)break;}
           if(f.s>=1){land(L,f);fly.splice(i,1);}}
