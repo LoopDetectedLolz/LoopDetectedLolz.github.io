@@ -19,6 +19,7 @@ SITE = {
     "role": "Lead Mobility Engineer · HPE Aruba Networking and HPE Juniper",
     "airheads": "https://airheads.hpe.com/profile?UserKey=94e7a1d9-a7e0-4e9f-abbc-faa06c06b759",
     "linkedin": "https://www.linkedin.com/in/dustinburns3020/",
+    "email": "dustin.burns@networkfieldnotes.com",   # socials page only; keep out of feeds and metadata
 }
 BASE_URL = "https://networkfieldnotes.com"
 CUSTOM_DOMAIN = "networkfieldnotes.com"
@@ -267,15 +268,16 @@ open(os.path.join(ROOT, "about.html"), "w", encoding="utf-8").write(about)
 
 # ── socials (genie target) ──────────────────────────────────────────────────
 SOCIALS = [("LinkedIn", "Where I post when something is worth a wider audience.", SITE["linkedin"], "in"),
-           ("HPE Airheads", "Where most of these posts start life, as somebody else's question.", SITE["airheads"], "AH")]
+           ("HPE Airheads", "Where most of these posts start life, as somebody else's question.", SITE["airheads"], "AH"),
+           ("Email", SITE["email"], "mailto:" + SITE["email"], "@")]
 soc = head("Elsewhere · " + SITE["name"], "Where to find Dustin Burns online.", BASE_URL + "/socials.html", BASE_URL + "/og/home.png", active="")
 soc += '''
 <div class="narrow">
 <section class="about g-hero" data-view="genie" style="position:relative">
   <div><span class="eyebrow">Elsewhere</span><h1 class="h-hero" style="margin-top:14px">Where to find me</h1>
-  <p class="lede" style="margin-top:10px">Two places worth your time.</p></div>
+  <p class="lede" style="margin-top:10px">Three places worth your time.</p></div>
   <div class="socials">''' + "".join(
-    f'''<a class="social g-card" href="{u}" target="_blank" rel="noopener noreferrer" data-rise>
+    f'''<a class="social g-card" href="{u}"{"" if u.startswith("mailto:") else ' target="_blank" rel="noopener noreferrer"'} data-rise>
       <span class="social-ico eyebrow">{E(ic)}</span><span><b>{E(n)}</b><span>{E(d)}</span></span></a>''' for n, d, u, ic in SOCIALS) + '''
   </div>
 </section>
