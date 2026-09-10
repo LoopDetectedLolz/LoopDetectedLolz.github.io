@@ -1,0 +1,30 @@
+<div class="widget" id="w-ch" data-widget="channel173">
+  <div class="w-head"><span class="eyebrow">Try it</span><b>The 5 GHz band, to scale</b><span class="meta">Tap a block. The shaded overlay is what a survey that stops at channel 165 actually scanned.</span></div>
+  <div class="band" id="band" role="group" aria-label="5 GHz band blocks">
+    <div class="band-scan" id="band-scan"></div>
+    <button class="blk" data-k="u1" style="--l:0%;--w:13.42%">U-NII-1</button>
+    <button class="blk" data-k="u2a" style="--l:13.42%;--w:13.42%">U-NII-2A</button>
+    <button class="blk" data-k="u2c" style="--l:42.95%;--w:34.23%">U-NII-2C</button>
+    <button class="blk" data-k="u3" style="--l:77.18%;--w:16.78%">U-NII-3</button>
+    <button class="blk hot" data-k="u4" style="--l:93.96%;--w:6.04%">U-NII-4</button>
+  </div>
+  <div class="band-axis"><span>5150</span><span>5350</span><span>5470</span><span>5725</span><span>5850</span><span>5895 MHz</span></div>
+  <div class="w-read" id="band-read">Channels 169, 173 and 177 live in that last sliver, 5850 to 5895 MHz. Opened by the FCC in 2020, quiet, and on by default in some auto-channel pools.</div>
+</div>
+<script>
+(function(){
+  var band=document.getElementById('band'); if(!band)return;
+  var txt={
+    u1:"U-NII-1, 5150 to 5250 MHz. Channels 36 to 48. Indoor bread and butter; every client and every survey tool sees it.",
+    u2a:"U-NII-2A, 5250 to 5350 MHz. Channels 52 to 64. DFS. Your survey scans it, some clients avoid it.",
+    u2c:"U-NII-2C, 5470 to 5725 MHz. Channels 100 to 144. DFS, and where most of the 5 GHz room is.",
+    u3:"U-NII-3, 5725 to 5850 MHz. Channels 149 to 165. Where the survey tool's channel list ends, at 5825 MHz.",
+    u4:"U-NII-4, 5850 to 5895 MHz. Channels 169, 173 and 177. Opened in 2020, quiet, on by default in some auto-channel pools, and not in the survey's channel list at all. A radio up here is invisible to the heatmap and to plenty of your client fleet."
+  };
+  band.addEventListener('click',function(e){
+    var b=e.target.closest('.blk'); if(!b)return;
+    [].forEach.call(band.querySelectorAll('.blk'),function(x){x.classList.toggle('on',x===b)});
+    document.getElementById('band-read').textContent=txt[b.getAttribute('data-k')];
+  });
+})();
+</script>

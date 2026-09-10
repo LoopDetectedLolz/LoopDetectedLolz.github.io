@@ -6,6 +6,9 @@ tags: Wireless, Survey, Ekahau, RF Design
 hero: hero-unii4.svg
 summary: A client sat on one AP for 49 minutes while the signal fell to -69 dBm, and every heatmap said coverage was fine. The radio it was stuck to was on a channel the survey never scanned.
 origin: A wireless troubleshooting engagement where the survey and the complaint disagreed, and the survey was wrong
+series: Wi-Fi 7 rollout
+series_order: 2
+interactive: channel173
 ---
 
 ## Why I'm writing this

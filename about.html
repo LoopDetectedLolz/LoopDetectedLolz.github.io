@@ -261,6 +261,88 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
   .post-head,.post-body,.about,.end{padding:var(--s6) var(--s4)}
   .band{padding:var(--s5) var(--s4)}
 }
+
+/* ── what the box said ─────────────────────────────────────────────────── */
+.term{margin:var(--s5) 0;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);overflow:hidden}
+.term-bar{display:flex;align-items:center;gap:6px;padding:9px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,0.03)}
+.term-bar i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.12)}
+.term-bar i:first-child{background:rgba(140,224,94,0.45)}
+.term-bar b{margin-left:8px;font:600 11px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}
+.prose .term pre{margin:0;border:0;border-radius:0;background:none;padding:var(--s3) var(--s4)}
+.term .ln{display:block;padding:0 6px;margin:0 -6px;border-radius:6px}
+.term .pr{color:var(--green);font-weight:500}
+.term .ln.hot{background:rgba(140,224,94,0.10);border-left:3px solid var(--green);border-radius:0 6px 6px 0;padding-left:3px;color:var(--text)}
+
+/* ── interactive widgets ───────────────────────────────────────────────── */
+.widget{margin:var(--s5) 0 var(--s4);padding:var(--s4) var(--s5);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+.w-head{display:flex;flex-direction:column;gap:4px;margin-bottom:var(--s4)}
+.w-head b{font-size:17px;letter-spacing:-0.01em}
+.w-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:var(--s3) var(--s4);margin-bottom:var(--s4)}
+.w-controls label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-dim)}
+.w-controls select,.w-controls input[type=number]{font:14px var(--sans);color:var(--text);background:rgba(3,10,16,0.7);border:1px solid var(--line);border-radius:10px;min-height:40px;padding:0 10px}
+.w-controls input[type=number]{width:96px;display:inline-block}
+.w-unit{display:flex;align-items:center;gap:8px}
+.w-slider>span b{color:var(--green);font-size:15px;margin-left:6px}
+.w-slider{grid-column:1/-1}
+.w-controls input[type=range]{width:100%;accent-color:var(--green);min-height:32px}
+.w-bar{position:relative;height:18px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid var(--line);overflow:hidden;display:flex}
+.w-fill{height:100%;background:var(--green);transition:width 240ms var(--ease)}
+.w-fill.other{background:var(--teal);opacity:0.8}
+.widget.tight .w-fill{background:var(--orange)}
+.widget.over .w-fill{background:var(--orange)}
+.widget.over .w-bar{border-color:rgba(245,165,36,0.6);box-shadow:0 0 0 3px rgba(245,165,36,0.15)}
+.w-read{margin-top:var(--s3);font-size:15px;color:var(--text)}
+.w-read b{color:var(--green)}
+.widget.over .w-read b:first-child{color:var(--orange)}
+.w-note{margin-top:var(--s2);font-size:13px;color:var(--text-dim);line-height:1.6}
+.band{position:relative;height:64px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);overflow:hidden}
+.band-scan{position:absolute;left:0;top:0;bottom:0;width:90.6%;background:repeating-linear-gradient(135deg,rgba(94,210,218,0.10) 0 6px,transparent 6px 12px);border-right:2px dashed rgba(94,210,218,0.7);pointer-events:none}
+.blk{position:absolute;top:8px;bottom:8px;left:var(--l);width:var(--w);font:600 11px var(--mono);letter-spacing:0.04em;color:var(--text-dim);background:rgba(3,10,16,0.55);border:1px solid rgba(255,255,255,0.14);border-radius:8px;cursor:pointer;padding:0;overflow:hidden;white-space:nowrap;transition:transform 200ms var(--ease),background 200ms var(--ease)}
+.blk:hover{transform:translateY(-1px)}
+.blk.on{color:#06202A;background:var(--teal);border-color:var(--teal)}
+.blk.hot{color:#bdf29c;border-color:rgba(140,224,94,0.6);font-size:9px}
+.blk.hot.on{color:#06202A;background:var(--green);border-color:var(--green)}
+.band-axis{position:relative;height:18px;margin-top:6px;font:11px var(--mono);color:var(--text-muted)}
+.band-axis span{position:absolute;transform:translateX(-50%)}
+.band-axis span:nth-child(1){left:0;transform:none}.band-axis span:nth-child(2){left:26.85%}.band-axis span:nth-child(3){left:42.95%}
+.band-axis span:nth-child(4){left:77.18%}.band-axis span:nth-child(5){left:93.96%}.band-axis span:nth-child(6){left:100%;transform:translateX(-100%)}
+@media (max-width:520px){.band-axis span:nth-child(2),.band-axis span:nth-child(3){display:none}.blk.hot{font-size:0}}
+
+/* ── field kit ─────────────────────────────────────────────────────────── */
+.kit{margin-top:var(--s5);padding:var(--s5)}
+.kit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:var(--s3);margin-top:var(--s3)}
+.kit-item{position:relative;display:flex;flex-direction:column;gap:8px;padding:var(--s4);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);min-height:120px;outline:none;transition:transform 200ms var(--ease),border-color 200ms var(--ease)}
+.kit-item:hover,.kit-item:focus{transform:translateY(-2px);border-color:rgba(140,224,94,0.45)}
+.kit-ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(140,224,94,0.10);border:1px solid rgba(140,224,94,0.3)}
+.kit-ico svg{width:22px;height:22px;fill:none;stroke:var(--green);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kit-item b{font-size:14px}
+.kit-line{font-size:13px;color:var(--text-dim);line-height:1.5;opacity:0;transform:translateY(4px);transition:opacity 220ms var(--ease),transform 220ms var(--ease)}
+.kit-item:hover .kit-line,.kit-item:focus .kit-line{opacity:1;transform:none}
+@media (hover:none){.kit-line{opacity:1;transform:none}}
+
+/* ── RF motif on radio posts ───────────────────────────────────────────── */
+.post-head{position:relative;overflow:hidden}
+.post-head.cat-Wireless::before,.post-head.cat-RF-survey::before{content:"";position:absolute;right:-90px;top:-120px;width:420px;height:420px;pointer-events:none;opacity:0.10;
+  background:repeating-radial-gradient(circle at center,var(--teal) 0 1.5px,transparent 1.5px 26px)}
+.post-head>*{position:relative}
+
+/* ── reading path ──────────────────────────────────────────────────────── */
+.series{padding:var(--s5);margin-bottom:var(--s4)}
+.series h3{margin:6px 0 var(--s3);font-size:18px}
+.series h3 .meta{margin-left:8px;font-weight:400}
+.ser-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:var(--s3)}
+.ser-step{position:relative;display:flex;flex-direction:column;gap:6px;padding:var(--s3) var(--s4);color:var(--text-dim);text-decoration:none;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);transition:transform 200ms var(--ease),border-color 200ms var(--ease)}
+.ser-step:hover{transform:translateY(-2px)}
+.ser-n{font:600 11px var(--mono);letter-spacing:0.12em;color:var(--text-muted)}
+.ser-t{font-size:14px;font-weight:600;color:var(--text)}
+.ser-tag{font:600 10px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}
+.ser-step.here{border-color:rgba(255,255,255,0.28);opacity:0.75}
+.ser-step.next{border-color:rgba(140,224,94,0.6);box-shadow:0 10px 26px -14px rgba(140,224,94,0.8)}
+.ser-step.next .ser-tag,.ser-step.next .ser-n{color:var(--green)}
+
+/* ── Rig reactions ─────────────────────────────────────────────────────── */
+.rig img{transition:opacity 220ms var(--ease)}
+.rig.swap img{opacity:0}
 </style></head>
 <body>
 <div class="ground"></div>
@@ -281,6 +363,10 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
       <p>I spend a lot of evenings on HPE Airheads answering the same questions in different clothes, which is where most of these posts come from.</p>
     </div>
     <div class="chips"><span class="tag">HPE Aruba Networking</span><span class="tag">AOS-CX</span><span class="tag">AOS-8 / AOS-10</span><span class="tag">ClearPass</span><span class="tag">Central</span><span class="tag">Juniper Mist</span><span class="tag">Ekahau</span><span class="tag">Wi-Fi 6E / 7</span><span class="tag">EVPN-VXLAN</span></div>
+  </section>
+  <section class="kit g-card" data-rise>
+    <span class="eyebrow">In the bag</span>
+    <div class="kit-grid"><div class="kit-item" tabindex="0"><span class="kit-ico"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="3"/><path d="M12 7V3M9 3h6"/><circle cx="12" cy="13" r="2.5"/></svg></span><b>Ekahau Sidekick 2 + laptop</b><span class="kit-line">Walks the building so the heatmap doesn&#x27;t have to guess. Still can&#x27;t see channel 173.</span></div><div class="kit-item" tabindex="0"><span class="kit-ico"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="7" height="6" rx="1.5"/><path d="M10 12h4M14 9h4a3 3 0 0 1 3 3v0a3 3 0 0 1-3 3h-4zM5 9V6M8 9V6"/></svg></span><b>Console cable, USB-C serial</b><span class="kit-line">The only management plane that has never had an outage.</span></div><div class="kit-item" tabindex="0"><span class="kit-ico"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M13 7l-3 5h4l-3 5"/></svg></span><b>PoE tester</b><span class="kit-line">Settles the &quot;but the switch says bt&quot; argument in about four seconds.</span></div><div class="kit-item" tabindex="0"><span class="kit-ico"><svg viewBox="0 0 24 24"><path d="M3 12l7-7h8a3 3 0 0 1 3 3v8l-7 7z"/><circle cx="16" cy="8" r="1.5"/></svg></span><b>Label maker, punch-down, cable tester</b><span class="kit-line">Nobody blogs about this part. Everybody uses it.</span></div></div>
   </section>
 </div>
 </main>
@@ -308,6 +394,33 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
     el.style.animationDelay = Math.min(i * 60, 340) + 'ms';
     el.classList.add('rise');
   });
+
+
+  /* Rig reacts: sleeps when the tab is hidden, thinks when search is empty, waves at the bottom */
+  var rig = $('.rig img');
+  if (rig && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var base = rig.getAttribute('src'), dir = base.replace(/[^\/]+$/, '');
+    var pose = function (n) { return dir + 'nfn-bot-' + n + '.svg'; };
+    ['sleep', 'think', 'wave'].forEach(function (n) { var i = new Image(); i.src = pose(n); });
+    var cur = base, timer = null;
+    var setPose = function (src) {
+      if (src === cur) return; cur = src;
+      var a = rig.parentNode; a.classList.add('swap');
+      setTimeout(function () { rig.setAttribute('src', src); a.classList.remove('swap'); }, 220);
+    };
+    document.addEventListener('visibilitychange', function () {
+      setPose(document.hidden ? pose('sleep') : base);
+    });
+    window.addEventListener('nfn:empty', function (e) { setPose(e.detail ? pose('think') : base); });
+    var waved = false;
+    window.addEventListener('scroll', function () {
+      var atEnd = window.innerHeight + window.scrollY >= document.body.scrollHeight - 40;
+      if (atEnd && !waved) {
+        waved = true; setPose(pose('wave'));
+        clearTimeout(timer); timer = setTimeout(function () { setPose(base); waved = false; }, 3500);
+      }
+    }, { passive: true });
+  }
 
   /* remember where a card or mascot was tapped, in page coordinates */
   $$('[data-origin]').forEach(function (el) {
@@ -356,6 +469,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
     });
     chips.forEach(function (ch) { ch.classList.toggle('on', ch.getAttribute('data-cat') === cat); });
     if (empty) empty.classList.toggle('show', shown === 0);
+    try { window.dispatchEvent(new CustomEvent('nfn:empty', { detail: shown === 0 && !!q })); } catch (e) {}
   }
   chips.forEach(function (ch) {
     ch.addEventListener('click', function () {

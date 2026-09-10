@@ -87,6 +87,10 @@ The card pill comes from the first tag via `CAT_MAP` in `build-blog.py` (clearpa
 
 No red, amber or orange in a hero. A failure state is a dimmed or dashed element, not a red one. Fonts: `Instrument Sans,-apple-system,Helvetica,sans-serif`, mono `JetBrains Mono,ui-monospace,Menlo,monospace`. Green ALL-CAPS eyebrow at y=36, one white headline at y=66 under about 70 characters, the diagram, muted caption near y=320. The graphic carries the one diagram the post needs. Not decoration. Give the root `<svg>` a `role="img"` and an `aria-label` that describes the diagram.
 
+## Post extras
+
+Front matter can also carry `series:` and `series_order:` (reading-path card), and `interactive: poe|channel173` (widget from `theme/widgets/<name>.html` inlined under the hero). ```term fences render as terminal panels; a trailing `  <<` highlights that line. Wireless and RF survey post headers get the RF ring motif via `.post-head.cat-*`. The About page's "In the bag" strip is the `KIT` list in `build-blog.py`. Rig reactions (sleep on hidden tab, think on empty search, wave at page bottom) live in `theme/app.js` and are off under reduced motion.
+
 ## Design system
 
 `theme/style.css` is the source of truth. Tokens: `--ink #061019 --navy #0E2A3C --blue #2FA8E0 --blue-light #4FBDEA --teal #5ED2DA --green #8CE05E --orange #F5A524 --red #F0705F --text #EAF2F6 --text-dim #B0C4CF --text-muted #8BA2AE`. Three glass levels (`.g-chrome`, `.g-card`, `.g-hero`), one easing `cubic-bezier(0.32,0.72,0,1)`, only opacity and transform are animated, `-webkit-backdrop-filter` always paired, reduced motion redefines the keyframes. Rig is a fixed lower-right overlay (`.rig`, z-index 60) on every page and links to `socials.html`; `.page` and the footer reserve 144px at the bottom so he never covers content. One green CTA per view. Don't add a second font, a new colour, or a new animation without updating `DESIGN-KIT.md` first.

@@ -17,6 +17,33 @@
     el.classList.add('rise');
   });
 
+
+  /* Rig reacts: sleeps when the tab is hidden, thinks when search is empty, waves at the bottom */
+  var rig = $('.rig img');
+  if (rig && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var base = rig.getAttribute('src'), dir = base.replace(/[^\/]+$/, '');
+    var pose = function (n) { return dir + 'nfn-bot-' + n + '.svg'; };
+    ['sleep', 'think', 'wave'].forEach(function (n) { var i = new Image(); i.src = pose(n); });
+    var cur = base, timer = null;
+    var setPose = function (src) {
+      if (src === cur) return; cur = src;
+      var a = rig.parentNode; a.classList.add('swap');
+      setTimeout(function () { rig.setAttribute('src', src); a.classList.remove('swap'); }, 220);
+    };
+    document.addEventListener('visibilitychange', function () {
+      setPose(document.hidden ? pose('sleep') : base);
+    });
+    window.addEventListener('nfn:empty', function (e) { setPose(e.detail ? pose('think') : base); });
+    var waved = false;
+    window.addEventListener('scroll', function () {
+      var atEnd = window.innerHeight + window.scrollY >= document.body.scrollHeight - 40;
+      if (atEnd && !waved) {
+        waved = true; setPose(pose('wave'));
+        clearTimeout(timer); timer = setTimeout(function () { setPose(base); waved = false; }, 3500);
+      }
+    }, { passive: true });
+  }
+
   /* remember where a card or mascot was tapped, in page coordinates */
   $$('[data-origin]').forEach(function (el) {
     el.addEventListener('click', function (e) {
@@ -64,6 +91,7 @@
     });
     chips.forEach(function (ch) { ch.classList.toggle('on', ch.getAttribute('data-cat') === cat); });
     if (empty) empty.classList.toggle('show', shown === 0);
+    try { window.dispatchEvent(new CustomEvent('nfn:empty', { detail: shown === 0 && !!q })); } catch (e) {}
   }
   chips.forEach(function (ch) {
     ch.addEventListener('click', function () {
