@@ -8,6 +8,7 @@
       <label class="qam-speed">Speed <input id="qam-speed" type="range" min="-2" max="3" step="0.25" value="0"><b id="qam-speed-v">1x</b></label>
       <button class="chip" id="qam-pause" type="button" aria-pressed="false">Pause</button>
       <button class="chip" id="qam-mp" type="button" aria-pressed="false">Multipath</button>
+      <button class="chip" id="qam-follow" type="button">Follow a symbol</button>
       <button class="chip" id="qam-table-t" type="button" aria-pressed="false">Compare rates</button>
     </div>
   </div>
@@ -32,6 +33,7 @@
   var retries=0,frames=0,frameUs=0,cleanUs=0,okRun=0,failRun=0,cw=CWMIN,adaptNote='';
   var cur={x:0,y:0,on:false}, specks=[], tsec=0, lastNow=0, IR=48;
   var mp=false, echoes=[], lastFade=null, ladderPos=7, rateShown=0, flash=null, rxBits=[];
+  var ghosts=[], pre=[], preSent=0, preT=0, synced=false, gridRot=0, cfo=0, lockT=0, followReq=false, followed=null, followHold=0, speedSaved=null, TURNS=5;
   function gray(n){return n^(n>>1)}
   function utf8(s){return unescape(encodeURIComponent(s))}
   function rate(m,s,w){return s*NSD[w]*MCS[m][1]*MCS[m][2]/TSYM}
@@ -43,8 +45,9 @@
     var pad=bits.slice(); while(pad.length%k)pad.push(0);
     syms=[]; for(var p=0;p<pad.length;p+=k){var hx=Math.ceil(k/2),hy=Math.floor(k/2),a=0,b=0,i; for(i=0;i<hx;i++)a=(a<<1)|pad[p+i]; for(i=0;i<hy;i++)b=(b<<1)|pad[p+hx+i]; syms.push({ix:gray(a),iy:gray(b),bits:pad.slice(p,p+k).join('')});}
   }
-  function newFrame(){rxBits=[];next=0;fly=[];echoes=[];landed=[];errors=0;attempt=1;phase='tx';pt=0;emitT=0;frameUs=0;cleanUs=airtime(mcsSel,ss,bw)+SIFS+ACK;cw=CWMIN;buildSyms();frames++;}
-  function retry(){rxBits=[];next=0;fly=[];echoes=[];landed=[];errors=0;attempt++;phase='tx';pt=0;emitT=0;}
+  function startPre(){phase='pre';pre=[];preSent=0;preT=0;synced=false;cfo=(Math.random()<0.5?-1:1)*(4+Math.random()*6);gridRot=cfo*2.2*Math.PI/180;lockT=0;}
+  function newFrame(){rxBits=[];next=0;fly=[];echoes=[];landed=[];ghosts=[];errors=0;attempt=1;pt=0;emitT=0;frameUs=0;cleanUs=airtime(mcsSel,ss,bw)+SIFS+ACK;cw=CWMIN;buildSyms();frames++;startPre();}
+  function retry(){rxBits=[];next=0;fly=[];echoes=[];landed=[];ghosts=[];errors=0;attempt++;pt=0;emitT=0;startPre();}
   function resize(){var r=c.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);W=Math.max(320,Math.round(r.width));H=W<600?260:280;IR=W<600?36:48;c.width=W*dpr;c.height=H*dpr;c.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);}
   function layout(){var mob=W<600,R=mob?Math.min(W*0.20,64):Math.min(H*0.36,100);var ax=mob?52:Math.round(W*0.11),ay=Math.round(H*0.5);var cx=W-R-(mob?36:56),cy=ay;return{mob:mob,R:R,ax:ax,ay:ay,ex:ax+(mob?26:46),cx:cx,cy:cy,cell:(2*R)/Math.max(sx,sy)};}
   function wall(L){var x0=L.ex+(L.cx-L.R-L.ex)*0.30,x1=L.ex+(L.cx-L.R-L.ex)*0.72;return{x0:x0,x1:x1,y:L.ay+L.R*(L.mob?0.95:0.82)};}
@@ -54,7 +57,8 @@
   function halfW(L,s){return 5+(L.R+8-5)*Math.pow(s,1.35)}
   function target(L,ix,iy){var cw2=(2*L.R)/sx,ch=(2*L.R)/sy;return{x:L.cx-L.R+cw2*(ix+0.5),y:(sy===1?L.cy:L.cy+L.R-ch*(iy+0.5)),w:cw2,h:ch};}
   /* path of a particle: along the beam axis, peeling off to its row late */
-  function pathAt(L,f,s){var T=f.T;var x=L.ex+(T.x-L.ex)*s;var g=Math.pow(s,1.7);var y=L.ay+(T.y-L.ay)*g+f.wob*Math.sin(s*9+f.ph)*(1-g)*halfW(L,s)*0.35+f.push*(1-g);return{x:x,y:y};}
+  function pathAt(L,f,s){var T=f.T;var x=L.ex+(T.x-L.ex)*s;var g=Math.pow(s,1.7);var th=s*TURNS*Math.PI*2+f.phi;var hr=(f.amp||0.8)*(L.mob?9:14)*(1-g)*Math.min(1,s*6);
+    var y=L.ay+(T.y-L.ay)*g+hr*Math.sin(th)+f.push*(1-g);return{x:x,y:y,th:th,depth:Math.cos(th)};}
   function seedSpecks(L){specks=[];var n=L.mob?70:150;for(var i=0;i<n;i++)specks.push({s:Math.random(),lane:(Math.random()*2-1),col:Math.random(),v:0.10+Math.random()*0.18,c:BLUES[i%BLUES.length],r:0.6+Math.random()*1.4,a:0.25+Math.random()*0.45,ph:Math.random()*6.3});}
   function drawYagi(L,now){
     var ax=L.ax,ay=L.ay,sc=L.mob?0.6:1;
@@ -79,7 +83,7 @@
     ctx.fillStyle='rgba(79,189,234,0.05)';ctx.beginPath();ctx.ellipse(L.ax-(L.mob?48:80),L.ay,L.mob?14:22,L.mob?9:14,0,0,Math.PI*2);ctx.fill();
   }
   function drawGrid(L){
-    ctx.save();ctx.translate(L.cx,L.cy);var R=L.R,cw2=(2*R)/sx,ch=(2*R)/sy;
+    ctx.save();ctx.translate(L.cx,L.cy);ctx.rotate(gridRot);var R=L.R,cw2=(2*R)/sx,ch=(2*R)/sy;
     ctx.strokeStyle='rgba(255,255,255,0.22)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-R-10,0);ctx.lineTo(R+14,0);ctx.moveTo(0,R+10);ctx.lineTo(0,-R-14);ctx.stroke();
     ctx.fillStyle='#8BA2AE';ctx.font='10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';ctx.fillText('I',R+18,4);ctx.textAlign='center';ctx.fillText('Q',0,-R-18);
     if(sx<=16){ctx.strokeStyle='rgba(255,255,255,0.07)';for(var i=0;i<=sx;i++){ctx.beginPath();ctx.moveTo(-R+i*cw2,-R);ctx.lineTo(-R+i*cw2,R);ctx.stroke()}for(i=0;i<=sy;i++){var yy=sy===1?0:-R+i*ch;ctx.beginPath();ctx.moveTo(-R,yy);ctx.lineTo(R,yy);ctx.stroke()}}
@@ -108,10 +112,20 @@
     if(mp){for(i=0;i<echoes.length;i++){var e=echoes[i];var tr2=e.trail;for(var j2=1;j2<tr2.length;j2++){var a3=j2/tr2.length;ctx.strokeStyle='rgba(94,210,218,'+(0.28*a3)+')';ctx.lineWidth=1.0*a3+0.3;ctx.beginPath();ctx.moveTo(tr2[j2-1].x,tr2[j2-1].y);ctx.lineTo(tr2[j2].x,tr2[j2].y);ctx.stroke();}
       var hp2=tr2[tr2.length-1];ctx.fillStyle='#9fe6ea';ctx.shadowColor='#5ED2DA';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(hp2.x,hp2.y,1.8,0,Math.PI*2);ctx.fill();}ctx.shadowBlur=0;}
     /* symbols in flight, with tails */
-    for(i=0;i<fly.length;i++){var f2=fly[i];var tr=f2.trail;ctx.lineCap='round';
-      for(var j=1;j<tr.length;j++){var a=(j/tr.length);ctx.strokeStyle=f2.hit?'rgba(245,165,36,'+(0.55*a)+')':f2.col.replace(')',','+(0.55*a)+')').replace('rgb','rgba');ctx.lineWidth=(1+2.6*(1-f2.s))*a+0.4;ctx.beginPath();ctx.moveTo(tr[j-1].x,tr[j-1].y);ctx.lineTo(tr[j].x,tr[j].y);ctx.stroke();}
-      var hp=tr[tr.length-1];ctx.fillStyle=f2.hit?'#ffd28a':'#eaf8ff';ctx.shadowColor=f2.hit?'#F5A524':f2.glow;ctx.shadowBlur=14;ctx.beginPath();ctx.arc(hp.x,hp.y,1.6+2.4*(1-f2.s*0.6),0,Math.PI*2);ctx.fill();}
+    function drawTrail(tr,cut,col,hit,w){ /* cut: fraction of the trail (from the source) already faded */
+      ctx.lineCap='round';var n=tr.length,c0=Math.floor(cut*n);
+      for(var j=Math.max(1,c0-8);j<n;j++){var fade=j<c0?0:Math.min(1,(j-c0)/8);var depth=0.55+0.45*((tr[j].depth||0)+1)/2;var a=0.5*fade*depth;if(a<0.02)continue;
+        ctx.strokeStyle=hit?'rgba(245,165,36,'+a+')':col.replace(')',','+a+')').replace('rgb','rgba');ctx.lineWidth=w*depth;ctx.beginPath();ctx.moveTo(tr[j-1].x,tr[j-1].y);ctx.lineTo(tr[j].x,tr[j].y);ctx.stroke();}}
+    for(i=ghosts.length-1;i>=0;i--){var gh=ghosts[i];gh.t+=0.02;if(gh.t>=1){ghosts.splice(i,1);continue;}drawTrail(gh.trail,gh.t,gh.col,gh.hit,1.1);}
+    for(i=0;i<fly.length;i++){var f2=fly[i];var tr=f2.trail;if(tr.length<2)continue;
+      drawTrail(tr,f2.s<0.9?0:(f2.s-0.9)/0.1,f2.col,f2.hit,f2.follow?2.2:1.3);
+      var hp=tr[tr.length-1];var dp=0.6+0.4*((hp.depth||0)+1)/2;ctx.fillStyle=f2.hit?'#ffd28a':'#eaf8ff';ctx.shadowColor=f2.hit?'#F5A524':f2.glow;ctx.shadowBlur=14*dp;ctx.beginPath();ctx.arc(hp.x,hp.y,(1.6+2.4*(1-f2.s*0.6))*dp,0,Math.PI*2);ctx.fill();}
     ctx.shadowBlur=0;
+    /* preamble pulses */
+    for(i=0;i<pre.length;i++){var pp=pre[i];var px=L.ex+(L.cx-L.R-L.ex)*pp.s;ctx.fillStyle='rgba(234,242,246,0.9)';ctx.shadowColor='#fff';ctx.shadowBlur=10;ctx.beginPath();ctx.arc(px,L.ay,2.6,0,Math.PI*2);ctx.fill();ctx.fillRect(px-1,L.ay-10,2,20);}
+    ctx.shadowBlur=0;
+    if(phase==='pre'||lockT>0){ctx.textAlign='right';ctx.font='600 10px JetBrains Mono,ui-monospace,monospace';ctx.fillStyle=synced?'#8CE05E':'#EAF2F6';ctx.fillText(synced?'LOCKED  clock and channel from the preamble':'PREAMBLE  L-STF / L-LTF: receiver acquiring timing, frequency, channel',L.cx+L.R+16,18);
+      ctx.fillStyle='#8BA2AE';ctx.font='9px JetBrains Mono,ui-monospace,monospace';ctx.fillText(synced?'carrier offset '+cfo.toFixed(1)+' ppm corrected, symbol clock aligned':'the receiver\u2019s reference is still spinning against the sender\u2019s',L.cx+L.R+16,30);}
     /* interference blob */
     if(cur.on){var g=ctx.createRadialGradient(cur.x,cur.y,0,cur.x,cur.y,IR);g.addColorStop(0,'rgba(245,165,36,0.26)');g.addColorStop(1,'rgba(245,165,36,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cur.x,cur.y,IR,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle='rgba(245,165,36,0.55)';ctx.setLineDash([3,5]);ctx.beginPath();ctx.arc(cur.x,cur.y,IR,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
@@ -131,10 +145,22 @@
     /* fade readout */
     if(mp&&lastFade){var fd=lastFade;ctx.textAlign='right';ctx.font='600 10px JetBrains Mono,ui-monospace,monospace';ctx.fillStyle=fd.db<-3?'#ffd28a':fd.db>1?'#8CE05E':'#B0C4CF';ctx.fillText('MULTIPATH '+(fd.db>=0?'+':'')+fd.db.toFixed(1)+' dB'+(ss>=2?'  (2 RX chains combined)':'  (1 RX chain)'),L.cx+L.R+16,18);
       ctx.fillStyle='#8BA2AE';ctx.font='9px JetBrains Mono,ui-monospace,monospace';ctx.fillText(fd.db>1?'upfade: in phase, tighter cluster':fd.db<-3?'downfade: cancelled, noise wins':'copies nearly in phase',L.cx+L.R+16,30);}
+    /* follow lens */
+    if(followed){var fp=followed.trail.length?followed.trail[followed.trail.length-1]:null;if(fp){var lr=L.mob?52:76,zm=3,lxp=Math.min(W-lr-6,Math.max(lr+6,fp.x)),lyp=fp.y<H/2?Math.min(H-lr-6,fp.y+lr+34):Math.max(lr+6,fp.y-lr-34);
+      ctx.save();ctx.beginPath();ctx.arc(lxp,lyp,lr,0,Math.PI*2);ctx.clip();ctx.fillStyle='rgba(3,10,16,0.9)';ctx.fillRect(lxp-lr,lyp-lr,2*lr,2*lr);
+      var sw2=(2*lr)/zm;ctx.drawImage(c,(fp.x-sw2/2)*dpr,(fp.y-sw2/2)*dpr,sw2*dpr,sw2*dpr,lxp-lr,lyp-lr,2*lr,2*lr);ctx.restore();
+      ctx.strokeStyle='rgba(234,242,246,0.7)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(lxp,lyp,lr,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='rgba(234,242,246,0.35)';ctx.beginPath();ctx.moveTo(fp.x,fp.y);ctx.lineTo(lxp,lyp+(fp.y<lyp?-lr:lr));ctx.stroke();
+      /* phasor inside the lens, bottom-right quadrant */
+      var pr=lr*0.34,pcx=lxp+lr*0.5,pcy=lyp+lr*0.5;ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pcx-pr,pcy);ctx.lineTo(pcx+pr,pcy);ctx.moveTo(pcx,pcy-pr);ctx.lineTo(pcx,pcy+pr);ctx.stroke();ctx.beginPath();ctx.arc(pcx,pcy,pr,0,Math.PI*2);ctx.stroke();
+      var th2=(fp.th||0)-followed.phi+followed.phi,am=followed.amp/1.4*pr*(followed.noise?1+followed.noise*0.4*(Math.random()-0.5):1);var vx=pcx+Math.cos(th2)*am,vy=pcy-Math.sin(th2)*am;
+      ctx.strokeStyle='#8CE05E';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pcx,pcy);ctx.lineTo(vx,vy);ctx.stroke();ctx.fillStyle='#8CE05E';ctx.beginPath();ctx.arc(vx,vy,2.5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#EAF2F6';ctx.font='600 10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';var deg=((followed.phi*180/Math.PI)%360+360)%360;
+      var txt=followed.s>=1?('received: '+(landed.length&&landed[landed.length-1].i===followed.i&&landed[landed.length-1].bad?'wrong cell, bits corrupted':'I='+syms[followed.i].ix+' Q='+syms[followed.i].iy+' decoded')):('symbol '+followed.i+': bits '+syms[followed.i].bits+'  amp '+followed.amp.toFixed(2)+'  phase '+deg.toFixed(0)+'\u00b0'+(followed.noise?'  + noise':''));
+      var tw=ctx.measureText(txt).width+16,tx2=Math.min(W-tw-4,Math.max(4,lxp-tw/2)),ty2=(lyp+lr+26>H)?lyp-lr-24:lyp+lr+8;ctx.fillStyle='rgba(3,10,16,0.85)';ctx.fillRect(tx2,ty2,tw,18);ctx.fillStyle=followed.s>=1?'#8CE05E':'#EAF2F6';ctx.fillText(txt,tx2+8,ty2+13);}}
     /* medium label */
     ctx.save();ctx.textAlign='right';ctx.font='600 10px JetBrains Mono,ui-monospace,monospace';var lab=phase==='tx'?'MEDIUM BUSY':phase==='ack'?'ACK':phase==='timeout'?'ACK TIMEOUT':phase==='backoff'?'DIFS + BACKOFF':'MEDIUM IDLE';ctx.fillStyle=phase==='tx'?'#8CE05E':phase==='ack'?'#4FBDEA':(phase==='timeout'||phase==='backoff')?'#F5A524':'#8BA2AE';ctx.fillText(lab,W-6,H-8);ctx.restore();
   }
-  function emit(L){var s=syms[next];var f={i:next,T:target(L,s.ix,s.iy),s:0,wob:(Math.random()*2-1),ph:Math.random()*6.3,push:0,col:'rgb(79,189,234)',glow:BLUES[next%BLUES.length],trail:[],hit:0,noise:0};var cc=BLUES[next%BLUES.length];var r=parseInt(cc.slice(1,3),16),g=parseInt(cc.slice(3,5),16),b=parseInt(cc.slice(5,7),16);f.col='rgb('+r+','+g+','+b+')';f.trail.push(pathAt(L,f,0));fly.push(f);if(mp){var e={T:f.T,bf:0.15+Math.random()*0.7,s:0,trail:[],ref:f};f.echo=e;echoes.push(e);}next++;}
+  function emit(L){var s=syms[next];var T0=target(L,s.ix,s.iy);var ax0=(T0.x-L.cx)/L.R,ay0=(L.cy-T0.y)/L.R;var f={i:next,T:T0,s:0,amp:Math.min(1.4,Math.hypot(ax0,ay0)),phi:Math.atan2(ay0,ax0),ph:0,push:0,col:'rgb(79,189,234)',glow:BLUES[next%BLUES.length],trail:[],hit:0,noise:0,follow:false};if(followReq){followReq=false;f.follow=true;followed=f;speedSaved=speed;speed=Math.min(speed,0.5);}var cc=BLUES[next%BLUES.length];var r=parseInt(cc.slice(1,3),16),g=parseInt(cc.slice(3,5),16),b=parseInt(cc.slice(5,7),16);f.col='rgb('+r+','+g+','+b+')';f.trail.push(pathAt(L,f,0));fly.push(f);if(mp){var e={T:f.T,bf:0.15+Math.random()*0.7,s:0,trail:[],ref:f};f.echo=e;echoes.push(e);}next++;}
   function land(L,f){var T=f.T;var sig=Math.min(T.w,T.h)*0.16+f.noise*L.R*0.16;var jx=(Math.random()+Math.random()+Math.random()-1.5)*sig,jy=(Math.random()+Math.random()+Math.random()-1.5)*sig;
     var gx=0,gy=0;
     if(mp&&f.echo){var dl=echoLen(L,f.echo)-Math.hypot(T.x-L.ex,T.y-L.ay),lam=34;var ph=(dl/lam)*Math.PI*2,a=0.6;
@@ -160,13 +186,17 @@
     if(!paused&&!document.hidden){
       var sd=dt*speed;tsec+=sd;
       for(var i=0;i<specks.length;i++){var q=specks[i];q.s+=q.v*sd;if(q.s>1){q.s=0;q.lane=Math.random()*2-1;q.col=Math.random();}}
+      if(phase==='pre'){preT+=sd;if(preSent<8&&preT>preSent*0.07){pre.push({s:0});preSent++;}for(i=pre.length-1;i>=0;i--){pre[i].s+=sd/0.9;if(pre[i].s>=1){pre.splice(i,1);}}
+        if(preSent>=8&&pre.length===0){synced=true;lockT=1.4;phase='tx';emitT=0;gridRot=0;}else if(preT>0.55){gridRot*=Math.max(0,1-sd*4);}}
+      if(lockT>0)lockT-=sd;
+      if(followed&&followed.s>=1){followHold-=dt;if(followHold<=0){followed=null;if(speedSaved!==null){speed=speedSaved;speedSaved=null;spv.textContent=(speed<1?speed.toFixed(2).replace(/0+$/,''):speed)+'x';}}}
       if(phase==='tx'){
         emitT+=sd;var iv=0.055;while(emitT>=iv&&next<syms.length){emitT-=iv;emit(L);}
         for(i=echoes.length-1;i>=0;i--){var e2=echoes[i];var dlen=Math.hypot(e2.T.x-L.ex,e2.T.y-L.ay);e2.s+=sd/1.1*(dlen/echoLen(L,e2));var ep=echoAt(L,e2,Math.min(1,e2.s));e2.trail.push(ep);if(e2.trail.length>8)e2.trail.shift();if(e2.s>=1)echoes.splice(i,1);}
         for(i=fly.length-1;i>=0;i--){var f=fly[i];var sub=Math.max(1,Math.ceil(speed));for(var u2=0;u2<sub;u2++){f.s+=sd/1.1/sub;var p=pathAt(L,f,Math.min(1,f.s));
             if(cur.on){var near=Math.max(0,1-Math.hypot(p.x-cur.x,p.y-cur.y)/IR);if(near>0){f.noise=Math.max(f.noise,near);f.hit=Math.max(f.hit,near);f.push+=(Math.random()-0.5)*near*14;}}
-            f.trail.push(p);if(f.trail.length>22)f.trail.shift();if(f.s>=1)break;}
-          if(f.s>=1){land(L,f);fly.splice(i,1);}}
+            var lt=f.trail[f.trail.length-1];if(!lt||Math.hypot(p.x-lt.x,p.y-lt.y)>2.2)f.trail.push(p);if(f.s>=1)break;}
+          if(f.s>=1){land(L,f);ghosts.push({trail:f.trail,t:0,hit:f.hit,col:f.col});if(f.follow){followHold=2.2;followed=f;}fly.splice(i,1);}}
         if(next>=syms.length&&fly.length===0){frameUs+=airtime(mcsCur,ss,bw);
           if(errors===0){phase='ack';pt=0;frameUs+=SIFS+ACK;okRun++;failRun=0;if(okRun>=3&&mcsCur<mcsSel){mcsCur++;adaptNote='Rate adaptation: clean run, MCS back up to '+mcsCur+'.';flash={text:'rate up: MCS '+(mcsCur-1)+' \u2192 '+mcsCur,t:2.2,up:true};okRun=0;}}
           else{phase='timeout';pt=0;frameUs+=ACKTO;retries++;failRun++;okRun=0;}}
@@ -195,6 +225,7 @@
   var sp=document.getElementById('qam-speed'),spv=document.getElementById('qam-speed-v');sp.addEventListener('input',function(){speed=Math.pow(2,+sp.value);spv.textContent=(speed<1?speed.toFixed(2).replace(/0+$/,''):speed)+'x'});
   var pb=document.getElementById('qam-pause');pb.addEventListener('click',function(e){e.stopPropagation();paused=!paused;pb.textContent=paused?'Play':'Pause';pb.setAttribute('aria-pressed',paused)});
   var tb=document.getElementById('qam-table-t'),TB=document.getElementById('qam-table');tb.addEventListener('click',function(e){e.stopPropagation();TB.hidden=!TB.hidden;if(!TB.hidden)table();tb.setAttribute('aria-pressed',!TB.hidden);tb.textContent=TB.hidden?'Compare rates':'Hide rates'});
+  var fb2=document.getElementById('qam-follow');fb2.addEventListener('click',function(e){e.stopPropagation();followReq=true;if(followed&&followed.s<1)return;});
   var mpb=document.getElementById('qam-mp');mpb.addEventListener('click',function(e){e.stopPropagation();mp=!mp;lastFade=null;echoes=[];mpb.setAttribute('aria-pressed',mp);mpb.classList.toggle('on',mp);});
   root.querySelector('.qam-ctl').addEventListener('click',function(e){e.stopPropagation()});TB.addEventListener('click',function(e){e.stopPropagation()});
   /* interference: pointer over the canvas */
@@ -212,7 +243,9 @@
       '<li>Put your cursor or finger in the beam. That is interference: a microwave, a neighbour’s AP, a badly shielded PoE run. Particles passing through it get pushed, land in the wrong cell, the frame’s CRC fails, no ACK comes back, and the sender waits DIFS plus a random backoff and sends the whole frame again. Every retry doubles the backoff window. Watch the time-on-the-air figure climb against the clean number.</li>'+
       '<li>After two failed attempts the sender drops one MCS step, the constellation gets coarser, the cells get bigger, and it takes more interference to corrupt a symbol. That is rate adaptation, and it is why a client near a microwave shows a low PHY rate rather than no connection. Three clean frames and it climbs back.</li>'+
       '<li>Turn on Multipath and a reflector appears under the beam. Every symbol now arrives twice: the direct copy and a dimmer teal echo that bounced off the wall and travelled further. At the receiver the two add as waves. When the extra distance is a whole number of wavelengths they arrive in phase and the signal is stronger than the direct path alone (upfade); half a wavelength off and they cancel (downfade). The receiver equalises the amplitude back using the pilots, so what you see is the noise: a downfade spreads the landing dots and corrupts symbols, an upfade tightens them. The dB readout above the grid is the fade on the last symbol. With Streams set to 2 the receiver has two antennas a little apart, so they see different phases and the combined signal stops swinging; that spatial diversity is the simplest thing MIMO buys you, and the same multipath that ruins one antenna is what lets two streams be told apart at all.</li>'+
-      '<li>The ladder at the bottom is the MCS index, live. The bright step is the rate in use, the outlined step is the one you picked, and the marker slides when rate adaptation moves it. The Mb/s figure next to it is the PHY rate that goes with the step.</li>'+
+      '<li>Every attempt starts with a short train of white pulses before any data: the preamble. Those are the L-STF and L-LTF, fixed patterns both ends know. The receiver uses them to find where the symbols start (timing), to measure how far its own oscillator is off from the sender\u2019s (carrier frequency offset, a few parts per million, which is the constellation visibly spinning until it locks), and to learn the channel so it can equalise. Nothing decodes until LOCKED shows. Without that lock, the phasor in the lens would keep rotating against the receiver\u2019s reference and every symbol would land in the wrong cell.</li>'+
+      '<li>Each particle corkscrews down the beam because a symbol is a phasor: a vector with an amplitude and a phase riding the carrier. The radius of the corkscrew is the amplitude, its starting angle is the phase, and the two together are what land on the constellation. Follow a symbol and the lens magnifies one of them with its phasor drawn alongside, slows the scene, and reports what the receiver decided when it lands.</li>'+
+      '<li>The ladder at the top is the MCS index, live. The bright step is the rate in use, the outlined step is the one you picked, and the marker slides when rate adaptation moves it. The Mb/s figure next to it is the PHY rate that goes with the step.</li>'+
       '<li>One particle here is one subcarrier. A real '+bw+' MHz channel sends '+NSD[bw]+' of them at once per stream every 13.6 µs, plus a 40 µs preamble, which is where the rate table comes from.</li></ol>'+
       '<p class="meta">Timings are the 5 GHz OFDM values: 9 µs slot, 16 µs SIFS, 34 µs DIFS, contention window 15 doubling to 1023, 7 retries before the frame is dropped. Nothing here is encrypted; WPA3 would scramble the bits before they reached the grid and the picture would look identical.</p>';}
   function toggleX(){var open=X.hidden;if(open)explain();X.hidden=!open;hint.textContent=open?'Tap the text again to close':'Hover or touch the beam to add interference. Tap the text to see what’s happening';}
