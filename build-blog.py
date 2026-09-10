@@ -109,6 +109,7 @@ def parse_post(path):
     meta["interactive"] = meta.get("interactive", "").strip()
     meta["date_obj"] = datetime.date.fromisoformat(meta["date"])
     meta["date_h"] = meta["date_obj"].strftime("%b %d, %Y").replace(" 0", " ")
+    meta["bot_explicit"] = bool(meta.get("bot"))
     meta["bot"] = bot_for(meta)
     return meta
 
@@ -117,11 +118,11 @@ posts = sorted((parse_post(p) for p in glob.glob(os.path.join(ROOT, "posts", "*.
 if not posts:
     sys.exit("no posts")
 year = datetime.date.today().year
-featured = posts[0]
+featured = next((p for p in posts if not p.get("academy")), posts[0])   # index hero is the latest field note; Academy has its own
 
 # ── categories, sources ─────────────────────────────────────────────────────
 CAT_MAP = {"clearpass": "NAC", "process": "Docs", "documentation": "Docs", "switching": "Switching", "wireless": "Wireless"}
-CAT_CLASS = {"Wireless": "c-green", "NAC": "c-blue", "Lab": "c-red"}
+CAT_CLASS = {"Wireless": "c-green", "NAC": "c-blue", "Lab": "c-red", "Academy": "c-orange"}
 def category(p):
     if any(t.lower() in ("survey", "ekahau") for t in p["tags"]):
         return "RF survey"
@@ -136,6 +137,11 @@ def source(p):
 for p in posts:
     p["cat"] = category(p); p["src"] = source(p)
     if p["src"] == "Lab build": p["cat"] = "Lab"
+    p["academy"] = int(p.get("academy", "0") or 0)
+    if p["academy"]:
+        p["cat"] = "Academy"; p["src"] = "Wireless Academy"
+        p["series"] = "Wireless Academy"; p["series_order"] = p["academy"]
+        if not p["bot_explicit"]: p["bot"] = "nfn-bot-think.svg"
     p["ccls"] = CAT_CLASS.get(p["cat"], "")
 from collections import Counter
 _cnt = Counter(p["cat"] for p in posts)
@@ -152,14 +158,16 @@ ICO_CHAT = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 ICO_BACK = ('<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
             '<path d="M14 6l-6 6 6 6"/></svg>')
 
-def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False):
+def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False, theme=""):
     root = up or "/"
     nav = ('<a class="pill%s" href="%s">Posts</a>' % (" on" if active == "posts" else "", root))
+    nav += '<a class="pill%s" href="%sacademy.html">Academy</a>' % (" on" if active == "academy" else "", up)
     nav += '<a class="pill%s" href="%sabout.html">About</a>' % (" on" if active == "about" else "", up)
     if search:
         nav += '<a class="pill outline" id="search-toggle" href="#search" aria-label="Search">%s<span>Search</span></a>' % ICO_SEARCH
     else:
         nav += '<a class="pill outline" href="%sindex.html#search">%s<span>Search</span></a>' % (up, ICO_SEARCH)
+    body_cls = (' class="%s"' % theme) if theme else ""
     searchbox = '<div class="search" id="search"><input id="q" type="search" placeholder="Search field notes" autocomplete="off"></div>' if search else ""
     return f'''<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
@@ -184,7 +192,7 @@ def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False)
 {extra}
 {FONTS}
 <style>{CSS}</style></head>
-<body>
+<body{body_cls}>
 <div class="ground"></div>
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
@@ -220,7 +228,7 @@ def card(p, featured=False):
 index = head(SITE["name"], SITE["tagline"], BASE_URL + "/", BASE_URL + "/og/home.png", search=True)
 chips = '<span class="chip on" data-cat="all">All</span>' + "".join(
     '<span class="chip %s" data-cat="%s">%s</span>' % (CAT_CLASS.get(c, ""), E(c), E(c)) for c in CATS)
-cards = card(posts[0], featured=True) + "".join(card(p) for p in posts[1:])
+cards = card(featured, featured=True) + "".join(card(p) for p in posts if p is not featured)
 index += f'''
 <section class="hero g-hero rise" data-view="pop">
   <div class="sheen"></div><div class="glow"></div>
@@ -268,10 +276,10 @@ for i, p in enumerate(posts):
     extra = ('<meta property="og:type" content="article"><meta property="article:published_time" content="%s">'
              '<meta property="article:author" content="%s"><script type="application/ld+json">%s</script>'
              % (p["date"], E(SITE["author"]), jsonld))
-    page = head(p["title"], p["summary"], url, ogimg, up="../", extra=extra, active="")
+    page = head(p["title"], p["summary"], url, ogimg, up="../", extra=extra, active=("academy" if p["academy"] else ""), theme=("acad" if p["academy"] else ""))
     page += f'''
 <div class="narrow">
-  <div class="backbar"><a class="btn" href="../">{ICO_BACK}&nbsp;All posts</a></div>
+  <div class="backbar"><a class="btn" href="../{"academy.html" if p["academy"] else ""}">{ICO_BACK}&nbsp;{"Academy" if p["academy"] else "All posts"}</a></div>
   <article>
     <header class="post-head g-hero cat-{E(p["cat"].replace(" ","-"))}" data-view="zoom">
       <div class="row" style="margin:0"><a class="tag {p["ccls"]}" href="../index.html#cat={E(p["cat"])}" title="All {E(p["cat"])} posts">{E(p["cat"])}</a><span class="meta">{E(p["date_h"])} &#183; {p["readtime"]} min</span></div>
@@ -327,6 +335,57 @@ about += f'''
 </div>
 ''' + foot("nfn-bot-wave.svg")
 open(os.path.join(ROOT, "about.html"), "w", encoding="utf-8").write(about)
+
+
+# ── Wireless Academy ─────────────────────────────────────────────────────────
+ACADEMY_START = datetime.date(2026, 9, 10)   # lesson 1; one a week after that
+ACADEMY = [
+    ("What a Radio Actually Sends", "Frequency, wavelength, amplitude. mW, dBm and dB, and the two rules that let you do the math in your head.", "Read RSSI on an Aruba AP and a Mist AP, double the distance, watch it fall about 6 dB. Confirm on the Sidekick."),
+    ("Bands, Channels and Widths", "2.4, 5 and 6 GHz, the U-NII blocks, DFS, and what a wider channel actually costs.", "Change channel width on both platforms and watch client PHY rates and airtime move."),
+    ("The Link Budget", "EIRP, antenna gain, receive sensitivity, free space path loss. Where the signal goes.", "Predict RSSI at 10 m, measure it, explain the gap."),
+    ("Modulation and Data Rates", "MCS, coding rate, spatial streams. Why \"speed\" is a table, not a number.", "Read MCS in the Central and Mist client views, force a lower rate, measure throughput."),
+    ("Airtime Is the Only Resource", "Half duplex, contention, PHY rate versus throughput, and the overhead nobody budgets for.", "Airtime utilisation per SSID, with the mDNS post as the case study."),
+    ("Interference From Yourself", "Co-channel and adjacent-channel interference, reuse, cell overlap.", "Two APs on one channel. Count retries, watch airtime."),
+    ("Noise, SNR, and Why RSSI Lies", "Noise floor, SNR, and what a spectrum analyser shows that a Wi-Fi card can't.", "Spectrum view with a real interferer. RSSI stays put, SNR collapses."),
+    ("Joining a Network", "Probe, authentication, association, the 4-way handshake, EAP. What happens before the first packet.", "Capture a join on Mist and on Aruba, then read the same join in ClearPass Access Tracker."),
+    ("Roaming: the Client Decides", "Thresholds, 802.11k/v/r, sticky clients, and why the AP can only suggest.", "A walk test with the Mist client timeline and the Central client events."),
+    ("Capacity, Not Coverage", "Clients per radio, cell size, minimum basic rate, application budgets.", "Raise the minimum basic rate on both platforms and watch the cell shrink."),
+    ("Surveys and What a Heatmap Can't See", "Predictive, AP-on-a-stick, validation. Channel lists and blind spots.", "A one-room passive survey on the Sidekick, cross-checked against the AP's real channel."),
+    ("A Troubleshooting Method", "Client, RF, infrastructure, upstream. Which tool shows which layer.", "Break it three ways and find each one with the right tool."),
+]
+academy_posts = {p["academy"]: p for p in posts if p["academy"]}
+acad_items = []
+for i, (t, blurb, lab) in enumerate(ACADEMY, 1):
+    q = academy_posts.get(i); due = ACADEMY_START + datetime.timedelta(weeks=i - 1)
+    if q:
+        acad_items.append('<a class="lesson g-card live" href="p/%s.html" data-origin="zoom" data-rise><span class="ser-n">Lesson %d</span><b>%s</b><p>%s</p><span class="lab"><span class="eyebrow">Lab</span>%s</span><span class="meta">%s &#183; %d min</span></a>'
+                          % (E(q["slug"]), i, E(q["title"]), E(q["summary"]), E(lab), E(q["date_h"]), q["readtime"]))
+    else:
+        acad_items.append('<div class="lesson g-card soon" data-rise><span class="ser-n">Lesson %d</span><b>%s</b><p>%s</p><span class="lab"><span class="eyebrow">Lab</span>%s</span><span class="meta">Planned for the week of %s</span></div>'
+                          % (i, E(t), E(blurb), E(lab), E(due.strftime("%b %d").replace(" 0", " "))))
+live_n = len(academy_posts)
+start_btn = ('<a class="btn cta" href="p/%s.html" data-origin="zoom">Start with lesson 1</a>' % E(academy_posts[1]["slug"])) if 1 in academy_posts else ""
+acad = head("Wireless Academy · " + SITE["name"], "Wireless fundamentals, one lesson a week, each with a lab you can run on Aruba and Mist gear.", BASE_URL + "/academy.html", BASE_URL + "/og/academy.png", active="academy", theme="acad")
+acad += f'''
+<section class="hero g-hero rise acad-hero" data-view="pop">
+  <div class="sheen"></div><div class="glow"></div>
+  <span class="tag c-orange"><span class="dot"></span>Wireless Academy</span>
+  <h1 class="h-hero">The theory, and the lab that proves it</h1>
+  <p class="lede">Twelve lessons on how Wi-Fi actually works, pitched at the engineer who runs a network but never got taught why. Each one ends with something you can go and measure on an Aruba AP, a Mist AP, and a Sidekick, because a number you measured yourself is the only kind that sticks.</p>
+  <div class="row">
+    {start_btn}
+    <span class="meta">{live_n} of {len(ACADEMY)} published &#183; new lesson weekly</span>
+  </div>
+</section>
+<section class="acad-why g-card" data-rise>
+  <span class="eyebrow">Why orange</span>
+  <p>The colour is a nod to the Airheads community. My first expert-level certification came out of an AOS 6 lab and a stack of forum posts by people who answered questions they didn't have to. This section is me paying that forward, one lesson a week.</p>
+</section>
+<section>
+  <div class="lessons">{"".join(acad_items)}</div>
+</section>
+''' + foot("nfn-bot-think.svg")
+open(os.path.join(ROOT, "academy.html"), "w", encoding="utf-8").write(acad)
 
 # ── socials (genie target) ──────────────────────────────────────────────────
 SOCIALS = [("LinkedIn", "Where I post when something is worth a wider audience.", SITE["linkedin"], "in"),
@@ -395,11 +454,13 @@ for p in posts:
     og_card(p["title"], p["tags"][0] if p["tags"] else "Field note",
             os.path.join(ROOT, "og", p["slug"] + ".png"))
 og_card(SITE["tagline"][:110], "Field notes", os.path.join(ROOT, "og", "home.png"))
+og_card("Wireless Academy: the theory, and the lab that proves it", "Wireless Academy", os.path.join(ROOT, "og", "academy.png"))
 rasterize(os.path.join(ROOT, "logo", "nfn-favicon.svg"), os.path.join(ROOT, "apple-touch-icon.png"), 180, 180)
 
 # ── sitemap, feed, housekeeping ─────────────────────────────────────────────
 urls = ['<url><loc>%s/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>' % BASE_URL,
         '<url><loc>%s/about.html</loc><priority>0.5</priority></url>' % BASE_URL,
+        '<url><loc>%s/academy.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/socials.html</loc><priority>0.3</priority></url>' % BASE_URL]
 urls += ['<url><loc>%s/p/%s.html</loc><lastmod>%s</lastmod><priority>0.8</priority></url>'
          % (BASE_URL, p["slug"], p["date"]) for p in posts]

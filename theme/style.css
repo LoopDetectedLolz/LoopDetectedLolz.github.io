@@ -321,3 +321,53 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
 /* ── Rig reactions ─────────────────────────────────────────────────────── */
 .rig img{transition:opacity 220ms var(--ease)}
 .rig.swap img{opacity:0}
+
+/* ── Wireless Academy (orange, for Airheads) ───────────────────────────── */
+.tag.c-orange{color:#ffd28a;border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.14)}
+.tag.c-orange .dot{background:var(--orange);box-shadow:0 0 0 4px rgba(245,165,36,0.18)}
+.chip.c-orange{border-color:rgba(245,165,36,0.45);color:#ffd28a}
+.chip.on.c-orange{background:rgba(245,165,36,0.18);border-color:rgba(245,165,36,0.9);color:#ffe0ad}
+.acad-hero .glow{background:radial-gradient(circle at 80% 20%,rgba(245,165,36,0.28),transparent 60%)}
+.acad-hero .btn.cta{background:linear-gradient(180deg,#ffbf4d,var(--orange));color:#2a1600;box-shadow:0 12px 30px -12px rgba(245,165,36,0.9)}
+.acad-why{padding:var(--s5);margin:0 0 var(--s6);border-color:rgba(245,165,36,0.35)}
+.acad-why p{margin:8px 0 0;color:var(--text-dim);line-height:1.65}
+.lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--s4)}
+.lesson{display:flex;flex-direction:column;gap:10px;padding:var(--s5);color:var(--text);text-decoration:none;position:relative}
+.lesson b{font-size:18px;letter-spacing:-0.01em;line-height:1.25}
+.lesson p{margin:0;color:var(--text-dim);font-size:14px;line-height:1.6}
+.lesson .lab{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--text-dim);padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+.lesson .lab .eyebrow{color:#ffd28a}
+.lesson .ser-n{color:#ffd28a}
+.lesson.live{border-color:rgba(245,165,36,0.5);transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+.lesson.live:hover{transform:translateY(-3px);box-shadow:0 18px 40px -20px rgba(245,165,36,0.8)}
+.lesson.live .meta{margin-top:auto;padding-top:6px}
+.lesson.soon{opacity:0.6}
+.lesson.soon .ser-n{color:var(--text-muted)}
+.post-head.cat-Academy::before{content:"";position:absolute;right:-90px;top:-120px;width:420px;height:420px;pointer-events:none;opacity:0.10;
+  background:repeating-radial-gradient(circle at center,var(--orange) 0 1.5px,transparent 1.5px 26px)}
+.ser-step.next.acad{border-color:rgba(245,165,36,0.6)}
+
+/* ── Academy theme: orange ground, switch-chassis black glass ──────────── */
+body.acad{background:#07070A}
+body.acad .ground{background:
+  radial-gradient(900px 620px at 12% -6%,rgba(245,165,36,0.34),transparent 62%),
+  radial-gradient(760px 560px at 88% 8%,rgba(255,120,40,0.20),transparent 60%),
+  radial-gradient(1000px 700px at 60% 108%,rgba(160,80,20,0.28),transparent 62%),#07070A}
+body.acad .g-chrome,body.acad .g-card,body.acad .g-hero{background:rgba(6,6,9,0.62);border-color:rgba(255,255,255,0.10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.10),0 30px 70px -40px rgba(0,0,0,0.95)}
+body.acad .hdr.scrolled .hdr-in{background:rgba(6,6,9,0.78)}
+body.acad .panel,body.acad .search input,body.acad .term,body.acad .widget,body.acad .callout,body.acad .lesson .lab{background:rgba(0,0,0,0.45)}
+body.acad .btn.cta{background:linear-gradient(180deg,#ffbf4d,var(--orange));color:#2a1600;box-shadow:0 12px 30px -12px rgba(245,165,36,0.9)}
+body.acad .eyebrow{color:#ffd28a}
+body.acad .tag.green{color:#ffd28a;border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.14)}
+body.acad .tag.green .dot{background:var(--orange);box-shadow:0 0 0 4px rgba(245,165,36,0.18)}
+body.acad .ser-step.next{border-color:rgba(245,165,36,0.6);box-shadow:0 10px 26px -14px rgba(245,165,36,0.8)}
+body.acad .ser-step.next .ser-tag,body.acad .ser-step.next .ser-n{color:#ffd28a}
+body.acad .term-bar i:first-child{background:rgba(245,165,36,0.55)}
+body.acad .term .pr{color:#ffd28a}
+body.acad .term .ln.hot{background:rgba(245,165,36,0.10);border-left-color:var(--orange)}
+body.acad .prose a{color:#ffd28a}
+body.acad .rig{filter:drop-shadow(0 14px 24px rgba(0,0,0,0.75))}
+body.acad .backbar .btn:hover{border-color:rgba(245,165,36,0.5)}
+body.acad .callout.origin{border-color:rgba(245,165,36,0.45)}
+body.acad .callout.origin .eyebrow{color:#ffd28a}
