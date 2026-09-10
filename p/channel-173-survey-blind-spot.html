@@ -349,7 +349,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
     </div>
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="saml-login-validates-and-still-fails.html"><span class="eyebrow">Older</span>Your ClearPass SAML Login Validates and Still Fails</a></div>
+      <div class="postnav"><a class="pn g-card" href="saml-login-validates-and-still-fails.html"><span class="eyebrow">Older</span>Your ClearPass SAML Login Validates and Still Fails</a><a class="pn g-card" href="clearpass-intune-eap-tls-lab.html"><span class="eyebrow">Newer</span>Your ClearPass Intune Integration Probably Authenticates Nothing</a></div>
     </section>
   </article>
 </div>
@@ -415,9 +415,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
   var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
   var cat = 'all', q = '';
 
-  var postsPill = $('.nav .pill:not(.outline)');
   function apply() {
-    if (postsPill) postsPill.classList.toggle('on', cat === 'all');
     var shown = 0;
     cards.forEach(function (c) {
       var okCat = cat === 'all' || c.getAttribute('data-cat') === cat;

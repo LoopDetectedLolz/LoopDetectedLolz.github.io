@@ -274,19 +274,24 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
 <section class="hero g-hero rise" data-view="pop">
   <div class="sheen"></div><div class="glow"></div>
   <span class="tag green"><span class="dot"></span>Latest field note</span>
-  <h1 class="h-hero">Your Survey Tool Can&#x27;t See Channel 173</h1>
-  <p class="lede">A client sat on one AP for 49 minutes while the signal fell to -69 dBm, and every heatmap said coverage was fine. The radio it was stuck to was on a channel the survey never scanned.</p>
+  <h1 class="h-hero">Your ClearPass Intune Integration Probably Authenticates Nothing</h1>
+  <p class="lede">Most ClearPass and Intune builds look up a MAC address and call the result authentication. Here&#x27;s the version where the certificate does the authenticating, Intune does the authorizing, and the two are tied together by something the client can&#x27;t lie about.</p>
   <div class="row">
-    <a class="btn cta" href="p/channel-173-survey-blind-spot.html" data-origin="zoom">Read the writeup</a>
-    <span class="meta">5 min &#183; Sep 9, 2026</span>
+    <a class="btn cta" href="p/clearpass-intune-eap-tls-lab.html" data-origin="zoom">Read the writeup</a>
+    <span class="meta">11 min &#183; Sep 9, 2026</span>
   </div>
 </section>
 
-<div class="filter"><span class="eyebrow">Filter</span><span class="chip on" data-cat="all">All</span><span class="chip c-green" data-cat="Wireless">Wireless</span><span class="chip " data-cat="RF survey">RF survey</span><span class="chip c-blue" data-cat="NAC">NAC</span><span class="chip " data-cat="Switching">Switching</span><span class="chip " data-cat="Docs">Docs</span></div>
+<div class="filter"><span class="eyebrow">Filter</span><span class="chip on" data-cat="all">All</span><span class="chip c-green" data-cat="Wireless">Wireless</span><span class="chip c-red" data-cat="Lab">Lab</span><span class="chip " data-cat="RF survey">RF survey</span><span class="chip c-blue" data-cat="NAC">NAC</span><span class="chip " data-cat="Switching">Switching</span><span class="chip " data-cat="Docs">Docs</span></div>
 
 <section>
   <div class="grid" id="posts">
-    <a class="card g-card hidden" href="p/channel-173-survey-blind-spot.html" data-origin="zoom" data-rise data-cat="RF survey" data-text="your survey tool can&#x27;t see channel 173 a client sat on one ap for 49 minutes while the signal fell to -69 dbm, and every heatmap said coverage was fine. the radio it was stuck to was on a channel the survey never scanned. wireless survey ekahau rf design" data-featured>
+    <a class="card g-card hidden" href="p/clearpass-intune-eap-tls-lab.html" data-origin="zoom" data-rise data-cat="Lab" data-text="your clearpass intune integration probably authenticates nothing most clearpass and intune builds look up a mac address and call the result authentication. here&#x27;s the version where the certificate does the authenticating, intune does the authorizing, and the two are tied together by something the client can&#x27;t lie about. clearpass intune eap-tls nac" data-featured>
+  <div class="card-top"><span class="tag c-red">Lab</span><span class="meta">Sep 9</span></div>
+  <h3 class="h-card">Your ClearPass Intune Integration Probably Authenticates Nothing</h3>
+  <p>Most ClearPass and Intune builds look up a MAC address and call the result authentication. Here&#x27;s the version where the certificate does the authenticating, Intune does the authorizing, and the two are tied together by something the client can&#x27;t lie about.</p>
+  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Lab build</span><b>11 min</b></div>
+</a><a class="card g-card" href="p/channel-173-survey-blind-spot.html" data-origin="zoom" data-rise data-cat="RF survey" data-text="your survey tool can&#x27;t see channel 173 a client sat on one ap for 49 minutes while the signal fell to -69 dbm, and every heatmap said coverage was fine. the radio it was stuck to was on a channel the survey never scanned. wireless survey ekahau rf design">
   <div class="card-top"><span class="tag ">RF survey</span><span class="meta">Sep 9</span></div>
   <h3 class="h-card">Your Survey Tool Can&#x27;t See Channel 173</h3>
   <p>A client sat on one AP for 49 minutes while the signal fell to -69 dBm, and every heatmap said coverage was fine. The radio it was stuck to was on a channel the survey never scanned.</p>
@@ -399,9 +404,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
   var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
   var cat = 'all', q = '';
 
-  var postsPill = $('.nav .pill:not(.outline)');
   function apply() {
-    if (postsPill) postsPill.classList.toggle('on', cat === 'all');
     var shown = 0;
     cards.forEach(function (c) {
       var okCat = cat === 'all' || c.getAttribute('data-cat') === cat;

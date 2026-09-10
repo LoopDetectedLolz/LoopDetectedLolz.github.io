@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Your ClearPass SAML Login Validates and Still Fails</title>
-<meta name="description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/saml-login-validates-and-still-fails.html">
+<title>Your ClearPass Intune Integration Probably Authenticates Nothing</title>
+<meta name="description" content="Most ClearPass and Intune builds look up a MAC address and call the result authentication. Here&#x27;s the version where the certificate does the authenticating, Intune does the authorizing, and the two are tied together by something the client can&#x27;t lie about.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/clearpass-intune-eap-tls-lab.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="Your ClearPass SAML Login Validates and Still Fails">
-<meta property="og:description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/saml-login-validates-and-still-fails.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/saml-login-validates-and-still-fails.png">
+<meta property="og:title" content="Your ClearPass Intune Integration Probably Authenticates Nothing">
+<meta property="og:description" content="Most ClearPass and Intune builds look up a MAC address and call the result authentication. Here&#x27;s the version where the certificate does the authenticating, Intune does the authorizing, and the two are tied together by something the client can&#x27;t lie about.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/clearpass-intune-eap-tls-lab.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/clearpass-intune-eap-tls-lab.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Your ClearPass SAML Login Validates and Still Fails">
-<meta name="twitter:description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/saml-login-validates-and-still-fails.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-05"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your ClearPass SAML Login Validates and Still Fails", "description": "Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.", "datePublished": "2026-09-05", "image": "https://networkfieldnotes.com/og/saml-login-validates-and-still-fails.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/saml-login-validates-and-still-fails.html", "keywords": "ClearPass, Security, Entra ID, SAML"}</script>
+<meta name="twitter:title" content="Your ClearPass Intune Integration Probably Authenticates Nothing">
+<meta name="twitter:description" content="Most ClearPass and Intune builds look up a MAC address and call the result authentication. Here&#x27;s the version where the certificate does the authenticating, Intune does the authorizing, and the two are tied together by something the client can&#x27;t lie about.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/clearpass-intune-eap-tls-lab.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-09"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your ClearPass Intune Integration Probably Authenticates Nothing", "description": "Most ClearPass and Intune builds look up a MAC address and call the result authentication. Here's the version where the certificate does the authenticating, Intune does the authorizing, and the two are tied together by something the client can't lie about.", "datePublished": "2026-09-09", "image": "https://networkfieldnotes.com/og/clearpass-intune-eap-tls-lab.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/clearpass-intune-eap-tls-lab.html", "keywords": "ClearPass, Intune, EAP-TLS, NAC"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -275,156 +275,231 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
   <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
     <header class="post-head g-hero" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-blue" href="../index.html#cat=NAC" title="All NAC posts">NAC</a><span class="meta">Sep 5, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">Your ClearPass SAML Login Validates and Still Fails</h1>
+      <div class="row" style="margin:0"><a class="tag c-red" href="../index.html#cat=Lab" title="All Lab posts">Lab</a><span class="meta">Sep 9, 2026 &#183; 11 min</span></div>
+      <h1 class="h-hero">Your ClearPass Intune Integration Probably Authenticates Nothing</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Three places a ClearPass admin SAML login fails silently">
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Two lanes: an authentication lane using an Intune SCEP certificate with EAP-TLS and OCSP, and an authorization lane using Intune context, joined by keying the lookup on the certificate instead of the MAC address">
   <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:11px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:10px;fill:#8CE05E}
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
+    .bx{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}.bt{fill:#fff;font-size:13px;font-weight:600}
   </style>
-  <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#B0C4CF"/></marker></defs>
-  <text x="30" y="36" class="t eyebrow">"SSO IS SET UP AND LOGIN FAILS"</text>
-  <text x="30" y="66" class="t big">Trust is half the job. The other half hands out the privilege.</text>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#B0C4CF"/></marker>
+  <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker></defs>
+  <text x="30" y="36" class="t eyebrow">TWO QUESTIONS AT THE RADIUS SERVER. MOST BUILDS ANSWER ONE.</text>
+  <text x="30" y="66" class="t big">Intune answers what it's allowed to do. Never who it is.</text>
+
+  <!-- authentication lane -->
+  <text x="30" y="112" class="t eyebrow">AUTHENTICATION</text>
   <g class="t">
-    <!-- admin -->
-    <rect x="20" y="150" width="70" height="60" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="55" y="185" text-anchor="middle" fill="#EAF2F6" font-size="13">Admin</text>
-    <line x1="90" y1="180" x2="115" y2="180" stroke="#B0C4CF" stroke-width="2" marker-end="url(#arr3)"/>
-    <!-- gate 1 -->
-    <rect x="120" y="110" width="230" height="140" rx="10" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA"/>
-    <text x="235" y="136" text-anchor="middle" fill="#5ED2DA" font-size="13" font-weight="700">Gate 1 · redirect at all?</text>
-    <text x="235" y="160" text-anchor="middle" fill="#EAF2F6" font-size="12">Single Sign-On page</text>
-    <text x="235" y="180" text-anchor="middle" class="lbl">Enable SSO for: Policy Manager ticked?</text>
-    <text x="235" y="200" text-anchor="middle" class="lbl">IdP URL set?</text>
-    <text x="235" y="232" text-anchor="middle" class="mono">Configuration › Identity › Single Sign-On</text>
-    <line x1="350" y1="180" x2="378" y2="180" stroke="#B0C4CF" stroke-width="2" marker-end="url(#arr3)"/>
-    <!-- gate 2 -->
-    <rect x="383" y="110" width="240" height="140" rx="10" fill="rgba(3,10,16,0.55)" stroke="#4FBDEA"/>
-    <text x="503" y="136" text-anchor="middle" fill="#4FBDEA" font-size="13" font-weight="700">Gate 2 · assertion valid?</text>
-    <text x="503" y="160" text-anchor="middle" fill="#EAF2F6" font-size="12">Entra ⇄ ClearPass trust</text>
-    <text x="503" y="180" text-anchor="middle" class="lbl">IdP signing cert required, in CTL first</text>
-    <text x="503" y="200" text-anchor="middle" class="lbl">Entity ID + Reply URL = SP metadata</text>
-    <text x="503" y="232" text-anchor="middle" class="mono">Name ID defaults to UPN</text>
-    <line x1="623" y1="180" x2="651" y2="180" stroke="#B0C4CF" stroke-width="2" marker-end="url(#arr3)"/>
-    <!-- gate 3 -->
-    <rect x="656" y="110" width="224" height="140" rx="10" fill="rgba(3,10,16,0.55)" stroke="#8CE05E"/>
-    <text x="768" y="136" text-anchor="middle" fill="#8CE05E" font-size="13" font-weight="700">Gate 3 · any privilege?</text>
-    <text x="768" y="160" text-anchor="middle" fill="#EAF2F6" font-size="12">Admin SSO Login service</text>
-    <text x="768" y="180" text-anchor="middle" class="lbl">Aruba Application Authorization</text>
-    <text x="768" y="200" text-anchor="middle" class="lbl">enforcement → admin privilege</text>
-    <text x="768" y="232" text-anchor="middle" class="mono">Service Templates &amp; Wizards</text>
+    <rect x="30"  y="124" width="160" height="42" rx="8" class="bx"/><text x="110" y="150" text-anchor="middle" class="bt">TPM-bound cert</text>
+    <rect x="216" y="124" width="120" height="42" rx="8" class="bx"/><text x="276" y="150" text-anchor="middle" class="bt">EAP-TLS</text>
+    <rect x="362" y="124" width="150" height="42" rx="8" class="bx"/><text x="437" y="150" text-anchor="middle" class="bt">chain + OCSP</text>
+    <rect x="538" y="124" width="150" height="42" rx="8" fill="#8CE05E"/><text x="613" y="150" text-anchor="middle" fill="#06202A" font-size="13" font-weight="700">identity proven</text>
+    <line x1="190" y1="145" x2="214" y2="145" stroke="#B0C4CF" marker-end="url(#arr)"/>
+    <line x1="336" y1="145" x2="360" y2="145" stroke="#B0C4CF" marker-end="url(#arr)"/>
+    <line x1="512" y1="145" x2="536" y2="145" stroke="#B0C4CF" marker-end="url(#arr)"/>
   </g>
-  <rect x="30" y="272" width="840" height="44" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
-  <text x="450" y="290" text-anchor="middle" class="t lbl">All three fail the same way from the login page. Authenticated with no role looks exactly like a failed login.</text>
-  <text x="450" y="308" text-anchor="middle" class="t" fill="#8CE05E" font-size="12">SAML everywhere you can. RADIUS and TACACS+ where you must.</text>
+
+  <!-- the join -->
+  <line x1="110" y1="168" x2="110" y2="234" stroke="#8CE05E" stroke-width="2" marker-end="url(#arrg)"/>
+  <text x="124" y="190" class="t" fill="#8CE05E" font-size="12" font-weight="600">key the authorization lookup on the certificate, not the MAC</text>
+  <text x="124" y="207" class="t mono" fill="#8CE05E" font-size="11.5">SAN URI = AAD_Device_ID:{{AAD_Device_ID}}</text>
+
+  <!-- authorization lane -->
+  <text x="30" y="228" class="t eyebrow" fill="#5ED2DA">AUTHORIZATION</text>
+  <g class="t">
+    <rect x="30"  y="238" width="160" height="42" rx="8" class="bx"/><text x="110" y="264" text-anchor="middle" class="bt">Intune lookup</text>
+    <rect x="216" y="238" width="180" height="42" rx="8" class="bx"/><text x="306" y="264" text-anchor="middle" class="bt">compliant? jailbroken?</text>
+    <rect x="432" y="238" width="150" height="42" rx="8" fill="#5ED2DA"/><text x="507" y="264" text-anchor="middle" fill="#06202A" font-size="13" font-weight="700">role / VLAN</text>
+    <line x1="190" y1="259" x2="214" y2="259" stroke="#B0C4CF" marker-end="url(#arr)"/>
+    <line x1="396" y1="259" x2="430" y2="259" stroke="#B0C4CF" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- the usual build -->
+  <rect x="592" y="232" width="278" height="56" rx="8" fill="rgba(3,10,16,0.55)" stroke="#8BA2AE"/>
+  <text x="606" y="256" class="t" fill="#8BA2AE" font-size="12.5" font-weight="700">The usual build keys this on MAC</text>
+  <text x="606" y="276" class="t lbl">Spoofable, and randomization breaks it</text>
+
+  <text x="30" y="316" class="t mono" fill="#8CE05E">OCSP: Required. Not Optional, not CRL fallback. The fallback skips OCSP the moment the responder is down.</text>
 </svg></div>
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>A year-old Airheads thread about admin MFA, revived by someone who had &quot;set up SSO&quot; and couldn&#x27;t log in</div>
-      <div class="prose"><h2>Why I'm writing this</h2>
-<p>Every ClearPass deployment I touch now gets the same question from the security team within a week: can we put MFA on the admin GUI? The answer is yes, and the way you do it is SAML to whatever identity provider already has MFA in front of it, which these days is usually Entra ID.</p>
-<p>That's the easy part. The part that generates forum threads is what happens next. You configure single sign-on, the login page redirects to Microsoft, you authenticate, you get bounced back to ClearPass, and it says no. No error worth reading. Just no.</p>
-<p>Someone hit exactly this on the forums and asked what they'd missed. Turns out there are three different things you can miss, and they all fail the same way from the login page, so here they are in the order to check them.</p>
-<h2>The two halves nobody explains together</h2>
-<p>ClearPass admin SSO is two separate jobs, and the documentation treats them as two separate pages, which is why people finish one and think they're done.</p>
-<p><strong>The trust half</strong> lives under Configuration, Identity, Single Sign-On. That's where you tell ClearPass who the IdP is, what certificate to trust, and which applications should use SSO at all. When this half is right, the SAML assertion comes back and validates.</p>
-<p><strong>The privilege half</strong> is a service. ClearPass doesn't hand out admin rights because Microsoft said you're a real person. It hands them out because a service ran, matched you, and an enforcement profile said Super Administrator or Read-only Administrator or whatever the role is. If that service doesn't exist, you're authenticated and you have nothing, and authenticated with nothing looks exactly like a failed login.</p>
-<p>Most "SSO is set up but login fails" threads are people who built the trust half and never built the service half.</p>
-<h2>Gate 1: does it redirect at all?</h2>
-<p>On the Single Sign-On page there's a field called Enable SSO for, and it's a list of applications (Policy Manager, Guest, Insight, Onboard, and the Guest operator login). Policy Manager has to be ticked. If it isn't, the admin login page never redirects to your IdP in the first place, and you'll sit there wondering why your carefully built Entra app never sees a request.</p>
-<p>While you're on that page, confirm the IdP URL is the actual sign-on endpoint from the Entra enterprise app, not the tenant login page.</p>
-<h2>Gate 2: does the assertion validate?</h2>
-<p>The Identity Provider Signing Certificate field is required, and there's a step before it: the cert has to be in the Certificate Trust List first, or it won't appear in that dropdown. Download the signing cert from the Entra app (Base64), import it under Administration, Certificates, Trust List with the Usage set to SAML, then come back and select it. It shows up with a CN of Microsoft Azure Federated SSO. Miss that and the assertion arrives, fails signature validation, and you get the same silent no.</p>
-<p>Two more things have to agree between the two sides. The Entity ID and the Reply URL in the Entra app need to match what ClearPass publishes in its SP metadata, which you can download from the same page. They're of the form <code>https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp</code> and <code>https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp/acs</code>. Copy them out of the metadata rather than typing them; a trailing slash is enough to break it.</p>
-<p>If you run a cluster, that FQDN is per node. Every node has its own ACS URL, and the Entra app has to carry all of them as Reply URLs, or SSO works against the publisher and fails against everything else. HPE's own Okta write-up makes the same point with Okta's "requestable SSO URLs," and it applies just as much to Entra.</p>
-<p>And one that isn't on either page: NTP. ClearPass's own SSO doc says flatly that if the clocks are out of sync, SAML will not function. Assertions carry validity windows measured in minutes. Check <code>show ntp</code> or the Server Configuration page before you touch anything else. Call it gate zero.</p>
-<h2>Gate 3: does anybody get a privilege?</h2>
-<p>This is the one the original thread was missing. Go to Configuration, Service Templates and Wizards, and use the Policy Manager Admin SSO Login (SAML SP Service) template. It was called ClearPass Admin SSO Login in 6.8 and earlier, which is why half the guides you'll find use the old name. It builds the service and the enforcement policy that actually maps a user to an admin privilege level. You can hand-build the same thing, and if you do, the service type is Aruba Application Authorization. The user guide describes that type as providing authorization for users of Aruba applications, sending a Generic Application Enforcement profile to grant the privilege. So: service type Aruba Application Authorization, enforcement policy type Application, enforcement profile Generic Application Enforcement pointed at Super Administrator or Read-only Administrator or whichever level you mean. I had Authentication in an earlier draft of this. HPE's own Entra write-up says Authorization, and so does the user guide.</p>
-<p>One more thing that isn't obvious until you try group-based roles. Entra sends its group and tenant claims with long schema-style attribute names that aren't in the ClearPass SSO dictionary out of the box. To match on them you export the SSO dictionary under Administration, Dictionaries, Applications, add the attributes, and import it back. Until you do, the group claim is in the assertion (a SAML tracer will show it) and ClearPass just can't see it.</p>
-<p>Then check what the service is matching on. Entra sends the user principal name as the Name ID by default. If your enforcement conditions or your authorization source lookup expect sAMAccountName, nothing matches, nobody gets a role, same silent failure. Either change the Entra claim to send the attribute ClearPass expects, or change the ClearPass side to look up by UPN. Pick one and write it down.</p>
-<pre><code>Configuration &gt; Identity &gt; Single Sign-On
-  Enable SSO for: [x] Policy Manager
-  IdP URL: https://login.microsoftonline.com/&lt;TENANT-ID&gt;/saml2
-  IdP Signing Certificate: &lt;cert already in Trust List&gt;
-
-Configuration &gt; Service Templates &amp; Wizards &gt; Policy Manager Admin SSO Login (SAML SP Service)
-  Service type:             Aruba Application Authorization
-  Enforcement policy type:  Application
-  Enforcement profile:      Generic Application Enforcement -&gt; admin privilege level
-                            (Super Administrator, Read-only Administrator, ...)
-
-Administration &gt; Certificates &gt; Trust List
-  Entra signing cert, Usage: SAML
-
-Entra enterprise app
-  Identifier (Entity ID): https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp
-  Reply URL (ACS):        https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp/acs   (one per cluster node)
-  Name ID:                user.userprincipalname (default)
-</code></pre>
-<h2>Where to look when it still fails</h2>
-<p>Access Tracker. A SAML admin login that reaches the service shows up there as an Application Auth request (HPE's own SSO write-ups show exactly that), and the reject reason tells you which gate you're stuck at. If there's nothing in Access Tracker at all, you're at gate 1 or gate 2: the request never got far enough to hit a service. A SAML tracer extension in the browser shows you the assertion itself, which is the fastest way to see whether a claim is actually being sent.</p>
-<p>And a bit of sequencing advice straight from HPE support: enable SSO for Guest or Insight first, prove the round trip works, then tick Policy Manager. A broken SSO build on Policy Manager is a lockout, and you'd rather find gate 3 on the Insight login page.</p>
-<p>One more setting worth knowing on the SSO page while you're building this for MFA: Force Authentication, off by default. Turn it on and ClearPass makes the IdP re-authenticate even when the admin already has a live session with Microsoft, which is usually what the security team meant when they asked for MFA on the GUI.</p>
-<h2>Checklist</h2>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>A lab build, because I got tired of not being able to answer what the Intune integration actually proves</div>
+      <div class="prose"><p>I built this in the lab because I kept hearing the same sentence and it kept bothering me. "We authenticate devices against Intune."</p>
+<p>You don't. Nobody does. Intune doesn't have a RADIUS server in it.</p>
+<p>What people mean is that their RADIUS server looks up a device in Intune and reads back some attributes. That's a lookup. It's useful, I use it, but it's authorization, and if you built it the way most guides tell you to then the thing anchoring your whole policy is a MAC address the client just told you.</p>
+<p>So this is the corrected version of that build. Intune hands out a certificate and answers compliance questions. ClearPass authenticates the certificate and then asks Intune about the device it just proved it was talking to. Nothing else changes hands.</p>
+<h2>The two questions</h2>
+<p>A RADIUS server answers two questions and they're not the same question.</p>
+<p><strong>Who is this?</strong> Authentication. Something has to prove it holds a secret. A password, or a private key.</p>
+<p><strong>What are they allowed to do?</strong> Authorization. Roles, VLANs, ACLs, and every context source you can bolt on.</p>
+<p>The Intune integration only ever answers the second one. It's a context source. When ClearPass asks Intune "is this thing compliant," Intune answers from a record it looked up, and the only reason ClearPass thinks that record belongs to this client is whatever key it used for the lookup.</p>
+<p>In the default build, that key is the MAC address.</p>
+<h2>What the MAC-keyed build actually proves</h2>
+<p>Sit with that for a second. Your compliance policy, your jailbreak check, your entire "only managed devices get on the network" story, all hanging off a field the client puts in a frame header. Spoof the MAC of a compliant device and you inherit its compliance state. That's the last row of the test matrix below, and you should run it on your own build before you take my word for it.</p>
+<p>That's the attacker case. The boring case is worse in practice. MAC randomization means the compliant device shows up with an address that isn't in the endpoint database at all, and your policy quietly falls through to whatever your catch-all rule does. HPE's own integration guide says as much about MAC addresses being an unreliable identifier, so this isn't me picking a fight with the product. It's the product agreeing with me.</p>
+<p>The fix is two moves. Make the authentication real, and key the authorization to the authentication instead of to a header field.</p>
+<h2>Intune's first job: hand out a certificate</h2>
+<p>Intune doesn't have a CA either. What it has is SCEP, which is a way of telling a device to go get a certificate from your CA. With an on-premises Microsoft CA that means NDES plus the Certificate Connector for Intune, on a domain-joined box that is not the CA and not a domain controller. The connector is unsupported on the issuing CA, and putting your CA one hop from the internet is a bad idea on its own merits anyway.</p>
+<p>Two permissions bite people here and neither one tells you when it's missing. The NDES service account needs Read and Enroll on the template. And the NDES machine or service account needs <strong>Issue and Manage Certificates</strong> on the CA itself, or Intune will happily tell you it revoked a certificate and the CA will never hear about it. Ask me how I know.</p>
+<p>Deploy a trusted root profile first, because the SCEP profile references it and goes nowhere without it. Then the SCEP profile. These are the settings that matter for a Windows device certificate:</p>
 <table>
 <thead>
 <tr>
-<th>Check</th>
-<th>Where</th>
+<th>Setting</th>
+<th>Value</th>
+<th>Why</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Clocks in sync</td>
-<td>NTP on every node</td>
+<td>Certificate type</td>
+<td>Device</td>
+<td>Lands in the Local Computer store</td>
 </tr>
 <tr>
-<td>Policy Manager ticked under Enable SSO for</td>
-<td>Configuration, Identity, Single Sign-On</td>
+<td>Subject name format</td>
+<td><code>CN={{AAD_Device_ID}}</code></td>
+<td>The Entra device ID. Stable, and it's what ClearPass will key the lookup on</td>
 </tr>
 <tr>
-<td>IdP signing cert imported to the Trust List, then selected</td>
-<td>Same page, after Certificate Trust List</td>
+<td>SAN</td>
+<td>URI = <code>AAD_Device_ID:{{AAD_Device_ID}}</code></td>
+<td>HPE's Intune extension parses the SAN URI as KEY:VALUE. Anything without a recognised key in front of it gets treated as a plain Intune DeviceId, which is not the same thing</td>
 </tr>
 <tr>
-<td>Entity ID and Reply URL copied from SP metadata</td>
-<td>Entra enterprise app</td>
+<td>Key storage provider</td>
+<td>Enroll to TPM KSP, otherwise fail</td>
+<td>See below</td>
 </tr>
 <tr>
-<td>Every cluster node's ACS URL is a Reply URL in Entra</td>
-<td>Entra enterprise app</td>
+<td>Key size</td>
+<td>2048</td>
+<td>4096 isn't supported with a hardware TPM</td>
 </tr>
 <tr>
-<td>Policy Manager Admin SSO Login service exists, type Aruba Application Authorization</td>
-<td>Service Templates and Wizards</td>
+<td>Extended key usage</td>
+<td>Client Authentication</td>
+<td></td>
 </tr>
 <tr>
-<td>Generic Application Enforcement profile maps to a real admin privilege level</td>
-<td>The service's enforcement policy</td>
-</tr>
-<tr>
-<td>Group claim attributes added to the SSO dictionary, if you map roles on groups</td>
-<td>Administration, Dictionaries, Applications</td>
-</tr>
-<tr>
-<td>Force Authentication on, if MFA every time is the requirement</td>
-<td>Single Sign-On page</td>
-</tr>
-<tr>
-<td>Name ID attribute matches what the service looks up</td>
-<td>Entra claims vs ClearPass conditions</td>
-</tr>
-<tr>
-<td>Request visible in Access Tracker</td>
-<td>Monitoring</td>
+<td>SCEP Server URL</td>
+<td>Your published NDES URL</td>
+<td></td>
 </tr>
 </tbody>
 </table>
+<p>Don't use <code>CN={{DeviceId}}</code> on Windows. Microsoft's own docs say to avoid it because it can break Intune sync on the device. And don't build identity out of <code>{{SerialNumber}}</code> or <code>{{IMEI}}</code>; the same docs say those can be spoofed by someone with access to the device. The Entra device ID is the one that's tied to a record Intune controls.</p>
+<p>That TPM row is the whole ballgame. "TPM if present, otherwise software KSP" sounds like sensible defensive configuration and it isn't. A software-backed key lives on disk under DPAPI. Microsoft doesn't document it as extractable, and in practice anyone with SYSTEM on the box can lift it with the usual tooling. That part is my own observation, not something I can point you to in a doc. If your device credential can be copied off the device then it isn't device authentication, it's a shared secret with extra steps. Set it to fail, then go find out which of your machines have no usable TPM. Better to know now.</p>
+<p>Last, the Wi-Fi or wired profile that tells the device to actually use the certificate. That's the one people forget, and then spend an afternoon wondering why a device with a perfectly good certificate is still sitting there asking for a password.</p>
+<h2>ClearPass's job: authenticate the certificate</h2>
+<p>Import the root and the issuing CA into the trust list and mark them for EAP. Don't import the client certificate. I've watched somebody do it and then wonder why one laptop worked.</p>
+<p>ClearPass ships an authentication method called <code>[EAP TLS with OCSP Enabled]</code>. Copy it, name the copy, and work on that. Two settings on it decide whether this is real.</p>
+<p><strong>Certificate Comparison.</strong> The options are do not compare, compare CN, compare SAN, compare CN or SAN, and compare binary (which matches the presented certificate against one stored on the account in AD or LDAP). With no comparison, the identity in the certificate is never checked against anything, so any certificate from a CA you trust satisfies the EAP method. Authorization Required is on by default, so the identity still has to resolve in a source; what you lose is the check that this certificate belongs to that identity. If your issuing CA also signs web servers, VPN, or anything else, all of those are now valid Wi-Fi credentials. Pick a comparison, and pick the same field you're going to key the Intune lookup on.</p>
+<p><strong>Verify Certificate using OCSP.</strong> Four options: None, Optional, Required, and Required (CRL fallback). Set it to <strong>Required</strong>. The CRL fallback option is documented as skipping the OCSP check and using the CRL result when the responder is unreachable, which is exactly the fail-open you'd be trying to avoid. A dead responder blocking authentication is a real availability trade and you should know you're making it. Make the responder redundant instead of making the check soft. What Optional does with a dead responder isn't spelled out in the guide, so I'm not going to tell you; test it.</p>
+<p>Leave ClearPass taking the OCSP URL from the certificate unless your responder lives somewhere the AIA doesn't point, then use the override field. Keep a CRL configured as the backstop, and if your CA publishes a delta CRL, configure both the base and the delta URL or you're only getting half the list. There's a Check Now button on the revocation list page that beats waiting on the schedule.</p>
+<p>Point <code>eapol_test</code> at the service and get a <code>SUCCESS</code> before you build a single enforcement rule. Everything you add from here can only make it fail, so establish that it passes first.</p>
+<pre><code># /tmp/eaptls.conf
+network={
+  key_mgmt=WPA-EAP
+  eap=TLS
+  identity=&quot;host/testclient.lab.example&quot;
+  ca_cert=&quot;/etc/lab/root-ca.pem&quot;
+  client_cert=&quot;/etc/lab/device.pem&quot;
+  private_key=&quot;/etc/lab/device.key&quot;
+}
+</code></pre>
+<pre><code>eapol_test -c /tmp/eaptls.conf -a 192.0.2.10 -p 1812 -s &lt;SHARED-SECRET&gt; -r 0
+</code></pre>
+<p>Those are ordinary <code>wpa_supplicant.conf</code> network-block keys. Add <code>private_key_passwd</code> if your key is encrypted.</p>
+<h2>Intune's second job: authorization, keyed on the certificate</h2>
+<p>ClearPass gets Intune data two ways and you probably want both.</p>
+<p><strong>The extension sync</strong> polls Intune and writes attributes onto the endpoint record. Cheap at authentication time because it's a local read. Stale by definition. Install it on one node.</p>
+<p><strong>The HTTP authorization source</strong> calls Intune during the authentication. Current, but you've put a cloud API call in the critical path of every association. On a cluster it has to be installed on every node that processes authentications, at the same address on each, because the source config propagates cluster-wide. And its Cache Timeout defaults to zero seconds, so a stock build caches nothing and hammers the tenant. Set it.</p>
+<p>Either way, the endpoint database is keyed on MAC, which is the problem from the top of the post. The fix is to stop asking "what do we know about this MAC" and ask "what do we know about the device ID in this certificate." The certificate is signed. The MAC isn't.</p>
+<p>HPE's integration guide documents the HTTP source doing exactly this: the extension reads the device ID out of the certificate's SAN URI and queries Intune by that ID instead of by MAC. The filter query is one attribute:</p>
+<pre><code>%{Certificate:Subject-AltName-URI}
+</code></pre>
+<p>That's why the SAN format in the table above matters. Get the key wrong and the lookup is keyed on nothing.</p>
+<p>Once the lookup returns, the rules are boring, which is the point. Two things to get exactly right, because ClearPass string compares are case sensitive and the values come straight from the Graph API:</p>
+<pre><code>Authorization:[Intune]:Intune Compliance State  EQUALS  compliant
+Authorization:[Intune]:Intune Jail Broken       EQUALS  False
+</code></pre>
+<p>Lowercase <code>compliant</code>. I had it capitalised in an earlier version of this post and that rule matches nothing, which with a default-deny policy means it quarantines your entire healthy fleet. Or use <code>EQUALS_IGNORE_CASE</code> and stop having to care. And <code>EQUALS False</code> rather than <code>NOT_EQUALS True</code>, because Graph documents the jailbreak field as a string that defaults to empty, so it can come back blank or not come back at all, and <code>NOT_EQUALS True</code> passes both. Match the value you actually want.</p>
+<p>Which brings up the branch nobody writes. What does your policy do when the Intune lookup returns nothing? Not "non compliant." Nothing. Device isn't enrolled, the sync is broken, the client secret expired (the portal caps those at two years, put it on a calendar). Write that rule explicitly and make it a deny. A policy that only handles compliant and noncompliant has a third branch you didn't write, and it's the one that ends up in production. The compliance state field has seven possible values, and <code>inGracePeriod</code> is the one you'll meet mid-rollout.</p>
+<h2>Test it or it doesn't count</h2>
+<p>Every row should be a distinct, observable outcome. If two rows produce the same result, one of your rules isn't doing anything.</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>How to trigger it</th>
+<th>Expected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Healthy managed device</td>
+<td>Baseline</td>
+<td>Full access role</td>
+</tr>
+<tr>
+<td>No certificate</td>
+<td>Client with no cert</td>
+<td>Reject at EAP</td>
+</tr>
+<tr>
+<td>Cert from an untrusted CA</td>
+<td>Self signed cert</td>
+<td>Reject, chain failure</td>
+</tr>
+<tr>
+<td>Valid cert, unknown to Intune</td>
+<td>Issue one manually, skip enrollment</td>
+<td>Quarantine, not full access</td>
+</tr>
+<tr>
+<td>Revoked certificate</td>
+<td>Retire in Intune, then the steps below</td>
+<td>Reject, OCSP shown as the reason in Access Tracker</td>
+</tr>
+<tr>
+<td>Responder unreachable</td>
+<td>Block it from ClearPass</td>
+<td>Reject with OCSP Required. Try it with the other three settings while you're there and write down what each one did</td>
+</tr>
+<tr>
+<td>Non compliant device</td>
+<td>Break a compliance rule</td>
+<td>Quarantine role</td>
+</tr>
+<tr>
+<td>Intune lookup returns nothing</td>
+<td>Stop the sync, clear the endpoint</td>
+<td>Explicit deny, not a fall through</td>
+</tr>
+<tr>
+<td>MAC spoofed</td>
+<td>Clone a compliant device's MAC</td>
+<td>No change in outcome. If it grants access, your authorization is still keyed on MAC</td>
+</tr>
+</tbody>
+</table>
+<p>That last row is the whole post. Run it before you build anything and again at the end. If the result changes, you fixed something real.</p>
+<p>The revoked row deserves its own steps because the path has five links and four of them fail silently. Retire the device in Intune. Then check the CA, not Intune:</p>
+<pre><code>certutil -view -restrict &quot;SerialNumber=&lt;SERIAL&gt;&quot; -out &quot;SerialNumber,Disposition,Request.RevokedWhen,Request.RevokedReason&quot;
+</code></pre>
+<p>Column names come from <code>certutil -schema</code> on your CA. Check yours if that list errors.</p>
+<p>If Intune says revoked and the CA still shows the certificate issued, that's the Issue and Manage Certificates permission from earlier, and nothing downstream will ever work until it's fixed. Then <code>certutil -crl</code> on the CA, Check Now on the ClearPass CRL page, <code>openssl ocsp</code> against the responder until it says <code>revoked</code>, and <code>eapol_test</code> again. You want <code>FAILURE</code>. If you get <code>SUCCESS</code>, your OCSP setting is softer than you think or ClearPass is serving a cached answer, and both are worth finding now rather than the day someone leaves.</p>
+<p>One more thing to check while the lab's up. Revoke a certificate on a device that's already connected and go look at it. It's probably still online. Revocation and compliance are evaluated at authentication, and nothing about either one drops a session by itself. You need a CoA on compliance change, or a session timeout short enough that the window is acceptable, or both. Pick a number and know what it is.</p>
 <h2>Bottom line</h2>
-<p>SAML everywhere you can, RADIUS and TACACS+ where you must. That was the consensus on the thread and I agree with it. Just know that on ClearPass, SAML is two builds, not one, and the second one is the one that gives you a role.</p></div>
+<p>The Intune integration is a context source and it's a good one. It is not authentication, and no amount of documentation calling it "Intune authentication" makes it one.</p>
+<p>Make the authentication real with EAP-TLS and a TPM-bound key. Make revocation real with OCSP set to Required and a tested path from Intune to the responder. Then key the Intune lookup to the device ID inside the signed certificate rather than to a MAC address, so the authorization inherits the strength of the authentication instead of undercutting it.</p>
+<p>Build the lab. The revocation test takes twenty minutes and I'd bet a decent lunch it fails the first time on the CA permission.</p></div>
     </div>
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="one-pilot-ap-converts-all-of-them.html"><span class="eyebrow">Older</span>One Pilot AP Converts All Hundred of Them</a><a class="pn g-card" href="channel-173-survey-blind-spot.html"><span class="eyebrow">Newer</span>Your Survey Tool Can&#x27;t See Channel 173</a></div>
+      <div class="postnav"><a class="pn g-card" href="channel-173-survey-blind-spot.html"><span class="eyebrow">Older</span>Your Survey Tool Can&#x27;t See Channel 173</a></div>
     </section>
   </article>
 </div>
