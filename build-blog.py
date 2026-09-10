@@ -162,6 +162,7 @@ def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False,
     root = up or "/"
     nav = ('<a class="pill%s" href="%s">Posts</a>' % (" on" if active == "posts" else "", root))
     nav += '<a class="pill%s" href="%sacademy.html">Academy</a>' % (" on" if active == "academy" else "", up)
+    nav += '<a class="pill%s" href="%ssimulator.html">Simulator</a>' % (" on" if active == "simulator" else "", up)
     nav += '<a class="pill%s" href="%sabout.html">About</a>' % (" on" if active == "about" else "", up)
     if search:
         nav += '<a class="pill outline" id="search-toggle" href="#search" aria-label="Search">%s<span>Search</span></a>' % ICO_SEARCH
@@ -234,7 +235,17 @@ cards = card(featured, featured=True) + "".join(card(p) for p in posts if p is n
 _tj = open(os.path.join(ROOT, "demo", "traffic.json"), encoding="utf-8").read().strip()
 qam = widget("qam").replace('<section class="qam g-card" id="qam"',
     '<section class="qam g-card" id="qam" data-title="%s" data-traffic="%s"' % (E(featured["title"]), E(_tj)), 1)
-index += qam + f'''
+teaser = f'''
+<a class="sim-teaser g-card" href="simulator.html" data-rise data-view="pop">
+  <img src="media/banner-walkthrough.jpg" alt="The simulator: a Yagi sending symbols down a beam to a constellation" width="1600" height="900" loading="lazy">
+  <div class="sim-copy">
+    <span class="eyebrow">On the air right now</span>
+    <h3>A Wi-Fi link you can break</h3>
+    <p>A real frame from a packet capture, one particle per symbol, through a link budget with walls you can drag, a reflection, spatial streams and a Teams call. Add interference and watch the voice drop packets while the chat just runs late.</p>
+    <span class="btn">Open the simulator</span>
+  </div>
+</a>'''
+index += teaser + f'''
 <section class="hero g-hero rise" data-view="pop">
   <div class="sheen"></div><div class="glow"></div>
   <span class="tag green"><span class="dot"></span>Latest field note</span>
@@ -392,6 +403,25 @@ acad += f'''
 ''' + foot("nfn-bot-think.svg")
 open(os.path.join(ROOT, "academy.html"), "w", encoding="utf-8").write(acad)
 
+# ── simulator page: the banner on its own ───────────────────────────────────
+sim = head("Simulator · " + SITE["name"], "A Wi-Fi link you can break: a real frame sent symbol by symbol through a link budget, a reflection, spatial streams and a Teams call, with interference you add yourself.", BASE_URL + "/simulator.html", BASE_URL + "/og/simulator.png", active="simulator")
+sim += f'''
+<section class="sim-intro">
+  <span class="tag green"><span class="dot"></span>Simulator</span>
+  <h1 class="h-hero">A Wi-Fi link you can break</h1>
+  <p class="lede">Every particle is one symbol from a real packet capture. Change the standard, the rate, the distance and the walls; add interference, a reflection or more streams; swap the ping for a Teams call and watch what the app sees. Tap the text under the canvas for the full explainer, or <a href="p/how-the-banner-works.html">watch the four-minute walkthrough</a>.</p>
+</section>
+''' + qam + '''
+<section class="band g-card" data-rise>
+  <div>
+    <h3>How it was built</h3>
+    <p>The walkthrough post covers what is real, what is modelled, and why the voice call breaks before the chat does.</p>
+  </div>
+  <a class="btn" href="p/how-the-banner-works.html">Read the field note</a>
+</section>
+''' + foot("nfn-bot-signal.svg")
+open(os.path.join(ROOT, "simulator.html"), "w", encoding="utf-8").write(sim)
+
 # ── socials (genie target) ──────────────────────────────────────────────────
 SOCIALS = [("LinkedIn", "Where I post when something is worth a wider audience.", SITE["linkedin"], "in"),
            ("HPE Airheads", "Where most of these posts start life, as somebody else's question.", SITE["airheads"], "AH"),
@@ -460,12 +490,14 @@ for p in posts:
             os.path.join(ROOT, "og", p["slug"] + ".png"))
 og_card(SITE["tagline"][:110], "Field notes", os.path.join(ROOT, "og", "home.png"))
 og_card("Wireless Academy: the theory, and the lab that proves it", "Wireless Academy", os.path.join(ROOT, "og", "academy.png"))
+og_card("The simulator: a Wi-Fi link you can break, one symbol at a time", "Simulator", os.path.join(ROOT, "og", "simulator.png"))
 rasterize(os.path.join(ROOT, "logo", "nfn-favicon.svg"), os.path.join(ROOT, "apple-touch-icon.png"), 180, 180)
 
 # ── sitemap, feed, housekeeping ─────────────────────────────────────────────
 urls = ['<url><loc>%s/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>' % BASE_URL,
         '<url><loc>%s/about.html</loc><priority>0.5</priority></url>' % BASE_URL,
         '<url><loc>%s/academy.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>' % BASE_URL,
+        '<url><loc>%s/simulator.html</loc><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/socials.html</loc><priority>0.3</priority></url>' % BASE_URL]
 urls += ['<url><loc>%s/p/%s.html</loc><lastmod>%s</lastmod><priority>0.8</priority></url>'
          % (BASE_URL, p["slug"], p["date"]) for p in posts]

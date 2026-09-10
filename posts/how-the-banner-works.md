@@ -7,7 +7,7 @@ hero: hero-banner-video.svg
 summary: The animation at the top of this site sends a real frame from a packet capture, one symbol per particle, through a link budget you can drag walls into. Four minutes on what it is doing and why the Teams call breaks before the chat does.
 origin: The front-page banner, built one question at a time
 ---
-The thing at the top of the front page started as a decoration. It was supposed to show a spiral hitting a QAM target. Then I kept asking it questions, and every answer had to be true, and now it is a small Wi-Fi link that you can break in most of the ways a real one breaks. This is the walkthrough.
+The simulator, which used to live at the top of the front page and now has its own tab, started as a decoration. It was supposed to show a spiral hitting a QAM target. Then I kept asking it questions, and every answer had to be true, and now it is a small Wi-Fi link that you can break in most of the ways a real one breaks. This is the walkthrough.
 
 <video controls playsinline preload="metadata" poster="../media/banner-walkthrough.jpg" src="../media/banner-walkthrough.mp4"></video>
 
@@ -33,4 +33,4 @@ Choppy call, slow chat, same interference. If you have ever had to explain why t
 
 The explainer behind the banner text lists every place it is a model rather than a measurement: the Yagi pattern is a textbook shape, the wall losses and minimum-SNR figures are typical values, the stream penalty is a rule rather than a matrix solve, and there is no forward error correction, so a real link at the same SNR recovers a few percent of symbol errors that fail the CRC here. The Wi-Fi link itself is left open so the headers stay readable. Everything else, the timings, the bit order, the CRC, the encryption, is the real thing.
 
-Time slider on the left. Start at symbols, drag to real time to see the channel as a strip, drag the other way to see the carrier and then the photons. Fullscreen if you are on a phone.
+[Open the simulator](../simulator.html). Time slider on the left. Start at symbols, drag to real time to see the channel as a strip, drag the other way to see the carrier and then the photons. Fullscreen if you are on a phone.
