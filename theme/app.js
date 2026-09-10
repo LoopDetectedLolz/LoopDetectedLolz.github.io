@@ -53,9 +53,7 @@
   var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
   var cat = 'all', q = '';
 
-  var postsPill = $('.nav .pill:not(.outline)');
   function apply() {
-    if (postsPill) postsPill.classList.toggle('on', cat === 'all');
     var shown = 0;
     cards.forEach(function (c) {
       var okCat = cat === 'all' || c.getAttribute('data-cat') === cat;
