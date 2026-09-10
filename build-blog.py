@@ -230,10 +230,10 @@ chips = '<span class="chip on" data-cat="all">All</span>' + "".join(
     '<span class="chip %s" data-cat="%s">%s</span>' % (CAT_CLASS.get(c, ""), E(c), E(c)) for c in CATS)
 cards = card(featured, featured=True) + "".join(card(p) for p in posts if p is not featured)
 # the banner sends demo/nfn-ping.pcap frame 1 bit for bit; make-pcap.py regenerates the hex and field map
-_fx = open(os.path.join(ROOT, "demo", "nfn-ping.frame.hex"), encoding="utf-8").read().strip()
-_ff = open(os.path.join(ROOT, "demo", "nfn-ping.fields.json"), encoding="utf-8").read().strip()
+# demo/traffic.json (from make-pcap.py) carries every flow the banner can send: frames as hex, field maps, app-layer view, demo keys
+_tj = open(os.path.join(ROOT, "demo", "traffic.json"), encoding="utf-8").read().strip()
 qam = widget("qam").replace('<section class="qam g-card" id="qam"',
-    '<section class="qam g-card" id="qam" data-title="%s" data-frame="%s" data-fields="%s"' % (E(featured["title"]), _fx, E(_ff)), 1)
+    '<section class="qam g-card" id="qam" data-title="%s" data-traffic="%s"' % (E(featured["title"]), E(_tj)), 1)
 index += qam + f'''
 <section class="hero g-hero rise" data-view="pop">
   <div class="sheen"></div><div class="glow"></div>
