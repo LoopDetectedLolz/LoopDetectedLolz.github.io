@@ -5,8 +5,12 @@ Three flows, each written as a radiotap pcap (link type 127) and mirrored into t
 which build-blog.py injects into the banner:
 
   nfn-ping.pcap         one ICMP echo request in cleartext, plus its ACK
-  nfn-teams-voice.pcap  25 SRTP voice packets (20 ms each, half a second of a call), plus ACKs
-  nfn-teams-chat.pcap   5 TLS 1.2 application-data records carrying chat messages, plus ACKs
+  nfn-teams-voice.pcap  15,000 SRTP voice packets (20 ms each, five minutes of a call), plus ACKs
+  nfn-teams-chat.pcap   36 TLS 1.2 application-data records, five minutes of chat, plus ACKs
+
+The banner regenerates the two Teams flows in the browser with WebCrypto from the same keys
+and the same recipe (frame n is a pure function of n), so traffic.json carries only the recipe
+and a few sample frames; make-pcap.py is the reference the browser output is checked against.
 
 The 802.11 link itself is left open (no CCMP) so the headers stay readable; the Teams flows
 are encrypted the way the app encrypts them: SRTP (AES-128-CTR + HMAC-SHA1-80) for voice and
@@ -40,7 +44,7 @@ def ipv4(src, dst, proto, payload, ident, ttl=64):
 def dot11(to_ds, seqno, body):
     """Data frame. to_ds: client to AP (addr1 BSSID, addr2 client, addr3 destination);
     else AP to client (addr1 client, addr2 BSSID, addr3 source)."""
-    fc = bytes([0x08, 0x01 if to_ds else 0x02]); dur = struct.pack("<H", 44); sc = struct.pack("<H", seqno << 4)
+    fc = bytes([0x08, 0x01 if to_ds else 0x02]); dur = struct.pack("<H", 44); sc = struct.pack("<H", (seqno & 0xfff) << 4)
     a1, a2, a3 = (AP, STA, GW) if to_ds else (STA, AP, GW)
     f = fc + dur + a1 + a2 + a3 + sc + LLC + body
     return f + struct.pack("<I", zlib.crc32(f) & 0xFFFFFFFF)
@@ -64,7 +68,7 @@ def hdr_fields(to_ds, seqno, proto_name, proto_num, src, dst):
         [4, 6, "Address 1", "receiver, %s %s" % ("the AP's BSSID" if to_ds else "the client", mac(a1))],
         [10, 6, "Address 2", "transmitter, %s %s" % ("the client" if to_ds else "the AP's BSSID", mac(a2))],
         [16, 6, "Address 3", "%s %s, the wired side" % ("final destination" if to_ds else "original source", mac(a3))],
-        [22, 2, "Sequence Control", "sequence number %d, fragment 0" % seqno],
+        [22, 2, "Sequence Control", "sequence number %d, fragment 0" % (seqno & 0xfff)],
         [24, 8, "LLC / SNAP", "AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4"],
         [32, 20, "IPv4 header", "%s to %s, TTL 64, protocol %d = %s" % (".".join(map(str, src)), ".".join(map(str, dst)), proto_num, proto_name)],
     ]
@@ -106,8 +110,9 @@ def audio20ms(n):
         samples.append(round(v, 3))
     enc = hashlib.sha256(b"silk-frame-%d" % n).digest() + hashlib.sha256(b"silk-frame-%d-b" % n).digest()
     return enc[:60], samples
+VOICE_N = 15000
 voice_frames, voice_app = [], []
-for n in range(25):
+for n in range(VOICE_N):
     seq, ts = 3100 + n, 0x0a2f7c40 + n * 960            # Opus/SILK clock is 48 kHz: 960 per 20 ms
     rtp_hdr = struct.pack("!BBHII", 0x80, 111, seq, ts, SSRC)   # V=2, PT 111 (dynamic, SILK/Opus)
     enc, samples = audio20ms(n)
@@ -119,7 +124,7 @@ for n in range(25):
     udp = struct.pack("!HHHH", 50024, 3478, udp_len, 0) + rtp_hdr + ct + tag
     fr = dot11(True, 200 + n, ipv4(IP_STA, IP_TEAMS, 17, udp, 0x3000 + n))
     voice_frames.append(fr.hex())
-    voice_app.append({"seq": seq, "ts": ts, "wave": samples})
+    if n < 8: voice_app.append({"seq": seq, "ts": ts, "wave": samples})
 vf = hdr_fields(True, 200, "UDP", 17, IP_STA, IP_TEAMS) + [
     [52, 8, "UDP header", "port 50024 to 3478, the media relay"],
     [60, 12, "RTP header", "version 2, payload type 111 (SILK/Opus), sequence, timestamp (48 kHz clock, +960 per 20 ms), SSRC 0x4e464e31"],
@@ -130,23 +135,56 @@ vf = hdr_fields(True, 200, "UDP", 17, IP_STA, IP_TEAMS) + [
 vf[5][3] = "sequence number 200 and up, one per packet"
 write_pcap("nfn-teams-voice.pcap", [bytes.fromhex(h) for h in voice_frames])
 traffic["voice"] = {"name": "Teams voice (SRTP over UDP)", "pcap": "demo/nfn-teams-voice.pcap", "kind": "voice",
-                    "frames": voice_frames, "fields": [vf], "app": voice_app,
+                    "count": VOICE_N, "sample": voice_frames[:8], "fields": [vf], "app": voice_app,
+                    "seq0": 3100, "ts0": 0x0a2f7c40, "ssrc": SSRC,
                     "keys": {"srtp_key": SRTP_KEY.hex(), "srtp_salt": SRTP_SALT.hex(), "srtp_auth": SRTP_AUTH.hex()},
-                    "note": "25 packets, 20 ms apart, half a second of a call; UDP, so a lost packet is a gap"}
+                    "check": {str(n): hashlib.sha256(bytes.fromhex(voice_frames[n])).hexdigest()[:16] for n in (0, 1, 7, 100, 1000, 14999)},
+                    "note": "15,000 packets, 20 ms apart, five minutes of a call; UDP, so a lost packet is a gap"}
 
 # ── 3. Teams chat: TLS 1.2 application data over TCP ─────────────────────────
 TLS_KEY = hashlib.sha256(b"network field notes demo tls key").digest()[:16]
 TLS_IV = hashlib.sha256(b"network field notes demo tls iv").digest()[:4]
-CHAT = [
-    ("you", "Can you hear me? You keep cutting out."),
-    ("tech", "Barely. Is that the warehouse AP again?"),
-    ("you", "Microwave in the break room. Watch the retries."),
-    ("tech", "Moving to the next channel now."),
-    ("you", "Better. Crystal clear."),
+CHAT = [   # (who, time, text): five minutes on a warehouse floor
+    ("you",  "10:21:04", "Can you hear me? You keep cutting out."),
+    ("tech", "10:21:11", "Barely. Is that the warehouse AP again?"),
+    ("you",  "10:21:19", "Microwave in the break room. Watch the retries."),
+    ("tech", "10:21:27", "Moving to the next channel now."),
+    ("you",  "10:21:38", "Better. Crystal clear."),
+    ("tech", "10:21:49", "Radio is on 149 now, 80 wide. Old channel had utilisation pegged for an hour."),
+    ("you",  "10:21:58", "Retry rate?"),
+    ("tech", "10:22:06", "38 percent on 2.4. The 5 GHz radio was clean the whole time."),
+    ("you",  "10:22:15", "Then why were the scanners on 2.4?"),
+    ("tech", "10:22:26", "Band steering is off on that SSID. Somebody turned it off for the label printers."),
+    ("you",  "10:22:36", "Printers are 2.4 only, fine. Scanners do 5. Turn steering back on and exclude the printer OUI."),
+    ("tech", "10:22:49", "Done. Steering on, printer OUI in the 2.4 only list."),
+    ("you",  "10:22:57", "Note it in the change log so nobody flips it again."),
+    ("tech", "10:23:05", "Logged."),
+    ("you",  "10:23:12", "Roam a scanner across the dock doors and watch the client page."),
+    ("tech", "10:23:22", "Walking it now. Hold on."),
+    ("tech", "10:23:48", "Roamed at -67, landed on 5 GHz, MCS 7 at the far door."),
+    ("you",  "10:23:56", "Good. Still no drops on our call?"),
+    ("tech", "10:24:03", "None since the channel change."),
+    ("you",  "10:24:12", "Pull the RF health graph for the ticket before it rolls off."),
+    ("tech", "10:24:25", "Exported. Also the break room is not on the map, it is behind the racks."),
+    ("you",  "10:24:34", "Add it to the survey notes. That microwave is a permanent interferer."),
+    ("tech", "10:24:44", "Want a channel exclusion on 2.4 for that AP?"),
+    ("you",  "10:24:53", "No. Let the RF management handle it now that steering is on. Watch it tomorrow."),
+    ("tech", "10:25:02", "Will do. Anything else while I am on the floor?"),
+    ("you",  "10:25:11", "The mezzanine AP showed 3 dB lower Tx power in the audit. Check its port."),
+    ("tech", "10:25:31", "It is on a 15 W port. PoE budget again."),
+    ("you",  "10:25:39", "Of course it is. Log it, we move it to a 30 W port on the refresh."),
+    ("tech", "10:25:48", "Logged. Heading back to the closet."),
+    ("you",  "10:25:55", "Send me the screenshots and I will write it up."),
+    ("tech", "10:26:02", "On the way."),
+    ("you",  "10:26:09", "Great call quality now, by the way."),
+    ("tech", "10:26:16", "Told you it was the microwave."),
+    ("you",  "10:26:22", "You said warehouse AP."),
+    ("tech", "10:26:28", "I said it was the warehouse AP's problem."),
+    ("you",  "10:26:35", "Sure you did."),
 ]
 chat_frames, chat_fields, chat_app = [], [], []
 seq_c, seq_s = 0x1a2b3c00, 0x5e6f7a00
-for n, (who, text) in enumerate(CHAT):
+for n, (who, when, text) in enumerate(CHAT):
     to_ds = who == "you"
     plain = json.dumps({"t": "msg", "from": who, "text": text}, separators=(",", ":")).encode()
     # TLS 1.2 AES-GCM record: 8-byte explicit nonce, ciphertext, 16-byte tag; the record header is the AAD's tail
@@ -174,14 +212,16 @@ for n, (who, text) in enumerate(CHAT):
         [101 + len(plain), 4, "FCS", "CRC-32 over everything before it"],
     ]
     chat_fields.append(f)
-    chat_app.append({"from": who, "text": text, "plain": plain.decode(), "to_ds": to_ds})
+    chat_app.append({"who": who, "t": when, "text": text})
 write_pcap("nfn-teams-chat.pcap", [bytes.fromhex(h) for h in chat_frames])
 traffic["chat"] = {"name": "Teams chat (TLS over TCP)", "pcap": "demo/nfn-teams-chat.pcap", "kind": "chat",
-                   "frames": chat_frames, "fields": chat_fields, "app": chat_app,
+                   "script": chat_app, "sample": chat_frames[:4], "fields": chat_fields[:4],
                    "keys": {"tls_key": TLS_KEY.hex(), "tls_iv": TLS_IV.hex()},
-                   "note": "5 messages, one TLS record each; TCP, so a lost frame is retransmitted and the message arrives late"}
+                   "check": {str(n): hashlib.sha256(bytes.fromhex(chat_frames[n])).hexdigest()[:16] for n in range(len(chat_frames))},
+                   "note": "%d messages over five minutes, one TLS record each; TCP, so a lost frame is retransmitted and the message arrives late" % len(CHAT)}
 
 open(os.path.join(here, "traffic.json"), "w").write(json.dumps(traffic, separators=(",", ":")))
-for k, v in traffic.items():
-    print("%-6s %2d frames, %3d bytes each, %s" % (k, len(v["frames"]), len(v["frames"][0]) // 2, v["pcap"]))
+print("ping   1 frame, %d bytes" % (len(traffic["ping"]["frames"][0]) // 2))
+print("voice  %d frames, %d bytes each, pcap %d bytes" % (VOICE_N, len(voice_frames[0]) // 2, os.path.getsize(os.path.join(here, "nfn-teams-voice.pcap"))))
+print("chat   %d frames, %d to %d bytes" % (len(chat_frames), min(len(h) for h in chat_frames) // 2, max(len(h) for h in chat_frames) // 2))
 print("traffic.json", os.path.getsize(os.path.join(here, "traffic.json")), "bytes")
