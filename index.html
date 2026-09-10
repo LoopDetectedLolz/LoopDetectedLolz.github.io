@@ -545,12 +545,14 @@ html.qam-fs .rig{display:none}
   function echoAt(L,e,s){var Wl=wall(L);var bx=Wl.x0+(Wl.x1-Wl.x0)*e.bf,by=Wl.y;var d1=Math.hypot(bx-L.ex,by-L.ay),d2=Math.hypot(e.T.x-bx,e.T.y-by),d=d1+d2,u=s*d;
     if(u<d1){var q=u/d1;return{x:L.ex+(bx-L.ex)*q,y:L.ay+(by-L.ay)*q}}var q2=(u-d1)/d2;return{x:bx+(e.T.x-bx)*q2,y:by+(e.T.y-by)*q2};}
   function echoLen(L,e){var Wl=wall(L);var bx=Wl.x0+(Wl.x1-Wl.x0)*e.bf,by=Wl.y;return Math.hypot(bx-L.ex,by-L.ay)+Math.hypot(e.T.x-bx,e.T.y-by);}
-  function halfW(L,s){return 5+(L.R+8-5)*Math.pow(s,1.35)}
+  function coneW(L,s){return 5+(L.R-5)*Math.pow(s,1.35)}
+  function smooth(a,b,x){var t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)}
   function target(L,ix,iy){var cw2=(2*L.R)/sx,ch=(2*L.R)/sy;return{x:L.cx-L.R+cw2*(ix+0.5),y:(sy===1?L.cy:L.cy+L.R-ch*(iy+0.5)),w:cw2,h:ch};}
   /* path of a particle: along the beam axis, peeling off to its row late */
-  function pathAt(L,f,s){var T=f.T;var x=L.ex+(T.x-L.ex)*s;var g=Math.pow(s,1.7);var th=s*TURNS*Math.PI*2+f.phi;var hr=(f.amp||0.8)*(L.mob?11:20)*(1-g)*Math.min(1,s*6);
-    var y=L.ay+(T.y-L.ay)*g+hr*Math.sin(th)+f.push*(1-g);return{x:x,y:y,th:th,depth:Math.cos(th)};}
-  function seedSpecks(L){specks=[];var n=L.mob?70:150;for(var i=0;i<n;i++)specks.push({s:Math.random(),lane:(Math.random()*2-1),col:Math.random(),v:0.10+Math.random()*0.18,c:BLUES[i%BLUES.length],r:0.6+Math.random()*1.4,a:0.25+Math.random()*0.45,ph:Math.random()*6.3});}
+  /* path of a symbol: a helix riding the cone. radius = amplitude x cone width, so the orbit widens with the lobe; angle ends on the symbol's phase, so at s=1 the helix seen end-on IS the constellation point */
+  function pathAt(L,f,s){var base=L.ex+(L.cx-L.ex)*s;var r=(f.amp||0.8)*coneW(L,s);var th=s*TURNS*Math.PI*2+f.phi;var sh=f.flat?0.22:0.22+0.78*smooth(0.72,1,s);
+    var x=base+r*Math.cos(th)*sh,y=L.ay-r*Math.sin(th)+(f.push||0)*(1-Math.pow(s,1.7));return{x:x,y:y,th:th,depth:Math.cos(th)};}
+  function seedSpecks(L){specks=[];var n=L.mob?70:150;for(var i=0;i<n;i++)specks.push({s:Math.random(),amp:0.15+Math.random()*1.1,v:0.10+Math.random()*0.18,c:BLUES[i%BLUES.length],r:0.6+Math.random()*1.4,a:0.25+Math.random()*0.45,ph:Math.random()*6.3});}
   function drawYagi(L,now){
     var ax=L.ax,ay=L.ay,sc=L.mob?0.6:1;
     ctx.save();ctx.translate(ax,ay);ctx.scale(sc,sc);ctx.lineCap='round';
@@ -567,8 +569,9 @@ html.qam-fs .rig{display:none}
   function drawLobe(L){
     var g=ctx.createLinearGradient(L.ex,0,L.cx,0);g.addColorStop(0,'rgba(79,189,234,0.16)');g.addColorStop(0.6,'rgba(79,189,234,0.06)');g.addColorStop(1,'rgba(79,189,234,0.02)');
     ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(L.ex,L.ay);var n=40;
-    for(var i=0;i<=n;i++){var s=i/n;ctx.lineTo(L.ex+(L.cx-L.R-L.ex)*s,L.ay-halfW(L,s));}
-    for(i=n;i>=0;i--){var s2=i/n;ctx.lineTo(L.ex+(L.cx-L.R-L.ex)*s2,L.ay+halfW(L,s2));}
+    var se=(L.cx-L.R-L.ex)/(L.cx-L.ex);
+    for(var i=0;i<=n;i++){var s=se*i/n;ctx.lineTo(L.ex+(L.cx-L.ex)*s,L.ay-coneW(L,s));}
+    for(i=n;i>=0;i--){var s2=se*i/n;ctx.lineTo(L.ex+(L.cx-L.ex)*s2,L.ay+coneW(L,s2));}
     ctx.closePath();ctx.fill();
     /* back lobe */
     ctx.fillStyle='rgba(79,189,234,0.05)';ctx.beginPath();ctx.ellipse(L.ax-(L.mob?48:80),L.ay,L.mob?14:22,L.mob?9:14,0,0,Math.PI*2);ctx.fill();
@@ -590,12 +593,13 @@ html.qam-fs .rig{display:none}
       ctx.fillStyle='#8BA2AE';ctx.font='10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';ctx.fillText('REFLECTOR (a wall, a rack, a floor)',Wl.x0,Wl.y+18);
       if(ss>=2){ctx.strokeStyle='#4FBDEA';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(L.cx-L.R-14,L.cy-L.R-4);ctx.lineTo(L.cx-L.R-14,L.cy-L.R-22);ctx.moveTo(L.cx-L.R-14,L.cy+L.R+4);ctx.lineTo(L.cx-L.R-14,L.cy+L.R+22);ctx.stroke();ctx.fillStyle='#4FBDEA';ctx.font='600 9px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='right';ctx.fillText('RX1',L.cx-L.R-18,L.cy-L.R-10);ctx.fillText('RX2',L.cx-L.R-18,L.cy+L.R+16);}}
     /* specks: ambient energy riding the lobe */
-    for(var i=0;i<Math.min(specks.length,Q.sk);i++){var q=specks[i];var ex=L.cx-L.R+q.col*2*L.R,ey=L.ay+q.lane*L.R;var f={T:{x:ex,y:ey},wob:0.6,ph:q.ph,push:0};var p=pathAt(L,f,q.s);
+    for(var i=0;i<Math.min(specks.length,Q.sk);i++){var q=specks[i];var f={amp:q.amp,phi:q.ph,push:0,flat:true};var p=pathAt(L,f,q.s);
       var near=cur.on?Math.max(0,1-Math.hypot(p.x-cur.x,p.y-cur.y)/IR):0; var jx=(Math.random()-0.5)*near*22,jy=(Math.random()-0.5)*near*22;
-      ctx.fillStyle=near>0.3?'rgba(245,165,36,'+(q.a*0.9)+')':q.c;ctx.globalAlpha=q.a*(0.5+0.5*Math.sin(q.s*Math.PI));ctx.beginPath();ctx.arc(p.x+jx,p.y+jy,q.r,0,Math.PI*2);ctx.fill();}
+      ctx.fillStyle=near>0.3?'rgba(245,165,36,'+(q.a*0.9)+')':q.c;ctx.globalAlpha=q.a*(0.5+0.5*Math.sin(q.s*Math.PI))*(1-smooth(0.74,0.86,q.s));ctx.beginPath();ctx.arc(p.x+jx,p.y+jy,q.r,0,Math.PI*2);ctx.fill();}
     ctx.globalAlpha=1;
     drawGrid(L);
     /* landed */
+    for(i=0;i<landed.length;i++){var d0=landed[i],T0=target(L,d0.ix,d0.iy);d0.x=T0.x+d0.fx*T0.w;d0.y=T0.y+d0.fy*T0.h;}
     ctx.fillStyle='rgba(140,224,94,0.18)';ctx.beginPath();for(i=0;i<landed.length;i++){var d=landed[i];if(!d.bad){ctx.moveTo(d.x+4,d.y);ctx.arc(d.x,d.y,4,0,Math.PI*2);}}ctx.fill();
     ctx.fillStyle='rgba(140,224,94,0.85)';ctx.beginPath();for(i=0;i<landed.length;i++){var d2=landed[i];if(!d2.bad){ctx.moveTo(d2.x+2,d2.y);ctx.arc(d2.x,d2.y,2,0,Math.PI*2);}}ctx.fill();
     ctx.fillStyle='rgba(245,165,36,0.95)';ctx.beginPath();for(i=0;i<landed.length;i++){var d3=landed[i];if(d3.bad){ctx.moveTo(d3.x+2.6,d3.y);ctx.arc(d3.x,d3.y,2.6,0,Math.PI*2);}}ctx.fill();
@@ -661,7 +665,7 @@ html.qam-fs .rig{display:none}
       var g1=Math.hypot(1+a*Math.cos(ph),a*Math.sin(ph));var g=g1;
       if(ss>=2){var ph2=ph+2.1;var g2=Math.hypot(1+a*Math.cos(ph2),a*Math.sin(ph2));g=Math.sqrt((g1*g1+g2*g2)/2);}
       lastFade={db:20*Math.log10(g)};jx/=g;jy/=g;}
-    var ex=jx+gx,ey=jy+gy;var bad=Math.abs(ex)>T.w/2||Math.abs(ey)>T.h/2;if(bad)errors++;var rb=syms[f.i].bits;if(bad){var fb=Math.floor(Math.random()*rb.length);rb=rb.slice(0,fb)+(rb[fb]==='1'?'0':'1')+rb.slice(fb+1);}rxBits[f.i]=rb;landed.push({x:T.x+ex,y:T.y+ey,bad:bad,i:f.i});if(landed.length>1000)landed.shift();}
+    var ex=jx+gx,ey=jy+gy;var bad=Math.abs(ex)>T.w/2||Math.abs(ey)>T.h/2;if(bad)errors++;var rb=syms[f.i].bits;if(bad){var fb=Math.floor(Math.random()*rb.length);rb=rb.slice(0,fb)+(rb[fb]==='1'?'0':'1')+rb.slice(fb+1);}rxBits[f.i]=rb;var sy0=syms[f.i];landed.push({x:T.x+ex,y:T.y+ey,ix:sy0.ix,iy:sy0.iy,fx:ex/T.w,fy:ey/T.h,bad:bad,i:f.i});if(landed.length>1000)landed.shift();}
   function L_mob(){return W<600}
   function fmt(us){return us>=1000?(us/1000).toFixed(2)+' ms':Math.round(us)+' µs'}
   /* hex panel: built once, cells updated in place as bytes complete */
@@ -695,7 +699,7 @@ html.qam-fs .rig{display:none}
     govT+=dt;if(drawMs>9&&govT>0.8&&drop<3){drop++;govT=0;}else if(drawMs<3.5&&govT>4&&drop>0){drop--;govT=0;}quality();
     if(!paused&&!document.hidden){
       var sd=dt*speed;tsec+=sd;
-      for(var i=0;i<Math.min(specks.length,Q.sk);i++){var q=specks[i];q.s+=q.v*sd;if(q.s>1){q.s=0;q.lane=Math.random()*2-1;q.col=Math.random();}}
+      for(var i=0;i<Math.min(specks.length,Q.sk);i++){var q=specks[i];q.s+=q.v*sd;if(q.s>0.88){q.s=0;q.amp=0.15+Math.random()*1.1;q.ph=Math.random()*6.3;}}
       if(phase==='pre'){preT+=sd;if(preSent<8&&preT>preSent*0.07){pre.push({s:0});preSent++;}for(i=pre.length-1;i>=0;i--){pre[i].s+=sd/0.9;if(pre[i].s>=1){pre.splice(i,1);}}
         if(preSent>=8&&pre.length===0){synced=true;lockT=1.4;phase='tx';emitT=0;gridRot=0;}else if(preT>0.55){gridRot*=Math.max(0,1-sd*4);}}
       if(lockT>0)lockT-=sd;
@@ -736,7 +740,7 @@ html.qam-fs .rig{display:none}
   var pb=document.getElementById('qam-pause');pb.addEventListener('click',function(e){e.stopPropagation();paused=!paused;pb.textContent=paused?'Play':'Pause';pb.setAttribute('aria-pressed',paused)});
   var tb=document.getElementById('qam-table-t'),TB=document.getElementById('qam-table');tb.addEventListener('click',function(e){e.stopPropagation();TB.hidden=!TB.hidden;if(!TB.hidden)table();tb.setAttribute('aria-pressed',!TB.hidden);tb.textContent=TB.hidden?'Compare rates':'Hide rates'});
   var fsb=document.getElementById('qam-fs');
-  function setFs(on){fs=on;root.classList.toggle('fs',on);document.documentElement.classList.toggle('qam-fs',on);fsb.textContent=on?'Exit fullscreen':'Fullscreen';fsb.setAttribute('aria-pressed',on);resize();seedSpecks(layout());landed=[];ghosts=[];hintText();}
+  function setFs(on){fs=on;root.classList.toggle('fs',on);document.documentElement.classList.toggle('qam-fs',on);fsb.textContent=on?'Exit fullscreen':'Fullscreen';fsb.setAttribute('aria-pressed',on);resize();seedSpecks(layout());remap();ghosts=[];hintText();}
   fsb.addEventListener('click',function(e){e.stopPropagation();setFs(!fs);});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&fs)setFs(false);});
   var touchy=window.matchMedia('(hover: none)').matches;
@@ -766,13 +770,14 @@ html.qam-fs .rig{display:none}
       '<li>After two failed attempts the sender drops one MCS step, the constellation gets coarser, the cells get bigger, and it takes more interference to corrupt a symbol. That is rate adaptation, and it is why a client near a microwave shows a low PHY rate rather than no connection. Three clean frames and it climbs back.</li>'+
       '<li>Turn on Multipath and a reflector appears under the beam. Every symbol now arrives twice: the direct copy and a dimmer teal echo that bounced off the wall and travelled further. At the receiver the two add as waves. When the extra distance is a whole number of wavelengths they arrive in phase and the signal is stronger than the direct path alone (upfade); half a wavelength off and they cancel (downfade). The receiver equalises the amplitude back using the pilots, so what you see is the noise: a downfade spreads the landing dots and corrupts symbols, an upfade tightens them. The dB readout above the grid is the fade on the last symbol. With Streams set to 2 the receiver has two antennas a little apart, so they see different phases and the combined signal stops swinging; that spatial diversity is the simplest thing MIMO buys you, and the same multipath that ruins one antenna is what lets two streams be told apart at all.</li>'+
       '<li>Every attempt starts with a short train of white pulses before any data: the preamble. Those are the L-STF and L-LTF, fixed patterns both ends know. The receiver uses them to find where the symbols start (timing), to measure how far its own oscillator is off from the sender’s (carrier frequency offset, a few parts per million, which is the constellation visibly spinning until it locks), and to learn the channel so it can equalise. Nothing decodes until LOCKED shows. Without that lock, the phasor in the lens would keep rotating against the receiver’s reference and every symbol would land in the wrong cell.</li>'+
-      '<li>Each particle corkscrews down the beam because a symbol is a phasor: a vector with an amplitude and a phase riding the carrier. The radius of the corkscrew is the amplitude, its starting angle is the phase, and the two together are what land on the constellation. Follow a symbol and the lens magnifies one of them with its phasor drawn alongside, slows the scene, names the byte and field it belongs to, and reports what the receiver decided when it lands.</li>'+
+      '<li>Each particle corkscrews down the beam because a symbol is a phasor: a vector with an amplitude and a phase riding the carrier. The radius of the corkscrew is the amplitude and its angle is the phase. It rides the antenna’s lobe, so the orbit widens as the beam spreads, and the last turn is the circle the symbol lands on: the constellation is that corkscrew seen end-on, frozen at the instant the receiver samples it. Follow a symbol and the lens magnifies one of them with its phasor drawn alongside, slows the scene, names the byte and field it belongs to, and reports what the receiver decided when it lands.</li>'+
       '<li>The ladder at the top is the MCS index, live. The bright step is the rate in use, the outlined step is the one you picked, and the marker slides when rate adaptation moves it. The Mb/s figure next to it is the PHY rate that goes with the step.</li>'+
       '<li>One particle here is one subcarrier. A real '+bw+' MHz channel sends '+NSD[bw]+' of them at once per stream every 13.6 µs, plus a 40 µs preamble, which is where the rate table comes from.</li></ol>'+
       '<p class="meta">What is left out: a real radio scrambles the bits, adds forward error correction (the coding rate in the table), interleaves them across subcarriers, and sends a PHY header before any of this. Those are skipped so the bits on the screen stay the bits in the capture. The capture holds two frames, this one and the 14-byte ACK the AP answers with. Timings are the 5 GHz OFDM values: 9 µs slot, 16 µs SIFS, 34 µs DIFS, contention window 15 doubling to 1023, 7 retries before the frame is dropped. Nothing here is encrypted; WPA3 would scramble everything after the 802.11 header and the picture would look identical.</p>';}
   function toggleX(){var open=X.hidden;if(open)explain();X.hidden=!open;if(open)hint.textContent='Tap the text again to close';else hintText();}
   root.addEventListener('click',toggleX);root.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleX()}});root.tabIndex=0;
-  window.addEventListener('resize',function(){resize();seedSpecks(layout())});
+  function remap(){var L=layout();for(var i=0;i<fly.length;i++){var f=fly[i];f.T=target(L,syms[f.i].ix,syms[f.i].iy);if(f.echo)f.echo.T=f.T;}}
+  window.addEventListener('resize',function(){resize();seedSpecks(layout());remap();});
   resize();buildBits();buildHex();newFrame();frames=1;seedSpecks(layout());stat();
   if(reduce){var L0=layout();while(next<syms.length){emit(L0);var f0=fly.pop();f0.s=1;land(L0,f0);}fcs=checkFcs();phase='ack';paused=true;pb.textContent='Play';draw(0);stat();pb.addEventListener('click',function(){if(!paused){lastNow=0;requestAnimationFrame(step)}});}
   else requestAnimationFrame(step);
