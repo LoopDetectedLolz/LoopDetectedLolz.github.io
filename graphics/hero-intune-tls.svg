@@ -23,8 +23,8 @@
 
   <!-- the join -->
   <line x1="110" y1="168" x2="110" y2="234" stroke="#8CE05E" stroke-width="2" marker-end="url(#arrg)"/>
-  <text x="124" y="196" class="t" fill="#8CE05E" font-size="12" font-weight="600">key the authorization lookup</text>
-  <text x="124" y="212" class="t" fill="#8CE05E" font-size="12" font-weight="600">on the certificate, not the MAC</text>
+  <text x="124" y="190" class="t" fill="#8CE05E" font-size="12" font-weight="600">key the authorization lookup on the certificate, not the MAC</text>
+  <text x="124" y="207" class="t mono" fill="#8CE05E" font-size="11.5">SAN URI = AAD_Device_ID:{{AAD_Device_ID}}</text>
 
   <!-- authorization lane -->
   <text x="30" y="228" class="t eyebrow" fill="#5ED2DA">AUTHORIZATION</text>
@@ -41,5 +41,5 @@
   <text x="606" y="256" class="t" fill="#8BA2AE" font-size="12.5" font-weight="700">The usual build keys this on MAC</text>
   <text x="606" y="276" class="t lbl">Spoofable, and randomization breaks it</text>
 
-  <text x="30" y="316" class="t mono" fill="#8CE05E">OCSP: Required, not Optional. Optional is a revocation check an attacker turns off.</text>
+  <text x="30" y="316" class="t mono" fill="#8CE05E">OCSP: Required. Not Optional, not CRL fallback. The fallback skips OCSP the moment the responder is down.</text>
 </svg>
