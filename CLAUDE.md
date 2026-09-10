@@ -93,7 +93,7 @@ Lessons are posts with `academy: N` in the front matter. That alone makes the po
 
 ## The QAM banner
 
-`theme/widgets/qam.html` is inlined on the index between the header and the featured post, with `data-title` set to the featured post's title at build. Canvas animation (the CSS-only-opacity-and-transform rule is for CSS; the canvas draws with requestAnimationFrame, pauses when the tab is hidden, and is static under reduced motion). 16/64/256-QAM selector, speed 0.25x to 8x, pause, click for the explainer. Gray-coded I/Q mapping, half the bits per axis. Received dots get uniform-ish noise; orange means a decision-boundary crossing. It reads the title as UTF-8 and decodes it back, so a title with non-ASCII characters still round-trips.
+`theme/widgets/qam.html` is inlined on the index between the header and the featured post, with `data-title` set to the featured post's title at build. Canvas animation (the CSS-only-opacity-and-transform rule is for CSS; the canvas draws with requestAnimationFrame, pauses when the tab is hidden, and is static under reduced motion). MCS 0 to 13 selector (BPSK through 4096-QAM), streams 1 to 4, width 20 to 320 MHz, speed 0.25x to 8x, pause, a "Compare rates" toggle that opens the full MCS table (rate = streams x data subcarriers x bits x coding / 13.6 us, 0.8 us GI; subcarriers 234/468/980/1960/3920), and a click-anywhere explainer. Sender in the foreground, tilted constellation in the background, glowing particle with a stroked tail. Gray-coded I/Q mapping, half the bits per axis. Received dots get uniform-ish noise; orange means a decision-boundary crossing. It reads the title as UTF-8 and decodes it back, so a title with non-ASCII characters still round-trips.
 
 ## Post extras
 
