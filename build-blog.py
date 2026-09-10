@@ -229,7 +229,8 @@ index = head(SITE["name"], SITE["tagline"], BASE_URL + "/", BASE_URL + "/og/home
 chips = '<span class="chip on" data-cat="all">All</span>' + "".join(
     '<span class="chip %s" data-cat="%s">%s</span>' % (CAT_CLASS.get(c, ""), E(c), E(c)) for c in CATS)
 cards = card(featured, featured=True) + "".join(card(p) for p in posts if p is not featured)
-index += f'''
+qam = widget("qam").replace('<section class="qam g-card" id="qam"', '<section class="qam g-card" id="qam" data-title="%s"' % E(featured["title"]), 1)
+index += qam + f'''
 <section class="hero g-hero rise" data-view="pop">
   <div class="sheen"></div><div class="glow"></div>
   <span class="tag green"><span class="dot"></span>Latest field note</span>
