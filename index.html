@@ -470,6 +470,7 @@ html.qam-fs .rig{display:none}
       <label>Width <select id="qam-bw"></select></label>
       <label class="qam-speed">Time <input id="qam-time" type="range" min="0" max="4" step="0.05" value="1.5" aria-label="Time scale, from real time to single photons"><b id="qam-time-v">1 s = 7.7 µs</b><span class="qam-band" id="qam-band">symbols</span></label>
       <button class="chip" id="qam-pause" type="button" aria-pressed="false">Pause</button>
+      <button class="chip" id="qam-int" type="button" aria-pressed="false" title="Cursor or finger in the beam adds interference">Interference</button>
       <button class="chip" id="qam-mp" type="button" aria-pressed="false">Multipath</button>
       <button class="chip" id="qam-lb" type="button" aria-pressed="false">Link budget</button>
       <button class="chip" id="qam-heat" type="button" title="Face-on target: hits, heat map, or both">Hits</button>
@@ -542,7 +543,8 @@ html.qam-fs .rig{display:none}
   var lb={on:false,d:30,fsOnly:false,walls:[]},PTX_DBM=20,GT=10,GR=2,NF=7,dragW=-1,wallHit=false;
   var SNRMIN_HT=[5,7,9,11,15,19,21,23,26,28,32,34,38,40],SNRMIN_AG=[5,7,8,10,12,15,19,21];
   var STC=['#4FBDEA','#5ED2DA','#8ed6ff','#c9ecff','#2FA8E0','#9fe6ea','#B0C4CF','#EAF2F6'],STCR=['rgb(79,189,234)','rgb(94,210,218)','rgb(142,214,255)','rgb(201,236,255)','rgb(47,168,224)','rgb(159,230,234)','rgb(176,196,207)','rgb(234,242,246)'];
-  var vs=null,evmE=[],heatMode=0,hc=document.createElement('canvas'),hctx=hc.getContext('2d');
+  var vs=null,evmE=[],heatMode=0,hc=document.createElement('canvas'),hctx=hc.getContext('2d'),intOn=false;
+  function heatClear(){if(hc.width){hctx.globalCompositeOperation='source-over';hctx.clearRect(0,0,hc.width,hc.height);}evmE=[];}
   function snrMin(){return std==='a'?SNRMIN_AG:SNRMIN_HT}
   function fspl1(){return 20*Math.log10(S.f*1e3)-60+32.44}
   function pathLoss(dm){return fspl1()+10*(lb.fsOnly?2:3)*Math.log10(Math.max(1,dm))}
@@ -965,7 +967,7 @@ html.qam-fs .rig{display:none}
     T.querySelectorAll('tr[data-m]').forEach(function(tr){tr.addEventListener('click',function(e){e.stopPropagation();setSel(+tr.getAttribute('data-m'));})});
   }
   function stdAir(id){var s2=STD[id],m=s2.mcs.length-1,w=s2.widths[Math.min(s2.widths.length-1,2)],bp=Math.round(s2.nsd[w]*s2.mcs[m][1]*s2.mcs[m][2]);return (s2.pre(1)+Math.ceil(bits.length/bp)*s2.tsym).toFixed(0)+' µs at its top rate, one stream, '+w+' MHz';}
-  function setSel(m){mcsSel=m;mcsCur=m;selM.value=m;adaptNote='';newFrame();if(!TB.hidden)table();setTime(tv);}
+  function setSel(m){mcsSel=m;mcsCur=m;selM.value=m;adaptNote='';heatClear();newFrame();if(!TB.hidden)table();setTime(tv);}
   var selM=document.getElementById('qam-mcs'),ssSel=document.getElementById('qam-ss'),bwSel=document.getElementById('qam-bw'),stdSel=document.getElementById('qam-std');
   function fill(sel,items,val){sel.innerHTML='';items.forEach(function(it){var o=document.createElement('option');o.value=it[0];o.textContent=it[1];sel.appendChild(o)});sel.value=val;}
   function setStd(id,first){std=id;S=STD[id];MCS=S.mcs;
@@ -974,12 +976,12 @@ html.qam-fs .rig{display:none}
     fill(selM,MCS.map(function(r,i){return[i,i+'  '+r[0]+' '+r[3]]}),mcsSel);
     var sl=[];for(var i=1;i<=S.ssMax;i++)sl.push([i,String(i)]);fill(ssSel,sl,ss);
     fill(bwSel,S.widths.map(function(w){return[w,String(w)]}),bw);
-    if(!first){adaptNote='';newFrame();if(!TB.hidden)table();fieldDirty=true;setTime(tv);}}
+    if(!first){adaptNote='';heatClear();newFrame();if(!TB.hidden)table();fieldDirty=true;setTime(tv);}}
   STDS.forEach(function(id){var o=document.createElement('option');o.value=id;o.textContent=STD[id].name+'  '+STD[id].wifi;stdSel.appendChild(o)});stdSel.value=std;
   stdSel.addEventListener('change',function(){setStd(stdSel.value)});
   selM.addEventListener('change',function(){setSel(+selM.value)});
-  ssSel.addEventListener('change',function(e){ss=+e.target.value;newFrame();if(!TB.hidden)table();setTime(tv);});
-  bwSel.addEventListener('change',function(e){bw=+e.target.value;newFrame();if(!TB.hidden)table();fieldDirty=true;setTime(tv);});
+  ssSel.addEventListener('change',function(e){ss=+e.target.value;heatClear();newFrame();if(!TB.hidden)table();setTime(tv);});
+  bwSel.addEventListener('change',function(e){bw=+e.target.value;heatClear();newFrame();if(!TB.hidden)table();fieldDirty=true;setTime(tv);});
   /* time scale */
   var tsl=document.getElementById('qam-time'),tvv=document.getElementById('qam-time-v'),bandEl=document.getElementById('qam-band');
   function setTime(v){tv=v;var nb=Math.min(3,Math.floor(v)),t=v-nb;
@@ -990,7 +992,7 @@ html.qam-fs .rig{display:none}
     if(nb!==band){var prev=band;band=nb;enterBand(prev);}
     quality();tvv.textContent=(band===0&&F<1.2)?'real time':'1 s = '+fmtT(1/F);bandEl.textContent=BANDS[band];root.setAttribute('data-band',BANDS[band]);hintText();}
   function setTimeUI(v){tsl.value=v;setTime(v);}
-  function enterBand(prev){if(band===0){newFrame();ev='none';evLeft=0;tl=[];lastNF=-1;cycEma=0;phase='idle';}
+  function enterBand(prev){heatClear();if(band===0){newFrame();ev='none';evLeft=0;tl=[];lastNF=-1;cycEma=0;phase='idle';}
     else if(band===1){if(prev!==1){newFrame();}}
     else{if(prev<2){photons=[];rxFlash=[];phCount=0;phRx=0;phEmit=0;tau=0;fieldDirty=true;}}}
   tsl.addEventListener('input',function(){setTime(+tsl.value)});
@@ -1003,7 +1005,7 @@ html.qam-fs .rig{display:none}
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&fs)setFs(false);});
   var touchy=window.matchMedia('(hover: none)').matches;
   function hintText(){if(!hint)return;var tail=touchy?'. Tap this text to see what’s happening':'. Tap the text to see what’s happening';
-    var lead=band===0?'Frame view: the strip is the channel to scale. Hold the cursor in the beam and watch the retries stack up':band===2?'Wave view: the carrier itself. Move the cursor in to add a second radio on a nearby channel':band===3?'Photon view: every dot is one photon of the '+fmtBig(PTX_W*S.tsym*1e-6/(6.626e-34*S.f*1e9))+' in this symbol':(touchy&&!fs?'On a phone, tap Fullscreen to touch the beam without scrolling the page':touchy?'Drag a finger through the beam to add interference':'Hover or touch the beam to add interference');
+    var lead=band===0?(intOn?'Frame view: the strip is the channel to scale. Hold the cursor in the beam and watch the retries stack up':'Frame view: the strip is the channel to scale. Turn on Interference to hurt it with the cursor'):band===2?'Wave view: the carrier itself. Move the cursor in to add a second radio on a nearby channel':band===3?'Photon view: every dot is one photon of the '+fmtBig(PTX_W*S.tsym*1e-6/(6.626e-34*S.f*1e9))+' in this symbol':(!intOn?'Click a hit for its bits. Turn on Interference to add noise with the cursor':touchy&&!fs?'On a phone, tap Fullscreen to touch the beam without scrolling the page':touchy?'Drag a finger through the beam to add interference':'Hover or touch the beam to add interference');
     hint.textContent=lead+tail;}
   var fb2=document.getElementById('qam-follow');fb2.addEventListener('click',function(e){e.stopPropagation();if(band!==1)setTimeUI(1.5);followReq=true;});
   var lbb=document.getElementById('qam-lb'),LBR=document.getElementById('qam-lbrow'),dsl=document.getElementById('qam-dist'),dsv=document.getElementById('qam-dist-v'),mdb=document.getElementById('qam-model'),htb=document.getElementById('qam-heat');
@@ -1012,8 +1014,9 @@ html.qam-fs .rig{display:none}
   mdb.addEventListener('click',function(e){e.stopPropagation();lb.fsOnly=!lb.fsOnly;mdb.textContent=lb.fsOnly?'Free space, n = 2':'Indoor, n = 3';});
   LBR.querySelectorAll('[data-wall]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();if(lb.walls.length>=3)return;var used=lb.walls.map(function(w){return w.pos});var pos=[0.35,0.6,0.8,0.5,0.25][lb.walls.length];lb.walls.push({type:b.getAttribute('data-wall'),pos:pos});});});
   LBR.addEventListener('click',function(e){e.stopPropagation()});
-  htb.addEventListener('click',function(e){e.stopPropagation();heatMode=(heatMode+1)%3;htb.textContent=['Hits','Heat','Both'][heatMode];htb.classList.toggle('on',heatMode>0);});
-  var mpb=document.getElementById('qam-mp');mpb.addEventListener('click',function(e){e.stopPropagation();mp=!mp;lastFade=null;vs=null;mpb.setAttribute('aria-pressed',mp);mpb.classList.toggle('on',mp);});
+  htb.addEventListener('click',function(e){e.stopPropagation();heatClear();heatMode=(heatMode+1)%3;htb.textContent=['Hits','Heat','Both'][heatMode];htb.classList.toggle('on',heatMode>0);});
+  var inb=document.getElementById('qam-int');inb.addEventListener('click',function(e){e.stopPropagation();intOn=!intOn;if(!intOn)cur.on=false;inb.setAttribute('aria-pressed',intOn);inb.classList.toggle('on',intOn);hintText();});
+  var mpb=document.getElementById('qam-mp');mpb.addEventListener('click',function(e){e.stopPropagation();mp=!mp;lastFade=null;vs=null;heatClear();mpb.setAttribute('aria-pressed',mp);mpb.classList.toggle('on',mp);});
   root.querySelector('.qam-ctl').addEventListener('click',function(e){e.stopPropagation()});TB.addEventListener('click',function(e){e.stopPropagation()});
   /* hex panel: hover or tap a byte to see its field */
   var RXP=document.getElementById('qam-rx');RXP.addEventListener('click',function(e){e.stopPropagation()});
@@ -1025,7 +1028,7 @@ html.qam-fs .rig{display:none}
   function setCur(e){var r=c.getBoundingClientRect();cur.x=e.clientX-r.left;cur.y=e.clientY-r.top;var L=layout();
     if(e.type==='pointerdown'){var wh=wallAt(L,cur.x,cur.y);if(wh){wallHit=true;if(wh.x){lb.walls.splice(wh.i,1);dragW=-1;}else dragW=wh.i;cur.on=false;return;}wallHit=false;}
     if(dragW>=0){var pos=(cur.x-L.ex)/(L.cx-L.pw/2-L.ex);lb.walls[dragW].pos=Math.max(0.06,Math.min(0.94,pos));cur.on=false;return;}
-    cur.on=inSide(L,cur.x,cur.y);}
+    cur.on=intOn&&inSide(L,cur.x,cur.y);}
   c.addEventListener('pointermove',setCur);c.addEventListener('pointerdown',setCur);c.addEventListener('pointerleave',function(){cur.on=false});c.addEventListener('pointerup',function(e){dragW=-1;if(e.pointerType!=='mouse')cur.on=false});c.addEventListener('pointercancel',function(){dragW=-1;cur.on=false});
   c.addEventListener('click',function(e){e.stopPropagation();if(wallHit){wallHit=false;return;}var r=c.getBoundingClientRect();var d=nearDot(e.clientX-r.left,e.clientY-r.top);sel=d?d.i:-1;stat();});
   c.addEventListener('pointermove',function(e){var r=c.getBoundingClientRect();hoverDot=nearDot(e.clientX-r.left,e.clientY-r.top);});
@@ -1040,7 +1043,7 @@ html.qam-fs .rig{display:none}
       '<ol><li>Bytes become bits. The first byte is Frame Control, <code>0x'+('0'+b0.toString(16)).slice(-2)+'</code>, which is <code>'+bin+'</code>; the radio sends each byte least-significant bit first, so it leaves the antenna as <code>'+lsb+'</code>. The whole frame is '+bits.length+' bits: '+anatomy+'.</li>'+
       '<li>Bits are chopped into groups of '+k+' ('+MCS[mcsCur][0]+'), Gray coded, and each group picks one point on the '+sx+'×'+sy+' constellation: I is the column, Q is the row. Amplitude is how far from the centre, phase is the angle.</li>'+
       '<li>Each bright particle is one of those symbols. It flies down the beam and peels off to its row as it arrives. Where it lands is what the receiver sees: never exactly on the point, because noise moved it, and how far it moved comes from the link budget below: thermal noise at the receiver against the power that survived the path. Green dots decoded correctly; an orange dot crossed into the wrong cell and decoded as the wrong bits. The receiver is drawn twice: edge-on in the side view, a thin plane with Q running up it and I going into the screen, and face-on in the inset, which is the constellation the way a spectrum analyser shows it. Every hit lands in both at once. Click a hit in either view for the symbol behind it: the bits it carried, the byte and field they belong to (lit up in the hex panel), how far off centre it landed, and what the receiver decoded. The hex panel is the receiver’s copy of the frame, byte by byte, coloured by what each byte is for. Hover a byte to see which field it belongs to and what it says.</li>'+
-      '<li>Put your cursor or finger in the beam. That is interference: a microwave, a neighbour’s AP, a badly shielded PoE run. Particles passing through it get pushed and land in the wrong cell, and the receiver still gets a frame, just a wrong one. The last four bytes are the FCS, a CRC-32 the sender computed over the other '+(FCSF?FCSF[0]:FRAME.length-4)+'. The receiver computes its own over what it received and compares, and that comparison, not the picture, is what decides whether an ACK goes back. One flipped bit anywhere and the two differ, so no ACK comes, the sender waits DIFS plus a random backoff, and the whole frame goes again. Every retry doubles the backoff window. Watch the time-on-the-air figure climb against the clean number.</li>'+
+      '<li>Turn on Interference and put your cursor or finger in the beam. That is interference: a microwave, a neighbour’s AP, a badly shielded PoE run. Particles passing through it get pushed and land in the wrong cell, and the receiver still gets a frame, just a wrong one. The last four bytes are the FCS, a CRC-32 the sender computed over the other '+(FCSF?FCSF[0]:FRAME.length-4)+'. The receiver computes its own over what it received and compares, and that comparison, not the picture, is what decides whether an ACK goes back. One flipped bit anywhere and the two differ, so no ACK comes, the sender waits DIFS plus a random backoff, and the whole frame goes again. Every retry doubles the backoff window. Watch the time-on-the-air figure climb against the clean number.</li>'+
       '<li>After two failed attempts the sender drops one MCS step, the constellation gets coarser, the cells get bigger, and it takes more interference to corrupt a symbol. That is rate adaptation, and it is why a client near a microwave shows a low PHY rate rather than no connection. Three clean frames and it climbs back.</li>'+
       '<li>Turn on Multipath and a reflector appears under the beam. Every symbol now leaves twice: the direct copy and a teal echo that goes to the one spot on the wall where the angle in equals the angle out, flips its phase at the bounce (a reflection off something denser inverts the wave), and arrives later and weaker (0.6 of the direct). The receiver sums the two as vectors, and the face-on target shows that sum for a beat on every arrival: direct plus echo equals the resultant, '+(mp?(fadeGeom(layout()).dM.toFixed(2)+' m of extra path on this bench'):'a metre or so of extra path')+'. Whether they add or cancel depends on the extra path measured in wavelengths, and since each particle is one subcarrier and every subcarrier has a slightly different wavelength, some add (upfade) and some cancel (downfade): that is the curve in the channel response strip, gain against frequency across the channel, with a dot for every particle in flight. The receiver learned that curve from the preamble and divides it out per subcarrier, so the picture you see is the noise after equalisation: a downfaded subcarrier lands with a bigger spread and is the one that gets corrupted. Drag the distance in the link budget and watch the curve slide.</li>'+
       '<li>Streams. Set Streams to 2 and a second driven element appears on the mast and a second antenna beside the plane; two particles now leave every slot on the same subcarrier, one per stream, in two colours, and the frame takes half the airtime. The receiver can only tell them apart if the two paths look different enough, which needs the channel to have rank 2. On a bare line-of-sight bench it does not, so the second stream lands noisy (modelled here as a 6 dB SNR penalty per stream the channel cannot support). Turn Multipath on and the reflector gives rank 2 and it cleans up. That is the thing to remember about MIMO: it needs multipath. Real access points get a second stream in clear line of sight with cross-polarised antennas; three and four streams want a room full of reflections.</li>'+
