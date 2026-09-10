@@ -1,4 +1,4 @@
-<section class="qam g-card" id="qam" data-rise aria-label="Live modulation demo: the latest post title sent over the air, one symbol at a time">
+<section class="qam g-card" id="qam" data-rise aria-label="Live modulation demo: the latest post title sent over the air from a Yagi antenna to a QAM constellation">
   <div class="qam-top">
     <span class="eyebrow">On the air right now</span>
     <div class="qam-ctl" role="group" aria-label="Demo controls">
@@ -10,9 +10,10 @@
       <button class="chip" id="qam-table-t" type="button" aria-pressed="false">Compare rates</button>
     </div>
   </div>
-  <canvas id="qam-c" width="1200" height="260" role="img" aria-label="Animated constellation diagram with a glowing particle"></canvas>
-  <div class="qam-time" id="qam-time"></div>
-  <div class="qam-hint" id="qam-hint">Tap the banner to see what's happening</div>
+  <canvas id="qam-c" width="1200" height="280" role="img" aria-label="Animated beam of particles from a Yagi antenna landing on a constellation diagram"></canvas>
+  <div class="qam-rx"><span class="eyebrow">Received</span><span class="qam-title" id="qam-rxt"></span></div>
+  <div class="qam-stat" id="qam-stat"></div>
+  <div class="qam-hint" id="qam-hint">Hover or touch the beam to add interference. Tap the text to see what's happening</div>
   <div class="qam-table" id="qam-table" hidden></div>
   <div class="qam-x" id="qam-x" hidden></div>
 </section>
@@ -22,191 +23,167 @@
   var c=document.getElementById('qam-c'),ctx=c.getContext('2d');
   var title=root.getAttribute('data-title')||'Network Field Notes';
   var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  /* 802.11ax/be MCS table: modulation, bits per subcarrier, coding rate */
   var MCS=[["BPSK",1,1/2,"1/2"],["QPSK",2,1/2,"1/2"],["QPSK",2,3/4,"3/4"],["16-QAM",4,1/2,"1/2"],["16-QAM",4,3/4,"3/4"],["64-QAM",6,2/3,"2/3"],["64-QAM",6,3/4,"3/4"],["64-QAM",6,5/6,"5/6"],["256-QAM",8,3/4,"3/4"],["256-QAM",8,5/6,"5/6"],["1024-QAM",10,3/4,"3/4"],["1024-QAM",10,5/6,"5/6"],["4096-QAM",12,3/4,"3/4"],["4096-QAM",12,5/6,"5/6"]];
-  var NSD={20:234,40:468,80:980,160:1960,320:3920}, TSYM=13.6; /* 12.8 us symbol + 0.8 us GI */
-  var mcs=7,ss=1,bw=80,speed=1,paused=false,W=1200,H=260,dpr=1;
-  var k=6,sx=8,sy=8,bits=[],pos=0,sym=null,t=0,decoded='',charBits='',cloud=[],trail=[],ghost=[];
-  var phase='tx',ackT=0,launchT=-9,beaconT=0; /* tx: title in flight; ack: receiver answers; sifs: gap */
-  var G='#8CE05E',TEAL='#5ED2DA',MUT='#8BA2AE',ORANGE='#F5A524';
+  var NSD={20:234,40:468,80:980,160:1960,320:3920}, TSYM=13.6, PRE=40, SIFS=16, SLOT=9, DIFS=34, ACK=44, ACKTO=50, CWMIN=15, CWMAX=1023, MAXRETRY=7;
+  var BLUES=['#4FBDEA','#2FA8E0','#5ED2DA','#8ed6ff','#c9ecff','#7cc8f0'];
+  var mcsSel=7,mcsCur=7,ss=1,bw=80,speed=1,paused=false,W=1200,H=280,dpr=1;
+  var k,sx,sy,bits=[],syms=[],next=0,fly=[],landed=[],errors=0,attempt=1,phase='tx',pt=0,emitT=0;
+  var retries=0,frames=0,frameUs=0,cleanUs=0,okRun=0,failRun=0,cw=CWMIN,adaptNote='';
+  var cur={x:0,y:0,on:false}, specks=[], tsec=0, lastNow=0;
   function gray(n){return n^(n>>1)}
   function utf8(s){return unescape(encodeURIComponent(s))}
-  function reset(){
-    bits=[]; var b=utf8(title); for(var i=0;i<b.length;i++){var v=b.charCodeAt(i);for(var j=7;j>=0;j--)bits.push((v>>j)&1)}
-    while(bits.length%k)bits.push(0);
-    pos=0;sym=null;t=0;decoded='';charBits='';cloud=[];trail=[];ghost=[];phase='tx';ackT=0;
+  function rate(m,s,w){return s*NSD[w]*MCS[m][1]*MCS[m][2]/TSYM}
+  function bitsPerOFDM(m,s,w){return Math.round(s*NSD[w]*MCS[m][1]*MCS[m][2])}
+  function airtime(m,s,w){return PRE+Math.ceil(bits.length/bitsPerOFDM(m,s,w))*TSYM}
+  function buildBits(){bits=[];var b=utf8(title);for(var i=0;i<b.length;i++){var v=b.charCodeAt(i);for(var j=7;j>=0;j--)bits.push((v>>j)&1)}}
+  function buildSyms(){
+    k=MCS[mcsCur][1];sx=Math.pow(2,Math.ceil(k/2));sy=Math.pow(2,Math.floor(k/2));
+    var pad=bits.slice(); while(pad.length%k)pad.push(0);
+    syms=[]; for(var p=0;p<pad.length;p+=k){var hx=Math.ceil(k/2),hy=Math.floor(k/2),a=0,b=0,i; for(i=0;i<hx;i++)a=(a<<1)|pad[p+i]; for(i=0;i<hy;i++)b=(b<<1)|pad[p+hx+i]; syms.push({ix:gray(a),iy:gray(b),bits:pad.slice(p,p+k).join('')});}
   }
-  function setMcs(m){mcs=m;k=MCS[m][1];sx=Math.pow(2,Math.ceil(k/2));sy=Math.pow(2,Math.floor(k/2));reset();timing();}
-  function rate(m,s,w){return s*NSD[w]*MCS[m][1]*MCS[m][2]/TSYM} /* Mbps */
-  function symsFor(m,s,w){return Math.ceil(bits.length/(s*NSD[w]*MCS[m][1]*MCS[m][2]))}
-  function timing(){
-    var n=symsFor(mcs,ss,bw), us=n*TSYM, r=rate(mcs,ss,bw);
-    var lo=symsFor(0,1,20)*TSYM;
-    document.getElementById('qam-time').innerHTML='<b>'+bits.length+' bits</b> of title. At MCS '+mcs+' ('+MCS[mcs][0]+' '+MCS[mcs][3]+'), '+ss+' stream'+(ss>1?'s':'')+', '+bw+' MHz: <b>'+r.toFixed(1)+' Mb/s</b>, '+n+' OFDM symbol'+(n>1?'s':'')+', <b>'+us.toFixed(1)+' µs</b> on the air. '+
-      'A 1500-byte frame at this rate takes '+(Math.ceil(12000/Math.round(ss*NSD[bw]*MCS[mcs][1]*MCS[mcs][2]))*TSYM).toFixed(0)+' \u00b5s; at MCS 0, 1 stream, 20 MHz it takes '+(Math.ceil(12000/117)*TSYM).toFixed(0)+' \u00b5s. The preamble in front is about 40 \u00b5s either way, which is why tiny frames never benefit from the fast rows.';
-    if(!document.getElementById('qam-table').hidden) table();
+  function newFrame(){next=0;fly=[];landed=[];errors=0;attempt=1;phase='tx';pt=0;emitT=0;frameUs=0;cleanUs=airtime(mcsSel,ss,bw)+SIFS+ACK;cw=CWMIN;buildSyms();frames++;}
+  function retry(){next=0;fly=[];landed=[];errors=0;attempt++;phase='tx';pt=0;emitT=0;}
+  function resize(){var r=c.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);W=Math.max(320,Math.round(r.width));H=W<600?260:280;c.width=W*dpr;c.height=H*dpr;c.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);}
+  function layout(){var mob=W<600,R=mob?Math.min(W*0.20,64):Math.min(H*0.36,100);var ax=mob?52:Math.round(W*0.11),ay=Math.round(H*0.5);var cx=W-R-(mob?36:56),cy=ay;return{mob:mob,R:R,ax:ax,ay:ay,ex:ax+(mob?26:46),cx:cx,cy:cy,cell:(2*R)/Math.max(sx,sy)};}
+  function halfW(L,s){return 5+(L.R+8-5)*Math.pow(s,1.35)}
+  function target(L,ix,iy){var cw2=(2*L.R)/sx,ch=(2*L.R)/sy;return{x:L.cx-L.R+cw2*(ix+0.5),y:(sy===1?L.cy:L.cy+L.R-ch*(iy+0.5)),w:cw2,h:ch};}
+  /* path of a particle: along the beam axis, peeling off to its row late */
+  function pathAt(L,f,s){var T=f.T;var x=L.ex+(T.x-L.ex)*s;var g=Math.pow(s,1.7);var y=L.ay+(T.y-L.ay)*g+f.wob*Math.sin(s*9+f.ph)*(1-g)*halfW(L,s)*0.35+f.push*(1-g);return{x:x,y:y};}
+  function seedSpecks(L){specks=[];var n=L.mob?70:150;for(var i=0;i<n;i++)specks.push({s:Math.random(),lane:(Math.random()*2-1),col:Math.random(),v:0.10+Math.random()*0.18,c:BLUES[i%BLUES.length],r:0.6+Math.random()*1.4,a:0.25+Math.random()*0.45,ph:Math.random()*6.3});}
+  function drawYagi(L,now){
+    var ax=L.ax,ay=L.ay,sc=L.mob?0.6:1;
+    ctx.save();ctx.translate(ax,ay);ctx.scale(sc,sc);ctx.lineCap='round';
+    ctx.strokeStyle='rgba(176,196,207,0.35)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-40,0);ctx.lineTo(-40,H/sc);ctx.stroke(); /* mast */
+    ctx.strokeStyle='#B0C4CF';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-72,0);ctx.lineTo(46,0);ctx.stroke(); /* boom */
+    var els=[[-62,58,'#8BA2AE',2.5],[-8,44,'#B0C4CF',2.5],[10,42,'#B0C4CF',2.5],[26,40,'#B0C4CF',2.5],[40,38,'#B0C4CF',2.5]];
+    els.forEach(function(e){ctx.strokeStyle=e[2];ctx.lineWidth=e[3];ctx.beginPath();ctx.moveTo(e[0],-e[1]/2);ctx.lineTo(e[0],e[1]/2);ctx.stroke();});
+    /* driven element: folded dipole, glowing */
+    var g=0.6+0.4*Math.sin(now/180);ctx.strokeStyle='#4FBDEA';ctx.shadowColor='#4FBDEA';ctx.shadowBlur=14*g;ctx.lineWidth=3;
+    ctx.beginPath();ctx.roundRect?ctx.roundRect(-36,-26,8,52,4):ctx.rect(-36,-26,8,52);ctx.stroke();ctx.shadowBlur=0;
+    ctx.fillStyle='#8BA2AE';ctx.font='10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='center';ctx.fillText('YAGI',-14,52);
+    ctx.restore();
   }
-  function table(){
-    var rows=''; for(var m=0;m<MCS.length;m++){var r=rate(m,ss,bw),n=symsFor(m,ss,bw);
-      var bps=Math.round(MCS[m][1]*MCS[m][2]*ss*NSD[bw]), f=Math.ceil(12000/bps);
-      rows+='<tr data-m="'+m+'"'+(m===mcs?' class="on"':'')+'><td>'+m+'</td><td>'+MCS[m][0]+'</td><td>'+MCS[m][3]+'</td><td>'+bps+'</td><td>'+r.toFixed(1)+'</td><td>'+n+' ('+(n*TSYM).toFixed(1)+' \u00b5s)</td><td>'+f+' ('+(f*TSYM).toFixed(0)+' \u00b5s)</td></tr>';}
-    var T=document.getElementById('qam-table');
-    T.innerHTML='<span class="eyebrow">MCS index, '+ss+' stream'+(ss>1?'s':'')+', '+bw+' MHz, 0.8 µs guard interval</span>'+
-      '<div class="tbl"><table><tr><th>MCS</th><th>Modulation</th><th>Coding</th><th>Bits per OFDM symbol</th><th>PHY rate Mb/s</th><th>This title</th><th>A 1500-byte frame</th></tr>'+rows+'</table></div>'+
-      '<p class="meta">Tap a row to send the title at that modulation. Change streams and width above and every row moves; the modulation only sets how many bits fit on one subcarrier. MCS 12 and 13 are Wi-Fi 7 only, and your client gets the high rows only when the signal is clean enough to tell 4,096 points apart.</p>';
-    T.querySelectorAll('tr[data-m]').forEach(function(tr){tr.addEventListener('click',function(e){e.stopPropagation();setMcs(+tr.getAttribute('data-m'));document.getElementById('qam-mcs').value=mcs;})});
+  function drawLobe(L){
+    var g=ctx.createLinearGradient(L.ex,0,L.cx,0);g.addColorStop(0,'rgba(79,189,234,0.16)');g.addColorStop(0.6,'rgba(79,189,234,0.06)');g.addColorStop(1,'rgba(79,189,234,0.02)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(L.ex,L.ay);var n=40;
+    for(var i=0;i<=n;i++){var s=i/n;ctx.lineTo(L.ex+(L.cx-L.R-L.ex)*s,L.ay-halfW(L,s));}
+    for(i=n;i>=0;i--){var s2=i/n;ctx.lineTo(L.ex+(L.cx-L.R-L.ex)*s2,L.ay+halfW(L,s2));}
+    ctx.closePath();ctx.fill();
+    /* back lobe */
+    ctx.fillStyle='rgba(79,189,234,0.05)';ctx.beginPath();ctx.ellipse(L.ax-(L.mob?48:80),L.ay,L.mob?14:22,L.mob?9:14,0,0,Math.PI*2);ctx.fill();
   }
-  function resize(){
-    var r=c.getBoundingClientRect(); dpr=Math.min(2,window.devicePixelRatio||1);
-    W=Math.max(320,Math.round(r.width)); H=W<600?360:260; c.width=W*dpr;c.height=H*dpr;c.style.height=H+'px'; ctx.setTransform(dpr,0,0,dpr,0,0);
+  function drawGrid(L){
+    ctx.save();ctx.translate(L.cx,L.cy);var R=L.R,cw2=(2*R)/sx,ch=(2*R)/sy;
+    ctx.strokeStyle='rgba(255,255,255,0.22)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-R-10,0);ctx.lineTo(R+14,0);ctx.moveTo(0,R+10);ctx.lineTo(0,-R-14);ctx.stroke();
+    ctx.fillStyle='#8BA2AE';ctx.font='10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';ctx.fillText('I',R+18,4);ctx.textAlign='center';ctx.fillText('Q',0,-R-18);
+    if(sx<=16){ctx.strokeStyle='rgba(255,255,255,0.07)';for(var i=0;i<=sx;i++){ctx.beginPath();ctx.moveTo(-R+i*cw2,-R);ctx.lineTo(-R+i*cw2,R);ctx.stroke()}for(i=0;i<=sy;i++){var yy=sy===1?0:-R+i*ch;ctx.beginPath();ctx.moveTo(-R,yy);ctx.lineTo(R,yy);ctx.stroke()}}
+    var dr=sx>32?0.6:sx>16?0.9:sx>8?1.3:2.2;
+    for(var x=0;x<sx;x++)for(var y=0;y<sy;y++){var px=-R+cw2*(x+0.5),py=(sy===1?0:R-ch*(y+0.5));ctx.fillStyle='rgba(79,189,234,0.55)';ctx.shadowColor='#4FBDEA';ctx.shadowBlur=sx>16?0:6;ctx.beginPath();ctx.arc(px,py,dr,0,Math.PI*2);ctx.fill();}
+    ctx.shadowBlur=0;ctx.fillStyle='#8BA2AE';ctx.font='10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='center';ctx.fillText(MCS[mcsCur][0]+'  '+k+' bit'+(k>1?'s':'')+'/symbol',0,R+24);
+    ctx.restore();
   }
-  function layout(){
-    var mob=W<600, R=mob?Math.min(W*0.30,100):Math.min(H*0.36,96);
-    return {mob:mob,R:R,cx:mob?W*0.56:W*0.60,cy:mob?R+26:H*0.40,tx:mob?34:W*0.09,ty:mob?H-56:H*0.80,rx:mob?16:W*0.09,ry:mob?2*R+72:H*0.40};
-  }
-  function symbolOf(p){var hx=Math.ceil(k/2),hy=Math.floor(k/2),a=0,b=0,i; for(i=0;i<hx;i++)a=(a<<1)|bits[p+i]; for(i=0;i<hy;i++)b=(b<<1)|bits[p+hx+i]; return {ix:gray(a),iy:gray(b)};}
-  /* the target plane is drawn tilted: x squashed a little, y squashed more, so it reads as receding */
-  function plane(L){return {a:0.92,b:-0.06,c:0.0,d:0.74}}
-  function pt(L,ix,iy){var sw=(2*L.R)/sx, sh=(2*L.R)/sy, px=-L.R+sw*(ix+0.5), py=(sy===1?0:L.R-sh*(iy+0.5)); var P=plane(L); return {x:L.cx+P.a*px+P.c*py,y:L.cy+P.b*px+P.d*py,s:Math.min(sw,sh)*0.8};}
-  /* the field: a panel of cells lit by the AP, ripples at the wavelength, decaying with distance */
-  function lerp(a,b,u){return a+(b-a)*u}
-  function col(level,alpha){ /* strong green -> teal -> blue-light -> muted */
-    var c; if(level>0.66){var u=(level-0.66)/0.34;c=[lerp(94,140,u),lerp(210,224,u),lerp(218,94,u)]}
-    else if(level>0.33){var v=(level-0.33)/0.33;c=[lerp(79,94,v),lerp(189,210,v),lerp(234,218,v)]}
-    else{var w=level/0.33;c=[lerp(139,79,w),lerp(162,189,w),lerp(174,234,w)]}
-    return 'rgba('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+','+alpha+')';
-  }
-  function drawField(L,now){
-    var cs=L.mob?16:20, ax=L.tx, ay=L.ty-13, lam=cs*2.6, tsec=now/1000;
-    var busy=phase==='tx'&&sym, ack=phase==='ack';
-    var bx=L.mob?L.rx:L.cx, by=L.mob?L.ry:L.cy; /* where the receiver is */
-    for(var gy=cs/2;gy<H;gy+=cs)for(var gx=cs/2;gx<W;gx+=cs){
-      var d=Math.hypot(gx-ax,gy-ay), lvl=1/(1+Math.pow(d/(L.R*1.6),1.6));
-      var wave=0.5+0.5*Math.sin((d/lam-tsec*3.2)*Math.PI*2);
-      var a;
-      if(busy){a=lvl*(0.10+0.55*wave)}
-      else if(ack){var dr=Math.hypot(gx-bx,gy-by),lr=1/(1+Math.pow(dr/(L.R*1.2),1.6)),wr=0.5+0.5*Math.sin((dr/lam-tsec*3.2)*Math.PI*2);a=lr*(0.08+0.5*wr)*Math.min(1,ackT*3);lvl=lr;}
-      else{var bt=(tsec%1.0), ring=Math.exp(-Math.pow((d-bt*W*0.9)/(cs*1.2),2)); a=lvl*0.06+ring*lvl*0.5;}
-      if(a<0.02)continue;
-      ctx.fillStyle=ack?'rgba(79,189,234,'+a+')':col(lvl,a);
-      var r=cs*0.5*(0.45+0.45*Math.min(1,a*3)); a=Math.min(a,0.5);
-      ctx.fillRect(gx-r*0.5,gy-r*0.5,r,r);
-    }
-    /* wavefront ring at launch */
-    var age=tsec-launchT; if(age<0.9&&busy){var rr=age*(W*1.1);ctx.strokeStyle='rgba(140,224,94,'+(0.5*(1-age/0.9))+')';ctx.lineWidth=2;ctx.beginPath();ctx.arc(ax,ay,rr,0,Math.PI*2);ctx.stroke();}
-    /* medium state, top right of the scene */
-    ctx.save(); ctx.textAlign='right'; ctx.font='600 10px JetBrains Mono,ui-monospace,monospace';
-    var lab=busy?'MEDIUM BUSY  frame in the air':ack?'ACK  receiver answering, '+'SIFS then next frame':'MEDIUM IDLE  beacons every 102 ms';
-    ctx.fillStyle=busy?'#8CE05E':ack?'#4FBDEA':'#8BA2AE'; ctx.fillText(lab,W-6,H-8); ctx.restore();
-  }
-  function easeOut(x){return 1-Math.pow(1-x,3)}
-  function pAt(L,P,sym,tt){
-    var T=pt(L,sym.ix,sym.iy), ang=Math.atan2((T.y-L.cy)/P.d,(T.x-L.cx)/P.a), rad=Math.hypot((T.x-L.cx)/P.a,(T.y-L.cy)/P.d), x,y,scale;
-    if(tt<0.35){var u=easeOut(tt/0.35); var sr=L.R+18, ex=L.cx+P.a*Math.cos(ang)*sr, ey=L.cy+P.d*Math.sin(ang)*sr;
-      x=L.tx+(ex-L.tx)*u; y=(L.ty-13)+(ey-(L.ty-13))*u-Math.sin(u*Math.PI)*(L.mob?30:70); scale=1-0.45*u;}
-    else{var v=(tt-0.35)/0.65, e=easeOut(v); var rr=(L.R+18)+(rad-(L.R+18))*e, th=ang+Math.PI*2.5*(1-v); x=L.cx+P.a*Math.cos(th)*rr; y=L.cy+P.d*Math.sin(th)*rr; scale=0.55-0.2*v;}
-    return {x:x,y:y,s:scale};
-  }
-
   function draw(now){
-    var L=layout(),P=plane(L); ctx.clearRect(0,0,W,H);
-    drawField(L,now);
-    /* background target */
-    ctx.save(); ctx.translate(L.cx,L.cy); ctx.transform(P.a,P.b,P.c,P.d,0,0);
-    var g=ctx.createRadialGradient(0,0,0,0,0,L.R*1.25); g.addColorStop(0,'rgba(94,210,218,0.10)'); g.addColorStop(1,'rgba(94,210,218,0)'); ctx.fillStyle=g; ctx.beginPath();ctx.arc(0,0,L.R*1.25,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='rgba(94,210,218,0.28)'; ctx.lineWidth=1;
-    for(var r=L.R;r>0;r-=L.R/4){ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke()}
-    var sw=(2*L.R)/sx, sh=(2*L.R)/sy; ctx.strokeStyle='rgba(255,255,255,'+(sx>16?0.05:0.10)+')';
-    if(sx<=64){for(var i=0;i<=sx;i++){ctx.beginPath();ctx.moveTo(-L.R+i*sw,-L.R);ctx.lineTo(-L.R+i*sw,L.R);ctx.stroke()} for(i=0;i<=sy;i++){var yy=sy===1?0:-L.R+i*sh;ctx.beginPath();ctx.moveTo(-L.R,yy);ctx.lineTo(L.R,yy);ctx.stroke()}}
-    ctx.strokeStyle='rgba(255,255,255,0.22)'; ctx.beginPath();ctx.moveTo(-L.R-8,0);ctx.lineTo(L.R+8,0);ctx.moveTo(0,-L.R-8);ctx.lineTo(0,L.R+8);ctx.stroke();
-    ctx.fillStyle='rgba(234,242,246,'+(sx>16?0.35:0.6)+')'; var dr=sx>32?0.6:sx>16?0.9:sx>8?1.2:2;
-    for(var x=0;x<sx;x++)for(var y=0;y<sy;y++){ctx.beginPath();ctx.arc(-L.R+sw*(x+0.5),(sy===1?0:L.R-sh*(y+0.5)),dr,0,Math.PI*2);ctx.fill()}
-    ctx.restore();
-    ctx.fillStyle=MUT; ctx.font='10px JetBrains Mono,ui-monospace,monospace'; ctx.textAlign='left'; ctx.fillText('I',L.cx+L.R*P.a+12,L.cy+4); ctx.fillText('Q',L.cx-3,L.cy-L.R*P.d-10);
-    ctx.fillText(MCS[mcs][0]+'  '+k+' bit'+(k>1?'s':'')+' per symbol',L.cx-L.R*P.a,L.cy+L.R*P.d+18);
-    /* received cloud */
-    for(i=0;i<cloud.length;i++){var d=cloud[i];ctx.fillStyle=d.bad?'rgba(245,165,36,0.95)':'rgba(140,224,94,'+(0.3+0.6*d.a)+')';ctx.beginPath();ctx.arc(d.x,d.y,d.bad?2.4:1.8,0,Math.PI*2);ctx.fill()}
-    /* foreground sender, bigger */
-    ctx.save(); ctx.translate(L.tx,L.ty); ctx.strokeStyle=G; ctx.lineWidth=3; ctx.lineCap='round';
-    ctx.beginPath();ctx.moveTo(0,16);ctx.lineTo(0,-10);ctx.stroke(); ctx.fillStyle=G; ctx.shadowColor=G; ctx.shadowBlur=14; ctx.beginPath();ctx.arc(0,-13,5,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
-    ctx.lineWidth=2; for(i=1;i<=3;i++){ctx.globalAlpha=0.6-i*0.15;ctx.beginPath();ctx.arc(0,-13,10*i+((now/220)%10),-0.95,0.95);ctx.stroke()} ctx.globalAlpha=1;
-    ctx.fillStyle=MUT; ctx.font='11px JetBrains Mono,ui-monospace,monospace'; ctx.textAlign='center'; ctx.fillText('AP',0,34); ctx.restore();
-    /* decoded text */
-    ctx.save(); ctx.textAlign='left'; var rx=L.rx, ry=L.ry;
-    ctx.fillStyle='rgba(3,10,16,0.55)'; var bw2=L.mob?W-20:Math.min(380,(L.cx-L.R*P.a)-rx-16); ctx.beginPath(); ctx.roundRect?ctx.roundRect(rx-10,ry-30,bw2,86,10):ctx.rect(rx-10,ry-30,bw2,86); ctx.fill();
-    ctx.fillStyle=MUT; ctx.font='10px JetBrains Mono,ui-monospace,monospace'; ctx.fillText('RECEIVED',rx,ry-16);
-    ctx.fillStyle='#EAF2F6'; ctx.font='600 15px Instrument Sans,-apple-system,Helvetica,sans-serif';
-    var maxW=L.mob?W-32:(L.cx-L.R*P.a)-rx-30, shown=decoded, m=ctx.measureText(shown).width;
-    while(m>maxW&&shown.length>1){shown='…'+shown.slice(2);m=ctx.measureText(shown).width}
-    ctx.fillText(shown+(paused?'':'█'),rx,ry+6);
-    ctx.fillStyle=TEAL; ctx.font='11px JetBrains Mono,ui-monospace,monospace'; ctx.fillText((charBits||'').replace(/(.{4})/g,'$1 ')+(sym?'   I='+sym.ix+' Q='+sym.iy:''),rx,ry+28);
-    ctx.fillStyle=MUT; ctx.font='10px Instrument Sans,-apple-system,Helvetica,sans-serif'; ctx.fillText('latest post title, in cleartext',rx,ry+46);
-    ctx.restore();
-    /* particle with tail */
-    if(sym&&trail.length){
-      var T=pt(L,sym.ix,sym.iy), hd=trail[trail.length-1], x=hd.x, y=hd.y, scale=hd.s;
-      ctx.lineCap='round'; for(i=1;i<trail.length;i++){var q=trail[i],q0=trail[i-1],a=(i+1)/trail.length; ctx.strokeStyle='rgba(140,224,94,'+(a*0.5)+')'; ctx.lineWidth=(1.5+6*q.s)*a; ctx.beginPath();ctx.moveTo(q0.x,q0.y);ctx.lineTo(q.x,q.y);ctx.stroke();}
-      ctx.fillStyle='#d9ffbf'; ctx.shadowColor=G; ctx.shadowBlur=18; ctx.beginPath();ctx.arc(x,y,2.5+5*scale,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
-      ctx.strokeStyle='rgba(140,224,94,0.4)'; ctx.beginPath();ctx.ellipse(T.x,T.y,T.s*0.5*P.a,T.s*0.5*P.d,0,0,Math.PI*2);ctx.stroke();
-    }
-    if(phase==='ack'){var u=Math.min(1,ackT*Math.min(speed,2)/1.0), bx2=L.mob?L.rx+40:L.cx, by2=L.mob?L.ry:L.cy; var ax2=L.tx, ay2=L.ty-13;
-      var px2=bx2+(ax2-bx2)*easeOut(u), py2=by2+(ay2-by2)*easeOut(u)-Math.sin(u*Math.PI)*(L.mob?20:50);
-      ctx.fillStyle='#bfe7ff'; ctx.shadowColor='#4FBDEA'; ctx.shadowBlur=16; ctx.beginPath();ctx.arc(px2,py2,4,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
-      ctx.fillStyle='#4FBDEA'; ctx.font='600 10px JetBrains Mono,ui-monospace,monospace'; ctx.textAlign='center'; ctx.fillText('ACK',px2,py2-10);}
-    if(ghost.length){ghost.shift(); ctx.lineCap='round'; for(i=1;i<ghost.length;i++){var q2=ghost[i],q3=ghost[i-1],a2=(i+1)/ghost.length; ctx.strokeStyle='rgba(140,224,94,'+(a2*0.3)+')'; ctx.lineWidth=(1+4*q2.s)*a2; ctx.beginPath();ctx.moveTo(q3.x,q3.y);ctx.lineTo(q2.x,q2.y);ctx.stroke();}}
+    var L=layout();ctx.clearRect(0,0,W,H);
+    drawLobe(L);drawYagi(L,now);
+    /* specks: ambient energy riding the lobe */
+    for(var i=0;i<specks.length;i++){var q=specks[i];var ex=L.cx-L.R+q.col*2*L.R,ey=L.ay+q.lane*L.R;var f={T:{x:ex,y:ey},wob:0.6,ph:q.ph,push:0};var p=pathAt(L,f,q.s);
+      var near=cur.on?Math.max(0,1-Math.hypot(p.x-cur.x,p.y-cur.y)/90):0; var jx=(Math.random()-0.5)*near*22,jy=(Math.random()-0.5)*near*22;
+      ctx.fillStyle=near>0.3?'rgba(245,165,36,'+(q.a*0.9)+')':q.c;ctx.globalAlpha=q.a*(0.5+0.5*Math.sin(q.s*Math.PI));ctx.beginPath();ctx.arc(p.x+jx,p.y+jy,q.r,0,Math.PI*2);ctx.fill();}
+    ctx.globalAlpha=1;
+    drawGrid(L);
+    /* landed */
+    for(i=0;i<landed.length;i++){var d=landed[i];ctx.fillStyle=d.bad?'rgba(245,165,36,0.95)':'rgba(140,224,94,0.85)';ctx.shadowColor=d.bad?'#F5A524':'#8CE05E';ctx.shadowBlur=6;ctx.beginPath();ctx.arc(d.x,d.y,d.bad?2.6:2,0,Math.PI*2);ctx.fill();}
+    ctx.shadowBlur=0;
+    /* symbols in flight, with tails */
+    for(i=0;i<fly.length;i++){var f2=fly[i];var tr=f2.trail;ctx.lineCap='round';
+      for(var j=1;j<tr.length;j++){var a=(j/tr.length);ctx.strokeStyle=f2.hit?'rgba(245,165,36,'+(0.55*a)+')':f2.col.replace(')',','+(0.55*a)+')').replace('rgb','rgba');ctx.lineWidth=(1+2.6*(1-f2.s))*a+0.4;ctx.beginPath();ctx.moveTo(tr[j-1].x,tr[j-1].y);ctx.lineTo(tr[j].x,tr[j].y);ctx.stroke();}
+      var hp=tr[tr.length-1];ctx.fillStyle=f2.hit?'#ffd28a':'#eaf8ff';ctx.shadowColor=f2.hit?'#F5A524':f2.glow;ctx.shadowBlur=14;ctx.beginPath();ctx.arc(hp.x,hp.y,1.6+2.4*(1-f2.s*0.6),0,Math.PI*2);ctx.fill();}
+    ctx.shadowBlur=0;
+    /* interference blob */
+    if(cur.on){var g=ctx.createRadialGradient(cur.x,cur.y,0,cur.x,cur.y,90);g.addColorStop(0,'rgba(245,165,36,0.22)');g.addColorStop(1,'rgba(245,165,36,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cur.x,cur.y,90,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(245,165,36,0.5)';ctx.setLineDash([3,5]);ctx.beginPath();ctx.arc(cur.x,cur.y,90,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='#ffd28a';ctx.font='600 10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='center';ctx.fillText('INTERFERENCE',cur.x,cur.y-96);}
+    /* ACK pulse: blue glow travelling back along the axis */
+    if(phase==='ack'){var u=Math.min(1,pt/0.5);var x2=L.cx-L.R+(L.ex-(L.cx-L.R))*u;ctx.fillStyle='#bfe7ff';ctx.shadowColor='#4FBDEA';ctx.shadowBlur=18;for(var m=0;m<5;m++){ctx.globalAlpha=1-m*0.18;ctx.beginPath();ctx.arc(x2+m*10,L.ay+Math.sin(u*6+m)*3,4-m*0.5,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;ctx.shadowBlur=0;
+      ctx.fillStyle='#4FBDEA';ctx.font='600 10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='center';ctx.fillText('ACK',x2,L.ay-14);}
+    if(phase==='timeout'||phase==='backoff'){ctx.fillStyle='#ffd28a';ctx.font='600 11px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';ctx.fillText(phase==='timeout'?'NO ACK: '+errors+' symbol'+(errors>1?'s':'')+' corrupted, CRC failed':'DIFS + backoff, then attempt '+(attempt+1)+' of '+MAXRETRY,L.mob?8:L.ex+8,18);}
+    /* medium label */
+    ctx.save();ctx.textAlign='right';ctx.font='600 10px JetBrains Mono,ui-monospace,monospace';var lab=phase==='tx'?'MEDIUM BUSY':phase==='ack'?'ACK':phase==='timeout'?'ACK TIMEOUT':phase==='backoff'?'DIFS + BACKOFF':'MEDIUM IDLE';ctx.fillStyle=phase==='tx'?'#8CE05E':phase==='ack'?'#4FBDEA':(phase==='timeout'||phase==='backoff')?'#F5A524':'#8BA2AE';ctx.fillText(lab,W-6,H-8);ctx.restore();
   }
-  var last=0;
+  function emit(L){var s=syms[next];var f={i:next,T:target(L,s.ix,s.iy),s:0,wob:(Math.random()*2-1),ph:Math.random()*6.3,push:0,col:'rgb(79,189,234)',glow:BLUES[next%BLUES.length],trail:[],hit:0,noise:0};var cc=BLUES[next%BLUES.length];var r=parseInt(cc.slice(1,3),16),g=parseInt(cc.slice(3,5),16),b=parseInt(cc.slice(5,7),16);f.col='rgb('+r+','+g+','+b+')';f.trail.push(pathAt(L,f,0));fly.push(f);next++;}
+  function land(L,f){var T=f.T;var sig=Math.min(T.w,T.h)*0.16+f.noise*L.R*0.09;var jx=(Math.random()+Math.random()+Math.random()-1.5)*sig,jy=(Math.random()+Math.random()+Math.random()-1.5)*sig;var bad=Math.abs(jx)>T.w/2||Math.abs(jy)>T.h/2;if(bad)errors++;landed.push({x:T.x+jx,y:T.y+jy,bad:bad});if(landed.length>600)landed.shift();}
+  function L_mob(){return W<600}
+  function fmt(us){return us>=1000?(us/1000).toFixed(2)+' ms':Math.round(us)+' µs'}
+  function stat(){
+    var el=document.getElementById('qam-stat');var fa=airtime(mcsCur,ss,bw);
+    var s='<b>'+bits.length+' bits</b>, '+syms.length+' symbols at MCS '+mcsCur+' ('+MCS[mcsCur][0]+'), '+ss+'×'+bw+' MHz: '+rate(mcsCur,ss,bw).toFixed(0)+' Mb/s. ';
+    s+='Frame '+frames+', attempt <b>'+attempt+'</b>'+(errors?', <b class="warn">'+errors+' corrupted</b>':'')+'. On the air so far <b>'+fmt(frameUs)+'</b>'+(frameUs>cleanUs*1.05?' <b class="warn">('+(frameUs/cleanUs).toFixed(1)+'× the clean '+fmt(cleanUs)+')</b>':' (clean: '+fmt(cleanUs)+')')+'. Retries this session: <b>'+retries+'</b>.';
+    if(adaptNote)s+=' <b class="warn">'+adaptNote+'</b>';
+    el.innerHTML=s;
+    var rx=document.getElementById('qam-rxt');var got=Math.floor(landed.length*k/8);var b=utf8(title).slice(0,got);var dec='';try{dec=decodeURIComponent(escape(b))}catch(e){dec=b}rx.textContent=dec+(phase==='tx'?'█':'');rx.classList.toggle('bad',errors>0);
+  }
+  var statT=0;
   function step(now){
-    if(!last)last=now; var dt=Math.min(50,now-last); last=now;
+    if(!lastNow)lastNow=now;var dt=Math.min(50,now-lastNow)/1000;lastNow=now;var L=layout();
     if(!paused&&!document.hidden){
-      if(phase==='ack'){ ackT+=dt/1000; if(ackT>1.1/Math.min(speed,2)){phase='sifs';t=0} }
-      else if(phase==='sifs'){ t+=dt/1000; if(t>0.6){reset()} }
-      else if(!sym){ if(pos>=bits.length){ phase='ack'; ackT=0; } else { sym=symbolOf(pos); t=0; launchT=now/1000; } }
-      else { var L2=layout(),P2=plane(L2), n=Math.max(1,Math.ceil(speed*1.5)), step2=dt/1000*speed*0.85/n;
-        for(var q=0;q<n&&sym;q++){ t+=step2; if(t>=1){land();break;} trail.push(pAt(L2,P2,sym,t)); }
-        while(trail.length>40)trail.shift(); }
+      var sd=dt*speed;tsec+=sd;
+      for(var i=0;i<specks.length;i++){var q=specks[i];q.s+=q.v*sd;if(q.s>1){q.s=0;q.lane=Math.random()*2-1;q.col=Math.random();}}
+      if(phase==='tx'){
+        emitT+=sd;var iv=0.075;while(emitT>=iv&&next<syms.length){emitT-=iv;emit(L);}
+        for(i=fly.length-1;i>=0;i--){var f=fly[i];var sub=Math.max(1,Math.ceil(speed));for(var u2=0;u2<sub;u2++){f.s+=sd/1.25/sub;var p=pathAt(L,f,Math.min(1,f.s));
+            if(cur.on){var near=Math.max(0,1-Math.hypot(p.x-cur.x,p.y-cur.y)/90);if(near>0){f.noise=Math.max(f.noise,near);f.hit=Math.max(f.hit,near);f.push+=(Math.random()-0.5)*near*14;}}
+            f.trail.push(p);if(f.trail.length>22)f.trail.shift();if(f.s>=1)break;}
+          if(f.s>=1){land(L,f);fly.splice(i,1);}}
+        if(next>=syms.length&&fly.length===0){frameUs+=airtime(mcsCur,ss,bw);
+          if(errors===0){phase='ack';pt=0;frameUs+=SIFS+ACK;okRun++;failRun=0;if(okRun>=3&&mcsCur<mcsSel){mcsCur++;adaptNote='Rate adaptation: clean run, MCS back up to '+mcsCur+'.';okRun=0;}}
+          else{phase='timeout';pt=0;frameUs+=ACKTO;retries++;failRun++;okRun=0;}}
+      }else if(phase==='ack'){pt+=sd;if(pt>0.55){phase='idle';pt=0;}}
+      else if(phase==='idle'){pt+=sd;if(pt>0.7){adaptNote=adaptNote&&adaptNote.indexOf('back up')<0?'':adaptNote;newFrame();}}
+      else if(phase==='timeout'){pt+=sd;if(pt>0.6){if(attempt>=MAXRETRY){adaptNote='Frame dropped after '+MAXRETRY+' attempts. That is what "the Wi-Fi is slow" looks like on the wire.';phase='idle';pt=0;}else{cw=Math.min(CWMAX,(cw+1)*2-1);var slots=Math.floor(Math.random()*(cw+1));frameUs+=DIFS+slots*SLOT;phase='backoff';pt=0;
+            if(failRun>=2&&mcsCur>0){mcsCur--;failRun=0;adaptNote='Rate adaptation: two failures, dropping to MCS '+mcsCur+' ('+MCS[mcsCur][0]+'). Bigger cells, harder to corrupt, slower.';buildSyms();}}}}
+      else if(phase==='backoff'){pt+=sd;if(pt>0.5)retry();}
     }
-    root.setAttribute('data-phase',phase); draw(now); requestAnimationFrame(step);
+    statT+=dt;if(statT>0.12){stat();statT=0;}
+    root.setAttribute('data-phase',phase);draw(now);requestAnimationFrame(step);
   }
-  function land(){
-    var L=layout(),T=pt(L,sym.ix,sym.iy),P=plane(L); var n=T.s*0.42; var jx=(Math.random()+Math.random()-1)*n, jy=(Math.random()+Math.random()-1)*n;
-    var bad=Math.abs(jx)>T.s*0.5*0.92||Math.abs(jy)>T.s*0.5*0.92; cloud.push({x:T.x+jx*P.a,y:T.y+jy*P.d,a:Math.random(),bad:bad}); if(cloud.length>500)cloud.shift();
-    charBits+=bits.slice(pos,pos+k).join(''); pos+=k;
-    while(charBits.length>=8){var code=parseInt(charBits.slice(0,8),2); charBits=charBits.slice(8); decoded+=String.fromCharCode(code);}
-    try{decoded=decodeURIComponent(escape(decoded))}catch(e){}
-    ghost=trail; trail=[]; sym=null;t=0;
+  /* rate table */
+  function table(){var rows='';for(var m=0;m<MCS.length;m++){var r=rate(m,ss,bw),bp=bitsPerOFDM(m,ss,bw),n=Math.ceil(bits.length/bp),f=Math.ceil(12000/bp);
+      rows+='<tr data-m="'+m+'"'+(m===mcsSel?' class="on"':'')+'><td>'+m+'</td><td>'+MCS[m][0]+'</td><td>'+MCS[m][3]+'</td><td>'+bp+'</td><td>'+r.toFixed(1)+'</td><td>'+n+' ('+(PRE+n*TSYM).toFixed(0)+' µs)</td><td>'+f+' ('+(PRE+f*TSYM).toFixed(0)+' µs)</td></tr>';}
+    var T=document.getElementById('qam-table');
+    T.innerHTML='<span class="eyebrow">MCS index, '+ss+' stream'+(ss>1?'s':'')+', '+bw+' MHz, 0.8 µs guard interval, 40 µs preamble</span><div class="tbl"><table><tr><th>MCS</th><th>Modulation</th><th>Coding</th><th>Bits per OFDM symbol</th><th>PHY rate Mb/s</th><th>This title</th><th>A 1500-byte frame</th></tr>'+rows+'</table></div>'+
+      '<p class="meta">Tap a row to send at that modulation. Then hold the cursor in the beam: the higher the row, the smaller the decision cell on the constellation, the fewer particles it takes to corrupt the frame, and the sooner rate adaptation walks you back down the table.</p>';
+    T.querySelectorAll('tr[data-m]').forEach(function(tr){tr.addEventListener('click',function(e){e.stopPropagation();setSel(+tr.getAttribute('data-m'));})});
   }
-  /* controls */
-  var selM=document.getElementById('qam-mcs'); MCS.forEach(function(r,i){var o=document.createElement('option');o.value=i;o.textContent=i+'  '+r[0]+' '+r[3];selM.appendChild(o)}); selM.value=mcs;
-  selM.addEventListener('change',function(){setMcs(+selM.value)});
-  document.getElementById('qam-ss').addEventListener('change',function(e){ss=+e.target.value;timing()});
-  document.getElementById('qam-bw').addEventListener('change',function(e){bw=+e.target.value;timing()});
-  var sp=document.getElementById('qam-speed'),spv=document.getElementById('qam-speed-v');
-  sp.addEventListener('input',function(){speed=Math.pow(2,+sp.value);spv.textContent=(speed<1?speed.toFixed(2).replace(/0+$/,''):speed)+'x'});
-  var pb=document.getElementById('qam-pause'); pb.addEventListener('click',function(e){e.stopPropagation();paused=!paused;pb.textContent=paused?'Play':'Pause';pb.setAttribute('aria-pressed',paused)});
-  var tb=document.getElementById('qam-table-t'),TB=document.getElementById('qam-table'); tb.addEventListener('click',function(e){e.stopPropagation();TB.hidden=!TB.hidden;if(!TB.hidden)table();tb.setAttribute('aria-pressed',!TB.hidden);tb.textContent=TB.hidden?'Compare rates':'Hide rates'});
-  root.querySelector('.qam-ctl').addEventListener('click',function(e){e.stopPropagation()});
-  TB.addEventListener('click',function(e){e.stopPropagation()});
+  function setSel(m){mcsSel=m;mcsCur=m;document.getElementById('qam-mcs').value=m;adaptNote='';newFrame();if(!document.getElementById('qam-table').hidden)table();}
+  var selM=document.getElementById('qam-mcs');MCS.forEach(function(r,i){var o=document.createElement('option');o.value=i;o.textContent=i+'  '+r[0]+' '+r[3];selM.appendChild(o)});selM.value=7;
+  selM.addEventListener('change',function(){setSel(+selM.value)});
+  document.getElementById('qam-ss').addEventListener('change',function(e){ss=+e.target.value;newFrame();if(!document.getElementById('qam-table').hidden)table();});
+  document.getElementById('qam-bw').addEventListener('change',function(e){bw=+e.target.value;newFrame();if(!document.getElementById('qam-table').hidden)table();});
+  var sp=document.getElementById('qam-speed'),spv=document.getElementById('qam-speed-v');sp.addEventListener('input',function(){speed=Math.pow(2,+sp.value);spv.textContent=(speed<1?speed.toFixed(2).replace(/0+$/,''):speed)+'x'});
+  var pb=document.getElementById('qam-pause');pb.addEventListener('click',function(e){e.stopPropagation();paused=!paused;pb.textContent=paused?'Play':'Pause';pb.setAttribute('aria-pressed',paused)});
+  var tb=document.getElementById('qam-table-t'),TB=document.getElementById('qam-table');tb.addEventListener('click',function(e){e.stopPropagation();TB.hidden=!TB.hidden;if(!TB.hidden)table();tb.setAttribute('aria-pressed',!TB.hidden);tb.textContent=TB.hidden?'Compare rates':'Hide rates'});
+  root.querySelector('.qam-ctl').addEventListener('click',function(e){e.stopPropagation()});TB.addEventListener('click',function(e){e.stopPropagation()});
+  /* interference: pointer over the canvas */
+  function setCur(e){var r=c.getBoundingClientRect();cur.x=e.clientX-r.left;cur.y=e.clientY-r.top;cur.on=true;}
+  c.addEventListener('pointermove',setCur);c.addEventListener('pointerdown',setCur);c.addEventListener('pointerleave',function(){cur.on=false});c.addEventListener('pointerup',function(e){if(e.pointerType!=='mouse')cur.on=false});c.addEventListener('pointercancel',function(){cur.on=false});
+  c.addEventListener('click',function(e){e.stopPropagation()});
   /* explainer */
   var X=document.getElementById('qam-x'),hint=document.getElementById('qam-hint');
-  function explain(){
-    var b=utf8(title), ch=title.charAt(0), code=b.charCodeAt(0), bin=code.toString(2).padStart(8,'0');
-    var first=[]; for(var i=0;i<8;i++)first.push((code>>(7-i))&1);
-    var hx=Math.ceil(k/2),hy=Math.floor(k/2),a=0,q=0; for(i=0;i<hx;i++)a=(a<<1)|(first[i]||0); for(i=0;i<hy;i++)q=(q<<1)|(first[hx+i]||0);
+  function explain(){var b=utf8(title),ch=title.charAt(0),code=b.charCodeAt(0),bin=code.toString(2).padStart(8,'0');
     X.innerHTML='<span class="eyebrow">What you are looking at</span>'+
-      '<p>The title of the latest post is <b>'+title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</b>: '+b.length+' bytes, '+bits.length+' bits. This banner sends it the way a Wi-Fi radio would, minus the encryption. The AP in the foreground is transmitting; the target in the background is the constellation the receiver decodes against.</p>'+
-      '<ol><li>Text becomes bytes. <code>'+ch+'</code> is <code>0x'+code.toString(16)+'</code>, which is <code>'+bin+'</code>.</li>'+
-      '<li>Bits get chopped into groups of '+k+' ('+MCS[mcs][0]+'). The first group is <code>'+first.slice(0,k).join('')+'</code>: '+hx+' bit'+(hx>1?'s':'')+' pick the I axis (in phase)'+(hy?' and '+hy+' pick the Q axis (quadrature)':'')+', Gray coded so neighbouring points differ by one bit.</li>'+
-      '<li>That lands on one point of the '+sx+'x'+sy+' grid: I='+gray(a)+(hy?', Q='+gray(q):'')+'. Amplitude is how far from the centre, phase is the angle. One point, one symbol, '+k+' bit'+(k>1?'s':'')+'. The glowing particle is that symbol in flight; the tail is only there so you can see the path.</li>'+
-      '<li>The dot it leaves behind is what the receiver sees: never exactly on the point, because noise moved it. Orange dots crossed into the wrong decision region and decode as the wrong bits. Pick MCS 12 and watch how little noise it takes.</li>'+
-      '<li>The panel of cells behind everything is the field itself: each cell glows by how much of the AP\u2019s signal reaches it, rippling at the wavelength and fading with distance, which is lesson 1 of the Academy drawn instead of written. When the title is through, the field turns blue and flows the other way: that is the receiver\u2019s ACK, because Wi-Fi is half duplex and nobody talks until the acknowledgement lands. Between frames the field only pulses with beacons.</li>'+
-      '<li>One particle is one subcarrier. A real 80 MHz channel sends '+NSD[80]+' of them at once per stream, every 13.6 µs, which is where the rate table under "Compare rates" comes from: subcarriers, times bits per symbol, times coding rate, times streams, divided by symbol time.</li></ol>'+
-      '<p class="meta">Nothing here is encrypted. This is what "sent in cleartext" looks like at the physical layer. WPA3 would scramble the bits before they reached the grid, and the constellation would look identical.</p>';
-  }
-  root.addEventListener('click',function(){var open=X.hidden;if(open)explain();X.hidden=!open;hint.textContent=open?'Tap again to close':'Tap the banner to see what’s happening';});
-  root.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();root.click()}}); root.tabIndex=0;
-  window.addEventListener('resize',resize); resize(); setMcs(7);
-  if(reduce){ while(pos<bits.length){sym=symbolOf(pos);land()} paused=true; pb.textContent='Play'; draw(0); pb.addEventListener('click',function(){if(!paused){last=0;requestAnimationFrame(step)}}); }
+      '<p>A Yagi on the left is aimed at the receiver on the right, and it is sending the title of the latest post, <b>'+title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</b>, the way a Wi-Fi radio would, minus the encryption. The pale shape is the antenna’s main lobe: the directors in front of the driven element squeeze the energy forward, which is why the specks ride a beam instead of spraying everywhere. The little bulge behind the mast is the back lobe you can never quite get rid of.</p>'+
+      '<ol><li>Text becomes bytes. <code>'+ch+'</code> is <code>0x'+code.toString(16)+'</code>, which is <code>'+bin+'</code>. The whole title is '+bits.length+' bits.</li>'+
+      '<li>Bits are chopped into groups of '+k+' ('+MCS[mcsCur][0]+'), Gray coded, and each group picks one point on the '+sx+'×'+sy+' constellation: I is the column, Q is the row. Amplitude is how far from the centre, phase is the angle.</li>'+
+      '<li>Each bright particle is one of those symbols. It flies down the beam and peels off to its row as it arrives. Where it lands is what the receiver sees: never exactly on the point, because noise moved it. Green dots decoded correctly; an orange dot crossed into the wrong cell and decoded as the wrong bits.</li>'+
+      '<li>Put your cursor or finger in the beam. That is interference: a microwave, a neighbour’s AP, a badly shielded PoE run. Particles passing through it get pushed, land in the wrong cell, the frame’s CRC fails, no ACK comes back, and the sender waits DIFS plus a random backoff and sends the whole frame again. Every retry doubles the backoff window. Watch the time-on-the-air figure climb against the clean number.</li>'+
+      '<li>After two failed attempts the sender drops one MCS step, the constellation gets coarser, the cells get bigger, and it takes more interference to corrupt a symbol. That is rate adaptation, and it is why a client near a microwave shows a low PHY rate rather than no connection. Three clean frames and it climbs back.</li>'+
+      '<li>One particle here is one subcarrier. A real '+bw+' MHz channel sends '+NSD[bw]+' of them at once per stream every 13.6 µs, plus a 40 µs preamble, which is where the rate table comes from.</li></ol>'+
+      '<p class="meta">Timings are the 5 GHz OFDM values: 9 µs slot, 16 µs SIFS, 34 µs DIFS, contention window 15 doubling to 1023, 7 retries before the frame is dropped. Nothing here is encrypted; WPA3 would scramble the bits before they reached the grid and the picture would look identical.</p>';}
+  function toggleX(){var open=X.hidden;if(open)explain();X.hidden=!open;hint.textContent=open?'Tap the text again to close':'Hover or touch the beam to add interference. Tap the text to see what’s happening';}
+  root.addEventListener('click',toggleX);root.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleX()}});root.tabIndex=0;
+  window.addEventListener('resize',function(){resize();seedSpecks(layout())});
+  resize();buildBits();newFrame();frames=1;seedSpecks(layout());stat();
+  if(reduce){var L0=layout();while(next<syms.length){emit(L0);var f0=fly.pop();f0.s=1;land(L0,f0);}paused=true;pb.textContent='Play';draw(0);stat();pb.addEventListener('click',function(){if(!paused){lastNow=0;requestAnimationFrame(step)}});}
   else requestAnimationFrame(step);
 })();
 </script>
