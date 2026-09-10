@@ -6,6 +6,9 @@ tags: Wireless, PoE, Wi-Fi 7
 hero: hero-poe.svg
 summary: Wi-Fi 7 APs don't fail when they're underpowered. They negotiate, shrug, and come up in a reduced mode with the 6 GHz radio dark. Nothing turns red.
 origin: Five Airheads threads wearing different titles, one root cause
+series: Wi-Fi 7 rollout
+series_order: 1
+interactive: poe
 ---
 ## Why I'm writing this
 

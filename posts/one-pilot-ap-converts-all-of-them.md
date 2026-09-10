@@ -6,6 +6,8 @@ tags: Wireless, Instant, AOS-8, Migration
 hero: hero-iap.svg
 summary: Someone with a hundred Instant APs on AirWave wanted to move them to a controller cluster and, sensibly, test on one AP first. The virtual controller had other plans.
 origin: An Airheads migration plan that would have converted the whole cluster at once
+series: Moving to AOS 10
+series_order: 2
 ---
 
 ## Why I'm writing this

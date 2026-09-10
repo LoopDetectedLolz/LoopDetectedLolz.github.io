@@ -6,6 +6,8 @@ tags: Wireless, AOS-10, Central, Migration
 hero: hero-aos10.svg
 summary: Three threads in one week, three symptoms, one cause: people planned an upgrade and got handed a rebuild. What doesn't come with you, the pre-validate defect everyone blames on DNS, and the order of operations.
 origin: Three Airheads threads in the same week, same root cause
+series: Moving to AOS 10
+series_order: 1
 ---
 ## Why I'm writing this
 

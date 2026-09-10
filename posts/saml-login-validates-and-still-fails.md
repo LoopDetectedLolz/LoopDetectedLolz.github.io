@@ -6,6 +6,8 @@ tags: ClearPass, Security, Entra ID, SAML
 hero: hero-saml.svg
 summary: Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.
 origin: A year-old Airheads thread about admin MFA, revived by someone who had "set up SSO" and couldn't log in
+series: ClearPass, properly
+series_order: 1
 ---
 
 ## Why I'm writing this

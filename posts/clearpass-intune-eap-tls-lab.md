@@ -6,6 +6,8 @@ tags: ClearPass, Intune, EAP-TLS, NAC
 hero: hero-intune-tls.svg
 summary: Most ClearPass and Intune builds look up a MAC address and call the result authentication. Here's the version where the certificate does the authenticating, Intune does the authorizing, and the two are tied together by something the client can't lie about.
 origin: A lab build, because I got tired of not being able to answer what the Intune integration actually proves
+series: ClearPass, properly
+series_order: 2
 ---
 I built this in the lab because I kept hearing the same sentence and it kept bothering me. "We authenticate devices against Intune."
 
@@ -85,8 +87,10 @@ network={
 }
 ```
 
-```
-eapol_test -c /tmp/eaptls.conf -a 192.0.2.10 -p 1812 -s <SHARED-SECRET> -r 0
+```term
+$ eapol_test -c /tmp/eaptls.conf -a 192.0.2.10 -p 1812 -s <SHARED-SECRET> -r 0
+...
+SUCCESS  <<
 ```
 
 Those are ordinary `wpa_supplicant.conf` network-block keys. Add `private_key_passwd` if your key is encrypted.
@@ -140,8 +144,12 @@ That last row is the whole post. Run it before you build anything and again at t
 
 The revoked row deserves its own steps because the path has five links and four of them fail silently. Retire the device in Intune. Then check the CA, not Intune:
 
-```
-certutil -view -restrict "SerialNumber=<SERIAL>" -out "SerialNumber,Disposition,Request.RevokedWhen,Request.RevokedReason"
+```term
+C:\> certutil -view -restrict "SerialNumber=<SERIAL>" -out "SerialNumber,Disposition,Request.RevokedWhen,Request.RevokedReason"
+  Serial Number: <SERIAL>
+  Request Disposition: 0x15 (21) -- Revoked  <<
+  Revocation Date: <timestamp>
+  Revocation Reason: 0x0 (0) -- Unspecified
 ```
 
 Column names come from `certutil -schema` on your CA. Check yours if that list errors.

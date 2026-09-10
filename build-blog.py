@@ -51,6 +51,45 @@ def bot_for(meta):
             return f
     return "nfn-bot-think.svg"
 
+# ── "what the box said" terminal blocks ──────────────────────────────────────
+# ```term fences become a terminal panel. Lines that look like a prompt get the prompt colour,
+# lines ending in "  <<" get highlighted (the marker is removed).
+_PROMPT = re.compile(r'^(\(?[\w.-]+\)?\s?[#$>]\s|[\w.-]+[#>]\s|\$\s|C:\\[^>]*>\s?)')
+def terminalize(h):
+    def one(m):
+        code = html.unescape(m.group(1))
+        out = []
+        for line in code.rstrip("\n").split("\n"):
+            hot = line.endswith("  <<")
+            if hot: line = line[:-4].rstrip()
+            pm = _PROMPT.match(line)
+            if pm:
+                line = '<span class="pr">%s</span>%s' % (E(pm.group(0)), E(line[pm.end():]))
+            else:
+                line = E(line)
+            out.append('<span class="ln%s">%s</span>' % (" hot" if hot else "", line or " "))
+        return ('<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div>'
+                '<pre><code>%s</code></pre></div>' % "".join(out))
+    return re.sub(r'<pre><code class="language-term">(.*?)</code></pre>', one, h, flags=re.S)
+
+def widget(name, up="../"):
+    path = os.path.join(ROOT, "theme", "widgets", name + ".html")
+    return open(path, encoding="utf-8").read() if os.path.exists(path) else ""
+
+def series_nav(p):
+    if not p["series"]: return ""
+    members = sorted([q for q in posts if q["series"] == p["series"]], key=lambda q: q["series_order"])
+    if len(members) < 2: return ""
+    idx = members.index(p)
+    tiles = "".join(
+        '<a class="ser-step%s" href="%s.html"><span class="ser-n">%d</span><span class="ser-t">%s</span>%s</a>' % (
+            " here" if q is p else (" next" if i == idx + 1 else ""), E(q["slug"]), i + 1, E(q["title"]),
+            '<span class="ser-tag">You are here</span>' if q is p else ('<span class="ser-tag">Next</span>' if i == idx + 1 else ""))
+        for i, q in enumerate(members))
+    return ('<section class="series g-card" data-rise><span class="eyebrow">Reading path</span>'
+            '<h3>%s <span class="meta">part %d of %d</span></h3><div class="ser-steps">%s</div></section>'
+            % (E(p["series"]), idx + 1, len(members), tiles))
+
 def parse_post(path):
     raw = open(path, encoding="utf-8").read()
     m = re.match(r'^---\n(.*?)\n---\n(.*)$', raw, re.S)
@@ -64,7 +103,10 @@ def parse_post(path):
     body = re.sub(r'```mermaid.*?```', '', m.group(2), flags=re.S)
     meta["readtime"] = max(2, round(len(re.findall(r'\w+', body)) / 220))
     meta["tags"] = [t.strip() for t in meta.get("tags", "").split(",") if t.strip()]
-    meta["html"] = markdown.markdown(body, extensions=["fenced_code", "tables"])
+    meta["html"] = terminalize(markdown.markdown(body, extensions=["fenced_code", "tables"]))
+    meta["series"] = meta.get("series", "").strip()
+    meta["series_order"] = int(meta.get("series_order", "0") or 0)
+    meta["interactive"] = meta.get("interactive", "").strip()
     meta["date_obj"] = datetime.date.fromisoformat(meta["date"])
     meta["date_h"] = meta["date_obj"].strftime("%b %d, %Y").replace(" 0", " ")
     meta["bot"] = bot_for(meta)
@@ -163,6 +205,7 @@ def foot(bot, up=""):
 <script>{JS}</script>
 </body></html>'''
 
+
 def card(p, featured=False):
     text = (p["title"] + " " + p["summary"] + " " + " ".join(p["tags"])).lower()
     # the featured post already sits in the hero; its card only appears once a filter or search is active
@@ -230,15 +273,17 @@ for i, p in enumerate(posts):
 <div class="narrow">
   <div class="backbar"><a class="btn" href="../">{ICO_BACK}&nbsp;All posts</a></div>
   <article>
-    <header class="post-head g-hero" data-view="zoom">
+    <header class="post-head g-hero cat-{E(p["cat"].replace(" ","-"))}" data-view="zoom">
       <div class="row" style="margin:0"><a class="tag {p["ccls"]}" href="../index.html#cat={E(p["cat"])}" title="All {E(p["cat"])} posts">{E(p["cat"])}</a><span class="meta">{E(p["date_h"])} &#183; {p["readtime"]} min</span></div>
       <h1 class="h-hero">{E(p["title"])}</h1>
     </header>
     <div class="post-body g-card" data-rise>
       <div class="figure panel">{svg(p["hero"])}</div>
+      {widget(p["interactive"]) if p["interactive"] else ""}
       <div class="callout origin"><span class="eyebrow">Where this came from</span>{E(p.get("origin",""))}</div>
       <div class="prose">{p["html"]}</div>
     </div>
+    {series_nav(p)}
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
       <div class="postnav">{nav}</div>
@@ -249,6 +294,19 @@ for i, p in enumerate(posts):
     open(os.path.join(ROOT, "p", p["slug"] + ".html"), "w", encoding="utf-8").write(page)
 
 # ── about ───────────────────────────────────────────────────────────────────
+KIT = [
+    ("Ekahau Sidekick 2 + laptop", "Walks the building so the heatmap doesn't have to guess. Still can't see channel 173.",
+     '<svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="3"/><path d="M12 7V3M9 3h6"/><circle cx="12" cy="13" r="2.5"/></svg>'),
+    ("Console cable, USB-C serial", "The only management plane that has never had an outage.",
+     '<svg viewBox="0 0 24 24"><rect x="3" y="9" width="7" height="6" rx="1.5"/><path d="M10 12h4M14 9h4a3 3 0 0 1 3 3v0a3 3 0 0 1-3 3h-4zM5 9V6M8 9V6"/></svg>'),
+    ("PoE tester", "Settles the \"but the switch says bt\" argument in about four seconds.",
+     '<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M13 7l-3 5h4l-3 5"/></svg>'),
+    ("Label maker, punch-down, cable tester", "Nobody blogs about this part. Everybody uses it.",
+     '<svg viewBox="0 0 24 24"><path d="M3 12l7-7h8a3 3 0 0 1 3 3v8l-7 7z"/><circle cx="16" cy="8" r="1.5"/></svg>'),
+]
+kit_html = "".join(
+    '<div class="kit-item" tabindex="0"><span class="kit-ico">%s</span><b>%s</b><span class="kit-line">%s</span></div>' % (ic, E(n), E(l))
+    for n, l, ic in KIT)
 about = head("About · " + SITE["name"], "Who writes Network Field Notes and why.", BASE_URL + "/about.html", BASE_URL + "/og/home.png", active="about")
 about += f'''
 <div class="narrow">
@@ -261,6 +319,10 @@ about += f'''
       <p>I spend a lot of evenings on HPE Airheads answering the same questions in different clothes, which is where most of these posts come from.</p>
     </div>
     <div class="chips">{"".join('<span class="tag">%s</span>' % E(c) for c in ["HPE Aruba Networking","AOS-CX","AOS-8 / AOS-10","ClearPass","Central","Juniper Mist","Ekahau","Wi-Fi 6E / 7","EVPN-VXLAN"])}</div>
+  </section>
+  <section class="kit g-card" data-rise>
+    <span class="eyebrow">In the bag</span>
+    <div class="kit-grid">{kit_html}</div>
   </section>
 </div>
 ''' + foot("nfn-bot-wave.svg")

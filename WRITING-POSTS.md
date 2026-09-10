@@ -24,6 +24,16 @@ You get a draft back. Read it. Tell it what to change. Then:
 
 That runs `blog-publish`: build, dash check, scrub check, contact-copy check, graphics render, commit, push, verify the live URLs, and a quick Playwright regression on the nav, filter, search and Rig.
 
+## Extras a post can carry
+
+**Terminal blocks.** Fence CLI output with ```term instead of ``` and it renders as a "what the box said" panel. Lines that start with a prompt (`switch#`, `$`, `C:\>`, `(host) #`) get the prompt colour. End a line with two spaces and `<<` to highlight it; the marker is stripped. Use it for the one line that matters, not for whole config dumps.
+
+**Interactive widgets.** Add `interactive: poe` or `interactive: channel173` to the front matter and the matching panel from `theme/widgets/` renders under the hero. New widgets are one HTML file with its own script; keep them to vanilla JS, kit colours, and no external loads.
+
+**Reading paths.** `series: ClearPass, properly` plus `series_order: 2` puts a numbered path card before the end card, with the next part lit. Current series: ClearPass, properly; Moving to AOS 10; Wi-Fi 7 rollout; Switching, carefully. A series needs two posts before it shows.
+
+**RF motif.** Wireless and RF survey posts get a faint concentric-ring watermark on the header automatically. Nothing to do.
+
 ## Editing a post that's already live
 
 Posts are markdown in `posts/`. Say what you want changed:

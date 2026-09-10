@@ -6,6 +6,8 @@ tags: Process, Documentation, AOS-CX
 hero: hero-docs.svg
 summary: Three official minimum versions, a withdrawn release note, and a command renamed without a memo. How to get to a decision you can put in a change record.
 origin: Chasing a CX 8100 minimum version and finding three answers
+series: Switching, carefully
+series_order: 2
 ---
 Most of the time I lose to documentation, I don't lose because the answer is hard. I lose because there are three answers, they're all official, and none of them is dated.
 

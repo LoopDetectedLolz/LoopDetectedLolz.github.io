@@ -6,6 +6,8 @@ tags: Switching, AOS-CX, VSX
 hero: hero-vsx.svg
 summary: Everybody has heard a VSX upgrade is hitless. Almost nobody has been told what hitless is conditional on. It's a single cable and a 180 second timer.
 origin: A 6405 pair, a 6410 pair watching BGP drop, and a Central live-update question, all in one week
+series: Switching, carefully
+series_order: 1
 ---
 Three different people asked me about VSX upgrades inside of about a week. One wanted to know how to get a 6405 pair to a new build without an outage. One had already run the upgrade on a pair of 6410s and watched BGP drop on holdtimer expiry both times a member rebooted. One was working through doing the whole thing from Central.
 

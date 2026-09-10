@@ -1,0 +1,42 @@
+<div class="widget" id="w-poe" data-widget="poe">
+  <div class="w-head"><span class="eyebrow">Try it</span><b>Does the closet have the power?</b><span class="meta">Numbers are per-port PSE allocation from the post; datasheet budgets, not typical draw.</span></div>
+  <div class="w-controls">
+    <label>Switch PoE budget
+      <select id="poe-budget"><option value="370">370 W</option><option value="740" selected>740 W</option><option value="1440">1440 W</option><option value="2880">2880 W (two members)</option></select>
+    </label>
+    <label>AP power class
+      <select id="poe-class"><option value="15.4">802.3af, 15.4 W</option><option value="30" selected>802.3at, 30 W</option><option value="51">802.3bt Class 6, 51 W</option></select>
+    </label>
+    <label>Other PoE loads (phones, cameras)
+      <span class="w-unit"><input id="poe-other" type="number" min="0" max="3000" step="10" value="120"><span>W</span></span>
+    </label>
+    <label class="w-slider"><span>APs on this switch <b id="poe-n">24</b></span>
+      <input id="poe-count" type="range" min="1" max="48" value="24">
+    </label>
+  </div>
+  <div class="w-bar" aria-hidden="true"><div class="w-fill" id="poe-fill"></div><div class="w-fill other" id="poe-fill-other"></div></div>
+  <div class="w-read"><b id="poe-total">0 W</b> of <b id="poe-cap">740 W</b> allocated. <span id="poe-verdict"></span></div>
+  <div class="w-note" id="poe-note"></div>
+</div>
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  var b=$('#poe-budget'),c=$('#poe-class'),o=$('#poe-other'),n=$('#poe-count'),fill=$('#poe-fill'),fo=$('#poe-fill-other');
+  if(!b)return;
+  var notes={
+    "15.4":"802.3af on a Wi-Fi 7 AP is staging only on the 730 and 750 Series: no radios. The 725 does run on af, with USB off and 3 dB less TX power.",
+    "30":"802.3at is where the quiet downgrades live. A 755 on Class 4 loses USB and the second Ethernet port, drops from 4x4 to 2x2 and takes a 3 dB TX cut. A 735 loses USB. A 725 runs unrestricted.",
+    "51":"802.3bt Class 6 runs the flagships unrestricted. Read the class carefully: at Class 5 a 755 is still in restricted mode, and AOS-CX PoE switches do not do Class 7 or 8."
+  };
+  function upd(){
+    var cap=+b.value, per=+c.value, other=Math.max(0,+o.value||0), k=+n.value;
+    var aps=per*k, total=aps+other, fit=Math.max(0,Math.floor((cap-other)/per));
+    $('#poe-n').textContent=k; $('#poe-total').textContent=Math.round(total)+' W'; $('#poe-cap').textContent=cap+' W';
+    fill.style.width=Math.min(100,aps/cap*100)+'%'; fo.style.width=Math.min(100-Math.min(100,aps/cap*100),other/cap*100)+'%';
+    var over=total>cap; var w=$('#w-poe'); w.classList.toggle('over',over); w.classList.toggle('tight',!over&&total>cap*0.9);
+    $('#poe-verdict').textContent= over ? ('Over by '+Math.round(total-cap)+' W. '+fit+' APs fit at this class; the rest get whatever the switch feels like giving them.') : (total>cap*0.9 ? 'Fits, with '+Math.round(cap-total)+' W of headroom. That is not a lot of headroom.' : 'Fits with '+Math.round(cap-total)+' W to spare. '+fit+' APs would fit at this class.');
+    $('#poe-note').textContent=notes[c.value];
+  }
+  [b,c,o,n].forEach(function(el){el.addEventListener('input',upd);el.addEventListener('change',upd)}); upd();
+})();
+</script>
