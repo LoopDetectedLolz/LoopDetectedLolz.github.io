@@ -27,13 +27,14 @@
   var NSD={20:234,40:468,80:980,160:1960,320:3920}, TSYM=13.6; /* 12.8 us symbol + 0.8 us GI */
   var mcs=7,ss=1,bw=80,speed=1,paused=false,W=1200,H=260,dpr=1;
   var k=6,sx=8,sy=8,bits=[],pos=0,sym=null,t=0,decoded='',charBits='',cloud=[],trail=[],ghost=[];
+  var phase='tx',ackT=0,launchT=-9,beaconT=0; /* tx: title in flight; ack: receiver answers; sifs: gap */
   var G='#8CE05E',TEAL='#5ED2DA',MUT='#8BA2AE',ORANGE='#F5A524';
   function gray(n){return n^(n>>1)}
   function utf8(s){return unescape(encodeURIComponent(s))}
   function reset(){
     bits=[]; var b=utf8(title); for(var i=0;i<b.length;i++){var v=b.charCodeAt(i);for(var j=7;j>=0;j--)bits.push((v>>j)&1)}
     while(bits.length%k)bits.push(0);
-    pos=0;sym=null;t=0;decoded='';charBits='';cloud=[];trail=[];ghost=[];
+    pos=0;sym=null;t=0;decoded='';charBits='';cloud=[];trail=[];ghost=[];phase='tx';ackT=0;
   }
   function setMcs(m){mcs=m;k=MCS[m][1];sx=Math.pow(2,Math.ceil(k/2));sy=Math.pow(2,Math.floor(k/2));reset();timing();}
   function rate(m,s,w){return s*NSD[w]*MCS[m][1]*MCS[m][2]/TSYM} /* Mbps */
@@ -67,9 +68,49 @@
   /* the target plane is drawn tilted: x squashed a little, y squashed more, so it reads as receding */
   function plane(L){return {a:0.92,b:-0.06,c:0.0,d:0.74}}
   function pt(L,ix,iy){var sw=(2*L.R)/sx, sh=(2*L.R)/sy, px=-L.R+sw*(ix+0.5), py=(sy===1?0:L.R-sh*(iy+0.5)); var P=plane(L); return {x:L.cx+P.a*px+P.c*py,y:L.cy+P.b*px+P.d*py,s:Math.min(sw,sh)*0.8};}
+  /* the field: a panel of cells lit by the AP, ripples at the wavelength, decaying with distance */
+  function lerp(a,b,u){return a+(b-a)*u}
+  function col(level,alpha){ /* strong green -> teal -> blue-light -> muted */
+    var c; if(level>0.66){var u=(level-0.66)/0.34;c=[lerp(94,140,u),lerp(210,224,u),lerp(218,94,u)]}
+    else if(level>0.33){var v=(level-0.33)/0.33;c=[lerp(79,94,v),lerp(189,210,v),lerp(234,218,v)]}
+    else{var w=level/0.33;c=[lerp(139,79,w),lerp(162,189,w),lerp(174,234,w)]}
+    return 'rgba('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+','+alpha+')';
+  }
+  function drawField(L,now){
+    var cs=L.mob?16:20, ax=L.tx, ay=L.ty-13, lam=cs*2.6, tsec=now/1000;
+    var busy=phase==='tx'&&sym, ack=phase==='ack';
+    var bx=L.mob?L.rx:L.cx, by=L.mob?L.ry:L.cy; /* where the receiver is */
+    for(var gy=cs/2;gy<H;gy+=cs)for(var gx=cs/2;gx<W;gx+=cs){
+      var d=Math.hypot(gx-ax,gy-ay), lvl=1/(1+Math.pow(d/(L.R*1.6),1.6));
+      var wave=0.5+0.5*Math.sin((d/lam-tsec*3.2)*Math.PI*2);
+      var a;
+      if(busy){a=lvl*(0.10+0.55*wave)}
+      else if(ack){var dr=Math.hypot(gx-bx,gy-by),lr=1/(1+Math.pow(dr/(L.R*1.2),1.6)),wr=0.5+0.5*Math.sin((dr/lam-tsec*3.2)*Math.PI*2);a=lr*(0.08+0.5*wr)*Math.min(1,ackT*3);lvl=lr;}
+      else{var bt=(tsec%1.0), ring=Math.exp(-Math.pow((d-bt*W*0.9)/(cs*1.2),2)); a=lvl*0.06+ring*lvl*0.5;}
+      if(a<0.02)continue;
+      ctx.fillStyle=ack?'rgba(79,189,234,'+a+')':col(lvl,a);
+      var r=cs*0.5*(0.45+0.45*Math.min(1,a*3)); a=Math.min(a,0.5);
+      ctx.fillRect(gx-r*0.5,gy-r*0.5,r,r);
+    }
+    /* wavefront ring at launch */
+    var age=tsec-launchT; if(age<0.9&&busy){var rr=age*(W*1.1);ctx.strokeStyle='rgba(140,224,94,'+(0.5*(1-age/0.9))+')';ctx.lineWidth=2;ctx.beginPath();ctx.arc(ax,ay,rr,0,Math.PI*2);ctx.stroke();}
+    /* medium state, top right of the scene */
+    ctx.save(); ctx.textAlign='right'; ctx.font='600 10px JetBrains Mono,ui-monospace,monospace';
+    var lab=busy?'MEDIUM BUSY  frame in the air':ack?'ACK  receiver answering, '+'SIFS then next frame':'MEDIUM IDLE  beacons every 102 ms';
+    ctx.fillStyle=busy?'#8CE05E':ack?'#4FBDEA':'#8BA2AE'; ctx.fillText(lab,W-6,H-8); ctx.restore();
+  }
   function easeOut(x){return 1-Math.pow(1-x,3)}
+  function pAt(L,P,sym,tt){
+    var T=pt(L,sym.ix,sym.iy), ang=Math.atan2((T.y-L.cy)/P.d,(T.x-L.cx)/P.a), rad=Math.hypot((T.x-L.cx)/P.a,(T.y-L.cy)/P.d), x,y,scale;
+    if(tt<0.35){var u=easeOut(tt/0.35); var sr=L.R+18, ex=L.cx+P.a*Math.cos(ang)*sr, ey=L.cy+P.d*Math.sin(ang)*sr;
+      x=L.tx+(ex-L.tx)*u; y=(L.ty-13)+(ey-(L.ty-13))*u-Math.sin(u*Math.PI)*(L.mob?30:70); scale=1-0.45*u;}
+    else{var v=(tt-0.35)/0.65, e=easeOut(v); var rr=(L.R+18)+(rad-(L.R+18))*e, th=ang+Math.PI*2.5*(1-v); x=L.cx+P.a*Math.cos(th)*rr; y=L.cy+P.d*Math.sin(th)*rr; scale=0.55-0.2*v;}
+    return {x:x,y:y,s:scale};
+  }
+
   function draw(now){
     var L=layout(),P=plane(L); ctx.clearRect(0,0,W,H);
+    drawField(L,now);
     /* background target */
     ctx.save(); ctx.translate(L.cx,L.cy); ctx.transform(P.a,P.b,P.c,P.d,0,0);
     var g=ctx.createRadialGradient(0,0,0,0,0,L.R*1.25); g.addColorStop(0,'rgba(94,210,218,0.10)'); g.addColorStop(1,'rgba(94,210,218,0)'); ctx.fillStyle=g; ctx.beginPath();ctx.arc(0,0,L.R*1.25,0,Math.PI*2);ctx.fill();
@@ -92,6 +133,7 @@
     ctx.fillStyle=MUT; ctx.font='11px JetBrains Mono,ui-monospace,monospace'; ctx.textAlign='center'; ctx.fillText('AP',0,34); ctx.restore();
     /* decoded text */
     ctx.save(); ctx.textAlign='left'; var rx=L.rx, ry=L.ry;
+    ctx.fillStyle='rgba(3,10,16,0.55)'; var bw2=L.mob?W-20:Math.min(380,(L.cx-L.R*P.a)-rx-16); ctx.beginPath(); ctx.roundRect?ctx.roundRect(rx-10,ry-30,bw2,86,10):ctx.rect(rx-10,ry-30,bw2,86); ctx.fill();
     ctx.fillStyle=MUT; ctx.font='10px JetBrains Mono,ui-monospace,monospace'; ctx.fillText('RECEIVED',rx,ry-16);
     ctx.fillStyle='#EAF2F6'; ctx.font='600 15px Instrument Sans,-apple-system,Helvetica,sans-serif';
     var maxW=L.mob?W-32:(L.cx-L.R*P.a)-rx-30, shown=decoded, m=ctx.measureText(shown).width;
@@ -101,27 +143,30 @@
     ctx.fillStyle=MUT; ctx.font='10px Instrument Sans,-apple-system,Helvetica,sans-serif'; ctx.fillText('latest post title, in cleartext',rx,ry+46);
     ctx.restore();
     /* particle with tail */
-    if(sym){
-      var T=pt(L,sym.ix,sym.iy), ang=Math.atan2((T.y-L.cy)/P.d,(T.x-L.cx)/P.a), rad=Math.hypot((T.x-L.cx)/P.a,(T.y-L.cy)/P.d);
-      var x,y,scale;
-      if(t<0.35){var u=easeOut(t/0.35); var sr=L.R+18, ex=L.cx+P.a*Math.cos(ang)*sr, ey=L.cy+P.d*Math.sin(ang)*sr;
-        x=L.tx+(ex-L.tx)*u; y=(L.ty-13)+(ey-(L.ty-13))*u-Math.sin(u*Math.PI)*(L.mob?30:70); scale=1-0.45*u;}
-      else{var v=(t-0.35)/0.65, e=easeOut(v); var rr=(L.R+18)+(rad-(L.R+18))*e, th=ang+Math.PI*2.5*(1-v); x=L.cx+P.a*Math.cos(th)*rr; y=L.cy+P.d*Math.sin(th)*rr; scale=0.55-0.2*v;}
-      trail.push({x:x,y:y,s:scale}); if(trail.length>28)trail.shift();
+    if(sym&&trail.length){
+      var T=pt(L,sym.ix,sym.iy), hd=trail[trail.length-1], x=hd.x, y=hd.y, scale=hd.s;
       ctx.lineCap='round'; for(i=1;i<trail.length;i++){var q=trail[i],q0=trail[i-1],a=(i+1)/trail.length; ctx.strokeStyle='rgba(140,224,94,'+(a*0.5)+')'; ctx.lineWidth=(1.5+6*q.s)*a; ctx.beginPath();ctx.moveTo(q0.x,q0.y);ctx.lineTo(q.x,q.y);ctx.stroke();}
       ctx.fillStyle='#d9ffbf'; ctx.shadowColor=G; ctx.shadowBlur=18; ctx.beginPath();ctx.arc(x,y,2.5+5*scale,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
       ctx.strokeStyle='rgba(140,224,94,0.4)'; ctx.beginPath();ctx.ellipse(T.x,T.y,T.s*0.5*P.a,T.s*0.5*P.d,0,0,Math.PI*2);ctx.stroke();
     }
+    if(phase==='ack'){var u=Math.min(1,ackT*Math.min(speed,2)/1.0), bx2=L.mob?L.rx+40:L.cx, by2=L.mob?L.ry:L.cy; var ax2=L.tx, ay2=L.ty-13;
+      var px2=bx2+(ax2-bx2)*easeOut(u), py2=by2+(ay2-by2)*easeOut(u)-Math.sin(u*Math.PI)*(L.mob?20:50);
+      ctx.fillStyle='#bfe7ff'; ctx.shadowColor='#4FBDEA'; ctx.shadowBlur=16; ctx.beginPath();ctx.arc(px2,py2,4,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
+      ctx.fillStyle='#4FBDEA'; ctx.font='600 10px JetBrains Mono,ui-monospace,monospace'; ctx.textAlign='center'; ctx.fillText('ACK',px2,py2-10);}
     if(ghost.length){ghost.shift(); ctx.lineCap='round'; for(i=1;i<ghost.length;i++){var q2=ghost[i],q3=ghost[i-1],a2=(i+1)/ghost.length; ctx.strokeStyle='rgba(140,224,94,'+(a2*0.3)+')'; ctx.lineWidth=(1+4*q2.s)*a2; ctx.beginPath();ctx.moveTo(q3.x,q3.y);ctx.lineTo(q2.x,q2.y);ctx.stroke();}}
   }
   var last=0;
   function step(now){
     if(!last)last=now; var dt=Math.min(50,now-last); last=now;
     if(!paused&&!document.hidden){
-      if(!sym){ if(pos>=bits.length){ if(t>1.6){reset()} else t+=dt/1000; } else { sym=symbolOf(pos); t=0; } }
-      else { t+=dt/1000*speed*0.85; if(t>=1) land(); }
+      if(phase==='ack'){ ackT+=dt/1000; if(ackT>1.1/Math.min(speed,2)){phase='sifs';t=0} }
+      else if(phase==='sifs'){ t+=dt/1000; if(t>0.6){reset()} }
+      else if(!sym){ if(pos>=bits.length){ phase='ack'; ackT=0; } else { sym=symbolOf(pos); t=0; launchT=now/1000; } }
+      else { var L2=layout(),P2=plane(L2), n=Math.max(1,Math.ceil(speed*1.5)), step2=dt/1000*speed*0.85/n;
+        for(var q=0;q<n&&sym;q++){ t+=step2; if(t>=1){land();break;} trail.push(pAt(L2,P2,sym,t)); }
+        while(trail.length>40)trail.shift(); }
     }
-    draw(now); requestAnimationFrame(step);
+    root.setAttribute('data-phase',phase); draw(now); requestAnimationFrame(step);
   }
   function land(){
     var L=layout(),T=pt(L,sym.ix,sym.iy),P=plane(L); var n=T.s*0.42; var jx=(Math.random()+Math.random()-1)*n, jy=(Math.random()+Math.random()-1)*n;
@@ -154,6 +199,7 @@
       '<li>Bits get chopped into groups of '+k+' ('+MCS[mcs][0]+'). The first group is <code>'+first.slice(0,k).join('')+'</code>: '+hx+' bit'+(hx>1?'s':'')+' pick the I axis (in phase)'+(hy?' and '+hy+' pick the Q axis (quadrature)':'')+', Gray coded so neighbouring points differ by one bit.</li>'+
       '<li>That lands on one point of the '+sx+'x'+sy+' grid: I='+gray(a)+(hy?', Q='+gray(q):'')+'. Amplitude is how far from the centre, phase is the angle. One point, one symbol, '+k+' bit'+(k>1?'s':'')+'. The glowing particle is that symbol in flight; the tail is only there so you can see the path.</li>'+
       '<li>The dot it leaves behind is what the receiver sees: never exactly on the point, because noise moved it. Orange dots crossed into the wrong decision region and decode as the wrong bits. Pick MCS 12 and watch how little noise it takes.</li>'+
+      '<li>The panel of cells behind everything is the field itself: each cell glows by how much of the AP\u2019s signal reaches it, rippling at the wavelength and fading with distance, which is lesson 1 of the Academy drawn instead of written. When the title is through, the field turns blue and flows the other way: that is the receiver\u2019s ACK, because Wi-Fi is half duplex and nobody talks until the acknowledgement lands. Between frames the field only pulses with beacons.</li>'+
       '<li>One particle is one subcarrier. A real 80 MHz channel sends '+NSD[80]+' of them at once per stream, every 13.6 µs, which is where the rate table under "Compare rates" comes from: subcarriers, times bits per symbol, times coding rate, times streams, divided by symbol time.</li></ol>'+
       '<p class="meta">Nothing here is encrypted. This is what "sent in cleartext" looks like at the physical layer. WPA3 would scramble the bits before they reached the grid, and the constellation would look identical.</p>';
   }
