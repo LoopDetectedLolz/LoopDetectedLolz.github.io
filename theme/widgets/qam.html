@@ -2,6 +2,7 @@
   <div class="qam-top">
     <span class="eyebrow">On the air right now</span>
     <div class="qam-ctl" role="group" aria-label="Demo controls">
+      <label>Traffic <select id="qam-traffic"></select></label>
       <label>Standard <select id="qam-std"></select></label>
       <label>MCS <select id="qam-mcs"></select></label>
       <label>Streams <select id="qam-ss"></select></label>
@@ -27,11 +28,12 @@
     <button class="chip" type="button" data-wall="brick">Brick / concrete 12 dB</button>
     <span class="qam-lbnote">Drag a wall along the beam, tap the × above it to remove it. Typical 5 GHz survey values; measure yours.</span>
   </div>
+  <div class="qam-app" id="qam-app"><div class="qam-tile" id="qam-app-l"></div><div class="qam-tile" id="qam-app-r"></div></div>
   <div class="qam-rx" id="qam-rx">
     <div class="qam-rx-top">
       <span class="eyebrow">Received bytes</span>
-      <span class="qam-key" aria-hidden="true"><i class="f-mac">802.11</i><i class="f-llc">LLC/SNAP</i><i class="f-ip">IPv4</i><i class="f-icmp">ICMP</i><i class="f-pay">payload</i><i class="f-fcs">FCS</i><i class="f-bad">corrupted</i></span>
-      <a href="demo/nfn-ping.pcap" download="nfn-ping.pcap">Download the capture</a>
+      <span class="qam-key" aria-hidden="true"><i class="f-mac">802.11</i><i class="f-llc">LLC/SNAP</i><i class="f-ip">IPv4</i><i class="f-icmp">transport</i><i class="f-pay">payload</i><i class="f-fcs">FCS</i><i class="f-bad">corrupted</i></span>
+      <a href="demo/nfn-ping.pcap" download="nfn-ping.pcap" id="qam-dl">Download the capture</a>
     </div>
     <div class="qam-hex" id="qam-hex" aria-live="off"></div>
     <div class="qam-fld" id="qam-fld"></div>
@@ -50,13 +52,17 @@
   var title=root.getAttribute('data-title')||'Network Field Notes';
   var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   /* the frame: every byte of demo/nfn-ping.pcap frame 1, injected at build */
-  var HEX=(root.getAttribute('data-frame')||'').replace(/[^0-9a-f]/gi,''),FIELDS=[];try{FIELDS=JSON.parse(root.getAttribute('data-fields')||'[]')}catch(e){}
-  var FRAME=[];for(var hi=0;hi<HEX.length;hi+=2)FRAME.push(parseInt(HEX.substr(hi,2),16));
-  if(!FRAME.length){var tb0=utf8(title);for(var ti0=0;ti0<tb0.length;ti0++)FRAME.push(tb0.charCodeAt(ti0));FIELDS=[[0,FRAME.length,'Post title','the latest post title as UTF-8 bytes']];}
-  var FCLS=['f-mac','f-mac','f-mac','f-mac','f-mac','f-mac','f-llc','f-ip','f-icmp','f-pay','f-fcs'];
+  var TRAFFIC={};try{TRAFFIC=JSON.parse(root.getAttribute('data-traffic')||'{}')}catch(e){}
+  var traffic=TRAFFIC.ping?'ping':(Object.keys(TRAFFIC)[0]||null),TR=traffic?TRAFFIC[traffic]:null,frameIdx=0,FRAME=[],FIELDS=[],PAY=null,FCSF=null,hexLen=-1;
+  function loadFrame(){FRAME=[];
+    if(TR){var h=TR.frames[frameIdx%TR.frames.length];for(var hi=0;hi<h.length;hi+=2)FRAME.push(parseInt(h.substr(hi,2),16));FIELDS=TR.fields[Math.min(frameIdx,TR.fields.length-1)];}
+    else{var HEX=(root.getAttribute('data-frame')||'').replace(/[^0-9a-f]/gi,'');for(var hj=0;hj<HEX.length;hj+=2)FRAME.push(parseInt(HEX.substr(hj,2),16));try{FIELDS=JSON.parse(root.getAttribute('data-fields')||'[]')}catch(e){FIELDS=[]}}
+    if(!FRAME.length){var tb0=utf8(title);for(var ti0=0;ti0<tb0.length;ti0++)FRAME.push(tb0.charCodeAt(ti0));FIELDS=[[0,FRAME.length,'Post title','the latest post title as UTF-8 bytes']];}
+    PAY=null;FCSF=null;for(var fi0=0;fi0<FIELDS.length;fi0++){if(/payload|title|ciphertext/i.test(FIELDS[fi0][2]))PAY=FIELDS[fi0];if(FIELDS[fi0][2]==='FCS')FCSF=FIELDS[fi0];}if(!PAY)PAY=[0,FRAME.length];}
+  loadFrame();
+  function fclsOf(i){var n=(FIELDS[i]||[])[2]||'';if(i<6)return 'f-mac';if(/LLC/.test(n))return 'f-llc';if(/IPv4/.test(n))return 'f-ip';if(/^FCS/.test(n))return 'f-fcs';if(/payload|ciphertext|title/i.test(n))return 'f-pay';return 'f-icmp';}
   function fieldOf(b){for(var i=0;i<FIELDS.length;i++)if(b>=FIELDS[i][0]&&b<FIELDS[i][0]+FIELDS[i][1])return i;return -1}
-  function fcls(b){var i=fieldOf(b);return i<0?'':(FCLS[i]||'f-pay')}
-  var PAY=null,FCSF=null;for(var fi0=0;fi0<FIELDS.length;fi0++){if(/payload|title/i.test(FIELDS[fi0][2]))PAY=FIELDS[fi0];if(FIELDS[fi0][2]==='FCS')FCSF=FIELDS[fi0];}if(!PAY)PAY=[0,FRAME.length];
+  function fcls(b){var i=fieldOf(b);return i<0?'':fclsOf(i)}
   /* modulation tables. HT/VHT/HE/EHT share one MCS ladder; 802.11a/g has its own eight rates */
   var MCS_ALL=[["BPSK",1,1/2,"1/2"],["QPSK",2,1/2,"1/2"],["QPSK",2,3/4,"3/4"],["16-QAM",4,1/2,"1/2"],["16-QAM",4,3/4,"3/4"],["64-QAM",6,2/3,"2/3"],["64-QAM",6,3/4,"3/4"],["64-QAM",6,5/6,"5/6"],["256-QAM",8,3/4,"3/4"],["256-QAM",8,5/6,"5/6"],["1024-QAM",10,3/4,"3/4"],["1024-QAM",10,5/6,"5/6"],["4096-QAM",12,3/4,"3/4"],["4096-QAM",12,5/6,"5/6"]];
   var MCS_AG=[["BPSK",1,1/2,"1/2"],["BPSK",1,3/4,"3/4"],["QPSK",2,1/2,"1/2"],["QPSK",2,3/4,"3/4"],["16-QAM",4,1/2,"1/2"],["16-QAM",4,3/4,"3/4"],["64-QAM",6,2/3,"2/3"],["64-QAM",6,3/4,"3/4"]];
@@ -134,15 +140,30 @@
   function startPre(){phase='pre';pre=[];preSent=0;preT=0;synced=false;cfo=(Math.random()<0.5?-1:1)*(4+Math.random()*6);gridRot=cfo*2.2*Math.PI/180;lockT=0;}
   var lastNF=-1,cycEma=0;
   function clearRx(){if(band!==0){rxBits=[];fcs=null;landed=[];}}
-  function newFrame(){clearRx();next=0;fly=[];ghosts=[];vs=null;errors=0;attempt=1;pt=0;emitT=0;frameUs=0;cleanUs=airtime(mcsSel,ss,bw)+SIFS+ACK;cw=CWMIN;buildSyms();frames++;startPre();
+  var app={ping:[],voice:[],chat:{idx:0,msgs:[],done:false}};
+  function appReset(){app.ping=[];app.voice=[];app.chat={idx:0,done:false,msgs:(TR&&TR.kind==='chat')?TR.app.map(function(m){return{from:m.from,text:m.text,state:'pending',attempts:0,retx:0,delayUs:0}}):[]};}
+  function appDeliver(attempts,us){if(!TR)return;
+    if(TR.kind==='ping'){app.ping.push({ok:true,seq:frames,att:attempts,us:us});if(app.ping.length>8)app.ping.shift();}
+    else if(TR.kind==='voice'){app.voice.push({ok:true,us:us,idx:frameIdx});if(app.voice.length>50)app.voice.shift();}
+    else{var m=app.chat.msgs[app.chat.idx];if(m){m.state='delivered';m.attempts=attempts;m.delayUs=us+m.retx*200000;}app.chat.idx++;if(app.chat.idx>=app.chat.msgs.length)app.chat.done=true;}}
+  function appDrop(){if(!TR)return;
+    if(TR.kind==='ping'){app.ping.push({ok:false,seq:frames});if(app.ping.length>8)app.ping.shift();}
+    else if(TR.kind==='voice'){app.voice.push({ok:false,idx:frameIdx});if(app.voice.length>50)app.voice.shift();}
+    else{var m=app.chat.msgs[app.chat.idx];if(m){m.retx++;m.state='retx';}}}
+  function nextFrameIdx(){if(!TR)return;
+    if(TR.kind==='voice')frameIdx=(frameIdx+1)%TR.frames.length;
+    else if(TR.kind==='chat'){if(app.chat.done)appReset();frameIdx=app.chat.idx;var m=app.chat.msgs[frameIdx];if(m&&m.state==='pending')m.state='sending';}
+    else frameIdx=0;
+    loadFrame();buildBits();if(FRAME.length!==hexLen)buildHex();}
+  function newFrame(){if(frames>0)nextFrameIdx();clearRx();next=0;fly=[];ghosts=[];vs=null;errors=0;attempt=1;pt=0;emitT=0;frameUs=0;cleanUs=airtime(mcsSel,ss,bw)+SIFS+ACK;cw=CWMIN;buildSyms();frames++;startPre();
     if(band===0){if(lastNF>=0){var d=tReal-lastNF;cycEma=cycEma?cycEma*0.9+d*0.1:d;}lastNF=tReal;}}
-  function retry(){clearRx();next=0;fly=[];ghosts=[];vs=null;errors=0;attempt++;pt=0;emitT=0;startPre();}
+  function retry(){if(TR&&TR.kind==='chat'){var mm=app.chat.msgs[app.chat.idx];if(mm&&mm.state!=='delivered')mm.state='sending';}clearRx();next=0;fly=[];ghosts=[];vs=null;errors=0;attempt++;pt=0;emitT=0;startPre();}
   /* end of a data burst: the FCS check decides, then the ACK or the timeout is booked */
   function dataDone(){frameUs+=airtime(mcsCur,ss,bw);fcs=checkFcs();var ok=fcs?fcs.ok:errors===0;
-    if(ok){frameUs+=SIFS+ACK;okRun++;failRun=0;if(okRun>=3&&mcsCur<mcsSel){mcsCur++;adaptNote='Rate adaptation: clean run, MCS back up to '+mcsCur+'.';flash={text:'rate up: MCS '+(mcsCur-1)+' → '+mcsCur,t:2.2,up:true};okRun=0;}}
+    if(ok){frameUs+=SIFS+ACK;appDeliver(attempt,frameUs);okRun++;failRun=0;if(okRun>=3&&mcsCur<mcsSel){mcsCur++;adaptNote='Rate adaptation: clean run, MCS back up to '+mcsCur+'.';flash={text:'rate up: MCS '+(mcsCur-1)+' → '+mcsCur,t:2.2,up:true};okRun=0;}}
     else{frameUs+=ACKTO;retries++;failRun++;okRun=0;}return ok;}
   /* after an ACK timeout: give up, or double the contention window and maybe step the rate down */
-  function timeoutDone(){if(attempt>=MAXRETRY){adaptNote='Frame dropped after '+MAXRETRY+' attempts. That is what "the Wi-Fi is slow" looks like on the wire.';return{drop:true,wait:0};}
+  function timeoutDone(){if(attempt>=MAXRETRY){appDrop();adaptNote='Frame dropped after '+MAXRETRY+' attempts. That is what "the Wi-Fi is slow" looks like on the wire.';return{drop:true,wait:0};}
     cw=Math.min(CWMAX,(cw+1)*2-1);var slots=Math.floor(Math.random()*(cw+1));var wait=DIFS+slots*SLOT;frameUs+=wait;
     if(failRun>=2&&mcsCur>0){mcsCur--;failRun=0;adaptNote='Rate adaptation: two failures, dropping to MCS '+mcsCur+' ('+MCS[mcsCur][0]+'). Bigger cells, harder to corrupt, slower.';flash={text:'rate down: MCS '+(mcsCur+1)+' → '+mcsCur,t:2.2,up:false};buildSyms();}
     return{drop:false,wait:wait};}
@@ -330,7 +351,8 @@
         ctx.fillStyle=near>0.3?'rgba(245,165,36,'+(q.a*0.9)+')':q.c;ctx.globalAlpha=q.a*(0.5+0.5*Math.sin(q.s*Math.PI))*(1-smooth(0.74,0.86,q.s));ctx.beginPath();ctx.arc(p.x+jx,p.y+jy,q.r,0,Math.PI*2);ctx.fill();}
       ctx.globalAlpha=1;}
     drawPlane(L);drawInset(L);
-    if(ss>=2&&!fieldMode){for(var st=0;st<ss;st++){var ry=L.ay-L.R*0.8+st*(1.6*L.R/(ss-1)),rx=L.cx-L.pw/2-9;ctx.strokeStyle=STC[st];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(rx,ry-8);ctx.lineTo(rx,ry+8);ctx.stroke();ctx.fillStyle=STC[st];ctx.font='600 8px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='right';ctx.fillText('RX'+(st+1),rx-4,ry+3);}}
+    if(ss>=2&&!fieldMode){var rank0=mp?2:1;for(var st=0;st<ss;st++){var ry=L.ay-L.R*0.8+st*(1.6*L.R/(ss-1)),rx=L.cx-L.pw/2-9;ctx.strokeStyle=st>=rank0?'#ffd28a':STC[st];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(rx,ry-8);ctx.lineTo(rx,ry+8);ctx.stroke();ctx.fillStyle=st>=rank0?'#ffd28a':STC[st];ctx.font='600 8px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='right';ctx.fillText('RX'+(st+1),rx-4,ry+3);}
+      if(ss>rank0&&band<2){ctx.fillStyle='#ffd28a';ctx.font='600 9px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='right';ctx.fillText((ss-rank0)+' of '+ss+' streams cannot be separated',L.cx-L.pw/2-26,L.ay+L.R+(L.mob?30:44));ctx.fillStyle='#B0C4CF';ctx.font='9px JetBrains Mono,ui-monospace,monospace';ctx.fillText(mp?'one reflector: channel rank 2':'line of sight only: channel rank 1, turn on Multipath',L.cx-L.pw/2-26,L.ay+L.R+(L.mob?41:55));}}
     if(!fieldMode){drawWalls(L);if(lb.on)drawProfile(L);}
     /* landed: face-on position from the cell, side position by projection */
     for(i=0;i<landed.length;i++){var d0=landed[i],T0=target(L,d0.ix,d0.iy);d0.x=T0.x+d0.fx*T0.w;d0.y=T0.y+d0.fy*T0.h;var sp0=toSide(L,d0.x,d0.y);d0.sx=sp0.x;d0.sy=sp0.y;}
@@ -417,7 +439,7 @@
     if(followReq){followReq=false;f.follow=true;followed=f;tvSaved=tv;setTimeUI(Math.max(tv,1+Math.log(16)/Math.log(64)));}
     f.trail.push(pathAt(L,f,0));fly.push(f);
     if(mp){var e={ech:true,par:f,i:f.i,st:st,oy:f.oy,T:toSide(L,T0.x,T0.y),s:0,amp:f.amp,phi:f.phi,push:0,col:'rgb(94,210,218)',glow:'#5ED2DA',trail:[],hit:0,noise:0};e.trail.push(pathAt(L,e,0));f.echo=e;fly.push(e);}next++;}
-  function land(L,f){var T=f.T;var snr=snrDb();var rank=mp?2:1;if((f.st||0)>=rank)snr-=6*((f.st||0)-rank+1);var g=1,ph=0;
+  function land(L,f){var T=f.T;var snr=snrDb();var rank=mp?2:1;if((f.st||0)>=rank)snr-=Math.min(24,6*((f.st||0)-rank+1));var g=1,ph=0;
     if(mp){var fd=fadeOf(L,f.i);g=fd.g;ph=fd.ph;if(ss>=2){var r2=gainAt(fd.dM,subOf(f.i)/S.nsd[bw]+0.0004*lb.d);g=Math.sqrt((g*g+r2.g*r2.g)/2);}lastFade={db:20*Math.log10(g)};snr+=20*Math.log10(g);}
     f.snr=snr;var sig=sigmaPx(L,snr)+f.noise*L.Rf*0.16;var ex=gauss()*sig,ey=gauss()*sig;var sy0=syms[f.i];
     /* the receiver decodes whichever cell the point fell in; the outer cells run to the edge of the plane */
@@ -440,7 +462,7 @@
     s2+=d.bad?'<b class="warn">crossed into I '+d.ixr+', Q '+d.iyr+', decoded <code>'+brx+'</code>. That flip is why the FCS fails.</b>':'<b class="ok">stayed in its cell, decoded <code>'+brx+'</code>, correct.</b>';
     s2+=' <a href="#" id="qam-hit-x">clear</a>';HIT.innerHTML=s2;HIT.hidden=false;var xb=document.getElementById('qam-hit-x');if(xb)xb.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();sel=-1;stat();});}
   var ascs=[],ascSeen=[];
-  function buildHex(){HX.innerHTML='';cells=[];hexSeen=[];ascs=[];ascSeen=[];var row=null;for(var i=0;i<FRAME.length;i++){if(i%16===0){row=document.createElement('div');row.className='qam-row';var off=document.createElement('span');off.className='off';off.textContent=('000'+i.toString(16)).slice(-4);row.appendChild(off);HX.appendChild(row);}var el=document.createElement('i');el.className=fcls(i);el.textContent='··';el.setAttribute('data-b',i);row.appendChild(el);cells.push(el);hexSeen.push('');
+  function buildHex(){hexLen=FRAME.length;HX.innerHTML='';cells=[];hexSeen=[];ascs=[];ascSeen=[];var row=null;for(var i=0;i<FRAME.length;i++){if(i%16===0){row=document.createElement('div');row.className='qam-row';var off=document.createElement('span');off.className='off';off.textContent=('000'+i.toString(16)).slice(-4);row.appendChild(off);HX.appendChild(row);}var el=document.createElement('i');el.className=fcls(i);el.textContent='··';el.setAttribute('data-b',i);row.appendChild(el);cells.push(el);hexSeen.push('');
       if(i%16===15||i===FRAME.length-1){var pad=15-(i%16);for(var q=0;q<pad;q++){var sp0=document.createElement('i');sp0.className='pad';row.appendChild(sp0);}var asc=document.createElement('span');asc.className='asc';row.appendChild(asc);ascs.push(asc);ascSeen.push('');}}}
   function updHex(s){var last=-1,rowTxt='',sb0=selBytes();for(var i=0;i<FRAME.length;i++){var v=rxByteAt(s,i),f=fieldOf(i),cls=fcls(i),txt='··';
       if(v>=0){last=i;txt=('0'+v.toString(16)).slice(-2);cls+=' rx'+(v!==FRAME[i]?' bad':'');}if(hover>=0&&f===hover)cls+=' hl';if(i>=sb0[0]&&i<=sb0[1])cls+=' sel';
@@ -457,12 +479,41 @@
     var s='<b>'+FRAME.length+' bytes</b>, '+bits.length+' bits, '+syms.length+' symbols on '+S.name+' at '+(std==='a'?'rate':'MCS')+' '+mcsCur+' ('+MCS[mcsCur][0]+' '+MCS[mcsCur][3]+'), '+ss+'×'+bw+' MHz: '+rate(mcsCur,ss,bw).toFixed(0)+' Mb/s, '+ns+' OFDM symbol'+(ns>1?'s':'')+' of '+S.tsym+' µs after a '+S.pre(ss).toFixed(0)+' µs preamble. ';
     s+='Frame '+frames.toLocaleString()+', attempt <b>'+attempt+'</b>'+(errors?', <b class="warn">'+errors+' corrupted</b>':'')+'. On the air so far <b>'+fmt(frameUs)+'</b>'+(frameUs>cleanUs*1.05?' <b class="warn">('+(frameUs/cleanUs).toFixed(1)+'× the clean '+fmt(cleanUs)+')</b>':' (clean: '+fmt(cleanUs)+')')+'. Retries this session: <b>'+retries.toLocaleString()+'</b>.';
     var snr0=snrDb(),m0=mcsFor(snr0);s+=' Link: <b>'+prx().toFixed(0)+' dBm</b> at '+lb.d+' m'+(lb.walls.length?' through '+lb.walls.length+' wall'+(lb.walls.length>1?'s':''):'')+', noise floor '+noiseFloor().toFixed(0)+' dBm, <b>SNR '+snr0.toFixed(0)+' dB</b>'+(m0<mcsSel?' <b class="warn">(below the '+snrMin()[mcsSel]+' dB that MCS '+mcsSel+' wants)</b>':' (MCS '+mcsSel+' wants '+snrMin()[mcsSel]+')')+'.';
+    var rk=mp?2:1;if(ss>rk)s+=' <b class="warn">'+ss+' streams on a rank-'+rk+' channel: '+(ss-rk)+' cannot be separated and land noisy'+(mp?'; a real room has more reflections than one wall':'; turn on Multipath for a second path')+'.</b>';
     if(adaptNote)s+=' <b class="warn">'+adaptNote+'</b>';
     el.innerHTML=s;
     var str=rxStream();var last=updHex(str);fieldLine(last);hitLine();
     var html='';for(var ci=PAY[0];ci<PAY[0]+PAY[1];ci++){var v=rxByteAt(str,ci);if(v<0)break;var chr=v>=32&&v<127?String.fromCharCode(v):'▓';chr=chr==='<'?'&lt;':chr==='&'?'&amp;':chr;html+=(v===FRAME[ci])?chr:'<b class="garble">'+chr+'</b>';}
-    RXT.innerHTML=html+(phase==='tx'||phase==='pre'?'█':'');RXT.classList.toggle('bad',errors>0);
+    RXT.innerHTML=html+(phase==='tx'||phase==='pre'?'\u2588':'');RXT.classList.toggle('bad',errors>0);
+    appRender();
   }
+  var APL=document.getElementById('qam-app-l'),APR=document.getElementById('qam-app-r');
+  function ms(us){return (us/1000).toFixed(2)+' ms'}
+  function mos(loss){var ie=10+(95-10)*loss/(loss+0.20);var R=93.2-ie;var m=R<0?1:R>100?4.5:1+0.035*R+R*(R-60)*(100-R)*7e-6;return Math.max(1,Math.min(4.5,m));}
+  function stars(m){var n=Math.round(m);var o='';for(var i=1;i<=5;i++)o+=i<=n?'\u2605':'\u2606';return o}
+  function appRender(){if(!TR){APL.innerHTML='';APR.innerHTML='';return;}
+    if(TR.kind==='ping'){var lines='PING '+TR.app[0].to+' (from 192.0.2.10): '+PAY[1]+' data bytes\n';for(var i=0;i<app.ping.length;i++){var e=app.ping[i];lines+=e.ok?(PAY[1]+' bytes to '+TR.app[0].to+': icmp_seq='+e.seq+' on the air '+ms(e.us)+(e.att>1?' after '+e.att+' attempts':'')+'\n'):('Request timeout for icmp_seq '+e.seq+': dropped after '+MAXRETRY+' attempts\n');}
+      APL.innerHTML='<span class="eyebrow">What the app sees</span><pre class="qam-term">'+esc(lines)+(phase==='tx'||phase==='pre'?'\u2588':'')+'</pre>';
+      APR.innerHTML='<span class="eyebrow">The payload, in cleartext</span><p>Anyone in range with a capture card reads <b>'+esc(String.fromCharCode.apply(null,FRAME.slice(PAY[0],PAY[0]+PAY[1])))+'</b> straight off the air. Pick a Teams flow to see what the same frame looks like when the app encrypts it first.</p>';return;}
+    if(TR.kind==='voice'){var n=app.voice.length,lost=0,del=[],last=null;for(i=0;i<n;i++){if(app.voice[i].ok)del.push(app.voice[i].us);else lost++;last=app.voice[i];}
+      var loss=n?lost/n:0,avg=del.length?del.reduce(function(a,b){return a+b},0)/del.length:0,jit=0;for(i=1;i<del.length;i++)jit+=Math.abs(del[i]-del[i-1]);jit=del.length>1?jit/(del.length-1):0;var m=mos(loss);var callT=(n*0.020).toFixed(2);
+      APL.innerHTML='<span class="eyebrow">What the app sees</span><span class="qam-avatar">FT</span><b>Field tech</b> <span class="meta">on a call, '+callT+' s of audio so far</span>'+
+        '<div class="qam-metrics"><div><small>packet loss</small><b class="'+(loss>0.05?'warn':'ok')+'">'+(loss*100).toFixed(1)+'%</b></div><div><small>delay</small><b>'+(avg/1000).toFixed(2)+'<span class="meta"> ms</span></b></div><div><small>jitter</small><b>'+(jit/1000).toFixed(2)+'<span class="meta"> ms</span></b></div><div><small>MOS</small><b class="'+(m>=3.8?'ok':m>=3?'':'warn')+'">'+m.toFixed(1)+'</b><span class="qam-stars">'+stars(m)+'</span></div></div>'+
+        '<p class="meta">UDP: a packet that fails after '+MAXRETRY+' attempts is gone, the codec hides it as best it can, and the score falls. The retries you see cost delay, not loss.</p>';
+      var a=TR.app[frameIdx],lostNow=last&&!last.ok&&last.idx===frameIdx;var pts='';for(i=0;i<a.wave.length;i++)pts+=(i*(300/(a.wave.length-1))).toFixed(1)+','+(22-a.wave[i]*18).toFixed(1)+' ';
+      APR.innerHTML='<span class="eyebrow">After SRTP decryption</span><p>RTP sequence <b>'+a.seq+'</b>, timestamp <b>'+a.ts+'</b> (48 kHz clock, +960 per packet), payload type 111: 20 ms of SILK wideband. AES-128-CTR key ending <code>'+TR.keys.srtp_key.slice(-6)+'</code>, HMAC-SHA1-80 tag checked before anything is decoded.</p>'+
+        '<svg class="qam-wave" viewBox="0 0 300 44" preserveAspectRatio="none">'+(lostNow?'<line x1="0" y1="22" x2="300" y2="22" stroke="#ffd28a" stroke-dasharray="4 4"/><text x="150" y="14" fill="#ffd28a" font-size="9" text-anchor="middle" font-family="JetBrains Mono,monospace">PACKET LOST: 20 ms gap, concealment fills it</text>':'<polyline points="'+pts+'" fill="none" stroke="#8CE05E" stroke-width="1.4"/>')+'</svg>';return;}
+    var msgsH='',dl=0,rt=0,slow=0;for(i=0;i<app.chat.msgs.length;i++){var mm=app.chat.msgs[i];if(mm.state==='delivered'){dl++;slow=Math.max(slow,mm.delayUs);}rt+=mm.retx;
+      var st=mm.state==='delivered'?('delivered in '+(mm.delayUs>=100000?(mm.delayUs/1000).toFixed(0)+' ms, after '+mm.retx+' TCP retransmit'+(mm.retx>1?'s':''):ms(mm.delayUs)+(mm.attempts>1?', '+mm.attempts+' attempts':''))):mm.state==='sending'?('sending, attempt '+attempt):mm.state==='retx'?('not sent: 7 attempts failed, TCP retransmits in 200 ms'):'';
+      msgsH+='<div class="qam-msg '+mm.from+' '+mm.state+'"><b>'+(mm.from==='you'?'You':'Field tech')+'</b> '+esc(mm.text)+(st?'<small>'+st+'</small>':'')+'</div>';}
+    APL.innerHTML='<span class="eyebrow">What the app sees</span><div class="qam-metrics"><div><small>delivered</small><b>'+dl+'<span class="meta">/'+app.chat.msgs.length+'</span></b></div><div><small>TCP retransmits</small><b class="'+(rt?'warn':'')+'">'+rt+'</b></div><div><small>slowest</small><b>'+(slow>=100000?(slow/1000).toFixed(0)+'<span class="meta"> ms</span>':(slow/1000).toFixed(2)+'<span class="meta"> ms</span>')+'</b></div></div>'+
+      '<p class="meta">TCP: nothing is lost, it is late. A frame that fails '+MAXRETRY+' times on the air is retransmitted by TCP after its timeout, so the message still lands, 200 ms or more behind. TLS_AES_128_GCM, key ending <code>'+TR.keys.tls_key.slice(-6)+'</code>; the tag fails on any flipped bit before the app sees a byte.</p>';
+    APR.innerHTML='<span class="eyebrow">After TLS decryption</span><div class="qam-chat">'+msgsH+'</div>';}
+  var trSel=document.getElementById('qam-traffic'),DL=document.getElementById('qam-dl');
+  function dlLabel(){if(!TR)return;DL.href=TR.pcap;DL.setAttribute('download',TR.pcap.split('/').pop());DL.textContent='Download the capture ('+TR.frames.length+' frame'+(TR.frames.length>1?'s':'')+' + ACKs)';}
+  function setTraffic(id){if(!TRAFFIC[id])return;traffic=id;TR=TRAFFIC[id];frameIdx=0;appReset();if(TR.kind==='chat'){var m0=app.chat.msgs[0];if(m0)m0.state='sending';}loadFrame();buildBits();buildHex();heatClear();adaptNote='';frames=0;newFrame();frames=1;dlLabel();stat();}
+  Object.keys(TRAFFIC).forEach(function(id){var o=document.createElement('option');o.value=id;o.textContent=TRAFFIC[id].name;trSel.appendChild(o)});if(traffic)trSel.value=traffic;
+  trSel.addEventListener('change',function(){setTraffic(trSel.value)});
   var statT=0;
   function emitIv(){return Math.min(0.06,Math.max(0.03,7/syms.length))}
   function step(now){
@@ -573,11 +624,11 @@
   /* explainer */
   X=document.getElementById('qam-x');hint=document.getElementById('qam-hint');
   function explain(){var b0=FRAME[0],bin=b0.toString(2).padStart(8,'0'),lsb=bin.split('').reverse().join('');
-    var mac=0,parts=[];for(var i=0;i<FIELDS.length;i++){if(FCLS[i]==='f-mac')mac+=FIELDS[i][1];else parts.push(FIELDS[i][1]+' of '+esc(FIELDS[i][2]));}
+    var mac=0,parts=[];for(var i=0;i<FIELDS.length;i++){if(fclsOf(i)==='f-mac')mac+=FIELDS[i][1];else parts.push(FIELDS[i][1]+' of '+esc(FIELDS[i][2]));}
     var anatomy=(mac?mac+' bytes of 802.11 header, ':'')+parts.join(', ');
     var nph=PTX_W*S.tsym*1e-6/(6.626e-34*S.f*1e9),cyc=Math.round(S.tsym*1e-6*S.f*1e9),ns=nSym(mcsCur,ss,bw);
     X.innerHTML='<span class="eyebrow">What you are looking at</span>'+
-      '<p>A Yagi on the left is aimed at the receiver on the right, and it is sending a real frame: a ping from a client to its access point, '+FRAME.length+' bytes, lifted from a packet capture you can download above and open in Wireshark. Every particle carries bits from that capture, in order, and the hex panel fills in as they land. The pale shape is the antenna’s main lobe: the directors in front of the driven element squeeze the energy forward, which is why the specks ride a beam instead of spraying everywhere. The little bulge behind the mast is the back lobe you can never quite get rid of.</p>'+
+      '<p>A Yagi on the left is aimed at the receiver on the right, and it is sending a real frame: '+(TR&&TR.kind==='voice'?'one 20 ms packet of a Teams call, SRTP over UDP':TR&&TR.kind==='chat'?'one Teams chat message, a TLS record over TCP':'a ping from a client to its access point')+', '+FRAME.length+' bytes, lifted from a packet capture you can download above and open in Wireshark. Every particle carries bits from that capture, in order, and the hex panel fills in as they land. The pale shape is the antenna’s main lobe: the directors in front of the driven element squeeze the energy forward, which is why the specks ride a beam instead of spraying everywhere. The little bulge behind the mast is the back lobe you can never quite get rid of.</p>'+
       '<ol><li>Bytes become bits. The first byte is Frame Control, <code>0x'+('0'+b0.toString(16)).slice(-2)+'</code>, which is <code>'+bin+'</code>; the radio sends each byte least-significant bit first, so it leaves the antenna as <code>'+lsb+'</code>. The whole frame is '+bits.length+' bits: '+anatomy+'.</li>'+
       '<li>Bits are chopped into groups of '+k+' ('+MCS[mcsCur][0]+'), Gray coded, and each group picks one point on the '+sx+'×'+sy+' constellation: I is the column, Q is the row. Amplitude is how far from the centre, phase is the angle.</li>'+
       '<li>Each bright particle is one of those symbols. It flies down the beam and peels off to its row as it arrives. Where it lands is what the receiver sees: never exactly on the point, because noise moved it, and how far it moved comes from the link budget below: thermal noise at the receiver against the power that survived the path. Green dots decoded correctly; an orange dot crossed into the wrong cell and decoded as the wrong bits. The receiver is drawn twice: edge-on in the side view, a thin plane with Q running up it and I going into the screen, and face-on in the inset, which is the constellation the way a spectrum analyser shows it. Every hit lands in both at once. Click a hit in either view for the symbol behind it: the bits it carried, the byte and field they belong to (lit up in the hex panel), how far off centre it landed, and what the receiver decoded. The hex panel is the receiver’s copy of the frame, byte by byte, coloured by what each byte is for. Hover a byte to see which field it belongs to and what it says.</li>'+
@@ -591,12 +642,13 @@
       '<li>The ladder at the top is the MCS index, live. The bright step is the rate in use, the outlined step is the one you picked, and the marker slides when rate adaptation moves it. The Mb/s figure next to it is the PHY rate that goes with the step.</li>'+
       '<li>One particle here is one subcarrier. A real '+bw+' MHz '+S.name+' channel sends '+S.nsd[bw]+' of them at once per stream every '+S.tsym+' µs, after a '+S.pre(ss).toFixed(1)+' µs preamble, which is where the rate table comes from. This frame fits in '+ns+' OFDM symbol'+(ns>1?'s':'')+'.</li>'+
       '<li><b>Time.</b> The slider is a slow-motion factor, and the picture changes with it because nothing looks the same at every scale. <i>Frames</i>: at real time this frame is a '+airtime(mcsCur,ss,bw).toFixed(0)+' µs flash and the channel does thousands of them a second, so all you can see is the medium; the strip at the bottom is the DCF cycle to scale: preamble, data, SIFS, ACK, DIFS, backoff, and every retry pushes the next frame further right. <i>Symbols</i>: about a hundred thousand times slower, one particle per symbol, the view described above. <i>Waves</i>: a billion times slower, the carrier itself. A '+S.f.toFixed(1)+' GHz cycle is '+(1e3/S.f).toFixed(0)+' ps and a wavelength is '+(30/S.f).toFixed(1)+' cm, so what leaves the antenna is a field shaped by the Yagi’s pattern, main lobe, side lobes and back lobe, and one symbol is '+cyc.toLocaleString()+' of those cycles at a single amplitude and phase. With Multipath on, the wall shows the reflection as a mirror image of the antenna, and the fringes where the two copies meet are the fades from the multipath item above. Move the cursor into the scene and it becomes a second radio on a nearby channel; the beat pattern is what interference means to an RF engineer. <i>Photons</i>: slower still. A 20 dBm radio at '+S.f.toFixed(1)+' GHz emits about '+fmtBig(nph)+' photons per symbol, each with the same energy, '+fmtBig(6.626e-34*S.f*1e9)+' J, leaving in directions drawn from the pattern. Only about '+Math.round(rxFrac*100)+'% of the pattern points at the receiver here, and in the real room free-space loss over '+BENCH_M+' m at '+S.f.toFixed(1)+' GHz is 56 dB, so it catches one photon in about 400,000. That is why a symbol is a smooth phasor and never looks grainy: the receiver averages an astronomical number of them.</li>'+
+      '<li><b>Traffic.</b> The menu swaps what is on the air. The ping is cleartext, which is why the payload reads straight off the hex pane. The two Teams flows are encrypted the way the app encrypts them: voice is SRTP, AES-128-CTR with an HMAC-SHA1 tag, 25 packets of 20 ms each; chat is TLS 1.2, AES-128-GCM, one record per message. On the wire both look like noise, the panel above the hex pane shows what the app sees after decryption (the demo keys ship with the capture, so that view is real, not staged), and the two flows fail differently. Voice rides UDP: a frame that dies after seven attempts is a 20 ms hole the codec papers over, so interference shows up as packet loss and a falling MOS. Chat rides TCP: nothing is lost, TCP retransmits after its timeout, so the same interference shows up as a message that lands 200 ms late. That is the whole difference between "the call was choppy" and "the chat was slow". The Wi-Fi link itself is left open here so the headers stay readable; on a real network WPA2 or WPA3 would wrap everything after the 802.11 header a second time.</li>'+
       '<li><b>Standard.</b> The menu changes the physics under the same frame. 802.11a/g: 48 data subcarriers in 20 MHz, a 4 µs symbol, one stream, eight rates topping out at 54 Mb/s. 802.11n: 40 MHz, 64-QAM 5/6, four streams. 802.11ac: 80 and 160 MHz, 256-QAM, eight streams. 802.11ax: the symbol stretches to 12.8 µs plus guard, which packs four times the subcarriers into the same width, plus 1024-QAM. 802.11be: 320 MHz and 4096-QAM. Open Compare rates after switching: this ping takes '+stdAir('a')+' on 802.11a and '+stdAir('be')+' on 802.11be. The new standards win on bytes per second, not on the latency of a ping, because on a frame this small the preamble is most of the airtime.</li></ol>'+
-      '<p class="meta">What is left out: a real radio scrambles the bits, adds forward error correction (the coding rate in the table), interleaves them across subcarriers, and sends a PHY header before any of this. Those are skipped so the bits on the screen stay the bits in the capture. The capture holds two frames, this one and the 14-byte ACK the AP answers with. Timings are the 5 GHz OFDM values: 9 µs slot, 16 µs SIFS, 34 µs DIFS, contention window 15 doubling to 1023, 7 retries before the frame is dropped; preamble lengths are the single-user values with one LTF per stream. The Yagi pattern is a textbook shape, not a measured one; the wall losses and minimum-SNR figures are typical values, not measurements; the stream penalty is a model, not a solve of the channel matrix; there is no forward error correction, so a real link at the same SNR would recover a few percent of symbol errors that fail the CRC here. Nothing here is encrypted; WPA3 would scramble everything after the 802.11 header and the picture would look identical.</p>';}
+      '<p class="meta">What is left out: a real radio scrambles the bits, adds forward error correction (the coding rate in the table), interleaves them across subcarriers, and sends a PHY header before any of this. Those are skipped so the bits on the screen stay the bits in the capture. The capture holds two frames, this one and the 14-byte ACK the AP answers with. Timings are the 5 GHz OFDM values: 9 µs slot, 16 µs SIFS, 34 µs DIFS, contention window 15 doubling to 1023, 7 retries before the frame is dropped; preamble lengths are the single-user values with one LTF per stream. The Yagi pattern is a textbook shape, not a measured one; the wall losses and minimum-SNR figures are typical values, not measurements; the stream penalty is a model, not a solve of the channel matrix; there is no forward error correction, so a real link at the same SNR would recover a few percent of symbol errors that fail the CRC here. The ping is not encrypted and the Wi-Fi link is left open for all three flows; WPA3 would scramble everything after the 802.11 header and the picture would look identical.</p>';}
   function toggleX(){var open=X.hidden;if(open)explain();X.hidden=!open;if(open)hint.textContent='Tap the text again to close';else hintText();}
   root.addEventListener('click',toggleX);root.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleX()}});root.tabIndex=0;
   window.addEventListener('resize',function(){resize();seedSpecks(layout());remap();});
-  setStd(std,true);resize();buildBits();buildHex();newFrame();frames=1;seedSpecks(layout());rxFracCalc(layout());setTime(tv);stat();
+  setStd(std,true);resize();appReset();if(TR&&TR.kind==='chat'&&app.chat.msgs[0])app.chat.msgs[0].state='sending';buildBits();buildHex();newFrame();frames=1;seedSpecks(layout());rxFracCalc(layout());setTime(tv);dlLabel();stat();
   if(reduce){var L0=layout();while(next<syms.length){emit(L0);var f0=fly.pop();f0.s=1;land(L0,f0);}fcs=checkFcs();phase='ack';paused=true;pb.textContent='Play';draw(0);stat();pb.addEventListener('click',function(){if(!paused){lastNow=0;requestAnimationFrame(step)}});}
   else requestAnimationFrame(step);
 })();
