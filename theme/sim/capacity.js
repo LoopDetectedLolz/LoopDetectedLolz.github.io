@@ -124,7 +124,7 @@
         "a radio hears " + Math.round(overlap * 100) + "% of what its co-channel neighbours transmit",
         "downlink and uplink counted together",
         "at most " + perRadio + " clients per radio",
-        "no MU-MIMO or OFDMA gain, no co-channel interference from neighbours"
+        "no MU-MIMO or OFDMA gain, and no interference from anybody else's network"
       ]
     };
   };
