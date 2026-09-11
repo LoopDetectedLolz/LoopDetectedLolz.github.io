@@ -1,6 +1,6 @@
 /* Field kit. Read under stress, in daylight, with cold hands: big targets,
    one column, nothing that needs a hover to discover. */
-.kit{max-width:820px;margin:0 auto;padding:18px 16px 90px}
+.kit{max-width:820px;margin:0 auto;padding:18px 16px 110px}
 .kit *{box-sizing:border-box}
 .k-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
 .k-title h1{margin:4px 0 0;font-size:clamp(24px,5vw,34px);letter-spacing:-0.03em;line-height:1.1}
@@ -16,6 +16,21 @@
 .k-bar i{display:block;height:100%;width:0;background:var(--green);transition:width 300ms var(--ease)}
 .k-prog{margin:0 0 26px;font:12px var(--mono);color:var(--text-muted)}
 
+/* one phase on screen at a time: under stress you want the next thing, not all of them */
+.k-phase{display:none}
+.k-phase.on{display:block}
+.k-steps{display:flex;gap:5px;margin:0 0 22px}
+.k-steps b{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.10);transition:background 220ms var(--ease)}
+.k-steps b.k-at{background:var(--teal)}
+.k-steps b.k-was{background:var(--green)}
+.k-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;align-items:center;gap:10px;
+  padding:10px max(14px,env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-right));
+  background:rgba(6,16,25,0.95);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border-top:1px solid var(--line)}
+.k-nav .k-btn{flex:1 1 0;min-width:0}
+.k-nav .k-btn[disabled]{opacity:0.35;cursor:default}
+.k-where{flex:0 0 auto;min-width:78px;text-align:center;font:11px var(--mono);color:var(--text-muted);line-height:1.35}
+.k-where b{display:block;color:var(--text-dim);font-weight:400}
 .k-phase{margin:0 0 34px;padding:20px;border:1px solid var(--line);border-radius:18px;background:rgba(3,10,16,0.5)}
 .k-phase h2{display:flex;align-items:center;gap:12px;margin:0 0 6px;font-size:21px;letter-spacing:-0.02em}
 .k-phase h2 em{margin-left:auto;font:11px var(--mono);font-style:normal;color:var(--text-muted);white-space:nowrap}

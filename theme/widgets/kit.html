@@ -10,6 +10,7 @@
 
 <div class="k-bar" role="progressbar" aria-label="Progress through the kit"><i id="k-bar-fill"></i></div>
 <p class="k-prog" id="k-prog">Nothing done yet.</p>
+<div class="k-steps" id="k-steps" aria-hidden="true"></div>
 
 <section class="k-phase" id="p1">
   <h2><span class="k-n">1</span>Before you leave<em id="p1-n"></em></h2>
@@ -104,6 +105,12 @@
   <p class="k-lede">The failures that bite are the ones nobody checked because the laptop already said green.</p>
   <ul class="k-check" id="p4-check"></ul>
 </section>
+
+<nav class="k-nav" id="k-nav" aria-label="Move through the kit">
+  <button class="k-btn" id="k-back" type="button">Back</button>
+  <span class="k-where" id="k-where">1 of 4</span>
+  <button class="k-btn k-go" id="k-next" type="button">Next</button>
+</nav>
 
 <div class="k-card" id="k-card" aria-hidden="true"></div>
 </div>

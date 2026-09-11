@@ -29,7 +29,7 @@
     lat: null, lon: null, acc: null,
     aps: [], ssids: [{ name: "popup-corp", on: true }, { name: "popup-guest", on: true }],
     guest: { ssid: "popup-guest", psk: "", vlan: 100 },
-    done: {}, skip: {}
+    done: {}, skip: {}, page: 0
   };
   try { var raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch (e) {}
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
@@ -319,6 +319,35 @@
       got + " of " + all + " checks done, " + S.aps.length + " access points recorded.";
   }
 
+  /* ── one phase on screen at a time ───────────────────────────────────────
+     A kit is worked, not read. Each phase is a page, the page is in the hash so
+     the back button and a bookmark both behave, and where you were is kept so
+     reopening it in a car park puts you back where you stopped. */
+  var PAGES = [
+    { id: "p1", label: "Before you leave" },
+    { id: "p2", label: "On site" },
+    { id: "p3", label: "Uplink up" },
+    { id: "p4", label: "Before you go" }
+  ];
+
+  function showPage(i, fromHash) {
+    i = Math.max(0, Math.min(PAGES.length - 1, i | 0));
+    S.page = i; save();
+    PAGES.forEach(function (p, k) { $(p.id).classList.toggle("on", k === i); });
+    $("k-steps").innerHTML = PAGES.map(function (p, k) {
+      return "<b class='" + (k === i ? "k-at" : k < i ? "k-was" : "") + "'></b>";
+    }).join("");
+    $("k-back").disabled = i === 0;
+    $("k-back").textContent = i === 0 ? "Back" : PAGES[i - 1].label;
+    $("k-next").disabled = i === PAGES.length - 1;
+    $("k-next").textContent = i === PAGES.length - 1 ? "That is the lot" : PAGES[i + 1].label;
+    $("k-where").innerHTML = (i + 1) + " of " + PAGES.length + "<b>" + esc(PAGES[i].label) + "</b>";
+    if (!fromHash) {
+      try { history.replaceState(null, "", "#" + (i + 1)); } catch (e) { location.hash = "#" + (i + 1); }
+    }
+    window.scrollTo(0, 0);
+  }
+
   function render() { kitWarn(); apRows(); queueRows(); checks(); card(); }
 
   /* ── wiring ────────────────────────────────────────────────────────────── */
@@ -483,6 +512,22 @@
     }).catch(function () { offline("Offline copy unavailable", false); });
   } else offline("This browser will not keep an offline copy", false);
 
+  $("k-back").addEventListener("click", function () { showPage(S.page - 1); });
+  $("k-next").addEventListener("click", function () { showPage(S.page + 1); });
+  window.addEventListener("hashchange", function () {
+    var m = /^#([1-4])$/.exec(location.hash || "");
+    if (m) showPage(+m[1] - 1, true);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (e.key === "ArrowRight") showPage(S.page + 1);
+    if (e.key === "ArrowLeft") showPage(S.page - 1);
+  });
+
   ssidRows(); gpsMsg(); render();
-  window._kit = { state: function () { return S; }, add: addAp, parse: parseBlob, queue: queue, script: script, csv: csv };
+  var m0 = /^#([1-4])$/.exec(location.hash || "");
+  showPage(m0 ? +m0[1] - 1 : (S.page || 0), !!m0);
+
+  window._kit = { state: function () { return S; }, add: addAp, parse: parseBlob, queue: queue,
+                  script: script, csv: csv, page: showPage };
 })();

@@ -30,7 +30,7 @@ body{min-height:100svh;background:var(--ink);color:var(--text);font-family:var(-
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 /* Field kit. Read under stress, in daylight, with cold hands: big targets,
    one column, nothing that needs a hover to discover. */
-.kit{max-width:820px;margin:0 auto;padding:18px 16px 90px}
+.kit{max-width:820px;margin:0 auto;padding:18px 16px 110px}
 .kit *{box-sizing:border-box}
 .k-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
 .k-title h1{margin:4px 0 0;font-size:clamp(24px,5vw,34px);letter-spacing:-0.03em;line-height:1.1}
@@ -46,6 +46,21 @@ body{min-height:100svh;background:var(--ink);color:var(--text);font-family:var(-
 .k-bar i{display:block;height:100%;width:0;background:var(--green);transition:width 300ms var(--ease)}
 .k-prog{margin:0 0 26px;font:12px var(--mono);color:var(--text-muted)}
 
+/* one phase on screen at a time: under stress you want the next thing, not all of them */
+.k-phase{display:none}
+.k-phase.on{display:block}
+.k-steps{display:flex;gap:5px;margin:0 0 22px}
+.k-steps b{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.10);transition:background 220ms var(--ease)}
+.k-steps b.k-at{background:var(--teal)}
+.k-steps b.k-was{background:var(--green)}
+.k-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;align-items:center;gap:10px;
+  padding:10px max(14px,env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-right));
+  background:rgba(6,16,25,0.95);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border-top:1px solid var(--line)}
+.k-nav .k-btn{flex:1 1 0;min-width:0}
+.k-nav .k-btn[disabled]{opacity:0.35;cursor:default}
+.k-where{flex:0 0 auto;min-width:78px;text-align:center;font:11px var(--mono);color:var(--text-muted);line-height:1.35}
+.k-where b{display:block;color:var(--text-dim);font-weight:400}
 .k-phase{margin:0 0 34px;padding:20px;border:1px solid var(--line);border-radius:18px;background:rgba(3,10,16,0.5)}
 .k-phase h2{display:flex;align-items:center;gap:12px;margin:0 0 6px;font-size:21px;letter-spacing:-0.02em}
 .k-phase h2 em{margin-left:auto;font:11px var(--mono);font-style:normal;color:var(--text-muted);white-space:nowrap}
@@ -146,6 +161,7 @@ body{min-height:100svh;background:var(--ink);color:var(--text);font-family:var(-
 
 <div class="k-bar" role="progressbar" aria-label="Progress through the kit"><i id="k-bar-fill"></i></div>
 <p class="k-prog" id="k-prog">Nothing done yet.</p>
+<div class="k-steps" id="k-steps" aria-hidden="true"></div>
 
 <section class="k-phase" id="p1">
   <h2><span class="k-n">1</span>Before you leave<em id="p1-n"></em></h2>
@@ -241,6 +257,12 @@ body{min-height:100svh;background:var(--ink);color:var(--text);font-family:var(-
   <ul class="k-check" id="p4-check"></ul>
 </section>
 
+<nav class="k-nav" id="k-nav" aria-label="Move through the kit">
+  <button class="k-btn" id="k-back" type="button">Back</button>
+  <span class="k-where" id="k-where">1 of 4</span>
+  <button class="k-btn k-go" id="k-next" type="button">Next</button>
+</nav>
+
 <div class="k-card" id="k-card" aria-hidden="true"></div>
 </div>
 
@@ -283,7 +305,7 @@ body{min-height:100svh;background:var(--ink);color:var(--text);font-family:var(-
     lat: null, lon: null, acc: null,
     aps: [], ssids: [{ name: "popup-corp", on: true }, { name: "popup-guest", on: true }],
     guest: { ssid: "popup-guest", psk: "", vlan: 100 },
-    done: {}, skip: {}
+    done: {}, skip: {}, page: 0
   };
   try { var raw = localStorage.getItem(KEY); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch (e) {}
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
@@ -573,6 +595,35 @@ body{min-height:100svh;background:var(--ink);color:var(--text);font-family:var(-
       got + " of " + all + " checks done, " + S.aps.length + " access points recorded.";
   }
 
+  /* ── one phase on screen at a time ───────────────────────────────────────
+     A kit is worked, not read. Each phase is a page, the page is in the hash so
+     the back button and a bookmark both behave, and where you were is kept so
+     reopening it in a car park puts you back where you stopped. */
+  var PAGES = [
+    { id: "p1", label: "Before you leave" },
+    { id: "p2", label: "On site" },
+    { id: "p3", label: "Uplink up" },
+    { id: "p4", label: "Before you go" }
+  ];
+
+  function showPage(i, fromHash) {
+    i = Math.max(0, Math.min(PAGES.length - 1, i | 0));
+    S.page = i; save();
+    PAGES.forEach(function (p, k) { $(p.id).classList.toggle("on", k === i); });
+    $("k-steps").innerHTML = PAGES.map(function (p, k) {
+      return "<b class='" + (k === i ? "k-at" : k < i ? "k-was" : "") + "'></b>";
+    }).join("");
+    $("k-back").disabled = i === 0;
+    $("k-back").textContent = i === 0 ? "Back" : PAGES[i - 1].label;
+    $("k-next").disabled = i === PAGES.length - 1;
+    $("k-next").textContent = i === PAGES.length - 1 ? "That is the lot" : PAGES[i + 1].label;
+    $("k-where").innerHTML = (i + 1) + " of " + PAGES.length + "<b>" + esc(PAGES[i].label) + "</b>";
+    if (!fromHash) {
+      try { history.replaceState(null, "", "#" + (i + 1)); } catch (e) { location.hash = "#" + (i + 1); }
+    }
+    window.scrollTo(0, 0);
+  }
+
   function render() { kitWarn(); apRows(); queueRows(); checks(); card(); }
 
   /* ── wiring ────────────────────────────────────────────────────────────── */
@@ -737,8 +788,24 @@ body{min-height:100svh;background:var(--ink);color:var(--text);font-family:var(-
     }).catch(function () { offline("Offline copy unavailable", false); });
   } else offline("This browser will not keep an offline copy", false);
 
+  $("k-back").addEventListener("click", function () { showPage(S.page - 1); });
+  $("k-next").addEventListener("click", function () { showPage(S.page + 1); });
+  window.addEventListener("hashchange", function () {
+    var m = /^#([1-4])$/.exec(location.hash || "");
+    if (m) showPage(+m[1] - 1, true);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (e.key === "ArrowRight") showPage(S.page + 1);
+    if (e.key === "ArrowLeft") showPage(S.page - 1);
+  });
+
   ssidRows(); gpsMsg(); render();
-  window._kit = { state: function () { return S; }, add: addAp, parse: parseBlob, queue: queue, script: script, csv: csv };
+  var m0 = /^#([1-4])$/.exec(location.hash || "");
+  showPage(m0 ? +m0[1] - 1 : (S.page || 0), !!m0);
+
+  window._kit = { state: function () { return S; }, add: addAp, parse: parseBlob, queue: queue,
+                  script: script, csv: csv, page: showPage };
 })();
 </script>
 </body></html>
