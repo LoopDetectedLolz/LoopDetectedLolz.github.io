@@ -1,6 +1,7 @@
 # Where we left off
 
-Written 2026-09-11 at the end of a long Cowork session. Read this with `CLAUDE.md`:
+Written 2026-09-11 at the end of a long Cowork session, updated the same evening after
+the mesh planner landed in the lab. Read this with `CLAUDE.md`:
 that file says how things are built, this one says what state they are in, what was
 decided, and what comes next. Session:
 https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
@@ -19,19 +20,26 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
 ## What is in the lab, not on the site
 
 - `theme/sim/` is the second-generation core: `core`, `rf`, `phy`, `mac`, `channels`,
-  `capacity`, `venue`. No canvas anywhere in it, so `node simtest.js` can assert the
-  physics without a browser.
-- `theme/widgets/tools-lab.html` holds two tools behind a switcher: the capacity planner
-  and the arena aiming tool. Nothing in `build-blog.py` includes it, so it is invisible
-  to the site until it is wired into a page.
+  `capacity`, `venue`, `mesh`. No canvas anywhere in it, so `node simtest.js` can assert
+  the physics without a browser.
+- `theme/widgets/tools-lab.html` holds three tools behind a switcher: the capacity
+  planner, the arena aiming tool and the mesh planner. Nothing in `build-blog.py`
+  includes it, so it is invisible to the site until it is wired into a page.
+- **The mesh planner** (`#mesh/v1`): a draggable site map with APs, obstacles and a
+  client; portal or point, mast height, power and a fail toggle per AP; links drawn by
+  hop depth with their rate, orange and dashed when the Fresnel zone is short; a backup
+  parent per point drawn faint, or flagged as a single point of failure; demand, what the
+  mesh carries and the uplink on one bar with the ceiling named; an N-1 table that fails
+  each AP in turn; a plain text plan to copy. Vendor profiles are behaviour sketches
+  (generic, Aruba style multi-hop, Mist style single hop) and say so on screen.
 
 ## Running it
 
-    python3 lab.py tools        # the two planners, 127.0.0.1:8823, live reload on save
+    python3 lab.py tools        # the three planners, 127.0.0.1:8823, live reload on save
     python3 lab.py qam          # the live simulator widget, same loop
     python3 lab.py --diff       # what the lab copy has that the live one does not
     python3 lab.py --promote    # copy the lab widget over the live one and rebuild
-    node simtest.js             # 85 model checks, no browser
+    node simtest.js             # 117 model checks, no browser
     python3 regress.py          # every page at 360, 768 and 1280
     python3 capture.py academy-01   # regenerate the lesson figures from the live simulator
     python3 build-blog.py       # build the site
@@ -51,21 +59,33 @@ Run `node simtest.js` and `python3 regress.py` before promoting anything.
 - Central target is New Central on GreenLake, client credentials.
 - Figures in posts come from `capture.py`, never from a fresh screenshot, so a tool change
   is a re-run.
+- A mesh point holds one parent at a time. Two portals are failover and a split of the
+  points, not a bonded link, and the planner will not pretend otherwise.
+- Each hop past the first halves the capacity behind it when the client radio carries the
+  backhaul. A dedicated backhaul radio is a toggle, not an assumption.
 
 ## Next, in the order agreed
 
-1. **The mesh planner.** Design already settled: drop the terminal, place APs by dragging,
-   coverage circles from the outdoor link budget, mesh links drawn with their computed rate
-   and hop depth in colour, bad Fresnel clearance flagged. Anchor the whole thing on the
-   uplink being the ceiling: client demand and uplink capacity on the same bar, because no
-   amount of mesh gets past the satellite. Each hop on a shared backhaul radio roughly
-   halves throughput; a dedicated backhaul radio is a toggle, not an assumption. `rf.js`
-   already has `fresnel1` and `knifeEdge` from the long link work, so the "geometrically
-   fine, electrically doomed" case is cheap to flag.
+1. **Put the mesh planner on the site.** It is finished in the lab and untested by anyone
+   but the browser harness. Decide the page (its own tab like `simulator.html`, or a
+   tools page holding all three), wire `tools-lab.html` and the `theme/sim/` files into
+   `build-blog.py` (the lab loads them as separate scripts; the build should concatenate),
+   run `regress.py`, then a post that walks one design through it with figures from
+   `capture.py`.
 2. **Fold the RF planning into the kit.** The kit currently records and provisions; the
-   mesh planner is what phase two should open into.
+   mesh planner is what phase two should open into. The planner's hash is the handoff:
+   the kit already knows AP positions, so it can build `#mesh/v1?ap=...` itself.
 3. **GPS and FTM**, once the lab answers the questions below. Positions are already
    recorded per AP in the kit and ride in the CSV and the plan, so the groundwork is done.
+
+Ideas parked from the mesh session, none of them decided:
+
+- Per-AP client counts instead of an even spread, once there is a floor plan or a heat
+  map to weight them.
+- Real vendor path cost. Aruba's metric and Mist's parent choice are sketched as airtime
+  cost with a hop tax; the true formulas would make the profiles documentation instead of
+  sketches, and need the release notes to back them.
+- Terrain. The field is flat; a height map would replace the "rise in the ground" blob.
 
 ## To verify in the lab, with the AP-735
 
