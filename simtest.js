@@ -5,7 +5,7 @@
    Run: node simtest.js */
 var fs = require("fs"), path = require("path");
 var dir = path.join(__dirname, "theme", "sim");
-["core.js", "rf.js", "phy.js", "mac.js", "capacity.js"].forEach(function (f) {
+["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js"].forEach(function (f) {
   new Function(fs.readFileSync(path.join(dir, f), "utf8")).call(globalThis);
 });
 var NFN = globalThis.NFN, fails = 0, n = 0;
@@ -94,6 +94,56 @@ if (!(hurt.totalAirtime > healthy.totalAirtime * 1.2)) {
     (healthy.totalAirtime * 100).toFixed(1) + "% -> " + (hurt.totalAirtime * 100).toFixed(1) + "%");
 }
 n++;
+
+/* ── channels and reuse ───────────────────────────────────────────────── */
+eq("2.4 GHz has three channels at 20 MHz", NFN.channels.count("2.4", 20, true), 3);
+eq("5 GHz at 80 MHz without DFS", NFN.channels.count("5", 80, false), 2);
+eq("5 GHz at 80 MHz with DFS", NFN.channels.count("5", 80, true), 6);
+eq("6 GHz at 80 MHz", NFN.channels.count("6", 80, false), 14);
+eq("nine radios on three channels is three deep", NFN.channels.reuse(9, 3), 3);
+near("one neighbour at half volume adds half a load", NFN.channels.occupancy(0.2, 2, 1, 0.5), 0.3, 1e-9);
+
+/* 2.4 GHz runs out of channels: past a point more radios make it worse */
+var narrow = NFN.capacity.plan({ band: "2.4", bw: 20, retry: 0.1, ssids: 3, target: 0.5, maxPerRadio: 60,
+  overlap: 0.5, groups: [{ n: 400, dev: "n1", app: "video" }] });
+eq("2.4 GHz cannot absorb this", narrow.fits, false);
+eq("and it says so", narrow.binds, "channels");
+if (!(narrow.bestAps > 0 && narrow.bestAps < 240)) { fails++; console.log("  FAIL no sensible floor found"); }
+n++;
+var wide = NFN.capacity.plan({ band: "6", bw: 80, retry: 0.1, ssids: 3, target: 0.5, maxPerRadio: 60,
+  overlap: 0.5, groups: [{ n: 400, dev: "ax2", app: "video" }] });
+eq("6 GHz absorbs the same load", wide.fits, true);
+if (!(wide.reuse === 1)) { fails++; console.log("  FAIL 14 channels should not need reuse: " + wide.reuse); }
+n++;
+
+/* co-channel load is counted, not assumed away. Two channels and a load that
+   needs more radios than that, so there are real neighbours to hear. */
+function five(ov) {
+  return NFN.capacity.plan({ band: "5", bw: 80, retry: 0.1, ssids: 2, target: 0.6, maxPerRadio: 400,
+    overlap: ov, groups: [{ n: 300, dev: "ac1", app: "video" }] });
+}
+var alone = five(0), crowded = five(0.8);
+if (!(alone.reuse > 1)) { fails++; console.log("  FAIL this case was meant to run out of channels: reuse " + alone.reuse); }
+n++;
+if (!(crowded.perAp > alone.perAp)) { fails++; console.log("  FAIL hearing the neighbours should cost something"); }
+n++;
+if (!(crowded.coChannel > 0 && alone.coChannel < 1e-9)) { fails++; console.log("  FAIL co-channel share is not being counted"); }
+n++;
+
+/* turning DFS off takes channels away, and that shows up as radios */
+var noDfs = NFN.capacity.plan({ band: "5", bw: 80, dfs: false, retry: 0.1, ssids: 3, target: 0.5,
+  maxPerRadio: 60, overlap: 0.6, groups: [{ n: 300, dev: "ax2e", app: "video" }] });
+var withDfs = NFN.capacity.plan({ band: "5", bw: 80, dfs: true, retry: 0.1, ssids: 3, target: 0.5,
+  maxPerRadio: 60, overlap: 0.6, groups: [{ n: 300, dev: "ax2e", app: "video" }] });
+eq("without DFS this does not fit on 80 MHz", noDfs.fits, false);
+eq("with DFS it does", withDfs.fits, true);
+
+/* there is no 160 MHz channel outside DFS, and saying so beats pretending there is one */
+eq("no non-DFS 160 MHz channel exists", NFN.channels.count("5", 160, false), 0);
+var none = NFN.capacity.plan({ band: "5", bw: 160, dfs: false, retry: 0.1, ssids: 1, target: 0.5,
+  maxPerRadio: 60, overlap: 0.5, groups: [{ n: 20, dev: "ax2e", app: "web" }] });
+eq("so the plan refuses rather than inventing one", none.fits, false);
+eq("and blames the channels", none.binds, "channels");
 
 /* ── state round trip ──────────────────────────────────────────────────── */
 var st = NFN.State("capacity", { bw: NFN.f.int(80, 20, 320), std: NFN.f.pick("ax", ["a", "n", "ac", "ax", "be"]), seed: NFN.f.int(1, 1, 1e9) });
