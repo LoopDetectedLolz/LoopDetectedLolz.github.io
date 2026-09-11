@@ -57,8 +57,12 @@
       toHash: print,
       /* writes the hash without adding a history entry for every keystroke */
       push: function () {
-        if (root.history && root.history.replaceState) root.history.replaceState(null, "", print());
-        else root.location.hash = print();
+        /* a sandboxed frame can refuse both of these; a tool that works is worth
+           more than a URL that updates, so never let this take the page down */
+        try {
+          if (root.history && root.history.replaceState) root.history.replaceState(null, "", print());
+          else root.location.hash = print();
+        } catch (e) {}
       }
     };
   };
