@@ -441,6 +441,13 @@ body.acad .callout.origin .eyebrow{color:#ffd28a}
 @media (max-width:760px){.sim-teaser{grid-template-columns:1fr}.sim-copy{padding:var(--s2) var(--s2) var(--s1)}}
 .sim-intro{margin:0 0 var(--s4)}.sim-intro h1{margin:10px 0 12px}@media (max-width:700px){.sim-intro{padding:0 var(--s1)}.sim-intro .h-hero{font-size:30px}}.sim-intro .lede{max-width:820px}.sim-intro a{color:var(--blue-light)}
 .post-body video{display:block;width:100%;max-width:100%;margin:var(--s4) 0;border-radius:var(--r-inner);border:1px solid var(--line);background:#061019}
+.post-body img{display:block;width:100%;height:auto;border-radius:var(--r-inner);border:1px solid var(--line)}
+.post-body figure{margin:var(--s5) 0}
+.post-body figure video,.post-body figure img{margin:0}
+.post-body figcaption{margin-top:10px;font-size:13px;color:var(--text-muted);line-height:1.65}
+/* a dense figure stays legible on a phone by scrolling sideways, the way the tables do. the caption stays put. */
+.post-body figure.wide>.pan{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-radius:var(--r-inner)}
+.post-body figure.wide img{min-width:620px}
 .qam-app{display:grid;grid-template-columns:minmax(240px,2fr) 3fr;gap:10px;margin-top:8px;cursor:default}
 @media (max-width:760px){.qam-app{grid-template-columns:1fr}}
 .qam-tile{padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);font-size:12.5px;color:var(--text-dim);line-height:1.5;min-height:110px}
@@ -487,7 +494,7 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 10, 2026 &#183; 6 min</span></div>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 10, 2026 &#183; 7 min</span></div>
       <h1 class="h-hero">What a Radio Actually Sends</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -558,6 +565,17 @@ html.qam-fs .rig{display:none}
 <li>Put the four numbers in a row.</li>
 </ol>
 <p>What you should see: each step drops by something close to 6 dB. Not exactly. Reflections, the client's antenna, and the fact that you're standing there will push it around by a couple of dB, and that's fine.</p>
+<figure class="wide">
+<div class="pan"><img src="../media/academy-01-six-db.png" alt="Four link budget strips at 2, 4, 8 and 16 metres reading minus 27, minus 33, minus 39 and minus 45 dBm, each step 6 dB below the one above" width="1204" height="1176" loading="lazy"></div>
+<figcaption>The same link modelled in free space at your four distances: -27, -33, -39, -45 dBm, and 6.02 dB between each one. That is the whole rule. Your room will read lower than these and the steps will be bigger, which is next week's lesson and not a bad measurement.</figcaption>
+</figure>
+
+<figure>
+<video controls playsinline preload="metadata" poster="../media/academy-01-six-db.jpg" src="../media/academy-01-six-db.mp4" width="1280" height="600"></video>
+<figcaption>The same walk without stopping, 2 m out to 16 m, with the received power tracking it down the curve.</figcaption>
+</figure>
+
+<p>You can drive this one yourself in the <a href="../simulator.html">simulator</a>.</p>
 <p>What means something's off: a drop of 15 dB on one step usually means you walked behind something, or the client roamed to another AP, which the platform will show you. A reading that doesn't change at all across two steps means the number you're reading is being averaged too slowly, or the client picked a different radio. Check the BSSID the client is on before you trust any step.</p>
 <p>Then do it once on 2.4 GHz. The steps still drop about 6 dB each, and at the same transmit power they start from a higher number. Check the 2.4 GHz radio's power before you compare, because APs are routinely set lower on 2.4 to stop the cell swallowing the building, and that alone can erase the gap you're looking for. Match the power and the gap that's left is the wavelength difference from the top of this lesson, and now you've measured it.</p>
 <h2>Three questions</h2>

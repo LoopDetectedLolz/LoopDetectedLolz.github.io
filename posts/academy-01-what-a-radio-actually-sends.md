@@ -53,6 +53,18 @@ One AP, one client, a tape measure, and forty minutes. Outdoors or a large open 
 
 What you should see: each step drops by something close to 6 dB. Not exactly. Reflections, the client's antenna, and the fact that you're standing there will push it around by a couple of dB, and that's fine.
 
+<figure class="wide">
+<div class="pan"><img src="../media/academy-01-six-db.png" alt="Four link budget strips at 2, 4, 8 and 16 metres reading minus 27, minus 33, minus 39 and minus 45 dBm, each step 6 dB below the one above" width="1204" height="1176" loading="lazy"></div>
+<figcaption>The same link modelled in free space at your four distances: -27, -33, -39, -45 dBm, and 6.02 dB between each one. That is the whole rule. Your room will read lower than these and the steps will be bigger, which is next week's lesson and not a bad measurement.</figcaption>
+</figure>
+
+<figure>
+<video controls playsinline preload="metadata" poster="../media/academy-01-six-db.jpg" src="../media/academy-01-six-db.mp4" width="1280" height="600"></video>
+<figcaption>The same walk without stopping, 2 m out to 16 m, with the received power tracking it down the curve.</figcaption>
+</figure>
+
+You can drive this one yourself in the [simulator](../simulator.html).
+
 What means something's off: a drop of 15 dB on one step usually means you walked behind something, or the client roamed to another AP, which the platform will show you. A reading that doesn't change at all across two steps means the number you're reading is being averaged too slowly, or the client picked a different radio. Check the BSSID the client is on before you trust any step.
 
 Then do it once on 2.4 GHz. The steps still drop about 6 dB each, and at the same transmit power they start from a higher number. Check the 2.4 GHz radio's power before you compare, because APs are routinely set lower on 2.4 to stop the cell swallowing the building, and that alone can erase the gap you're looking for. Match the power and the gap that's left is the wavelength difference from the top of this lesson, and now you've measured it.

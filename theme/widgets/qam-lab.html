@@ -33,7 +33,7 @@
     <span class="qam-lbnote">Drag an obstacle along the path or up and down; tap the × above it to remove it. Earth bulge uses k = 4/3.</span>
   </div>
   <div class="qam-lbrow" id="qam-lbrow" hidden>
-    <label>Distance <input id="qam-dist" type="range" min="3" max="60" step="1" value="30"><b id="qam-dist-v">30 m</b></label>
+    <label>Distance <input id="qam-dist" type="range" min="2" max="60" step="1" value="30"><b id="qam-dist-v">30 m</b></label>
     <button class="chip" id="qam-model" type="button" title="Path loss model">Indoor, n = 3</button>
     <span class="eyebrow">Add a wall</span>
     <button class="chip" type="button" data-wall="dry">Drywall 3 dB</button>
@@ -146,9 +146,10 @@
     sector:{name:'Sector (stadium)',g:13,hp:20,fb:25,kw:0.8,glyph:'sector',pat:patFront(20,25),why:'a tall panel: narrow in this plane so it lights a block of seats and not the ones above or below'},
     panel:{name:'Narrow panel (bridge)',g:19,hp:10,fb:30,kw:0.45,glyph:'dish',pat:patFront(10,30,function(a){return 0.016*Math.exp(-Math.pow((a-0.35)/0.08,2))}),why:'a point-to-point link: a 10 degree pencil with side lobes 18 dB down, which is why alignment is the whole job'},
     yagi:{name:'Yagi (outdoor)',g:10,hp:44,fb:7.5,kw:1,glyph:'yagi',pat:patY,why:'directors in front, a reflector behind: a textbook cos^5 main lobe with side lobes near 65 degrees and a back lobe 7 dB down'}};
-  var ant='yagi',aim=0,cliT=Math.log(30/3)/Math.log(20),dragA=false,dragC=false,dragMoved=false;
+  var ant='yagi',aim=0,cliT=Math.log(30/2)/Math.log(60/2),dragA=false,dragC=false,dragMoved=false;
   function gtx(){return linkGain();}
-  function setDist(d){lb.d=Math.round(Math.max(3,Math.min(60,d)));cliT=Math.log(lb.d/3)/Math.log(20);}
+  var DMIN=2,DMAX=60,DSPAN=Math.log(DMAX/DMIN);
+  function setDist(d){lb.d=Math.round(Math.max(DMIN,Math.min(DMAX,d)));cliT=Math.log(lb.d/DMIN)/DSPAN;}
   /* room: ceiling, floor and the wall behind the antenna, each a specular bounce by the image-source method. the strongest path carries the symbols */
   var room=false,ROOM={ceil:{name:'ceiling',db:6},floor:{name:'floor',db:7},back:{name:'wall behind',db:4}},roomBest=null;
   function roomGeom(L){return{yc:L.ay-L.R-(L.mob?-2:18),yf:L.ay+L.R+(L.mob?10:18),xb:L.ax-(L.mob?30:62)}}
@@ -195,7 +196,7 @@
   /* time scale: one slider, four bands. frames (real time to 1 ms/s), symbols (today's particle view), waves (the carrier), photons */
   var tv=1.5, band=1, F=1.3e5, tau=0;
   var BANDS=['frames','symbols','waves','photons'];
-  root._dbg=function(){var pts=0;for(var i=0;i<fly.length;i++)pts+=fly[i].trail.length;return{drawMs:drawMs,tier:tier,drop:drop,fly:fly.length,pts:pts,ghosts:ghosts.length,landed:landed.length,fcs:fcs,band:band,F:F,speed:speed,std:std,frames:frames,retries:retries,photons:photons.length,phCount:phCount,phRx:phRx,tl:tl.length,mcs:MCS.length,tReal:tReal}};
+  root._dbg=function(){var pts=0;for(var i=0;i<fly.length;i++)pts+=fly[i].trail.length;return{lb:{d:lb.d,prx:prx(),snr:snrDb(),gt:gtx(),nf:noiseFloor(),fs:lb.fsOnly,ant:ant},strip:(function(){var L=layout(),x0=L.ex,x1=(L.cxB||L.cx)-L.pw/2-30,y0=L.sideH-(L.mob?96:82),y1=L.sideH-(L.mob?40:32);return{x:x0-6,y:y0-16,w:x1-x0+18,h:y1-y0+48}})(),drawMs:drawMs,tier:tier,drop:drop,fly:fly.length,pts:pts,ghosts:ghosts.length,landed:landed.length,fcs:fcs,band:band,F:F,speed:speed,std:std,frames:frames,retries:retries,photons:photons.length,phCount:phCount,phRx:phRx,tl:tl.length,mcs:MCS.length,tReal:tReal}};
   /* quality: slower deserves more detail, faster less; a governor sheds detail when frames run long */
   var TIERS=[{sp:9,max:50,sk:40,blur:0,gh:0.05},{sp:6,max:90,sk:70,blur:0,gh:0.035},{sp:3.5,max:160,sk:110,blur:1,gh:0.025},{sp:2.2,max:260,sk:150,blur:2,gh:0.02}];
   function quality(){var base=speed<=0.5?3:speed<=1?2:speed<=2?1:0;var t=Math.max(0,base-drop);if(t!==tier){tier=t;Q=TIERS[t];}}
@@ -798,7 +799,7 @@
       var ar=L.mob?34:56;if(Math.hypot(cur.x-L.ax,cur.y-L.ay)<ar){dragA=true;dragMoved=false;wallHit=true;cur.on=false;try{c.setPointerCapture(e.pointerId)}catch(err){}return;}
       if(band<2&&Math.abs(cur.x-L.cx)<L.pw/2+14&&Math.abs(cur.y-L.ay)<L.R+12&&!nearDot(cur.x,cur.y)){dragC=true;dragMoved=false;wallHit=true;cur.on=false;try{c.setPointerCapture(e.pointerId)}catch(err){}return;}}
     if(dragA){var na=Math.atan2(-(cur.y-L.ay),cur.x-L.ax);if(Math.abs(na)<0.06)na=0;if(Math.abs(na-aim)>0.01)dragMoved=true;aim=na;fieldDirty=true;cur.on=false;return;}
-    if(dragC){var t=((cur.x-L.ex)/(L.cxB-L.ex)-(L.mob?0.45:0.4))/(L.mob?0.55:0.6);t=Math.max(0,Math.min(1,t));setDist(3*Math.pow(20,t));dsl.value=lb.d;dsv.textContent=lb.d+' m';dragMoved=true;fieldDirty=true;cur.on=false;return;}
+    if(dragC){var t=((cur.x-L.ex)/(L.cxB-L.ex)-(L.mob?0.45:0.4))/(L.mob?0.55:0.6);t=Math.max(0,Math.min(1,t));setDist(DMIN*Math.pow(DMAX/DMIN,t));dsl.value=lb.d;dsv.textContent=lb.d+' m';dragMoved=true;fieldDirty=true;cur.on=false;return;}
     if(dragW>=0){var pos=(cur.x-L.ex)/(L.cx-L.pw/2-L.ex);lb.walls[dragW].pos=Math.max(0.06,Math.min(0.94,pos));cur.on=false;return;}
     cur.on=intOn&&inSide(L,cur.x,cur.y);}
   c.addEventListener('pointermove',setCur);c.addEventListener('pointerdown',setCur);c.addEventListener('pointerleave',function(){cur.on=false});c.addEventListener('pointerup',function(e){dragW=-1;dragO=-1;if(dragA&&!dragMoved){aim=0;fieldDirty=true;}dragA=false;dragC=false;if(e.pointerType!=='mouse')cur.on=false});c.addEventListener('pointercancel',function(){dragW=-1;dragA=false;dragC=false;cur.on=false});
