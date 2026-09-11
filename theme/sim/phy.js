@@ -61,6 +61,15 @@
     return PHY.preamble(std, ss) + Math.ceil(bits / bps) * S(std).tsym;
   };
 
+  /* Minimum SNR to hold each rate, the typical figures a vendor quotes rather
+     than anything from a standard. Used for a readout; nothing decodes by it. */
+  PHY.SNRMIN = [3, 6, 9, 12, 16, 20, 22, 25, 29, 31, 34, 37, 40, 43];
+  PHY.mcsFor = function (std, snr) {
+    var max = PHY.maxMcs(std), m = -1, i;
+    for (i = 0; i <= max && i < PHY.SNRMIN.length; i++) if (snr >= PHY.SNRMIN[i]) m = i;
+    return m;
+  };
+
   PHY.label = function (std, mcs) {
     var s = S(std); return (s.mcs[Math.min(mcs, s.mcs.length - 1)] || ["?"])[0];
   };

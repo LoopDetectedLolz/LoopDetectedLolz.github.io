@@ -5,7 +5,7 @@
    Run: node simtest.js */
 var fs = require("fs"), path = require("path");
 var dir = path.join(__dirname, "theme", "sim");
-["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js"].forEach(function (f) {
+["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js"].forEach(function (f) {
   new Function(fs.readFileSync(path.join(dir, f), "utf8")).call(globalThis);
 });
 var NFN = globalThis.NFN, fails = 0, n = 0;
@@ -144,6 +144,69 @@ var none = NFN.capacity.plan({ band: "5", bw: 160, dfs: false, retry: 0.1, ssids
   maxPerRadio: 60, overlap: 0.5, groups: [{ n: 20, dev: "ax2e", app: "web" }] });
 eq("so the plan refuses rather than inventing one", none.fits, false);
 eq("and blames the channels", none.binds, "channels");
+
+/* ── aiming at a block of seats ────────────────────────────────────────── */
+var sec = NFN.venue.section(20, 30, 20, "arena");
+eq("a trapezoid section counts its seats", sec.seats, 500);
+near("and knows how deep it is", sec.depth, 17, 0.01);
+var rws = NFN.venue.rows(sec, "arena", 14, 18), dem = NFN.venue.demand(rws);
+near("the first row is nearest and lowest", rws[0].slant, Math.hypot(18, 14), 0.01);
+if (!(dem.near.depression > dem.far.depression)) { fails++; console.log("  FAIL the front row should sit further below the antenna"); }
+n++;
+if (!(dem.vNeed > 10 && dem.vNeed < 40)) { fails++; console.log("  FAIL implausible vertical demand: " + dem.vNeed.toFixed(1)); }
+n++;
+near("the tilt splits the two edges", dem.tilt, (dem.near.depression + dem.far.depression) / 2, 1e-9);
+
+/* a wide antenna throws past the section, a narrow one does not reach the back */
+var wide = NFN.venue.footprint(sec, "arena", 14, 18, "patch65");
+var tight = NFN.venue.footprint(sec, "arena", 14, 18, "sect12");
+if (!(wide.seatsCovered > tight.seatsCovered)) { fails++; console.log("  FAIL a wider beam should land on more seats"); }
+n++;
+eq("65 degrees covers a section that needs less", wide.vFits, true);
+eq("12 degrees does not", tight.vFits, false);
+if (!(tight.rowsCovered.length < sec.rows)) { fails++; console.log("  FAIL a 12 degree beam cannot cover every row"); }
+n++;
+
+/* an under seat mount sits below the back of the bowl, and negative tilt is the answer */
+var low = NFN.venue.demand(NFN.venue.rows(sec, "arena", 1.0, 2));
+if (!(low.far.depression < 0)) { fails++; console.log("  FAIL a low mount should be looking up at the back rows"); }
+n++;
+
+/* the crowd costs signal */
+var empty = NFN.venue.signal(rws[rws.length - 1], "sect30", { full: false });
+var full = NFN.venue.signal(rws[rws.length - 1], "sect30", { full: true, bodyDb: 5 });
+near("a full bowl costs the body loss", empty.rssi - full.rssi, 5, 1e-9);
+if (!(empty.snr > full.snr)) { fails++; console.log("  FAIL body loss should cost SNR too"); }
+n++;
+near("minimum SNR picks a rate", NFN.phy.mcsFor("ax", 26), 7, 0);
+eq("and refuses when there is nothing to pick", NFN.phy.mcsFor("ax", 0), -1);
+
+var sp = NFN.venue.split(sec, "arena", 14, 18, 9);
+if (!sp) { fails++; console.log("  FAIL no split found for nine radios"); }
+n++;
+if (sp) {
+  if (!(sp.blocks >= 9 && sp.blocks <= 11)) { fails++; console.log("  FAIL split does not match the radio count: " + sp.blocks); }
+  n++;
+  if (!(sp.antenna.v >= sp.vNeed && sp.antenna.h >= sp.hNeed)) { fails++; console.log("  FAIL the chosen antenna does not cover its block"); }
+  n++;
+  var deepest = sp.bands[sp.bands.length - 1];
+  if (!(deepest.tilt < sp.bands[0].tilt)) { fails++; console.log("  FAIL the back band should be aimed flatter than the front"); }
+  n++;
+  if (!(sp.antenna.v * sp.antenna.h < 40 * 360)) { fails++; console.log("  FAIL an omni should never win the split"); }
+  n++;
+}
+
+var vp = NFN.venue.plan({ venue: "arena", nearSeats: 20, farSeats: 30, rows: 20,
+  mountH: 14, dist: 18, ant: "sect30", bw: 40, full: true });
+eq("the plan counts the same seats", vp.section.seats, 500);
+if (!(vp.clients > 0 && vp.clients < vp.section.seats)) { fails++; console.log("  FAIL take rate is not being applied"); }
+n++;
+if (["misses", "narrow", "wide", "tight", "good"].indexOf(vp.verdict) < 0) { fails++; console.log("  FAIL odd verdict: " + vp.verdict); }
+n++;
+if (!(vp.sheet.length >= 8)) { fails++; console.log("  FAIL the install sheet is thin"); }
+n++;
+if (!(vp.near.rssi > vp.far.rssi)) { fails++; console.log("  FAIL the back row should be weaker than the front"); }
+n++;
 
 /* ── state round trip ──────────────────────────────────────────────────── */
 var st = NFN.State("capacity", { bw: NFN.f.int(80, 20, 320), std: NFN.f.pick("ax", ["a", "n", "ac", "ax", "be"]), seed: NFN.f.int(1, 1, 1e9) });

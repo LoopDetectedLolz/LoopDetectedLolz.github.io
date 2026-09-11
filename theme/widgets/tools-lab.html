@@ -44,6 +44,21 @@
 .t-table td{text-align:right;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:var(--text-dim);font-family:var(--mono);font-size:12px}
 .t-table td:first-child{color:var(--text);font-family:var(--sans);font-size:13px}
 .t-table th+th,.t-table td+td{padding-left:14px}
+.t-switch{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.t-switch button{min-height:40px;padding:0 15px;border-radius:999px;border:1px solid var(--t-line);
+  background:rgba(255,255,255,0.04);color:var(--text-dim);font:600 13px var(--sans);cursor:pointer}
+.t-switch button:hover{color:var(--text);background:rgba(255,255,255,0.09)}
+.t-switch button.on{color:#06202A;background:var(--teal);border-color:var(--teal)}
+.t-tool[hidden]{display:none}
+.t-elev{margin-top:16px;border:1px solid var(--t-line);border-radius:12px;background:rgba(3,10,16,0.45);padding:6px}
+.t-elev svg{display:block;width:100%;height:auto}
+.t-hint{margin:0 0 10px;font-size:12px;line-height:1.6;color:var(--text-muted)}
+.t-live{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:12px 0 10px;
+  padding:10px 13px;border:1px solid rgba(94,210,218,0.5);background:rgba(94,210,218,0.09);border-radius:11px}
+.t-live span{font:10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+.t-live b{font:700 26px var(--mono);color:var(--teal)}
+.t-sight{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.t-sight .t-btn{width:100%}
 .t-table td i{font-style:normal;display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7px}
 .t-bad{border-color:rgba(245,165,36,0.75);background:rgba(245,165,36,0.14)}
 .t-note{margin-top:16px;padding:11px 13px;border-radius:11px;border:1px solid rgba(245,165,36,0.4);background:rgba(245,165,36,0.08);color:#ffd28a;font-size:13px;line-height:1.6}
@@ -56,6 +71,12 @@
 @media (max-width:860px){.t-grid{grid-template-columns:minmax(0,1fr)}.t-big{font-size:44px}}
 </style>
 
+<div class="t-switch" role="group" aria-label="Pick a tool">
+  <button type="button" data-tool="capacity" class="on">How many access points</button>
+  <button type="button" data-tool="venue">Aiming at a seating block</button>
+</div>
+
+<div class="t-tool" id="tool-capacity">
 <div class="t-head">
   <span class="eyebrow">Capacity</span>
   <h2>How many access points</h2>
@@ -109,6 +130,77 @@ be asked to hold. Every control is in the address bar, so the link is the argume
     </div>
   </div>
 </div>
+</div>
+
+<div class="t-tool" id="tool-venue" hidden>
+<div class="t-head">
+  <span class="eyebrow">On site</span>
+  <h2>Aiming at a block of seats</h2>
+</div>
+<p class="t-lede">Count a section the way you count one standing in it: the front row, the back row, and the rows between.
+From where the antenna is going, that gives the down-tilt, the beamwidth the section demands, and how the block
+should be carved up. The half power contour is the useful cell, not the last row that can hear anything.</p>
+
+<div class="t-grid">
+  <div class="t-panel">
+    <h3>The section</h3>
+    <div class="t-row"><label for="v-venue">Venue</label><select id="v-venue"></select></div>
+    <div class="t-row"><label for="v-near">Seats, front row</label><input type="number" id="v-near" min="1" max="200" step="1" value="20"></div>
+    <div class="t-row"><label for="v-far">Seats, back row</label><input type="number" id="v-far" min="1" max="200" step="1" value="30"></div>
+    <div class="t-row"><label for="v-rows">Rows</label><input type="number" id="v-rows" min="1" max="80" step="1" value="20"></div>
+
+    <h3 style="margin-top:22px">The mount</h3>
+    <div class="t-row"><label for="v-h">Height above row 1</label>
+      <input type="range" id="v-h" min="0.3" max="40" step="0.1" value="14"><output id="v-h-v">14.0 m</output></div>
+    <div class="t-row"><label for="v-d">Back from row 1</label>
+      <input type="range" id="v-d" min="0.5" max="60" step="0.5" value="18"><output id="v-d-v">18.0 m</output></div>
+    <div class="t-row"><label for="v-ant">Antenna</label><select id="v-ant"></select></div>
+    <div class="t-row"><label for="v-tilt">Down-tilt</label>
+      <input type="range" id="v-tilt" min="-30" max="80" step="1" value="0"><output id="v-tilt-v">auto</output></div>
+    <button class="t-btn" id="v-auto" type="button" style="width:100%">Aim it at the middle</button>
+
+    <h3 style="margin-top:22px">The crowd</h3>
+    <div class="t-row"><label for="v-full">Bowl</label>
+      <select id="v-full"><option value="1" selected>Full</option><option value="0">Empty</option></select></div>
+    <div class="t-row"><label for="v-take">Take rate</label>
+      <input type="range" id="v-take" min="5" max="90" step="5" value="45"><output id="v-take-v">45%</output></div>
+    <div class="t-row"><label for="v-app">Doing</label><select id="v-app"></select></div>
+    <div class="t-row"><label for="v-bw">Channel width</label>
+      <select id="v-bw"><option>20</option><option selected>40</option><option>80</option></select></div>
+
+    <h3 style="margin-top:22px">Measure it here</h3>
+    <p class="t-hint" id="v-tiltnote">Stand where the antenna is going, hold the phone upright and tip the top edge
+      until it points at a row, then capture. Two rows give you the beamwidth the section needs.</p>
+    <button class="t-btn" id="v-sensor" type="button" style="width:100%">Use the phone as a tilt meter</button>
+    <div id="v-sight" hidden>
+      <div class="t-live"><span>Pointing at</span><b id="v-live">0&deg;</b></div>
+      <div class="t-sight">
+        <button class="t-btn" id="v-cap-near" type="button">Capture front row</button>
+        <button class="t-btn" id="v-cap-far" type="button">Capture back row</button>
+      </div>
+      <p class="t-hint" id="v-sighted">Nothing captured yet.</p>
+    </div>
+  </div>
+
+  <div>
+    <div class="t-panel">
+      <div class="t-answer"><span class="t-big" id="v-aps">0</span><span class="t-because" id="v-why"></span></div>
+      <div class="t-stats" id="v-stats"></div>
+      <div class="t-elev" id="v-elev"></div>
+      <div id="v-verdict"></div>
+      <h3 style="margin-top:20px">How to carve it up</h3>
+      <div class="t-scroll"><table class="t-table"><thead><tr>
+        <th>Band</th><th>Rows</th><th>Down-tilt</th><th>Needs</th><th>Seats a block</th><th>Throw</th>
+      </tr></thead><tbody id="v-bands"></tbody></table></div>
+      <div class="t-acts">
+        <button class="t-btn" id="v-copy" type="button">Copy the install sheet</button>
+        <button class="t-btn" id="v-link" type="button">Copy the link</button>
+      </div>
+      <textarea class="t-out" id="v-sheet" readonly aria-label="Install sheet"></textarea>
+    </div>
+  </div>
+</div>
+</div>
 
 <script>
 (function () {
@@ -132,6 +224,7 @@ be asked to hold. Every control is in the address bar, so the link is the argume
     return out.length ? out.slice(0, 8) : undefined;
   }
 
+  var booted = false;
   var DEF = [{ n: 60, dev: "ax2", app: "video" }, { n: 90, dev: "ac1", app: "web" }];
   var st = NFN.State("capacity", {
     band: NFN.f.pick("5", ["2.4", "5", "6"]), dfs: NFN.f.bool(false),
@@ -306,7 +399,11 @@ be asked to hold. Every control is in the address bar, so the link is the argume
         g.goodputMbps.toFixed(1) + " Mb/s, " + pc(g.airtime) + " airtime";
     })).concat([""], p.assumptions.map(function (a) { return "  assumption: " + a; })).join("\n");
 
-    st.set("g", st.get("g")); st.push();
+    st.set("g", st.get("g"));
+    /* Only the tool on screen owns the address bar, and never on the first run:
+       both tools boot before the switcher reads the hash, so an early push would
+       stamp over the link somebody arrived with. */
+    if (booted && !document.getElementById("tool-capacity").hidden) st.push();
   }
 
   $("t-band").addEventListener("change", function () { st.set("band", $("t-band").value); widthOptions(); run(); });
@@ -328,10 +425,262 @@ be asked to hold. Every control is in the address bar, so the link is the argume
     if (st.fromHash(location.hash)) { writeUi(); groupRows(); run(); }
   });
 
-  writeUi(); groupRows(); run();
+  writeUi(); groupRows(); run(); booted = true;
   root._plan = function () { return CAP.plan({ band: st.get("band"), dfs: st.get("dfs"), overlap: st.get("overlap"),
     bw: st.get("bw"), retry: st.get("retry"), ssids: st.get("ssids"),
     target: st.get("target"), maxPerRadio: st.get("per"), agg: st.get("agg"), groups: st.get("g") }); };
+})();
+</script>
+
+<script>
+(function () {
+  var root = document.getElementById("tools");
+  if (!root || !window.NFN || !NFN.venue) return;
+  var V = NFN.venue, vBooted = false, $ = function (id) { return document.getElementById(id); };
+
+  var st = NFN.State("venue", {
+    venue: NFN.f.pick("arena", Object.keys(V.VENUES)),
+    near: NFN.f.int(20, 1, 200), far: NFN.f.int(30, 1, 200), rows: NFN.f.int(20, 1, 80),
+    h: NFN.f.num(14, 0.3, 40), d: NFN.f.num(18, 0.5, 60),
+    ant: NFN.f.pick("sect30", V.ANTENNAS.map(function (a) { return a.id; })),
+    tilt: NFN.f.num(999, -90, 90),          /* 999 means aim at the middle */
+    full: NFN.f.bool(true), take: NFN.f.num(0.45, 0.05, 0.9),
+    app: NFN.f.pick("stream", NFN.capacity.APPS.map(function (a) { return a.id; })),
+    bw: NFN.f.int(40, 20, 80)
+  });
+  st.fromHash(location.hash);
+
+  Object.keys(V.VENUES).forEach(function (k) { $("v-venue").add(new Option(V.VENUES[k].label, k)); });
+  V.ANTENNAS.forEach(function (a) { $("v-ant").add(new Option(a.label, a.id)); });
+  NFN.capacity.APPS.forEach(function (a) { $("v-app").add(new Option(a.label, a.id)); });
+
+  function writeUi() {
+    $("v-venue").value = st.get("venue"); $("v-near").value = st.get("near");
+    $("v-far").value = st.get("far"); $("v-rows").value = st.get("rows");
+    $("v-h").value = st.get("h"); $("v-d").value = st.get("d");
+    $("v-ant").value = st.get("ant"); $("v-full").value = st.get("full") ? "1" : "0";
+    $("v-take").value = Math.round(st.get("take") * 100); $("v-app").value = st.get("app");
+    $("v-bw").value = st.get("bw");
+    $("v-tilt").value = st.get("tilt") === 999 ? 0 : st.get("tilt");
+  }
+  function readUi() {
+    st.set("venue", $("v-venue").value)
+      .set("near", +$("v-near").value || 1).set("far", +$("v-far").value || 1)
+      .set("rows", +$("v-rows").value || 1)
+      .set("h", +$("v-h").value).set("d", +$("v-d").value)
+      .set("ant", $("v-ant").value).set("full", $("v-full").value === "1")
+      .set("take", +$("v-take").value / 100).set("app", $("v-app").value)
+      .set("bw", +$("v-bw").value);
+  }
+
+  /* elevation: the rake, the mount, and the beam landing on it. SVG because it is
+     all labelled geometry and the labels have to stay crisp at any width. */
+  function elevation(p) {
+    var sec = p.section, rws = p.fp.rows, v = p.venue,
+        maxX = rws[rws.length - 1].x + 3,
+        maxY = Math.max(st.get("h"), rws[rws.length - 1].rise) + 3,
+        W = 620, H = Math.max(210, Math.min(340, W * maxY / maxX));
+    var sx = function (x) { return 46 + (x / maxX) * (W - 70); },
+        sy = function (y) { return H - 30 - (y / maxY) * (H - 56); };
+    var mx = sx(0), my = sy(st.get("h")), parts = [];
+
+    parts.push('<line x1="' + sx(0) + '" y1="' + sy(0) + '" x2="' + sx(maxX) + '" y2="' + sy(0) +
+               '" stroke="rgba(255,255,255,0.12)" stroke-dasharray="3 4"/>');
+
+    /* the beam, drawn first so the seating sits on top of it */
+    /* stop the cone just past the back row: a wedge running off the canvas tells you nothing */
+    var half = p.fp.antenna.v / 2, reach = rws[rws.length - 1].slant * 1.12, tilt = p.fp.tilt, D = Math.PI / 180;
+    function ray(a) {
+      return { x: sx(reach * Math.cos(a * D)), y: sy(st.get("h") - reach * Math.sin(a * D)) };
+    }
+    var r1 = ray(tilt - half), r2 = ray(tilt + half);
+    parts.push('<path d="M' + mx + ' ' + my + ' L' + r1.x + ' ' + r1.y + ' L' + r2.x + ' ' + r2.y +
+               ' Z" fill="rgba(79,189,234,0.16)" stroke="rgba(79,189,234,0.5)" stroke-width="1"/>');
+    var rc = ray(tilt);
+    parts.push('<line x1="' + mx + '" y1="' + my + '" x2="' + rc.x + '" y2="' + rc.y +
+               '" stroke="rgba(79,189,234,0.8)" stroke-dasharray="5 4" stroke-width="1"/>');
+
+    /* the rake with a tick per row, lit where the beam lands */
+    var i, covered = {};
+    for (i = 0; i < p.fp.rowsCovered.length; i++) covered[p.fp.rowsCovered[i]] = 1;
+    parts.push('<line x1="' + sx(rws[0].x) + '" y1="' + sy(rws[0].rise) + '" x2="' + sx(rws[rws.length - 1].x) +
+               '" y2="' + sy(rws[rws.length - 1].rise) + '" stroke="#8BA2AE" stroke-width="2"/>');
+    for (i = 0; i < rws.length; i++) {
+      var r = rws[i], X = sx(r.x), Y = sy(r.rise), on = covered[i];
+      parts.push('<line x1="' + X + '" y1="' + Y + '" x2="' + X + '" y2="' + (Y - (on ? 9 : 5)) +
+                 '" stroke="' + (on ? "#8CE05E" : "rgba(176,196,207,0.5)") + '" stroke-width="' + (on ? 2.5 : 1.5) + '"/>');
+    }
+
+    /* the antenna */
+    parts.push('<circle cx="' + mx + '" cy="' + my + '" r="5" fill="#4FBDEA"/>');
+    parts.push('<line x1="' + mx + '" y1="' + my + '" x2="' + mx + '" y2="' + sy(maxY) +
+               '" stroke="rgba(176,196,207,0.35)" stroke-width="2"/>');
+
+    var T = function (x, y, t, c, anchor, sz) {
+      return '<text x="' + x + '" y="' + y + '" fill="' + (c || "#8BA2AE") + '" text-anchor="' + (anchor || "start") +
+             '" font-family="JetBrains Mono,ui-monospace,monospace" font-size="' + (sz || 10) + '">' + t + "</text>";
+    };
+    parts.push(T(mx + 10, my - 8, st.get("h").toFixed(1) + " m", "#4FBDEA"));
+    parts.push(T(mx + 10, my + 14, p.fp.tilt.toFixed(0) + "° down", "#4FBDEA"));
+    parts.push(T(sx(rws[0].x), sy(rws[0].rise) + 18, "row 1", "#B0C4CF", "middle"));
+    parts.push(T(sx(rws[rws.length - 1].x), sy(rws[rws.length - 1].rise) - 16, "row " + rws.length, "#B0C4CF", "middle"));
+    parts.push(T(W - 8, 16, p.fp.antenna.v + "° beam, section needs " + p.fp.demand.vNeed.toFixed(0) + "°",
+                 p.fp.vFits ? "#8CE05E" : "#ffd28a", "end"));
+    parts.push(T(8, H - 8, "elevation, metres", "rgba(139,162,174,0.7)", "start", 9));
+
+    return '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" ' +
+           'aria-label="Elevation of the section with the antenna beam landing on rows ' +
+           (p.fp.firstRow + 1) + " to " + (p.fp.lastRow + 1) + '">' + parts.join("") + "</svg>";
+  }
+
+  function pc(x) { return Math.round(x * 100) + "%"; }
+
+  function run() {
+    readUi();
+    var tilt = st.get("tilt") === 999 ? null : st.get("tilt");
+    var p = V.plan({
+      venue: st.get("venue"), nearSeats: st.get("near"), farSeats: st.get("far"), rows: st.get("rows"),
+      mountH: st.get("h"), dist: st.get("d"), ant: st.get("ant"), tilt: tilt,
+      full: st.get("full"), take: st.get("take"), app: st.get("app"), bw: st.get("bw"),
+      band: "5", dfs: true, overlap: 0.3
+    });
+    $("v-h-v").textContent = st.get("h").toFixed(1) + " m";
+    $("v-d-v").textContent = st.get("d").toFixed(1) + " m";
+    $("v-take-v").textContent = pc(st.get("take"));
+    $("v-tilt-v").textContent = tilt === null ? "auto" : tilt.toFixed(0) + "°";
+
+    $("v-aps").textContent = p.aps;
+    $("v-why").innerHTML = "radios for this section: <b>" + p.section.seats + " seats</b>, " +
+      p.clients + " of them connected at a " + pc(p.take) + " take rate.";
+
+    $("v-stats").innerHTML = [
+      ["Seats", String(p.section.seats)], ["Clients", String(p.clients)],
+      ["Seats per radio", String(Math.round(p.seatsPerAp))],
+      ["This beam covers", String(p.fp.seatsCovered)],
+      ["Down-tilt", p.fp.tilt.toFixed(0) + "°"],
+      ["Needs", p.fp.demand.vNeed.toFixed(0) + "° x " + p.fp.demand.hNeed.toFixed(0) + "°"],
+      ["Front row", p.near.rssi.toFixed(0) + " dBm"],
+      ["Back row", p.far.rssi.toFixed(0) + " dBm"]
+    ].map(function (s) { return '<div class="t-stat"><b>' + s[1] + "</b><span>" + s[0] + "</span></div>"; }).join("");
+
+    $("v-elev").innerHTML = elevation(p);
+
+    var cls = p.verdict === "good" ? "" : " t-bad";
+    $("v-verdict").innerHTML = '<div class="t-note' + cls + '">' + p.why + "</div>";
+
+    $("v-bands").innerHTML = p.split ? p.split.bands.map(function (b, i) {
+      return "<tr><td>" + (i + 1) + " of " + p.split.bands.length + "</td><td>" + (b.from + 1) + " to " + (b.to + 1) +
+        "</td><td>" + b.tilt.toFixed(0) + "°</td><td>" + b.vNeed.toFixed(0) + "° x " + b.hNeed.toFixed(0) +
+        "°</td><td>" + b.seats + "</td><td>" + b.slant.toFixed(0) + " m</td></tr>";
+    }).join("") + '<tr><td colspan="6" style="color:#8CE05E;padding-top:10px">' +
+      p.split.across + " across by " + p.split.deep + " deep, " + p.split.blocks + " blocks, " +
+      p.split.antenna.label + " on each</td></tr>"
+      : '<tr><td colspan="6">No split fits this section from the catalogue.</td></tr>';
+
+    $("v-sheet").value = p.sheet.join("\n");
+    if (vBooted && !document.getElementById("tool-venue").hidden) st.push();
+  }
+
+  ["v-venue", "v-near", "v-far", "v-rows", "v-h", "v-d", "v-ant", "v-full", "v-take", "v-app", "v-bw"]
+    .forEach(function (id) { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
+  $("v-tilt").addEventListener("input", function () { st.set("tilt", +$("v-tilt").value); run(); });
+  $("v-auto").addEventListener("click", function () { st.set("tilt", 999); run(); });
+  $("v-venue").addEventListener("change", function () {
+    var v = V.venue($("v-venue").value);
+    st.set("h", v.mount).set("d", v.dist).set("take", v.take).set("tilt", 999);
+    writeUi(); run();
+  });
+
+  /* the phone as a sighting instrument. No LiDAR anywhere near this: a bowl is
+     tens of metres across and the gyroscope is the sensor that actually helps. */
+  var live = null, sighted = {};
+  function onTilt(e) {
+    if (e.beta === null || e.beta === undefined) return;
+    live = 90 - e.beta;                       /* upright is 0, tipping the top edge down is positive */
+    $("v-live").textContent = live.toFixed(0) + "°";
+  }
+  $("v-sensor").addEventListener("click", function () {
+    var go = function () {
+      window.addEventListener("deviceorientation", onTilt);
+      $("v-sight").hidden = false;
+      $("v-sensor").textContent = "Tilt meter running";
+      setTimeout(function () {
+        if (live === null) $("v-tiltnote").textContent =
+          "This browser is not reporting tilt, so type the angles instead. The sensor needs a phone or tablet.";
+      }, 1200);
+    };
+    var DO = window.DeviceOrientationEvent;
+    if (DO && typeof DO.requestPermission === "function") {
+      DO.requestPermission().then(function (r) {
+        if (r === "granted") go();
+        else $("v-tiltnote").textContent = "Motion access was declined, so type the angles instead.";
+      }).catch(function () {
+        $("v-tiltnote").textContent = "Motion access could not be requested here, so type the angles instead.";
+      });
+    } else go();
+  });
+  function capture(which) {
+    if (live === null) return;
+    sighted[which] = live;
+    var msg = [];
+    if (sighted.near !== undefined) msg.push("front row " + sighted.near.toFixed(0) + "°");
+    if (sighted.far !== undefined) msg.push("back row " + sighted.far.toFixed(0) + "°");
+    if (sighted.near !== undefined && sighted.far !== undefined) {
+      var need = Math.abs(sighted.near - sighted.far), aim = (sighted.near + sighted.far) / 2;
+      msg.push("so the section needs " + need.toFixed(0) + "° and wants " + aim.toFixed(0) + "° of down-tilt");
+      st.set("tilt", aim); $("v-tilt").value = Math.round(aim);
+      var fit = V.ANTENNAS.filter(function (a) { return a.v >= need; })
+                          .sort(function (a, b) { return a.v - b.v; })[0];
+      if (fit) { st.set("ant", fit.id); $("v-ant").value = fit.id; msg.push("closest antenna: " + fit.label); }
+      run();
+    }
+    $("v-sighted").textContent = msg.join(", ") + ".";
+  }
+  $("v-cap-near").addEventListener("click", function () { capture("near"); });
+  $("v-cap-far").addEventListener("click", function () { capture("far"); });
+
+  function copy(text, btn) {
+    var done = function () { var o = btn.textContent; btn.textContent = "Copied"; setTimeout(function () { btn.textContent = o; }, 1200); };
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, done);
+    else { $("v-sheet").select(); try { document.execCommand("copy"); } catch (e) {} done(); }
+  }
+  $("v-copy").addEventListener("click", function () { copy($("v-sheet").value, this); });
+  $("v-link").addEventListener("click", function () { copy(location.href, this); });
+
+  writeUi(); run(); vBooted = true;
+  root._venue = function () {
+    var tilt = st.get("tilt") === 999 ? null : st.get("tilt");
+    return V.plan({ venue: st.get("venue"), nearSeats: st.get("near"), farSeats: st.get("far"),
+      rows: st.get("rows"), mountH: st.get("h"), dist: st.get("d"), ant: st.get("ant"), tilt: tilt,
+      full: st.get("full"), take: st.get("take"), app: st.get("app"), bw: st.get("bw"), band: "5", dfs: true });
+  };
+  root._sight = function (a, b) { live = a; capture("near"); live = b; capture("far"); };
+})();
+</script>
+
+<script>
+/* the switcher. Each tool refuses the other's hash, so the address bar decides
+   which one opens and a shared link lands on the right one. */
+(function () {
+  var bar = document.querySelector("#tools .t-switch");
+  if (!bar) return;
+  function show(name) {
+    ["capacity", "venue"].forEach(function (t) {
+      var el = document.getElementById("tool-" + t);
+      if (el) el.hidden = t !== name;
+    });
+    Array.prototype.forEach.call(bar.querySelectorAll("button"), function (b) {
+      var on = b.getAttribute("data-tool") === name;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+  bar.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-tool]");
+    if (b) show(b.getAttribute("data-tool"));
+  });
+  var m = /^#(capacity|venue)\//.exec(location.hash || "");
+  show(m ? m[1] : "capacity");
 })();
 </script>
 </section>
