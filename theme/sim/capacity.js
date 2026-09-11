@@ -63,14 +63,33 @@
         total = client + beacons,
         target = NFN.clamp(st.target || 0.5, 0.1, 0.95),
         perRadio = st.maxPerRadio || 60,
-        byAir = Math.max(1, Math.ceil(total / target)),
         clientsTotal = (st.groups || []).reduce(function (t, g) { return t + (g.n > 0 ? g.n : 0); }, 0),
         /* airtime is not the only ceiling: association tables, probe handling and
            the roaming mess all get worse long before a radio is busy, so a client
            count per radio is the constraint that usually actually binds */
         byCount = Math.max(1, Math.ceil(clientsTotal / perRadio)),
-        aps = Math.max(byAir, byCount),
-        per = total / aps;
+        band = st.band || "5",
+        chans = NFN.channels.count(band, st.bw, st.dfs),
+        overlap = st.overlap === undefined ? 0.4 : st.overlap;
+
+    /* Splitting the load across more radios only helps while there are channels
+       left to put them on. Past that, every new radio is another neighbour on
+       somebody's channel, so the medium gets busier rather than quieter. Walk
+       the whole range, find where it actually bottoms out, and say so. */
+    function occupancyAt(a) {
+      return NFN.channels.occupancy(client / a + beacons, a, chans, overlap);
+    }
+    var byAir = 0, best = 1, bestOcc = Infinity, MAXAP = 240;
+    for (var a = 1; chans > 0 && a <= MAXAP; a++) {
+      var o = occupancyAt(a);
+      if (o < bestOcc - 1e-12) { bestOcc = o; best = a; }
+      if (!byAir && o <= target) byAir = a;          /* airtime alone, before the client count has a say */
+    }
+    var fits = chans > 0 && byAir > 0,
+        aps = fits ? Math.max(byAir, byCount) : Math.max(best, byCount),
+        r = NFN.channels.reuse(aps, chans),
+        own = client / aps + beacons,
+        per = occupancyAt(aps);
 
     groups.sort(function (a, b) { return b.airtime - a.airtime; });
     var worst = groups[0],
@@ -81,7 +100,9 @@
       groups: groups, clients: clients, offeredMbps: offered,
       clientAirtime: client, beaconAirtime: beacons, totalAirtime: total,
       target: target, aps: aps, apsByAirtime: byAir, apsByClients: byCount,
-      binds: byCount > byAir ? "clients" : (byAir > byCount ? "airtime" : "both"),
+      binds: !fits ? "channels" : (byCount > byAir ? "clients" : (byAir > byCount ? "airtime" : "both")),
+      fits: fits, band: band, channels: chans, reuse: r, overlap: overlap,
+      ownAirtime: own, coChannel: per - own, bestAps: best, bestOccupancy: bestOcc,
       perRadio: perRadio, clientsPerAp: clientsTotal / aps,
       perAp: per, headroom: 1 - per / target,
       worst: worst,
@@ -96,7 +117,12 @@
         Math.round((st.retry === undefined ? 0.1 : st.retry) * 100) + "% of transmissions retried",
         (st.agg === false ? "aggregation off" : "A-MPDU on, per application profile"),
         "target ceiling " + Math.round(target * 100) + "% airtime per radio",
-        "one band, " + st.bw + " MHz, downlink and uplink counted together",
+        chans === 0
+          ? NFN.channels.band(band).label + " has no " + st.bw + " MHz channel at all " + (st.dfs ? "in this domain" : "once DFS is left out")
+          : NFN.channels.band(band).label + " at " + st.bw + " MHz, " + chans + " channel" + (chans === 1 ? "" : "s") +
+            (st.dfs ? " including DFS" : ", DFS left out") + ", so " + r + " cell" + (r === 1 ? "" : "s") + " per channel",
+        "a radio hears " + Math.round(overlap * 100) + "% of what its co-channel neighbours transmit",
+        "downlink and uplink counted together",
         "at most " + perRadio + " clients per radio",
         "no MU-MIMO or OFDMA gain, no co-channel interference from neighbours"
       ]

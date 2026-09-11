@@ -45,6 +45,7 @@
 .t-table td:first-child{color:var(--text);font-family:var(--sans);font-size:13px}
 .t-table th+th,.t-table td+td{padding-left:14px}
 .t-table td i{font-style:normal;display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7px}
+.t-bad{border-color:rgba(245,165,36,0.75);background:rgba(245,165,36,0.14)}
 .t-note{margin-top:16px;padding:11px 13px;border-radius:11px;border:1px solid rgba(245,165,36,0.4);background:rgba(245,165,36,0.08);color:#ffd28a;font-size:13px;line-height:1.6}
 .t-assume{margin:16px 0 0;padding:0;list-style:none;font:11.5px var(--mono);color:var(--text-muted);line-height:1.9}
 .t-assume li:before{content:"· "}
@@ -70,8 +71,13 @@ be asked to hold. Every control is in the address bar, so the link is the argume
     <button class="t-add" id="t-add" type="button">Add a client group</button>
 
     <h3 style="margin-top:22px">The radio</h3>
-    <div class="t-row"><label for="t-bw">Channel width</label>
-      <select id="t-bw"><option>20</option><option>40</option><option selected>80</option><option>160</option><option>320</option></select></div>
+    <div class="t-row"><label for="t-band">Band</label>
+      <select id="t-band"><option value="2.4">2.4 GHz</option><option value="5" selected>5 GHz</option><option value="6">6 GHz</option></select></div>
+    <div class="t-row"><label for="t-bw">Channel width</label><select id="t-bw"></select></div>
+    <div class="t-row"><label for="t-dfs">DFS channels</label>
+      <select id="t-dfs"><option value="0" selected>Left out</option><option value="1">In the plan</option></select></div>
+    <div class="t-row"><label for="t-ov">You hear neighbours</label>
+      <input type="range" id="t-ov" min="0" max="100" step="5" value="40"><output id="t-ov-v">40%</output></div>
     <div class="t-row"><label for="t-ssids">SSIDs</label>
       <input type="number" id="t-ssids" min="1" max="12" step="1" value="3"></div>
     <div class="t-row"><label for="t-retry">Retries</label>
@@ -86,7 +92,7 @@ be asked to hold. Every control is in the address bar, so the link is the argume
 
   <div>
     <div class="t-panel">
-      <div class="t-answer"><span class="t-big" id="t-aps">–</span><span class="t-because" id="t-because"></span></div>
+      <div class="t-answer"><span class="t-big" id="t-aps">0</span><span class="t-because" id="t-because"></span></div>
       <div class="t-stats" id="t-stats"></div>
       <div class="t-bar" id="t-bar"><span class="t-target" id="t-targetline"></span></div>
       <div class="t-barkey" id="t-key"></div>
@@ -128,6 +134,8 @@ be asked to hold. Every control is in the address bar, so the link is the argume
 
   var DEF = [{ n: 60, dev: "ax2", app: "video" }, { n: 90, dev: "ac1", app: "web" }];
   var st = NFN.State("capacity", {
+    band: NFN.f.pick("5", ["2.4", "5", "6"]), dfs: NFN.f.bool(false),
+    overlap: NFN.f.num(0.4, 0, 1),
     bw: NFN.f.int(80, 20, 320), ssids: NFN.f.int(3, 1, 12),
     retry: NFN.f.num(0.1, 0, 0.5), target: NFN.f.num(0.5, 0.2, 0.9),
     per: NFN.f.int(60, 10, 300), agg: NFN.f.bool(true),
@@ -135,12 +143,24 @@ be asked to hold. Every control is in the address bar, so the link is the argume
   });
   st.fromHash(location.hash);
 
+  function widthOptions() {
+    var ws = NFN.channels.widths(st.get("band")), cur = st.get("bw"), sel = $("t-bw");
+    if (ws.indexOf(cur) < 0) { cur = NFN.channels.defaultWidth(st.get("band")); st.set("bw", cur); }
+    sel.innerHTML = "";
+    ws.forEach(function (w) { sel.add(new Option(w + " MHz", w, false, w === cur)); });
+  }
+
   function readUi() {
-    st.set("bw", +$("t-bw").value).set("ssids", +$("t-ssids").value)
+    st.set("band", $("t-band").value).set("dfs", $("t-dfs").value === "1")
+      .set("overlap", +$("t-ov").value / 100)
+      .set("bw", +$("t-bw").value).set("ssids", +$("t-ssids").value)
       .set("retry", +$("t-retry").value / 100).set("target", +$("t-target").value / 100)
       .set("per", +$("t-per").value).set("agg", $("t-agg").value === "1");
   }
   function writeUi() {
+    $("t-band").value = st.get("band"); $("t-dfs").value = st.get("dfs") ? "1" : "0";
+    $("t-ov").value = Math.round(st.get("overlap") * 100);
+    widthOptions();
     $("t-bw").value = st.get("bw"); $("t-ssids").value = st.get("ssids");
     $("t-retry").value = Math.round(st.get("retry") * 100);
     $("t-target").value = Math.round(st.get("target") * 100);
@@ -182,15 +202,27 @@ be asked to hold. Every control is in the address bar, so the link is the argume
 
   function run() {
     readUi();
-    var p = CAP.plan({ bw: st.get("bw"), retry: st.get("retry"), ssids: st.get("ssids"),
+    var p = CAP.plan({ band: st.get("band"), dfs: st.get("dfs"), overlap: st.get("overlap"),
+                       bw: st.get("bw"), retry: st.get("retry"), ssids: st.get("ssids"),
                        target: st.get("target"), maxPerRadio: st.get("per"),
                        agg: st.get("agg"), groups: st.get("g") });
+    $("t-ov-v").textContent = Math.round(st.get("overlap") * 100) + "%";
     $("t-retry-v").textContent = Math.round(st.get("retry") * 100) + "%";
     $("t-target-v").textContent = Math.round(st.get("target") * 100) + "%";
     $("t-per-v").textContent = st.get("per");
 
-    $("t-aps").textContent = p.aps;
-    var why = p.binds === "clients"
+    $("t-aps").textContent = p.channels === 0 ? "0" : p.aps;
+    $("t-aps").style.color = p.fits ? "" : "#ffd28a";
+    var why = !p.fits
+      ? (p.channels === 0
+          ? "radios, because there is no " + st.get("bw") + " MHz channel in " + NFN.channels.band(p.band).label +
+            (st.get("dfs") ? " at all in this domain" : " once DFS is left out") + ". <b>Nowhere to put one.</b>"
+          : "radios is as good as " + NFN.channels.band(p.band).label + " at " + st.get("bw") +
+            " MHz gets, and it is <b>still not enough</b>. " +
+            (p.channels === 1 ? "There is one channel" : "There are " + p.channels + " channels") +
+            ", so past this point every new radio is another neighbour rather than more capacity. The floor is " +
+            Math.round(p.bestOccupancy * 100) + "% against a " + Math.round(p.target * 100) + "% ceiling.")
+      : p.binds === "clients"
       ? "radios, and it is the <b>client count</b> that decides it: the airtime alone would fit on " + p.apsByAirtime + "."
       : p.binds === "airtime"
         ? "radios, and it is the <b>airtime</b> that decides it: " + p.apsByClients + " would hold the clients, but not the load."
@@ -200,7 +232,9 @@ be asked to hold. Every control is in the address bar, so the link is the argume
     $("t-stats").innerHTML = [
       ["Total airtime", pc(p.totalAirtime)], ["Per radio", pc(p.perAp)],
       ["Clients each", p.clientsPerAp.toFixed(0)], ["Offered", mb(p.offeredMbps)],
-      ["Beacons", pc(p.beaconAirtime)], ["Headroom", pc(Math.max(0, p.headroom))]
+      ["Beacons", pc(p.beaconAirtime)], ["Headroom", pc(Math.max(0, p.headroom))],
+      ["Channels", String(p.channels)], ["Cells per channel", String(p.reuse)],
+      ["Co-channel", pc(p.coChannel)]
     ].map(function (s) { return '<div class="t-stat"><b>' + s[1] + "</b><span>" + s[0] + "</span></div>"; }).join("");
 
     /* the bar is one radio's worth of airtime, so the target line means something */
@@ -218,11 +252,19 @@ be asked to hold. Every control is in the address bar, so the link is the argume
     bcn.style.width = (p.beaconAirtime / scale * 100) + "%";
     bcn.style.background = "rgba(255,255,255,0.22)"; bcn.title = "beacons";
     bar.appendChild(bcn);
+    if (p.coChannel > 0) {
+      var co = document.createElement("i");
+      co.style.width = (p.coChannel / scale * 100) + "%";
+      co.style.background = "repeating-linear-gradient(135deg,rgba(245,165,36,0.85) 0 5px,rgba(245,165,36,0.35) 5px 10px)";
+      co.title = "the neighbours on this channel: " + pc(p.coChannel);
+      bar.appendChild(co);
+    }
     $("t-targetline").style.left = (st.get("target") / scale * 100) + "%";
 
     $("t-key").innerHTML = p.groups.map(function (g, i) {
       return '<span><i style="background:' + COLS[i % COLS.length] + '"></i>' + g.label + "</span>";
     }).join("") + '<span><i style="background:rgba(255,255,255,0.22)"></i>beacons</span>' +
+      (p.coChannel > 0 ? '<span><i style="background:repeating-linear-gradient(135deg,#F5A524 0 4px,rgba(245,165,36,0.35) 4px 8px)"></i>co-channel neighbours</span>' : "") +
       '<span style="color:#ffd28a">| the line is the ' + Math.round(st.get("target") * 100) + "% ceiling</span>";
 
     $("t-rows").innerHTML = p.groups.map(function (g, i) {
@@ -232,18 +274,30 @@ be asked to hold. Every control is in the address bar, so the link is the argume
         "</td><td>" + (g.airtimePerMbps * 100).toFixed(2) + "%</td></tr>";
     }).join("");
 
-    $("t-spread").innerHTML = p.spread && p.spread.ratio > 2
+    var notes = [];
+    if (!p.fits) notes.push('<div class="t-note t-bad">This does not fit. ' +
+      (p.channels === 0
+        ? "Pick a narrower channel, or put DFS back in the plan."
+        : "Adding radios stops helping at " + p.bestAps + ", because " + p.channels + " channel" +
+          (p.channels === 1 ? " has" : "s have") + " to be reused " + NFN.channels.reuse(p.bestAps, p.channels) +
+          " deep and each cell then hears the others. A wider band, a narrower channel so there are more of them, " +
+          "or fewer clients asking for less.") + "</div>");
+    $("t-spread").innerHTML = notes.join("") + (p.spread && p.spread.ratio > 2
       ? '<div class="t-note">A megabit carried by ' + p.spread.worst.label + " costs " +
         p.spread.ratio.toFixed(0) + " times the airtime of a megabit carried by " + p.spread.best.label +
         ". That is the whole argument for getting the slow clients off the air, and it is why counting clients tells you almost nothing.</div>"
-      : "";
+      : "");
 
     $("t-assume").innerHTML = p.assumptions.map(function (a) { return "<li>" + a + "</li>"; }).join("");
 
     $("t-summary").value = [
-      "Capacity estimate, " + p.clients + " clients, " + st.get("bw") + " MHz",
+      "Capacity estimate, " + p.clients + " clients, " + NFN.channels.band(p.band).label + " at " + st.get("bw") + " MHz",
       "",
-      p.aps + " radios (" + p.binds + " binds; airtime says " + p.apsByAirtime + ", client count says " + p.apsByClients + ")",
+      (p.fits ? p.aps + " radios (" + p.binds + " binds; airtime says " + p.apsByAirtime +
+                ", client count says " + p.apsByClients + ")"
+              : "DOES NOT FIT: " + p.channels + " channels, best case " + Math.round(p.bestOccupancy * 100) +
+                "% occupancy at " + p.bestAps + " radios against a " + Math.round(p.target * 100) + "% ceiling"),
+      p.channels + " channels, " + p.reuse + " cells per channel, co-channel share " + pc(p.coChannel),
       "Offered " + mb(p.offeredMbps) + ", total airtime " + pc(p.totalAirtime) + ", " + pc(p.perAp) + " per radio, " +
         p.clientsPerAp.toFixed(0) + " clients per radio",
       ""
@@ -255,7 +309,8 @@ be asked to hold. Every control is in the address bar, so the link is the argume
     st.set("g", st.get("g")); st.push();
   }
 
-  ["t-bw", "t-ssids", "t-retry", "t-target", "t-per", "t-agg"].forEach(function (id) {
+  $("t-band").addEventListener("change", function () { st.set("band", $("t-band").value); widthOptions(); run(); });
+  ["t-bw", "t-ssids", "t-retry", "t-target", "t-per", "t-agg", "t-dfs", "t-ov"].forEach(function (id) {
     $(id).addEventListener("input", run); $(id).addEventListener("change", run);
   });
   $("t-add").addEventListener("click", function () {
@@ -274,7 +329,8 @@ be asked to hold. Every control is in the address bar, so the link is the argume
   });
 
   writeUi(); groupRows(); run();
-  root._plan = function () { return CAP.plan({ bw: st.get("bw"), retry: st.get("retry"), ssids: st.get("ssids"),
+  root._plan = function () { return CAP.plan({ band: st.get("band"), dfs: st.get("dfs"), overlap: st.get("overlap"),
+    bw: st.get("bw"), retry: st.get("retry"), ssids: st.get("ssids"),
     target: st.get("target"), maxPerRadio: st.get("per"), agg: st.get("agg"), groups: st.get("g") }); };
 })();
 </script>
