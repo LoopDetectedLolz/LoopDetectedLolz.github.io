@@ -441,6 +441,86 @@ soc += '''
 ''' + foot("nfn-bot-wave.svg")
 open(os.path.join(ROOT, "socials.html"), "w", encoding="utf-8").write(soc)
 
+# ── field kit: a standalone offline page, no blog chrome ────────────────────
+# It has to open with no signal, so everything it needs ships inside it: the
+# tokens off the design system, the QR decoder, and a service worker that keeps
+# a copy. Nothing here is linked from the nav; you bookmark it or install it.
+KIT_CSS = open(os.path.join(ROOT, "theme", "widgets", "kit.css"), encoding="utf-8").read()
+KIT_JS = open(os.path.join(ROOT, "theme", "widgets", "kit.js"), encoding="utf-8").read()
+KIT_HTML = open(os.path.join(ROOT, "theme", "widgets", "kit.html"), encoding="utf-8").read()
+JSQR = open(os.path.join(ROOT, "theme", "vendor", "jsqr.min.js"), encoding="utf-8").read()
+_root_vars = re.search(r"(:root\{.*?\n\})", CSS, re.S).group(1)
+
+kit_page = f"""<!doctype html><html lang="en" data-theme="dark"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#061019">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/kit.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Field kit &middot; {E(SITE["name"])}</title>
+<style>
+{_root_vars}
+*{{box-sizing:border-box}}
+html{{-webkit-text-size-adjust:100%}}
+html,body{{margin:0;overflow-x:hidden}}
+body{{min-height:100svh;background:var(--ink);color:var(--text);font-family:var(--sans),system-ui,sans-serif;
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}}
+.eyebrow{{font-family:var(--mono),ui-monospace,monospace;font-size:11px;text-transform:uppercase;
+  letter-spacing:0.16em;color:var(--text-muted)}}
+@media (prefers-reduced-motion:reduce){{*{{animation:none!important;transition:none!important}}}}
+{KIT_CSS}
+</style></head><body>
+{KIT_HTML}
+<script>{JSQR}</script>
+<script>{KIT_JS}</script>
+</body></html>"""
+open(os.path.join(ROOT, "kit.html"), "w", encoding="utf-8").write(kit_page)
+
+open(os.path.join(ROOT, "kit.webmanifest"), "w", encoding="utf-8").write(json.dumps({
+    "name": "Field kit, Network Field Notes", "short_name": "Field kit",
+    "description": "Stand up a pop-up wireless network start to finish, with no signal until you build one.",
+    "start_url": "/kit.html", "scope": "/kit.html", "display": "standalone",
+    "background_color": "#061019", "theme_color": "#061019", "orientation": "portrait",
+    "icons": [{"src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any"},
+              {"src": "/favicon-32.png", "sizes": "32x32", "type": "image/png"}]
+}, indent=1))
+
+# Only the kit is cached, and only its own URLs are intercepted: a service
+# worker that got its hands on the whole blog would be a support call.
+open(os.path.join(ROOT, "sw.js"), "w", encoding="utf-8").write("""/* Field kit offline cache. Touches nothing but the kit. */
+var CACHE = 'nfn-kit-v1';
+var FILES = ['/kit.html', '/kit.webmanifest', '/apple-touch-icon.png', '/favicon-32.png'];
+
+self.addEventListener('install', function (e) {
+  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () {
+    return self.skipWaiting();
+  }));
+});
+
+self.addEventListener('activate', function (e) {
+  e.waitUntil(caches.keys().then(function (ks) {
+    return Promise.all(ks.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+  }).then(function () { return self.clients.claim(); }));
+});
+
+self.addEventListener('fetch', function (e) {
+  var url = new URL(e.request.url);
+  if (url.origin !== location.origin) return;
+  if (FILES.indexOf(url.pathname) < 0) return;          /* the rest of the site is none of our business */
+  e.respondWith(
+    fetch(e.request).then(function (r) {
+      if (r && r.ok) { var copy = r.clone(); caches.open(CACHE).then(function (c) { c.put(e.request, copy); }); }
+      return r;
+    }).catch(function () {
+      return caches.match(e.request).then(function (hit) { return hit || caches.match('/kit.html'); });
+    })
+  );
+});
+""")
+print("  + kit.html, sw.js, kit.webmanifest")
+
 # ── social preview cards ────────────────────────────────────────────────────
 HAVE_RSVG = shutil.which("rsvg-convert") is not None
 if not HAVE_RSVG:
