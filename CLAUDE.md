@@ -121,9 +121,18 @@ First person, short blunt sentences, contractions always, casual section headers
 - `git pull --rebase` before pushing. GitHub commits to `CNAME` itself when the custom domain changes in repo settings, so the remote can be ahead with nobody having pushed.
 - DNS is Cloudflare, CNAME `@` and `www` to `loopdetectedlolz.github.io`, proxy OFF. The grey cloud is required; proxying breaks certificate issuance.
 - Old `#/post/<slug>` links redirect to `p/<slug>.html`. Keep that redirect in `theme/app.js`.
+- `.band` is the call-to-action card. The 5 GHz spectrum strip in the channel 173 post is `.spectrum`: it used to be `.band` too, and its `height:64px;overflow:hidden` silently clipped every CTA card on the site, including the one under the simulator, until 2026-09-11. Two components, two names.
 - Category deep links are `index.html#cat=NAC`. The nav pills use them, and `app.js` listens for `hashchange`, so a filter change from any page works without a reload.
 - `build-blog.py` still finishes the HTML when `rsvg-convert` is missing; it warns and keeps the existing `og/*.png`. Run it on the Mac (Homebrew librsvg) to refresh OG cards.
 - Run a new post through `linkedin.com/post-inspector` before sharing it. LinkedIn caches the first scrape for weeks.
+
+## Working on the simulator without touching the site
+
+`python3 lab.py` builds `lab.html` from `theme/widgets/qam-lab.html`, serves it on 127.0.0.1:8823 and reloads the browser every time that widget, `theme/style.css` or `theme/app.js` is saved. The page carries an orange LAB bar saying how far the lab widget has drifted from the live one, and a button that opens phone and tablet frames of the same widget (loaded on demand, because each frame runs its own copy of the animation).
+
+The live widget, `theme/widgets/qam.html`, is only written by `python3 lab.py --promote`, which copies the lab widget over it and rebuilds the site; until then the published simulator keeps serving whatever was last pushed. `--diff` shows what the lab has that the live one does not, `--reset` throws the lab copy away and starts again from live, `--build` renders `lab.html` once without serving. `lab.html` is generated and git-ignored; `qam-lab.html` is tracked so work in progress has a history and survives a `git clean`.
+
+`python3 regress.py` is the visual regression harness: every page at 360, 768 and 1280, asserting no horizontal scroll, no page errors, no broken images, the mascot fixed at z-index 60, at least 140 px of clearance at the end of the content (page padding plus main padding, since the padding moved to `main` when the footer was pinned to the bottom), at most one green call to action per view, no contact copy outside the socials page, and no tap target under 38 px.
 
 ## Related skills
 
