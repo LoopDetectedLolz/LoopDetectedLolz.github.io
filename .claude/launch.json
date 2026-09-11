@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "lab-tools", "runtimeExecutable": "python3", "runtimeArgs": ["lab.py", "tools"], "port": 8823 },
+    { "name": "lab-qam", "runtimeExecutable": "python3", "runtimeArgs": ["lab.py", "qam"], "port": 8823 }
+  ]
+}

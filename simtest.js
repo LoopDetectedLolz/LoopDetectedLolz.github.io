@@ -5,7 +5,7 @@
    Run: node simtest.js */
 var fs = require("fs"), path = require("path");
 var dir = path.join(__dirname, "theme", "sim");
-["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js"].forEach(function (f) {
+["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js"].forEach(function (f) {
   new Function(fs.readFileSync(path.join(dir, f), "utf8")).call(globalThis);
 });
 var NFN = globalThis.NFN, fails = 0, n = 0;
@@ -207,6 +207,71 @@ if (!(vp.sheet.length >= 8)) { fails++; console.log("  FAIL the install sheet is
 n++;
 if (!(vp.near.rssi > vp.far.rssi)) { fails++; console.log("  FAIL the back row should be weaker than the front"); }
 n++;
+
+/* ── mesh ──────────────────────────────────────────────────────────────── */
+var ML = NFN.mesh.link({ x: 0, y: 0, h: 3 }, { x: 200, y: 0, h: 3 }, { tworay: false });
+near("a 200 m link is free space at 200 m", ML.fspl, NFN.rf.fspl(200, 5.2), 0.001);
+near("and 3 m masts clear the Fresnel zone", ML.clearance, 3 / NFN.rf.fresnel1(100, 100, 5.2), 0.02);
+eq("so it is not flagged", ML.fresnelBad, false);
+var ML2 = NFN.mesh.link({ x: 0, y: 0, h: 1 }, { x: 400, y: 0, h: 1 }, { tworay: false });
+eq("1 m masts over 400 m are flagged", ML2.fresnelBad, true);
+if (!(ML2.diffraction > 0.5)) { fails++; console.log("  FAIL the ground should cost something at 1 m over 400 m: " + ML2.diffraction); }
+n++;
+var ML3 = NFN.mesh.link({ x: 0, y: 0, h: 3 }, { x: 200, y: 0, h: 3 }, { tworay: false }, [{ x: 100, y: 0, h: 12, r: 10 }]);
+if (!(ML3.diffraction > 20)) { fails++; console.log("  FAIL a 12 m building on a 3 m link should be a wall: " + ML3.diffraction); }
+n++;
+eq("and it names the obstacle", ML3.obstacle, 0);
+var ML4 = NFN.mesh.link({ x: 0, y: 0, h: 3 }, { x: 200, y: 0, h: 3 }, { tworay: false }, [{ x: 100, y: 40, h: 12, r: 10 }]);
+eq("a building beside the path costs nothing", ML4.diffraction, 0);
+var ML5 = NFN.mesh.link({ x: 0, y: 0, h: 3, tx: 10 }, { x: 200, y: 0, h: 3, tx: 23 }, { tworay: false });
+near("the weaker transmitter sets the link", ML5.prx, ML.prx - 13, 0.001);
+near("two ray with no bounce is 0 dB", NFN.mesh.twoRay(100, 3, 3, 5.2, 0), 0, 0.001);
+var tr = NFN.mesh.twoRay(150, 3, 3, 5.2, 0.5);
+if (!(tr >= -6.03 && tr <= 3.53)) { fails++; console.log("  FAIL two ray at rho 0.5 is bounded by -6 and +3.5 dB: " + tr); }
+n++;
+/* 5 dBm into 5 dBi omnis: 200 m holds the lowest rate, 400 m holds nothing, so
+   the only way along the row is hop by hop */
+var chain = { aps: [{ x: 0, y: 0, h: 3, gw: true }, { x: 200, y: 0, h: 3 }, { x: 400, y: 0, h: 3 }, { x: 600, y: 0, h: 3 }],
+              w: 650, d: 100, tx: 5, tworay: false, uplink: 100, clients: 120, app: "web" };
+var CP = NFN.mesh.plan(chain);
+eq("a chain at low power hops along", JSON.stringify(CP.tree.depth), "[0,1,2,3]");
+eq("each point's parent is the one before it", JSON.stringify(CP.tree.parent), "[-1,0,1,2]");
+eq("the portal carries everyone behind it", CP.tree.subtree[0], 4);
+var d1 = CP.aps[1].backhaul, d3 = CP.aps[3].backhaul;
+if (!(d3 < d1 / 3)) { fails++; console.log("  FAIL three hops on a shared radio should cost more than a third: " + d1 + " vs " + d3); }
+n++;
+var CPd = NFN.mesh.plan(Object.assign({}, chain, { dedicated: true }));
+if (!(CPd.aps[3].backhaul > CP.aps[3].backhaul * 2)) { fails++; console.log("  FAIL a dedicated backhaul radio should lift the deep hop"); }
+n++;
+var CPm = NFN.mesh.plan(Object.assign({}, chain, { profile: "mist" }));
+eq("a single hop profile strands the chain", JSON.stringify(CPm.tree.depth), "[0,1,-1,-1]");
+eq("and says so", CPm.unreachable, 2);
+var CPh = NFN.mesh.plan(Object.assign({}, chain, { maxHops: 2 }));
+eq("the hop ceiling is honoured", JSON.stringify(CPh.tree.depth), "[0,1,2,-1]");
+var CPu = NFN.mesh.plan(Object.assign({}, chain, { uplink: 20 }));
+eq("the satellite is the ceiling when it is smallest", CPu.binds, "uplink");
+near("and nothing gets past it", CPu.ceiling, 20, 0.001);
+var CPx = NFN.mesh.plan(Object.assign({}, chain, { aps: chain.aps.map(function (a, i) { return i === 1 ? Object.assign({}, a, { down: true }) : a; }) }));
+eq("failing the first point orphans the chain behind it", JSON.stringify(CPx.tree.depth), "[0,-1,-1,-1]");
+eq("and the failed one is down, not unreachable", CPx.unreachable, 2);
+var RS = NFN.mesh.resilience(chain);
+eq("the N-1 sweep covers every live AP", RS.cases.length, 4);
+eq("losing the portal orphans everyone", RS.cases[0].orphans.length, 3);
+eq("losing the last point orphans nobody", RS.cases[3].orphans.length, 0);
+var ring = { aps: [{ x: 0, y: 0, h: 3, gw: true }, { x: 150, y: 0, h: 3 }, { x: 150, y: 120, h: 3 }, { x: 0, y: 120, h: 3 }],
+             w: 200, d: 150, tx: 20, tworay: false, uplink: 100, clients: 40 };
+var RP = NFN.mesh.plan(ring);
+if (!(RP.aps[2].backup >= 0)) { fails++; console.log("  FAIL a point with two neighbours should have a backup parent"); }
+n++;
+eq("no portal means nobody is reached", NFN.mesh.plan({ aps: [{ x: 0, y: 0, h: 3 }, { x: 50, y: 0, h: 3 }], w: 100, d: 100 }).unreachable, 2);
+var CL = NFN.mesh.client(chain, CP, { x: 10, y: 5 });
+eq("a client next to the portal joins the portal", CL.ap, 0);
+if (!(CL.alone <= chain.uplink + 1e-9)) { fails++; console.log("  FAIL a client alone cannot beat the uplink"); }
+n++;
+if (!(CL.crowd <= CL.alone)) { fails++; console.log("  FAIL the crowd should not help"); }
+n++;
+var cov = NFN.mesh.coverage([{ x: 50, y: 50 }], 1000, 100, 100);
+near("a huge cell covers the whole field", cov, 1, 0.001);
 
 /* ── state round trip ──────────────────────────────────────────────────── */
 var st = NFN.State("capacity", { bw: NFN.f.int(80, 20, 320), std: NFN.f.pick("ax", ["a", "n", "ac", "ax", "be"]), seed: NFN.f.int(1, 1, 1e9) });
