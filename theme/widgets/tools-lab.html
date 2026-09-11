@@ -1,0 +1,281 @@
+<section class="tools" id="tools" aria-label="Wi-Fi planning tools">
+<style>
+.tools{--t-line:rgba(255,255,255,0.12);--t-solid:rgba(3,10,16,0.55)}
+.tools *{box-sizing:border-box}
+.t-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.t-head h2{margin:0;font-size:24px;letter-spacing:-0.02em}
+.t-head .eyebrow{margin:0}
+.t-lede{color:var(--text-dim);font-size:14px;line-height:1.65;max-width:70ch;margin:0 0 18px}
+.t-grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;align-items:start}
+.t-panel{background:var(--t-solid);border:1px solid var(--t-line);border-radius:14px;padding:16px}
+.t-panel h3{margin:0 0 12px;font:600 11px var(--mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-muted)}
+.t-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px;color:var(--text-dim)}
+.t-row label{flex:1 0 auto;min-width:124px}
+.t-row output{font:600 12px var(--mono);color:var(--green);min-width:58px;text-align:right}
+.tools input[type=range]{flex:1 1 90px;min-width:80px;accent-color:var(--green)}
+.tools select,.tools input[type=number]{font:13px var(--sans);color:var(--text);background:rgba(3,10,16,0.8);
+  border:1px solid var(--t-line);border-radius:9px;min-height:38px;padding:0 8px;max-width:100%}
+.tools input[type=number]{width:72px;text-align:right}
+.t-groups{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.t-group{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:8px;align-items:start}
+.t-group .t-sel{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;min-width:0}
+.t-group .t-sel select{width:100%}
+.t-x{min-height:38px;min-width:38px;border:1px solid var(--t-line);border-radius:9px;background:none;color:var(--text-muted);cursor:pointer;font-size:15px}
+.t-x:hover{color:#ffd28a;border-color:rgba(245,165,36,0.6)}
+.t-add{min-height:40px;padding:0 14px;border:1px solid rgba(140,224,94,0.5);border-radius:999px;background:rgba(140,224,94,0.10);color:#bdf29c;font:600 12px var(--sans);cursor:pointer}
+.t-answer{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+.t-big{font:700 54px var(--sans);letter-spacing:-0.03em;line-height:1;color:var(--text)}
+.t-because{font-size:13px;color:var(--text-dim);max-width:46ch;line-height:1.6}
+.t-because b{color:#ffd28a}
+.t-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:9px;margin:16px 0}
+.t-stat{background:rgba(255,255,255,0.03);border:1px solid var(--t-line);border-radius:11px;padding:9px 11px}
+.t-stat b{display:block;font:600 17px var(--mono);color:var(--text)}
+.t-stat span{font:10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+.t-bar{position:relative;height:42px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid var(--t-line);overflow:hidden;display:flex}
+.t-bar i{display:block;height:100%;font-style:normal}
+.t-target{position:absolute;top:-4px;bottom:-4px;width:2px;background:#ffd28a;box-shadow:0 0 0 1px rgba(6,16,25,0.7)}
+.t-barkey{display:flex;flex-wrap:wrap;gap:12px;margin-top:9px;font:11px var(--mono);color:var(--text-muted)}
+.t-barkey span{display:inline-flex;align-items:center;gap:6px}
+.t-barkey i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.t-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:16px}
+.t-table{width:100%;min-width:560px;border-collapse:collapse;font-size:12.5px}
+.t-table th{text-align:right;font:600 10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);padding:0 0 7px;border-bottom:1px solid var(--t-line)}
+.t-table th:first-child,.t-table td:first-child{text-align:left}
+.t-table td{text-align:right;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:var(--text-dim);font-family:var(--mono);font-size:12px}
+.t-table td:first-child{color:var(--text);font-family:var(--sans);font-size:13px}
+.t-table th+th,.t-table td+td{padding-left:14px}
+.t-table td i{font-style:normal;display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7px}
+.t-note{margin-top:16px;padding:11px 13px;border-radius:11px;border:1px solid rgba(245,165,36,0.4);background:rgba(245,165,36,0.08);color:#ffd28a;font-size:13px;line-height:1.6}
+.t-assume{margin:16px 0 0;padding:0;list-style:none;font:11.5px var(--mono);color:var(--text-muted);line-height:1.9}
+.t-assume li:before{content:"· "}
+.t-acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.t-btn{min-height:40px;padding:0 14px;border:1px solid var(--t-line);border-radius:999px;background:rgba(255,255,255,0.05);color:var(--text);font:600 12px var(--sans);cursor:pointer}
+.t-btn:hover{background:rgba(255,255,255,0.1)}
+.t-out{margin-top:12px;width:100%;min-height:132px;font:11.5px var(--mono);color:var(--text-dim);background:rgba(3,10,16,0.8);border:1px solid var(--t-line);border-radius:11px;padding:11px;resize:vertical}
+@media (max-width:860px){.t-grid{grid-template-columns:minmax(0,1fr)}.t-big{font-size:44px}}
+</style>
+
+<div class="t-head">
+  <span class="eyebrow">Prototype</span>
+  <h2>How many access points</h2>
+</div>
+<p class="t-lede">Offered load becomes airtime through the real frame time, and airtime becomes access points.
+Change the client mix and watch which ceiling binds: the airtime, or the number of clients a radio should
+be asked to hold. Every control is in the address bar, so the link is the argument.</p>
+
+<div class="t-grid">
+  <div class="t-panel">
+    <h3>Who is on the network</h3>
+    <div class="t-groups" id="t-groups"></div>
+    <button class="t-add" id="t-add" type="button">Add a client group</button>
+
+    <h3 style="margin-top:22px">The radio</h3>
+    <div class="t-row"><label for="t-bw">Channel width</label>
+      <select id="t-bw"><option>20</option><option>40</option><option selected>80</option><option>160</option><option>320</option></select></div>
+    <div class="t-row"><label for="t-ssids">SSIDs</label>
+      <input type="number" id="t-ssids" min="1" max="12" step="1" value="3"></div>
+    <div class="t-row"><label for="t-retry">Retries</label>
+      <input type="range" id="t-retry" min="0" max="50" step="1" value="10"><output id="t-retry-v">10%</output></div>
+    <div class="t-row"><label for="t-target">Airtime ceiling</label>
+      <input type="range" id="t-target" min="20" max="90" step="5" value="50"><output id="t-target-v">50%</output></div>
+    <div class="t-row"><label for="t-per">Clients per radio</label>
+      <input type="range" id="t-per" min="20" max="150" step="5" value="60"><output id="t-per-v">60</output></div>
+    <div class="t-row"><label for="t-agg">Aggregation</label>
+      <select id="t-agg"><option value="1" selected>On, per application</option><option value="0">Off</option></select></div>
+  </div>
+
+  <div>
+    <div class="t-panel">
+      <div class="t-answer"><span class="t-big" id="t-aps">–</span><span class="t-because" id="t-because"></span></div>
+      <div class="t-stats" id="t-stats"></div>
+      <div class="t-bar" id="t-bar"><span class="t-target" id="t-targetline"></span></div>
+      <div class="t-barkey" id="t-key"></div>
+      <div id="t-spread"></div>
+      <div class="t-scroll"><table class="t-table"><thead><tr>
+        <th>Group</th><th>Clients</th><th>PHY</th><th>Each gets</th><th>Offered</th><th>Airtime</th><th>Airtime/Mb/s</th>
+      </tr></thead><tbody id="t-rows"></tbody></table></div>
+      <ul class="t-assume" id="t-assume"></ul>
+      <div class="t-acts">
+        <button class="t-btn" id="t-copy" type="button">Copy the summary</button>
+        <button class="t-btn" id="t-link" type="button">Copy the link</button>
+      </div>
+      <textarea class="t-out" id="t-summary" readonly aria-label="Plain text summary"></textarea>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var root = document.getElementById("tools");
+  if (!root || !window.NFN || !NFN.capacity) return;
+  var CAP = NFN.capacity, $ = function (id) { return document.getElementById(id); };
+  var COLS = ["#8CE05E", "#4FBDEA", "#5ED2DA", "#F5A524", "#c9a0ff", "#ff8f8f", "#9fb2bd"];
+
+  /* groups ride in the hash as 120,ax2,stream;180,ac1,web */
+  function serGroups(gs) { return gs.map(function (g) { return g.n + "," + g.dev + "," + g.app; }).join(";"); }
+  function deGroups(s) {
+    var out = (s || "").split(";").map(function (p) {
+      var b = p.split(",");
+      if (b.length !== 3) return null;
+      var n = parseInt(b[0], 10);
+      if (!isFinite(n) || n < 0 || n > 100000) return null;
+      if (!CAP.DEVICES.some(function (d) { return d.id === b[1]; })) return null;
+      if (!CAP.APPS.some(function (a) { return a.id === b[2]; })) return null;
+      return { n: n, dev: b[1], app: b[2] };
+    }).filter(Boolean);
+    return out.length ? out.slice(0, 8) : undefined;
+  }
+
+  var DEF = [{ n: 60, dev: "ax2", app: "video" }, { n: 90, dev: "ac1", app: "web" }];
+  var st = NFN.State("capacity", {
+    bw: NFN.f.int(80, 20, 320), ssids: NFN.f.int(3, 1, 12),
+    retry: NFN.f.num(0.1, 0, 0.5), target: NFN.f.num(0.5, 0.2, 0.9),
+    per: NFN.f.int(60, 10, 300), agg: NFN.f.bool(true),
+    g: NFN.f.json(DEF, serGroups, deGroups)
+  });
+  st.fromHash(location.hash);
+
+  function readUi() {
+    st.set("bw", +$("t-bw").value).set("ssids", +$("t-ssids").value)
+      .set("retry", +$("t-retry").value / 100).set("target", +$("t-target").value / 100)
+      .set("per", +$("t-per").value).set("agg", $("t-agg").value === "1");
+  }
+  function writeUi() {
+    $("t-bw").value = st.get("bw"); $("t-ssids").value = st.get("ssids");
+    $("t-retry").value = Math.round(st.get("retry") * 100);
+    $("t-target").value = Math.round(st.get("target") * 100);
+    $("t-per").value = st.get("per"); $("t-agg").value = st.get("agg") ? "1" : "0";
+  }
+
+  function groupRows() {
+    var box = $("t-groups"); box.innerHTML = "";
+    st.get("g").forEach(function (g, i) {
+      var row = document.createElement("div"); row.className = "t-group";
+      var num = document.createElement("input");
+      num.type = "number"; num.min = 0; num.max = 100000; num.step = 1; num.value = g.n;
+      num.setAttribute("aria-label", "clients in group " + (i + 1));
+      num.addEventListener("input", function () { g.n = Math.max(0, parseInt(num.value, 10) || 0); run(); });
+      var sel = document.createElement("div"); sel.className = "t-sel";
+      var dev = document.createElement("select"), app = document.createElement("select");
+      dev.setAttribute("aria-label", "device class"); app.setAttribute("aria-label", "application");
+      CAP.DEVICES.forEach(function (d) { var o = new Option(d.label, d.id, false, d.id === g.dev); dev.add(o); });
+      CAP.APPS.forEach(function (a) { var o = new Option(a.label, a.id, false, a.id === g.app); app.add(o); });
+      dev.addEventListener("change", function () { g.dev = dev.value; run(); });
+      app.addEventListener("change", function () { g.app = app.value; run(); });
+      sel.appendChild(dev); sel.appendChild(app);
+      var x = document.createElement("button");
+      x.className = "t-x"; x.type = "button"; x.textContent = "×";
+      x.setAttribute("aria-label", "remove group " + (i + 1));
+      x.addEventListener("click", function () {
+        var gs = st.get("g").slice(); gs.splice(i, 1);
+        st.set("g", gs.length ? gs : [{ n: 30, dev: "ax2", app: "web" }]); groupRows(); run();
+      });
+      var sw = document.createElement("i");
+      sw.style.cssText = "display:block;width:9px;height:30px;border-radius:3px;background:" + COLS[i % COLS.length];
+      row.appendChild(num); row.appendChild(sel); row.appendChild(x);
+      box.appendChild(row);
+    });
+  }
+
+  function mb(x) { return x >= 1000 ? (x / 1000).toFixed(2) + " Gb/s" : x.toFixed(x < 10 ? 1 : 0) + " Mb/s"; }
+  function pc(x) { return (x * 100).toFixed(x < 0.1 ? 1 : 0) + "%"; }
+
+  function run() {
+    readUi();
+    var p = CAP.plan({ bw: st.get("bw"), retry: st.get("retry"), ssids: st.get("ssids"),
+                       target: st.get("target"), maxPerRadio: st.get("per"),
+                       agg: st.get("agg"), groups: st.get("g") });
+    $("t-retry-v").textContent = Math.round(st.get("retry") * 100) + "%";
+    $("t-target-v").textContent = Math.round(st.get("target") * 100) + "%";
+    $("t-per-v").textContent = st.get("per");
+
+    $("t-aps").textContent = p.aps;
+    var why = p.binds === "clients"
+      ? "radios, and it is the <b>client count</b> that decides it: the airtime alone would fit on " + p.apsByAirtime + "."
+      : p.binds === "airtime"
+        ? "radios, and it is the <b>airtime</b> that decides it: " + p.apsByClients + " would hold the clients, but not the load."
+        : "radios, with <b>airtime and client count</b> landing on the same answer.";
+    $("t-because").innerHTML = why;
+
+    $("t-stats").innerHTML = [
+      ["Total airtime", pc(p.totalAirtime)], ["Per radio", pc(p.perAp)],
+      ["Clients each", p.clientsPerAp.toFixed(0)], ["Offered", mb(p.offeredMbps)],
+      ["Beacons", pc(p.beaconAirtime)], ["Headroom", pc(Math.max(0, p.headroom))]
+    ].map(function (s) { return '<div class="t-stat"><b>' + s[1] + "</b><span>" + s[0] + "</span></div>"; }).join("");
+
+    /* the bar is one radio's worth of airtime, so the target line means something */
+    var bar = $("t-bar"), scale = Math.max(p.perAp, st.get("target")) * 1.25;
+    bar.querySelectorAll("i").forEach ? null : null;
+    Array.prototype.slice.call(bar.querySelectorAll("i")).forEach(function (e) { e.remove(); });
+    p.groups.forEach(function (g, i) {
+      var e = document.createElement("i");
+      e.style.width = (g.airtime / p.aps / scale * 100) + "%";
+      e.style.background = COLS[i % COLS.length];
+      e.title = g.label + ": " + pc(g.airtime / p.aps) + " of a radio";
+      bar.appendChild(e);
+    });
+    var bcn = document.createElement("i");
+    bcn.style.width = (p.beaconAirtime / scale * 100) + "%";
+    bcn.style.background = "rgba(255,255,255,0.22)"; bcn.title = "beacons";
+    bar.appendChild(bcn);
+    $("t-targetline").style.left = (st.get("target") / scale * 100) + "%";
+
+    $("t-key").innerHTML = p.groups.map(function (g, i) {
+      return '<span><i style="background:' + COLS[i % COLS.length] + '"></i>' + g.label + "</span>";
+    }).join("") + '<span><i style="background:rgba(255,255,255,0.22)"></i>beacons</span>' +
+      '<span style="color:#ffd28a">| the line is the ' + Math.round(st.get("target") * 100) + "% ceiling</span>";
+
+    $("t-rows").innerHTML = p.groups.map(function (g, i) {
+      return "<tr><td><i style='background:" + COLS[i % COLS.length] + "'></i>" + g.label + "</td><td>" + g.n +
+        "</td><td>" + g.phyMbps.toFixed(0) + "</td><td>" + g.goodputMbps.toFixed(g.goodputMbps < 10 ? 1 : 0) +
+        "</td><td>" + g.offeredMbps.toFixed(1) + "</td><td>" + pc(g.airtime) +
+        "</td><td>" + (g.airtimePerMbps * 100).toFixed(2) + "%</td></tr>";
+    }).join("");
+
+    $("t-spread").innerHTML = p.spread && p.spread.ratio > 2
+      ? '<div class="t-note">A megabit carried by ' + p.spread.worst.label + " costs " +
+        p.spread.ratio.toFixed(0) + " times the airtime of a megabit carried by " + p.spread.best.label +
+        ". That is the whole argument for getting the slow clients off the air, and it is why counting clients tells you almost nothing.</div>"
+      : "";
+
+    $("t-assume").innerHTML = p.assumptions.map(function (a) { return "<li>" + a + "</li>"; }).join("");
+
+    $("t-summary").value = [
+      "Capacity estimate, " + p.clients + " clients, " + st.get("bw") + " MHz",
+      "",
+      p.aps + " radios (" + p.binds + " binds; airtime says " + p.apsByAirtime + ", client count says " + p.apsByClients + ")",
+      "Offered " + mb(p.offeredMbps) + ", total airtime " + pc(p.totalAirtime) + ", " + pc(p.perAp) + " per radio, " +
+        p.clientsPerAp.toFixed(0) + " clients per radio",
+      ""
+    ].concat(p.groups.map(function (g) {
+      return "  " + g.n + " x " + g.label + ": PHY " + g.phyMbps.toFixed(0) + " Mb/s, each gets " +
+        g.goodputMbps.toFixed(1) + " Mb/s, " + pc(g.airtime) + " airtime";
+    })).concat([""], p.assumptions.map(function (a) { return "  assumption: " + a; })).join("\n");
+
+    st.set("g", st.get("g")); st.push();
+  }
+
+  ["t-bw", "t-ssids", "t-retry", "t-target", "t-per", "t-agg"].forEach(function (id) {
+    $(id).addEventListener("input", run); $(id).addEventListener("change", run);
+  });
+  $("t-add").addEventListener("click", function () {
+    var gs = st.get("g").slice();
+    if (gs.length < 8) { gs.push({ n: 20, dev: "edge", app: "web" }); st.set("g", gs); groupRows(); run(); }
+  });
+  function copy(text, btn) {
+    var done = function () { var o = btn.textContent; btn.textContent = "Copied"; setTimeout(function () { btn.textContent = o; }, 1200); };
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, done);
+    else { $("t-summary").select(); try { document.execCommand("copy"); } catch (e) {} done(); }
+  }
+  $("t-copy").addEventListener("click", function () { copy($("t-summary").value, this); });
+  $("t-link").addEventListener("click", function () { copy(location.href, this); });
+  window.addEventListener("hashchange", function () {
+    if (st.fromHash(location.hash)) { writeUi(); groupRows(); run(); }
+  });
+
+  writeUi(); groupRows(); run();
+  root._plan = function () { return CAP.plan({ bw: st.get("bw"), retry: st.get("retry"), ssids: st.get("ssids"),
+    target: st.get("target"), maxPerRadio: st.get("per"), agg: st.get("agg"), groups: st.get("g") }); };
+})();
+</script>
+</section>

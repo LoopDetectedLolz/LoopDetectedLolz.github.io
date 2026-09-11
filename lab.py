@@ -16,20 +16,35 @@ import os, sys, re, html, json, time, difflib, shutil, threading, subprocess
 import http.server, socketserver
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-LIVE = os.path.join(ROOT, "theme", "widgets", "qam.html")
-LABW = os.path.join(ROOT, "theme", "widgets", "qam-lab.html")
-OUT = os.path.join(ROOT, "lab.html")
 PORT = 8823
-WATCH = [LABW, os.path.join(ROOT, "theme", "style.css"), os.path.join(ROOT, "theme", "app.js")]
+SIM = ["core", "rf", "phy", "mac", "capacity"]          # model files, loaded separately in the lab
+WIDGET = "qam"                                           # set from argv in main()
+
+
+def paths():
+    return (os.path.join(ROOT, "theme", "widgets", WIDGET + ".html"),
+            os.path.join(ROOT, "theme", "widgets", WIDGET + "-lab.html"),
+            os.path.join(ROOT, "lab.html"))
+
+
+def watched():
+    w = [paths()[1], os.path.join(ROOT, "theme", "style.css"), os.path.join(ROOT, "theme", "app.js")]
+    return w + [os.path.join(ROOT, "theme", "sim", f + ".js") for f in SIM]
 
 
 def seed():
+    LIVE, LABW, _ = paths()
     if not os.path.exists(LABW):
+        if not os.path.exists(LIVE):
+            sys.exit("no theme/widgets/%s.html and no %s-lab.html: nothing to work on" % (WIDGET, WIDGET))
         shutil.copyfile(LIVE, LABW)
-        print("seeded theme/widgets/qam-lab.html from the live widget")
+        print("seeded theme/widgets/%s-lab.html from the live widget" % WIDGET)
 
 
 def drift():
+    LIVE, LABW, _ = paths()
+    if not os.path.exists(LIVE):
+        return -1, -1                                    # new widget, nothing live to drift from
     a = open(LIVE, encoding="utf-8").read().splitlines()
     b = open(LABW, encoding="utf-8").read().splitlines()
     if a == b:
@@ -41,15 +56,22 @@ def drift():
 
 def build():
     seed()
+    LIVE, LABW, OUT = paths()
     css = open(os.path.join(ROOT, "theme", "style.css"), encoding="utf-8").read()
     js = open(os.path.join(ROOT, "theme", "app.js"), encoding="utf-8").read()
     w = open(LABW, encoding="utf-8").read()
-    tj = open(os.path.join(ROOT, "demo", "traffic.json"), encoding="utf-8").read().strip()
     E = lambda t: html.escape(str(t), quote=True)
-    w = w.replace('<section class="qam g-card" id="qam"',
-                  '<section class="qam g-card" id="qam" data-title="%s" data-traffic="%s"' % (E("Lab"), E(tj)), 1)
+    if WIDGET == "qam":
+        tj = open(os.path.join(ROOT, "demo", "traffic.json"), encoding="utf-8").read().strip()
+        w = w.replace('<section class="qam g-card" id="qam"',
+                      '<section class="qam g-card" id="qam" data-title="%s" data-traffic="%s"' % (E("Lab"), E(tj)), 1)
     add, rem = drift()
-    state = "same as live" if not (add or rem) else "%d lines added, %d removed vs live" % (add, rem)
+    state = ("not on the site yet" if add < 0 else
+             "same as live" if not (add or rem) else "%d lines added, %d removed vs live" % (add, rem))
+    # the model files load separately here so a save reloads in a second; the real
+    # build concatenates them into the page
+    sim = "".join('<script src="theme/sim/%s.js"></script>' % f for f in SIM
+                  if os.path.exists(os.path.join(ROOT, "theme", "sim", f + ".js")))
     page = f"""<!doctype html><html lang="en" data-theme="dark"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
@@ -60,13 +82,15 @@ def build():
   padding:8px 14px;margin:0 0 14px;font:600 12px var(--mono);color:#ffd28a;
   background:rgba(245,165,36,0.10);border:1px solid rgba(245,165,36,0.55);border-radius:12px}}
 .lab-bar b{{color:#fff}} .lab-bar span{{color:var(--text-muted);font-weight:400}}
-.lab-w{{max-width:1180px;margin:0 auto;padding:14px 16px 80px}}
+.lab-w{{width:100%;max-width:1180px;margin:0 auto;padding:14px 16px 80px}}  /* width:100% or the auto margins stop the flex stretch and the page sizes to its widest child */
 .lab-frames{{display:flex;gap:18px;flex-wrap:wrap;margin-top:26px;align-items:flex-start}}
+.lab-frames[hidden]{{display:none}}  /* display:flex beats the hidden attribute otherwise */
 .lab-frames figure{{margin:0}} .lab-frames figcaption{{font:11px var(--mono);color:var(--text-muted);margin:0 0 6px}}
 .lab-frames iframe{{border:1px solid var(--line);border-radius:14px;background:var(--navy)}}
 </style></head><body><div class="page"><div class="lab-w">
-<div class="lab-bar"><b>LAB</b><span>theme/widgets/qam-lab.html &mdash; {state}</span>
+<div class="lab-bar"><b>LAB</b><span>theme/widgets/{WIDGET}-lab.html &mdash; {state}</span>
   <span>saves reload this page; nothing here is on the site until <b>python3 lab.py --promote</b></span></div>
+{sim}
 {w}
 <p style="margin-top:26px"><button class="chip" id="lab-frames-btn" type="button">Show phone and tablet frames</button></p>
 <div class="lab-frames" id="lab-frames" hidden>
@@ -115,7 +139,7 @@ class H(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         if self.path.startswith("/__lab_mtime"):
-            v = str(max(os.path.getmtime(p) for p in WATCH if os.path.exists(p)))
+            v = str(max(os.path.getmtime(p) for p in watched() if os.path.exists(p)))
             self.send_response(200)
             self.send_header("Content-Type", "text/plain")
             self.send_header("Cache-Control", "no-store")
@@ -133,10 +157,10 @@ class H(http.server.SimpleHTTPRequestHandler):
 
 
 def watch_loop():
-    seen = {p: os.path.getmtime(p) for p in WATCH if os.path.exists(p)}
+    seen = {p: os.path.getmtime(p) for p in watched() if os.path.exists(p)}
     while True:
         time.sleep(0.5)
-        for p in WATCH:
+        for p in watched():
             if not os.path.exists(p):
                 continue
             m = os.path.getmtime(p)
@@ -149,21 +173,37 @@ def watch_loop():
 
 
 def main():
-    arg = sys.argv[1] if len(sys.argv) > 1 else ""
+    global WIDGET
+    args = sys.argv[1:]
+    names = [a for a in args if not a.startswith("-")]
+    if names:
+        WIDGET = names[0]
+    LIVE, LABW, _ = paths()
+    if not os.path.exists(LIVE) and not os.path.exists(LABW):
+        sys.exit("no widget called %s in theme/widgets" % WIDGET)
+    arg = ([a for a in args if a.startswith("-")] or [""])[0]
     if arg == "--reset":
+        if not os.path.exists(LIVE):
+            sys.exit("%s is not on the site yet, so there is nothing to reset to" % WIDGET)
         shutil.copyfile(LIVE, LABW)
         print("lab widget reset to the live one")
         return
     if arg == "--diff":
         seed()
+        if not os.path.exists(LIVE):
+            print("%s is not on the site yet; the whole lab file is the difference" % WIDGET); return
         a = open(LIVE, encoding="utf-8").read().splitlines(keepends=True)
         b = open(LABW, encoding="utf-8").read().splitlines(keepends=True)
-        d = "".join(difflib.unified_diff(a, b, "theme/widgets/qam.html", "theme/widgets/qam-lab.html"))
+        d = "".join(difflib.unified_diff(a, b, "theme/widgets/%s.html" % WIDGET, "theme/widgets/%s-lab.html" % WIDGET))
         print(d or "no difference")
         return
     if arg == "--promote":
         seed()
         add, rem = drift()
+        if add < 0:
+            shutil.copyfile(LABW, LIVE)
+            print("%s is now a real widget; wire it into build-blog.py to put it on a page" % WIDGET)
+            return
         if not (add or rem):
             print("nothing to promote, the lab widget matches the live one")
             return
