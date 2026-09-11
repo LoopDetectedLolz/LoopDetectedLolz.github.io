@@ -1,0 +1,109 @@
+<div class="kit" id="kit">
+<header class="k-top">
+  <div class="k-title"><span class="eyebrow">Field kit</span><h1>Pop-up network, start to finish</h1></div>
+  <div class="k-top-acts">
+    <span class="k-pill" id="k-offline">Checking offline copy</span>
+    <button class="k-btn" id="k-print" type="button">Print the card</button>
+    <button class="k-btn" id="k-reset" type="button">Start over</button>
+  </div>
+</header>
+
+<div class="k-bar" role="progressbar" aria-label="Progress through the kit"><i id="k-bar-fill"></i></div>
+<p class="k-prog" id="k-prog">Nothing done yet.</p>
+
+<section class="k-phase" id="p1">
+  <h2><span class="k-n">1</span>Before you leave<em id="p1-n"></em></h2>
+  <p class="k-lede">Everything here needs a desk and a signal. None of it can be fixed in a field.</p>
+
+  <div class="k-grid2">
+    <label class="k-f"><span>Access points in the bin</span><input type="number" id="k-aps" min="0" max="200" step="1" value="6"></label>
+    <label class="k-f"><span>Subscriptions available</span><input type="number" id="k-subs" min="0" max="500" step="1" value="6"></label>
+    <label class="k-f"><span>PoE injectors or switch ports</span><input type="number" id="k-poe" min="0" max="200" step="1" value="6"></label>
+    <label class="k-f"><span>Mounts, clamps, tripods</span><input type="number" id="k-mounts" min="0" max="200" step="1" value="6"></label>
+    <label class="k-f"><span>Outdoor cable runs</span><input type="number" id="k-cable" min="0" max="200" step="1" value="6"></label>
+    <label class="k-f"><span>Satellite terminals</span><input type="number" id="k-term" min="0" max="20" step="1" value="1"></label>
+  </div>
+  <div id="k-kitwarn"></div>
+
+  <label class="k-f k-wide"><span>Pre-staged group in Central</span>
+    <input type="text" id="k-group" placeholder="popup-mesh" value="popup-mesh"></label>
+  <p class="k-hint">A group with the mesh cluster, the SSIDs and the firewall policy already in it turns day one into
+    three API calls. Build it once, at a desk, and never build it in a car park.</p>
+
+  <ul class="k-check" id="p1-check"></ul>
+</section>
+
+<section class="k-phase" id="p2">
+  <h2><span class="k-n">2</span>On site, before the uplink<em id="p2-n"></em></h2>
+  <p class="k-lede">No internet yet, and none of this needs any. Record what you have, put it where it goes,
+    and let the queue build itself.</p>
+
+  <div class="k-grid2">
+    <label class="k-f k-wide"><span>Site name</span><input type="text" id="k-site" placeholder="Fairground north lot"></label>
+    <label class="k-f"><span>Site contact</span><input type="text" id="k-contact" placeholder="Name"></label>
+    <label class="k-f"><span>Reachable on</span><input type="text" id="k-phone" placeholder="Number or radio channel"></label>
+  </div>
+  <div class="k-geo">
+    <button class="k-btn" id="k-gps" type="button">Fix the site position</button>
+    <span id="k-gps-v">No position yet. GPS works with no signal; it is the map that needs one.</span>
+  </div>
+  <label class="k-f k-wide"><span>Notes for whoever comes next</span>
+    <textarea id="k-notes" rows="2" placeholder="Gate code, who has the keys, where power comes from"></textarea></label>
+
+  <h3>The access points<em id="k-apcount"></em></h3>
+  <div class="k-acts">
+    <button class="k-btn k-go" id="k-scan" type="button">Scan a label</button>
+    <button class="k-btn" id="k-add" type="button">Add one by hand</button>
+  </div>
+  <div class="k-cam" id="k-cam" hidden>
+    <video id="k-video" playsinline muted></video>
+    <div class="k-camfoot"><span id="k-cam-msg">Point at the barcode on the box</span>
+      <button class="k-btn" id="k-stop" type="button">Stop</button></div>
+  </div>
+  <label class="k-f k-wide"><span>Or paste anything with serials and MACs in it</span>
+    <textarea id="k-paste" rows="2" placeholder="A packing list, an email, text lifted off a photo"></textarea></label>
+  <button class="k-btn" id="k-parse" type="button">Pull the serials out of that</button>
+
+  <div class="k-scroll"><table class="k-table"><thead><tr>
+    <th>Serial</th><th>MAC</th><th>Role</th><th>Where it went</th><th>Fix</th><th></th>
+  </tr></thead><tbody id="k-rows"></tbody></table></div>
+
+  <ul class="k-check" id="p2-check"></ul>
+</section>
+
+<section class="k-phase" id="p3">
+  <h2><span class="k-n">3</span>Uplink is up<em id="p3-n"></em></h2>
+  <p class="k-lede">The network you are building is the network you need in order to build it, so nothing above this
+    line touched Central. Everything below it does, in this order, dry run first.</p>
+
+  <div class="k-grid2">
+    <label class="k-f k-wide"><span>Guest SSID to deploy</span><input type="text" id="k-gssid" placeholder="popup-guest" value="popup-guest"></label>
+    <label class="k-f"><span>Passphrase</span><input type="text" id="k-gpsk" placeholder="set one on site"></label>
+    <label class="k-f"><span>Guest VLAN</span><input type="number" id="k-gvlan" min="1" max="4094" step="1" value="100"></label>
+  </div>
+  <p class="k-hint">The passphrase is typed here so it lands on the card you hand people. It is not stored anywhere
+    else and it is not sent anywhere until you run the script yourself.</p>
+
+  <h3>SSIDs in the group</h3>
+  <div class="k-ssids" id="k-ssids"></div>
+  <button class="k-btn" id="k-ssid-add" type="button">Add one to the list</button>
+
+  <h3>The queue<em id="k-qn"></em></h3>
+  <ol class="k-queue" id="k-queue"></ol>
+
+  <div class="k-acts">
+    <button class="k-btn k-go" id="k-script" type="button">Copy the script</button>
+    <button class="k-btn" id="k-csv" type="button">Copy the device CSV</button>
+    <button class="k-btn" id="k-json" type="button">Copy the plan</button>
+  </div>
+  <textarea class="k-out" id="k-outbox" rows="12" readonly aria-label="Generated output"></textarea>
+</section>
+
+<section class="k-phase" id="p4">
+  <h2><span class="k-n">4</span>Before you drive away<em id="p4-n"></em></h2>
+  <p class="k-lede">The failures that bite are the ones nobody checked because the laptop already said green.</p>
+  <ul class="k-check" id="p4-check"></ul>
+</section>
+
+<div class="k-card" id="k-card" aria-hidden="true"></div>
+</div>

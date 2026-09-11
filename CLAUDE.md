@@ -149,6 +149,14 @@ The first tool built on it is the capacity planner, `theme/widgets/tools-lab.htm
 
 `python3 regress.py` is the visual regression harness: every page at 360, 768 and 1280, asserting no horizontal scroll, no page errors, no broken images, the mascot fixed at z-index 60, at least 140 px of clearance at the end of the content (page padding plus main padding, since the padding moved to `main` when the footer was pinned to the bottom), at most one green call to action per view, no contact copy outside the socials page, and no tap target under 38 px.
 
+## The field kit
+
+`kit.html` is a standalone page, built by `build-blog.py` from `theme/widgets/kit.{html,css,js}`, with no blog chrome and nothing linked to it from the nav. It walks a pop-up deployment from the bin to a working network in four phases: before you leave, on site with no uplink, uplink up, and before you drive away. It has to open with no signal, so everything ships inside it: the design tokens, jsQR 1.4.0 (Apache-2.0, `theme/vendor/jsqr.min.js`) for reading labels, and `sw.js`, which caches the kit and deliberately intercepts nothing else. A service worker that got its hands on the whole blog would be a support call.
+
+Labels come in three ways because a wet label beats any scanner: `BarcodeDetector` for 1D codes where the browser has it, jsQR through the camera everywhere else including iOS, and a paste box that pulls serials and MACs out of whatever you throw at it. State lives in localStorage, because the kit has to survive the phone locking.
+
+Phase three only ever generates: a device CSV, a JSON plan, and a Python script that runs the queue against New Central with credentials from the environment and a dry run by default. The page never holds a token and never calls an API. The order in that script is the part that is right and matters: subscriptions before group, group before site assignment, RF calibration last, because on a pop-up the access points power up minutes apart and the channel plan computed at boot was made against half a network. The endpoint paths in its `ENDPOINTS` block are marked to verify against the tenant's own API reference, and they have not been.
+
 ## Related skills
 
 `blog-post-generator` drafts and verifies a post. `blog-publish` builds, checks, deploys and regression-tests. `my-writing-style` holds the voice profile. `WRITING-POSTS.md` is the human-facing guide.
