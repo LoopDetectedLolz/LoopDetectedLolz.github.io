@@ -18,6 +18,9 @@ with sync_playwright() as pw:
             pg.on("pageerror", lambda e: errs.append(str(e)))
             pg.goto(B+path, wait_until="domcontentloaded"); pg.wait_for_timeout(350)
             sw=pg.evaluate("document.documentElement.scrollWidth")
+            # walk the page first: a lazy image that has not been scrolled to is not a broken one
+            pg.evaluate("async()=>{const h=document.body.scrollHeight;for(let y=0;y<h;y+=400){scrollTo(0,y);await new Promise(r=>setTimeout(r,30))}scrollTo(0,0);await new Promise(r=>setTimeout(r,300))}")
+            pg.wait_for_timeout(400)
             broken=pg.evaluate("[...document.images].filter(i=>!i.complete||i.naturalWidth===0).map(i=>i.getAttribute('src'))")
             rig=pg.evaluate("(()=>{const r=document.querySelector('.rig');if(!r)return 'MISSING';const cs=getComputedStyle(r);return cs.position+' z'+cs.zIndex})()")
             room=pg.evaluate("(function(){var p=document.querySelector('.page'),m=p&&p.querySelector(':scope>main');return parseFloat(getComputedStyle(p).paddingBottom)+(m?parseFloat(getComputedStyle(m).paddingBottom):0)})()")
