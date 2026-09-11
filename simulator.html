@@ -497,6 +497,7 @@ html.qam-fs .rig{display:none}
       <button class="chip" id="qam-pause" type="button" aria-pressed="false">Pause</button>
       <button class="chip" id="qam-int" type="button" aria-pressed="false" title="Cursor or finger in the beam adds interference">Interference</button>
       <button class="chip" id="qam-mp" type="button" aria-pressed="false">Multipath</button>
+      <button class="chip" id="qam-room" type="button" aria-pressed="false" title="Ceiling, floor and the wall behind the antenna; the strongest path wins">Room</button>
       <button class="chip" id="qam-lb" type="button" aria-pressed="false">Link budget</button>
       <button class="chip" id="qam-heat" type="button" title="Face-on target: hits, heat map, or both">Hits</button>
       <button class="chip" id="qam-follow" type="button">Follow a symbol</button>
@@ -620,8 +621,28 @@ html.qam-fs .rig{display:none}
     panel:{name:'Narrow panel (bridge)',g:19,hp:10,fb:30,kw:0.45,glyph:'dish',pat:patFront(10,30,function(a){return 0.016*Math.exp(-Math.pow((a-0.35)/0.08,2))}),why:'a point-to-point link: a 10 degree pencil with side lobes 18 dB down, which is why alignment is the whole job'},
     yagi:{name:'Yagi (outdoor)',g:10,hp:44,fb:7.5,kw:1,glyph:'yagi',pat:patY,why:'directors in front, a reflector behind: a textbook cos^5 main lobe with side lobes near 65 degrees and a back lobe 7 dB down'}};
   var ant='yagi',aim=0,cliT=Math.log(30/3)/Math.log(20),dragA=false,dragC=false,dragMoved=false;
-  function gtx(){return ANT[ant].g+10*Math.log10(patA(0));}
+  function gtx(){return linkGain();}
   function setDist(d){lb.d=Math.round(Math.max(3,Math.min(60,d)));cliT=Math.log(lb.d/3)/Math.log(20);}
+  /* room: ceiling, floor and the wall behind the antenna, each a specular bounce by the image-source method. the strongest path carries the symbols */
+  var room=false,ROOM={ceil:{name:'ceiling',db:6},floor:{name:'floor',db:7},back:{name:'wall behind',db:4}},roomBest=null;
+  function roomGeom(L){return{yc:L.ay-L.R-(L.mob?-2:18),yf:L.ay+L.R+(L.mob?10:18),xb:L.ax-(L.mob?30:62)}}
+  function roomPaths(L){var G=roomGeom(L),D=L.cx-L.ex,mpp=lb.d/D,out=[];
+    function add(kind,th,B,dpx,db){out.push({kind:kind,th:th,B:B,eff:10*Math.log10(patA(th))+ANT[ant].g-db-(pathLoss(dpx*mpp)-pathLoss(lb.d))});}
+    add('direct',0,null,D,0);
+    var h=L.ay-G.yc;add('ceil',Math.atan2(2*h,D),{x:L.ex+D/2,y:G.yc},Math.hypot(D,2*h),ROOM.ceil.db);
+    var h2=G.yf-L.ay;add('floor',-Math.atan2(2*h2,D),{x:L.ex+D/2,y:G.yf},Math.hypot(D,2*h2),ROOM.floor.db);
+    var b=L.ex-G.xb;add('back',Math.PI,{x:G.xb,y:L.ay},2*b+D,ROOM.back.db);
+    out.sort(function(a,c){return c.eff-a.eff});return out;}
+  function linkGain(L){if(!room){roomBest=null;return ANT[ant].g+10*Math.log10(patA(0));}var ps=roomPaths(L||layout());roomBest=ps[0];return roomBest.eff;}
+  function drawRoom(L){var G=roomGeom(L),best=roomBest||{kind:'direct'};ctx.save();ctx.lineWidth=1;
+    function surf(x0,y0,x1,y1,key,lx,ly){var on=best.kind===key;ctx.strokeStyle=on?'rgba(245,165,36,0.9)':'rgba(176,196,207,0.45)';ctx.setLineDash(on?[]:[6,5]);ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle=on?'#ffd28a':'#8BA2AE';ctx.font='600 8px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';ctx.fillText(ROOM[key].name.toUpperCase()+'  '+ROOM[key].db+' dB',lx,ly);}
+    surf(G.xb,G.yc,L.cxB+L.pw/2+30,G.yc,'ceil',L.mob?L.cxB-130:L.cxB-210,G.yc+11);
+    surf(G.xb,G.yf,L.cxB+L.pw/2+30,G.yf,'floor',L.mob?L.ex+10:L.cxB-210,G.yf+11);
+    surf(G.xb,G.yc,G.xb,G.yf,'back',G.xb+4,G.yc+22);
+    if(best.B){ctx.strokeStyle='rgba(245,165,36,0.35)';ctx.setLineDash([3,5]);ctx.beginPath();ctx.moveTo(L.ex,L.ay);ctx.lineTo(best.B.x,best.B.y);ctx.lineTo(L.cx,L.ay);ctx.stroke();ctx.setLineDash([]);}
+    ctx.fillStyle='#ffd28a';ctx.font='600 9px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';var ps=roomPaths(L);var t2=L.mob?('ROOM: '+(best.kind==='direct'?'direct':'off the '+ROOM[best.kind].name)+', '+best.eff.toFixed(0)+' dB'):('ROOM  strongest path: '+(best.kind==='direct'?'direct':'off the '+ROOM[best.kind].name)+', '+best.eff.toFixed(0)+' dB net gain');if(!L.mob)t2+='   (direct '+ps.filter(function(q){return q.kind==='direct'})[0].eff.toFixed(0)+', ceiling '+ps.filter(function(q){return q.kind==='ceil'})[0].eff.toFixed(0)+', floor '+ps.filter(function(q){return q.kind==='floor'})[0].eff.toFixed(0)+', wall behind '+ps.filter(function(q){return q.kind==='back'})[0].eff.toFixed(0)+')';
+    ctx.fillText(t2,L.mob?8:L.ex+10,G.yf-6);ctx.restore();}
   var SNRMIN_HT=[5,7,9,11,15,19,21,23,26,28,32,34,38,40],SNRMIN_AG=[5,7,8,10,12,15,19,21];
   var STC=['#4FBDEA','#5ED2DA','#8ed6ff','#c9ecff','#2FA8E0','#9fe6ea','#B0C4CF','#EAF2F6'],STCR=['rgb(79,189,234)','rgb(94,210,218)','rgb(142,214,255)','rgb(201,236,255)','rgb(47,168,224)','rgb(159,230,234)','rgb(176,196,207)','rgb(234,242,246)'];
   var vs=null,evmE=[],heatMode=0,hc=document.createElement('canvas'),hctx=hc.getContext('2d'),intOn=false;
@@ -720,9 +741,10 @@ html.qam-fs .rig{display:none}
   function target(L,ix,iy){var cw2=(2*L.Rf)/sx,ch=(2*L.Rf)/sy;return{x:L.fx-L.Rf+cw2*(ix+0.5),y:(sy===1?L.fy:L.fy+L.Rf-ch*(iy+0.5)),w:cw2,h:ch};}
   /* path of a symbol: a helix riding the cone. radius = amplitude x cone width, so the orbit widens with the lobe; angle ends on the symbol's phase, so at s=1 the helix seen end-on IS the constellation point */
   function pathAt(L,f,s){var th=s*TURNS*Math.PI*2+f.phi,sh=L.sh;
-    if(f.ech){var B=bounce(L),P0={x:L.ex,y:L.ay+(f.oy||0)},T=f.T;var L1=Math.hypot(B.x-P0.x,B.y-P0.y),L2=Math.hypot(T.x-B.x,T.y-B.y),d=s*(L1+L2);var A,Bp,u;
-      if(d<L1){A=P0;Bp=B;u=d/L1;}else{A=B;Bp=T;u=(d-L1)/L2;th+=Math.PI;}var tx=(Bp.x-A.x),ty=(Bp.y-A.y),ln=Math.hypot(tx,ty)||1;tx/=ln;ty/=ln;var nx=ty,ny=-tx;
-      var r=(f.amp||0.8)*0.6*coneW(L,s),px=A.x+tx*ln*u,py=A.y+ty*ln*u;return{x:px+nx*r*Math.sin(th)+tx*r*Math.cos(th)*sh,y:py+ny*r*Math.sin(th)+ty*r*Math.cos(th)*sh+(f.push||0)*(1-Math.pow(s,1.7)),th:th,depth:Math.cos(th)};}
+    if(f.ech||f.via){var B=f.via||bounce(L),P0={x:L.ex,y:L.ay+(f.oy||0)},T=f.ech?f.T:{x:L.cx,y:L.ay};var L1=Math.hypot(B.x-P0.x,B.y-P0.y),L2=Math.hypot(T.x-B.x,T.y-B.y),d=s*(L1+L2);var A,Bp,u;
+      if(d<L1){A=P0;Bp=B;u=d/L1;}else{A=B;Bp=T;u=(d-L1)/L2;th+=Math.PI;}var tx=(Bp.x-A.x),ty=(Bp.y-A.y),ln=Math.hypot(tx,ty)||1;var px=A.x+tx*u,py=A.y+ty*u;tx/=ln;ty/=ln;
+      if(f.via&&d>=L1){var wb=smooth(0.8,1,s);tx=tx*(1-wb)+wb;ty=ty*(1-wb);var l2=Math.hypot(tx,ty)||1;tx/=l2;ty/=l2;}var nx=ty,ny=-tx;
+      var r=(f.amp||0.8)*(f.via?1:0.6)*coneW(L,s);return{x:px+nx*r*Math.sin(th)+tx*r*Math.cos(th)*sh,y:py+ny*r*Math.sin(th)+ty*r*Math.cos(th)*sh+(f.push||0)*(1-Math.pow(s,1.7)),th:th,depth:Math.cos(th)};}
     var base=L.ex+(L.cx-L.ex)*s;var r0=(f.amp||0.8)*coneW(L,s);
     var x=base+r0*Math.cos(th)*sh,y=L.ay+(f.oy||0)*(1-s)-r0*Math.sin(th)+(f.push||0)*(1-Math.pow(s,1.7));return{x:x,y:y,th:th,depth:Math.cos(th)};}
   function seedSpecks(L){specks=[];var n=L.mob?70:150;for(var i=0;i<n;i++)specks.push({s:Math.random(),amp:0.15+Math.random()*1.1,v:0.10+Math.random()*0.18,c:BLUES[i%BLUES.length],r:0.6+Math.random()*1.4,a:0.25+Math.random()*0.45,ph:Math.random()*6.3});}
@@ -902,7 +924,7 @@ html.qam-fs .rig{display:none}
     drawPlane(L);drawInset(L);
     if(ss>=2&&!fieldMode){var rank0=mp?2:1;for(var st=0;st<ss;st++){var ry=L.ay-L.R*0.8+st*(1.6*L.R/(ss-1)),rx=L.cx-L.pw/2-9;ctx.strokeStyle=st>=rank0?'#ffd28a':STC[st];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(rx,ry-8);ctx.lineTo(rx,ry+8);ctx.stroke();ctx.fillStyle=st>=rank0?'#ffd28a':STC[st];ctx.font='600 8px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='right';ctx.fillText('RX'+(st+1),rx-4,ry+3);}
       if(ss>rank0&&band<2){ctx.fillStyle='#ffd28a';ctx.font='600 9px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='right';ctx.fillText((ss-rank0)+' of '+ss+' streams cannot be separated',L.cx-L.pw/2-26,L.ay+L.R+(L.mob?30:44));ctx.fillStyle='#B0C4CF';ctx.font='9px JetBrains Mono,ui-monospace,monospace';ctx.fillText(mp?'one reflector: channel rank 2':'line of sight only: channel rank 1, turn on Multipath',L.cx-L.pw/2-26,L.ay+L.R+(L.mob?41:55));}}
-    if(!fieldMode){drawWalls(L);if(lb.on)drawProfile(L);}
+    if(!fieldMode){if(room){linkGain(L);drawRoom(L);}drawWalls(L);if(lb.on)drawProfile(L);}
     /* landed: face-on position from the cell, side position by projection */
     for(i=0;i<landed.length;i++){var d0=landed[i],T0=target(L,d0.ix,d0.iy);d0.x=T0.x+d0.fx*T0.w;d0.y=T0.y+d0.fy*T0.h;var sp0=toSide(L,d0.x,d0.y);d0.sx=sp0.x;d0.sy=sp0.y;}
     var showF=heatMode!==1;
@@ -998,6 +1020,7 @@ html.qam-fs .rig{display:none}
   function emit(L,st){var s=syms[next];var T0=target(L,s.ix,s.iy);var ax0=(T0.x-L.fx)/L.Rf,ay0=(L.fy-T0.y)/L.Rf;st=st||0;
     var f={i:next,st:st,oy:ss>1?txOff(st)*0.35:0,T:T0,s:0,amp:Math.min(1.4,Math.hypot(ax0,ay0)),phi:Math.atan2(ay0,ax0),ph:0,push:0,col:STCR[st],glow:STC[st],trail:[],hit:0,noise:0,follow:false};
     if(followReq){followReq=false;f.follow=true;followed=f;tvSaved=tv;setTimeUI(Math.max(tv,1+Math.log(16)/Math.log(64)));}
+    if(room){linkGain(L);if(roomBest&&roomBest.B)f.via=roomBest.B;}
     f.trail.push(pathAt(L,f,0));fly.push(f);
     if(mp){var e={ech:true,par:f,i:f.i,st:st,oy:f.oy,T:toSide(L,T0.x,T0.y),s:0,amp:f.amp,phi:f.phi,push:0,col:'rgb(94,210,218)',glow:'#5ED2DA',trail:[],hit:0,noise:0};e.trail.push(pathAt(L,e,0));f.echo=e;fly.push(e);}next++;}
   function land(L,f){var T=f.T;var snr=snrDb();var rank=mp?2:1;if((f.st||0)>=rank)snr-=Math.min(24,6*((f.st||0)-rank+1));var g=1,ph=0;
@@ -1169,6 +1192,7 @@ html.qam-fs .rig{display:none}
   LBR.addEventListener('click',function(e){e.stopPropagation()});
   htb.addEventListener('click',function(e){e.stopPropagation();heatClear();heatMode=(heatMode+1)%3;htb.textContent=['Hits','Heat','Both'][heatMode];htb.classList.toggle('on',heatMode>0);});
   var inb=document.getElementById('qam-int');inb.addEventListener('click',function(e){e.stopPropagation();intOn=!intOn;if(!intOn)cur.on=false;inb.setAttribute('aria-pressed',intOn);inb.classList.toggle('on',intOn);hintText();});
+  var rmb=document.getElementById('qam-room');rmb.addEventListener('click',function(e){e.stopPropagation();room=!room;roomBest=null;heatClear();rmb.setAttribute('aria-pressed',room);rmb.classList.toggle('on',room);stat();});
   var mpb=document.getElementById('qam-mp');mpb.addEventListener('click',function(e){e.stopPropagation();mp=!mp;lastFade=null;vs=null;heatClear();mpb.setAttribute('aria-pressed',mp);mpb.classList.toggle('on',mp);});
   root.querySelector('.qam-ctl').addEventListener('click',function(e){e.stopPropagation()});TB.addEventListener('click',function(e){e.stopPropagation()});
   /* hex panel: hover or tap a byte to see its field */
@@ -1208,6 +1232,7 @@ html.qam-fs .rig{display:none}
       '<li>Every attempt starts with a short train of white pulses before any data: the preamble. Those are the L-STF and L-LTF, fixed patterns both ends know. The receiver uses them to find where the symbols start (timing), to measure how far its own oscillator is off from the sender’s (carrier frequency offset, a few parts per million, which is the constellation visibly spinning until it locks), and to learn the channel so it can equalise. Nothing decodes until LOCKED shows. Without that lock, the phasor in the lens would keep rotating against the receiver’s reference and every symbol would land in the wrong cell.</li>'+
       '<li>Each particle corkscrews down the beam because a symbol is a phasor: a vector with an amplitude and a phase riding the carrier. The radius of the corkscrew is the amplitude and its angle is the phase. It rides the antenna’s lobe, so the orbit widens as the beam spreads, and the last turn is the circle the symbol lands on: the constellation is that corkscrew seen end-on, frozen at the instant the receiver samples it. One honest caveat: the corkscrew is the phasor, not the flight path. The wave itself travels in a straight line, and what oscillates is the field, sideways to the direction of travel; a Yagi is linearly polarised, so the true picture is a straight ray with a sine wave riding across it. A real helix in space would mean circular polarisation, which this antenna does not produce. Follow a symbol shows both: a pinned panel under the antenna draws the straight ray with its transverse wave on the left and the same symbol as a spinning phasor on the right, slows the scene, names the byte and field it belongs to, and reports what the receiver decided when it lands.</li>'+
       '<li><b>Antenna.</b> The menu swaps the antenna and its pattern, drawn in the plane of the screen, which for a ceiling omni is the vertical plane: '+ANT[ant].why+'. Each one carries its real gain, half-power beamwidth and front-to-back ratio, and the link budget uses the gain in the direction of the client, not the number on the datasheet. Drag the antenna to aim it and watch that gain fall off the side of the lobe; drag the client along the bench to move it; the field and photon views follow the same pattern. Tap the antenna without moving to point it back at the client.</li>'+
+      '<li><b>Room.</b> Aim a patch antenna at the ceiling and the client still gets served, because a room is a box. The Room chip adds a ceiling, a floor and the wall behind the antenna, each a specular bounce by the same image-source method as the reflector, with a reflection loss ('+ROOM.ceil.db+', '+ROOM.floor.db+' and '+ROOM.back.db+' dB) and the longer path in the budget. Every symbol takes the strongest path, direct or one bounce: the readout ranks the four, the winning surface turns orange, and when a bounce wins the particles ride it, phase flipped at the surface, and the link budget uses that path’s net gain instead of the antenna’s gain toward the client. Real rooms add many more bounces than this, which is what Multipath’s per-subcarrier fading stands in for.</li>'+
       '<li><b>Link budget.</b> The scatter is not decoration. The radio is 20 dBm into the antenna above (10 dBi for the Yagi), the client has 2 dBi, the first metre costs the free-space figure and after that the power falls off with a log-distance exponent of 3, a typical indoor value (switch to free space, n = 2, to see how optimistic that is). Each wall takes a fixed bite: drywall 3 dB, cinderblock 6, brick or concrete 12, typical 5 GHz survey values you should measure rather than trust. What arrives is compared with the receiver\u2019s thermal noise floor, -174 dBm/Hz plus the channel width plus a 7 dB noise figure, which is why a wider channel raises the floor and costs SNR. The gap is the SNR, the SNR sets how far each symbol scatters, and a typical minimum-SNR table (about 5 dB for BPSK 1/2, 23 dB for 64-QAM 5/6, 34 dB for 1024-QAM 5/6, 40 dB for 4096-QAM 5/6) says which MCS the link can hold. Push the distance out or add concrete and rate adaptation walks down the ladder on its own. The heat map on the face-on target is what a signal analyser shows in persistence mode: tight bright clusters mean margin, smeared ones mean the next MCS up will fail, and the EVM figure in the corner is the RMS error vector, roughly the negative of the SNR.</li>'+
       '<li>The ladder at the top is the MCS index, live. The bright step is the rate in use, the outlined step is the one you picked, and the marker slides when rate adaptation moves it. The Mb/s figure next to it is the PHY rate that goes with the step.</li>'+
       '<li>One particle here is one subcarrier. A real '+bw+' MHz '+S.name+' channel sends '+S.nsd[bw]+' of them at once per stream every '+S.tsym+' µs, after a '+S.pre(ss).toFixed(1)+' µs preamble, which is where the rate table comes from. This frame fits in '+ns+' OFDM symbol'+(ns>1?'s':'')+'.</li>'+
