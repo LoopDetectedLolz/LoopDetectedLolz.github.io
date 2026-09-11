@@ -488,6 +488,7 @@ html.qam-fs .rig{display:none}
     <span class="eyebrow">On the air right now</span>
     <div class="qam-ctl" role="group" aria-label="Demo controls">
       <label>Traffic <select id="qam-traffic"></select></label>
+      <label>Antenna <select id="qam-ant"></select></label>
       <label>Standard <select id="qam-std"></select></label>
       <label>MCS <select id="qam-mcs"></select></label>
       <label>Streams <select id="qam-ss"></select></label>
@@ -606,7 +607,21 @@ html.qam-fs .rig{display:none}
   var mp=false, lastFade=null, ladderPos=7, rateShown=0, flash=null, rxBits=[];
   /* link budget: 20 dBm radio, 10 dBi Yagi, 2 dBi client antenna, 7 dB noise figure; free space for the first metre then a log-distance exponent; walls at typical 5 GHz survey values */
   var WALLS={dry:{name:'DRYWALL',db:3,w:8},cinder:{name:'CINDERBLOCK',db:6,w:12},brick:{name:'BRICK / CONCRETE',db:12,w:16}};
-  var lb={on:false,d:30,fsOnly:false,walls:[]},PTX_DBM=20,GT=10,GR=2,NF=7,dragW=-1,wallHit=false;
+  var lb={on:false,d:30,fsOnly:false,walls:[]},PTX_DBM=20,GR=2,NF=7,dragW=-1,wallHit=false;
+  /* antennas: pattern in the plane of the screen (elevation), theta from boresight, normalised power. n from the half-power beamwidth: cos^n(hpbw/2)=0.5 */
+  function cosN(hp){return Math.log(0.5)/Math.log(Math.cos(hp/2*Math.PI/180))}
+  function patY(th){var a=Math.abs(th);var main=a<Math.PI/2?Math.pow(Math.cos(a),5):0;var side=0.22*Math.exp(-Math.pow((a-1.13)/0.25,2));var back=0.18*Math.exp(-Math.pow((a-Math.PI)/0.45,2));return Math.max(main,side,back);}
+  function patFront(hp,fb,sl){var nn=cosN(hp),bk=Math.pow(10,-fb/10);return function(th){var a=Math.abs(th);var m=a<Math.PI/2?Math.pow(Math.cos(a),nn):0;var sd=sl?sl(a):0;return Math.max(m,sd,bk);}}
+  var ANT={
+    omni:{name:'Omni (ceiling AP)',g:4,hp:40,fb:0,kw:2.2,glyph:'stick',pat:function(th){var nn=cosN(40);return Math.max(0.02,Math.pow(Math.abs(Math.cos(th)),nn));},why:'a vertical dipole: full circle in the horizontal plane, a figure of eight in this one, so it is weakest straight up and straight down'},
+    dtomni:{name:'Down-tilt omni',g:6,hp:30,fb:0,kw:1.8,glyph:'stick',tilt:-30,pat:function(th){var nn=cosN(30);return Math.max(0.02,Math.pow(Math.abs(Math.cos(th+30*Math.PI/180)),nn));},why:'a high-ceiling omni with its lobes pushed 30 degrees down, so the floor gets the gain and the horizon does not'},
+    patch:{name:'Patch (wall mount)',g:8,hp:65,fb:20,kw:1.4,glyph:'patch',pat:patFront(65,20),why:'a flat panel on a wall: one wide lobe forward, 20 dB down behind, the usual hallway and classroom antenna'},
+    sector:{name:'Sector (stadium)',g:13,hp:20,fb:25,kw:0.8,glyph:'sector',pat:patFront(20,25),why:'a tall panel: narrow in this plane so it lights a block of seats and not the ones above or below'},
+    panel:{name:'Narrow panel (bridge)',g:19,hp:10,fb:30,kw:0.45,glyph:'dish',pat:patFront(10,30,function(a){return 0.016*Math.exp(-Math.pow((a-0.35)/0.08,2))}),why:'a point-to-point link: a 10 degree pencil with side lobes 18 dB down, which is why alignment is the whole job'},
+    yagi:{name:'Yagi (outdoor)',g:10,hp:44,fb:7.5,kw:1,glyph:'yagi',pat:patY,why:'directors in front, a reflector behind: a textbook cos^5 main lobe with side lobes near 65 degrees and a back lobe 7 dB down'}};
+  var ant='yagi',aim=0,cliT=Math.log(30/3)/Math.log(20),dragA=false,dragC=false,dragMoved=false;
+  function gtx(){return ANT[ant].g+10*Math.log10(patA(0));}
+  function setDist(d){lb.d=Math.round(Math.max(3,Math.min(60,d)));cliT=Math.log(lb.d/3)/Math.log(20);}
   var SNRMIN_HT=[5,7,9,11,15,19,21,23,26,28,32,34,38,40],SNRMIN_AG=[5,7,8,10,12,15,19,21];
   var STC=['#4FBDEA','#5ED2DA','#8ed6ff','#c9ecff','#2FA8E0','#9fe6ea','#B0C4CF','#EAF2F6'],STCR=['rgb(79,189,234)','rgb(94,210,218)','rgb(142,214,255)','rgb(201,236,255)','rgb(47,168,224)','rgb(159,230,234)','rgb(176,196,207)','rgb(234,242,246)'];
   var vs=null,evmE=[],heatMode=0,hc=document.createElement('canvas'),hctx=hc.getContext('2d'),intOn=false;
@@ -616,8 +631,8 @@ html.qam-fs .rig{display:none}
   function pathLoss(dm){return fspl1()+10*(lb.fsOnly?2:3)*Math.log10(Math.max(1,dm))}
   function wallLoss(upTo){var t=0;for(var i=0;i<lb.walls.length;i++)if(upTo===undefined||lb.walls[i].pos<=upTo)t+=WALLS[lb.walls[i].type].db;return t}
   function noiseFloor(){return -174+10*Math.log10(bw*1e6)+NF}
-  function prxAt(frac){return PTX_DBM+GT+GR-pathLoss(Math.max(0.3,frac*lb.d))-wallLoss(frac)}
-  function prx(){return PTX_DBM+GT+GR-pathLoss(lb.d)-wallLoss()}
+  function prxAt(frac){return PTX_DBM+gtx()+GR-pathLoss(Math.max(0.3,frac*lb.d))-wallLoss(frac)}
+  function prx(){return PTX_DBM+gtx()+GR-pathLoss(lb.d)-wallLoss()}
   function snrDb(){return prx()-noiseFloor()}
   function mcsFor(snr){var t=snrMin(),m=-1;for(var i=0;i<t.length&&i<MCS.length;i++)if(snr>=t[i])m=i;return m}
   function esUnits(){return (sx*sx-1)/3+(sy*sy-1)/3}
@@ -693,9 +708,9 @@ html.qam-fs .rig{display:none}
   function resize(){var r=c.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);W=Math.max(320,Math.round(r.width));H=fs?Math.max(240,Math.min(620,Math.round(window.innerHeight*0.56))):(W<600?(212+Math.min(W-32,280)+36):280);IR=W<600?36:48;c.width=W*dpr;c.height=H*dpr;c.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);fieldDirty=true;}
   var SH=0.16;
   function layout(){var mob=W<600;
-    if(mob){var IS=Math.min(W-32,280),Rf=IS/2-30,R=Math.min(64,200*0.36),ay=100,ax=52;var fy=212+IS/2;return{mob:true,IS:IS,R:R,Rf:Rf,ax:ax,ay:ay,ex:ax+26,cx:W-30,cy:ay,pw:Math.max(10,2*R*SH),fx:W/2,fy:fy,sh:SH,lbx:8,lby:150,lbAlign:'left',sideH:200};}
-    var IS2=Math.min(H-44,320),Rf2=IS2/2-30,R2=Math.min(H*0.36,Rf2),ax2=Math.round(W*0.10),ay2=Math.round(H*0.5)-(H<320?8:0);var fx2=W-IS2/2-16,fy2=IS2/2+4;var cx2=W-IS2-56;
-    return{mob:false,IS:IS2,R:R2,Rf:Rf2,ax:ax2,ay:ay2,ex:ax2+46,cx:cx2,cy:ay2,pw:Math.max(12,2*R2*SH),fx:fx2,fy:fy2,sh:SH,lbx:cx2-Math.max(12,2*R2*SH)/2-16,lby:18,lbAlign:'right',sideH:H};}
+    if(mob){var IS=Math.min(W-32,280),Rf=IS/2-30,R=Math.min(64,200*0.36),ay=100,ax=52;var fy=212+IS/2;var cxm=ax+26+(W-30-ax-26)*(0.45+0.55*cliT);return{mob:true,IS:IS,R:R,Rf:Rf,ax:ax,ay:ay,ex:ax+26,cx:cxm,cxB:W-30,cy:ay,pw:Math.max(10,2*R*SH),fx:W/2,fy:fy,sh:SH,lbx:8,lby:150,lbAlign:'left',sideH:200};}
+    var IS2=Math.min(H-44,320),Rf2=IS2/2-30,R2=Math.min(H*0.36,Rf2),ax2=Math.round(W*0.10),ay2=Math.round(H*0.5)-(H<320?8:0);var fx2=W-IS2/2-16,fy2=IS2/2+4;var cxB2=W-IS2-56,cx2=ax2+46+(cxB2-ax2-46)*(0.4+0.6*cliT);
+    return{mob:false,IS:IS2,R:R2,Rf:Rf2,ax:ax2,ay:ay2,ex:ax2+46,cx:cx2,cxB:cxB2,cy:ay2,pw:Math.max(12,2*R2*SH),fx:fx2,fy:fy2,sh:SH,lbx:cx2-Math.max(12,2*R2*SH)/2-16,lby:18,lbAlign:'right',sideH:H};}
   /* face-on coordinates (the constellation) to the side view (the same plane seen nearly edge-on) */
   function toSide(L,x,y){var k2=L.R/L.Rf;return{x:L.cx+(x-L.fx)*L.sh*k2,y:L.ay+(y-L.fy)*k2};}
   function invGray(g){var n=g;while(g>>=1)n^=g;return n}
@@ -712,35 +727,43 @@ html.qam-fs .rig{display:none}
     var x=base+r0*Math.cos(th)*sh,y=L.ay+(f.oy||0)*(1-s)-r0*Math.sin(th)+(f.push||0)*(1-Math.pow(s,1.7));return{x:x,y:y,th:th,depth:Math.cos(th)};}
   function seedSpecks(L){specks=[];var n=L.mob?70:150;for(var i=0;i<n;i++)specks.push({s:Math.random(),amp:0.15+Math.random()*1.1,v:0.10+Math.random()*0.18,c:BLUES[i%BLUES.length],r:0.6+Math.random()*1.4,a:0.25+Math.random()*0.45,ph:Math.random()*6.3});}
   /* the Yagi's amplitude pattern: a cos^5 main lobe (about 40 degrees at half power), side lobes near 65 degrees, a back lobe */
-  function patA(th){var a=Math.abs(th);var main=a<Math.PI/2?Math.pow(Math.cos(a),5):0;var side=0.22*Math.exp(-Math.pow((a-1.13)/0.25,2));var back=0.18*Math.exp(-Math.pow((a-Math.PI)/0.45,2));return Math.max(main,side,back);}
+  function patA(th){var a=th-aim;a=Math.atan2(Math.sin(a),Math.cos(a));return Math.max(1e-4,ANT[ant].pat(a));}
   function lamPx(L){return (L.cx-L.ex)/BENCH_M*(0.3/S.f)}
   function txOff(st){return (st%2?-1:1)*Math.ceil(st/2)*34}
   function drawYagi(L,now){
     var ax=L.ax,ay=L.ay,sc=L.mob?0.6:1;
     ctx.save();ctx.translate(ax,ay);ctx.scale(sc,sc);ctx.lineCap='round';
     ctx.strokeStyle='rgba(176,196,207,0.35)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-40,ss>1?-70:0);ctx.lineTo(-40,H/sc);ctx.stroke(); /* mast */
-    ctx.strokeStyle='#B0C4CF';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-72,0);ctx.lineTo(46,0);ctx.stroke(); /* boom */
-    var els=[[-62,58,'#8BA2AE',2.5],[-8,44,'#B0C4CF',2.5],[10,42,'#B0C4CF',2.5],[26,40,'#B0C4CF',2.5],[40,38,'#B0C4CF',2.5]];
-    els.forEach(function(e){ctx.strokeStyle=e[2];ctx.lineWidth=e[3];ctx.beginPath();ctx.moveTo(e[0],-e[1]/2);ctx.lineTo(e[0],e[1]/2);ctx.stroke();});
-    /* driven element: folded dipole, glowing */
-    var g=0.6+0.4*Math.sin(now/180);ctx.strokeStyle='#4FBDEA';ctx.shadowColor='#4FBDEA';ctx.shadowBlur=14*g;ctx.lineWidth=3;
-    ctx.beginPath();ctx.roundRect?ctx.roundRect(-36,-26,8,52,4):ctx.rect(-36,-26,8,52);ctx.stroke();ctx.shadowBlur=0;
+    var A=ANT[ant],g=0.6+0.4*Math.sin(now/180);ctx.save();ctx.translate(-36,0);ctx.rotate(-aim);ctx.translate(36,0);
+    if(A.glyph==='yagi'){ctx.strokeStyle='#B0C4CF';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-72,0);ctx.lineTo(46,0);ctx.stroke();
+      var els=[[-62,58,'#8BA2AE',2.5],[-8,44,'#B0C4CF',2.5],[10,42,'#B0C4CF',2.5],[26,40,'#B0C4CF',2.5],[40,38,'#B0C4CF',2.5]];
+      els.forEach(function(e){ctx.strokeStyle=e[2];ctx.lineWidth=e[3];ctx.beginPath();ctx.moveTo(e[0],-e[1]/2);ctx.lineTo(e[0],e[1]/2);ctx.stroke();});
+      ctx.strokeStyle='#4FBDEA';ctx.shadowColor='#4FBDEA';ctx.shadowBlur=14*g;ctx.lineWidth=3;ctx.beginPath();ctx.roundRect?ctx.roundRect(-36,-26,8,52,4):ctx.rect(-36,-26,8,52);ctx.stroke();ctx.shadowBlur=0;}
+    else if(A.glyph==='stick'){ctx.strokeStyle='#B0C4CF';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-40,0);ctx.lineTo(-32,0);ctx.stroke();ctx.strokeStyle='#4FBDEA';ctx.shadowColor='#4FBDEA';ctx.shadowBlur=14*g;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-32,-34);ctx.lineTo(-32,34);ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='#B0C4CF';ctx.fillRect(-35,-40,6,6);}
+    else if(A.glyph==='patch'){ctx.strokeStyle='#B0C4CF';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-40,0);ctx.lineTo(-34,0);ctx.stroke();ctx.fillStyle='#8BA2AE';ctx.fillRect(-34,-28,10,56);ctx.strokeStyle='#4FBDEA';ctx.shadowColor='#4FBDEA';ctx.shadowBlur=14*g;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-24,-24);ctx.lineTo(-24,24);ctx.stroke();ctx.shadowBlur=0;}
+    else if(A.glyph==='sector'){ctx.strokeStyle='#B0C4CF';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-40,0);ctx.lineTo(-34,0);ctx.stroke();ctx.fillStyle='#8BA2AE';ctx.fillRect(-34,-46,9,92);ctx.strokeStyle='#4FBDEA';ctx.shadowColor='#4FBDEA';ctx.shadowBlur=14*g;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-25,-42);ctx.lineTo(-25,42);ctx.stroke();ctx.shadowBlur=0;}
+    else{ctx.strokeStyle='#B0C4CF';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-40,0);ctx.lineTo(-30,0);ctx.stroke();ctx.strokeStyle='#8BA2AE';ctx.lineWidth=4;ctx.beginPath();ctx.arc(-70,0,46,-0.8,0.8);ctx.stroke();ctx.strokeStyle='rgba(176,196,207,0.6)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-34,-34);ctx.lineTo(-8,0);ctx.lineTo(-34,34);ctx.stroke();ctx.fillStyle='#4FBDEA';ctx.shadowColor='#4FBDEA';ctx.shadowBlur=14*g;ctx.beginPath();ctx.arc(-8,0,4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
+    if(Math.abs(aim)>0.03){ctx.strokeStyle='rgba(245,165,36,0.7)';ctx.setLineDash([2,4]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-32,0);ctx.lineTo(70,0);ctx.stroke();ctx.setLineDash([]);}
+    ctx.restore();
+    ctx.strokeStyle='#4FBDEA';ctx.shadowBlur=0;
     /* extra streams: their own driven elements on the mast, TX2 up, TX3 down, TX4 up */
     for(var st=1;st<ss;st++){var oy=txOff(st);ctx.strokeStyle=STC[st];ctx.shadowColor=STC[st];ctx.shadowBlur=10*g;ctx.lineWidth=2.5;ctx.beginPath();ctx.roundRect?ctx.roundRect(-36,oy-14,8,28,4):ctx.rect(-36,oy-14,8,28);ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle=STC[st];ctx.font='600 8px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='right';ctx.fillText('TX'+(st+1),-70,oy+3);}
     if(ss>1){ctx.fillStyle=STC[0];ctx.font='600 8px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='right';ctx.fillText('TX1',-70,3);}
-    ctx.fillStyle='#8BA2AE';ctx.font='10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='center';ctx.fillText('YAGI',-14,52);
+    ctx.fillStyle='#8BA2AE';ctx.font='10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='center';ctx.fillText(A.name.split(' (')[0].toUpperCase()+(Math.abs(aim)>0.03?'  aimed '+(aim*180/Math.PI).toFixed(0)+'\u00b0':''),-14,A.glyph==='sector'?62:52);if(!L.mob){ctx.font='8px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';ctx.fillText(A.g+' dBi, '+A.hp+'\u00b0 beam'+(A.fb?', F/B '+A.fb+' dB':''),-70,A.glyph==='sector'?74:64);if(!lb.on)ctx.fillText('drag to aim, tap to reset',-70,A.glyph==='sector'?84:74);}
     ctx.restore();
   }
   function drawLobe(L){
     var g=ctx.createLinearGradient(L.ex,0,L.cx,0);g.addColorStop(0,'rgba(79,189,234,0.16)');g.addColorStop(0.6,'rgba(79,189,234,0.06)');g.addColorStop(1,'rgba(79,189,234,0.02)');
+    var kw=ANT[ant].kw;ctx.save();ctx.translate(L.ex,L.ay);ctx.rotate(-aim);ctx.translate(-L.ex,-L.ay);
     ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(L.ex,L.ay);var n=40;
     var se=(L.cx-L.pw/2-L.ex)/(L.cx-L.ex);
-    for(var i=0;i<=n;i++){var s=se*i/n;ctx.lineTo(L.ex+(L.cx-L.ex)*s,L.ay-coneW(L,s));}
-    for(i=n;i>=0;i--){var s2=se*i/n;ctx.lineTo(L.ex+(L.cx-L.ex)*s2,L.ay+coneW(L,s2));}
-    ctx.closePath();ctx.fill();
+    for(var i=0;i<=n;i++){var s=se*i/n;ctx.lineTo(L.ex+(L.cx-L.ex)*s,L.ay-coneW(L,s)*kw);}
+    for(i=n;i>=0;i--){var s2=se*i/n;ctx.lineTo(L.ex+(L.cx-L.ex)*s2,L.ay+coneW(L,s2)*kw);}
+    ctx.closePath();ctx.fill();ctx.restore();
     if(lb.walls.length){ctx.save();ctx.clip();for(var wi=0;wi<lb.walls.length;wi++){var wx=wallX(L,lb.walls[wi].pos),a=(1-Math.pow(10,-WALLS[lb.walls[wi].type].db/10))*0.55;ctx.fillStyle='rgba(6,16,25,'+a+')';ctx.fillRect(wx,0,W-wx,H);}ctx.restore();}
-    /* back lobe */
-    ctx.fillStyle='rgba(79,189,234,0.05)';ctx.beginPath();ctx.ellipse(L.ax-(L.mob?48:80),L.ay,L.mob?14:22,L.mob?9:14,0,0,Math.PI*2);ctx.fill();
+    /* back lobe, then the pattern outline whenever it is not the default Yagi pointing at the client */
+    if(ANT[ant].fb<15){ctx.fillStyle='rgba(79,189,234,0.05)';ctx.beginPath();ctx.ellipse(L.ax-(L.mob?48:80),L.ay,L.mob?14:22,L.mob?9:14,0,0,Math.PI*2);ctx.fill();}
+    if(ant!=='yagi'||Math.abs(aim)>0.03){ctx.save();ctx.globalAlpha=0.55;drawPattern(L);ctx.restore();}
   }
   function wallX(L,pos){return L.ex+(L.cx-L.pw/2-L.ex)*pos}
   function wallTop(L,pos){var se=(L.cx-L.pw/2-L.ex)/(L.cx-L.ex);return L.ay-coneW(L,pos*se)-16}
@@ -750,20 +773,24 @@ html.qam-fs .rig{display:none}
       ctx.strokeStyle=dragW===i?'#ffd28a':'rgba(234,242,246,0.5)';ctx.lineWidth=1;ctx.strokeRect(x-Wd.w/2+0.5,top+0.5,Wd.w-1,hh-1);
       ctx.fillStyle=dragW===i?'#ffd28a':'#B0C4CF';ctx.font='600 8px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='center';ctx.fillText(Wd.name+'  '+Wd.db+' dB',x,top-20);
       ctx.strokeStyle='rgba(234,242,246,0.6)';ctx.beginPath();ctx.arc(x,top-9,5,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#EAF2F6';ctx.font='600 8px JetBrains Mono,ui-monospace,monospace';ctx.fillText('\u00d7',x,top-6);}}
-  function drawProfile(L){var x0=L.ex,x1=L.cx-L.pw/2-30,y0=L.sideH-(L.mob?96:82),y1=L.sideH-(L.mob?40:32),nf=noiseFloor(),pr=prx(),snr=pr-nf,m=mcsFor(snr);
+  function drawProfile(L){var x0=L.ex,x1=(L.cxB||L.cx)-L.pw/2-30,DMAX=60,y0=L.sideH-(L.mob?96:82),y1=L.sideH-(L.mob?40:32),nf=noiseFloor(),pr=prx(),snr=pr-nf,m=mcsFor(snr);
     function yOf(db){return y1-(Math.max(-100,Math.min(-10,db))+100)/90*(y1-y0)}
     ctx.save();ctx.fillStyle='rgba(3,10,16,0.62)';ctx.beginPath();ctx.roundRect?ctx.roundRect(x0-6,y0-16,x1-x0+12,y1-y0+32,6):ctx.rect(x0-6,y0-16,x1-x0+12,y1-y0+32);ctx.fill();
     ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x0,y1);ctx.lineTo(x1,y1);ctx.stroke();
     ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(245,165,36,0.8)';ctx.beginPath();ctx.moveTo(x0,yOf(nf));ctx.lineTo(x1,yOf(nf));ctx.stroke();ctx.setLineDash([]);
-    ctx.strokeStyle='#8CE05E';ctx.lineWidth=1.6;ctx.beginPath();for(var q=0;q<=100;q++){var fr=q/100,x=x0+(x1-x0)*fr,y=yOf(prxAt(fr));if(q===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();
-    ctx.fillStyle='#8CE05E';ctx.beginPath();ctx.arc(x1,yOf(pr),3,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='rgba(234,242,246,0.6)';ctx.beginPath();ctx.moveTo(x1+5,yOf(pr));ctx.lineTo(x1+5,yOf(nf));ctx.moveTo(x1+2,yOf(pr));ctx.lineTo(x1+8,yOf(pr));ctx.moveTo(x1+2,yOf(nf));ctx.lineTo(x1+8,yOf(nf));ctx.stroke();
-    ctx.font='600 9px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';ctx.fillStyle='#EAF2F6';ctx.fillText('LINK BUDGET  '+PTX_DBM+' dBm + '+GT+' dBi Yagi, '+(lb.fsOnly?'free space':'indoor, n = 3')+', '+lb.d+' m'+(lb.walls.length?', '+wallLoss()+' dB of walls':''),x0,y0-5);
-    ctx.font='9px JetBrains Mono,ui-monospace,monospace';ctx.fillStyle='#8BA2AE';ctx.fillText(prxAt(1/lb.d).toFixed(0)+' dBm at 1 m',x0+22,yOf(prxAt(1/lb.d))+12);
-    ctx.fillStyle='#ffd28a';ctx.textAlign='left';ctx.fillText('noise floor '+nf.toFixed(0)+' dBm at '+bw+' MHz',x0+(L.mob?90:150),yOf(nf)-4);
-    ctx.fillStyle='#8CE05E';ctx.textAlign='right';ctx.fillText(pr.toFixed(0)+' dBm at '+lb.d+' m',x1-8,Math.min(yOf(pr)-5,yOf(nf)-16));
-    ctx.fillStyle=snr>=snrMin()[mcsSel]?'#8CE05E':'#ffd28a';ctx.textAlign='right';ctx.fillText('SNR '+snr.toFixed(0)+' dB, '+(m<0?'below '+(std==='a'?'rate':'MCS')+' 0':(std==='a'?'rate ':'MCS ')+m+' holds'),x1-8,Math.min(yOf(pr)-16,yOf(nf)-27));
-    ctx.fillStyle='#8BA2AE';ctx.textAlign='center';ctx.fillText('0',x0,y1+10);ctx.fillText((lb.d/2).toFixed(0)+' m',(x0+x1)/2,y1+10);ctx.fillText(lb.d+' m',x1,y1+10);ctx.restore();}
+    if(!L.mob){var pcx0=x0+30,pcy0=(y0+y1)/2+4,prr=Math.min(24,(y1-y0)/2);ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.setLineDash([2,3]);ctx.beginPath();ctx.arc(pcx0,pcy0,prr,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+      ctx.strokeStyle='#4FBDEA';ctx.lineWidth=1.2;ctx.beginPath();for(var pi2=0;pi2<=120;pi2++){var th3=-Math.PI+pi2/120*Math.PI*2,rr=prr*Math.max(0,1+Math.max(-30,10*Math.log10(patA(th3)))/30);var xx=pcx0+Math.cos(th3)*rr,yy=pcy0-Math.sin(th3)*rr;if(pi2)ctx.lineTo(xx,yy);else ctx.moveTo(xx,yy);}ctx.closePath();ctx.stroke();
+      ctx.strokeStyle='#8CE05E';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(pcx0,pcy0);ctx.lineTo(pcx0+prr+4,pcy0);ctx.stroke();ctx.fillStyle='#8CE05E';ctx.font='600 8px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';ctx.fillText('client',pcx0+prr+7,pcy0+3);
+      ctx.fillStyle='#8BA2AE';ctx.textAlign='left';ctx.fillText((10*Math.log10(patA(0))).toFixed(0)+' dB off peak',pcx0+prr+7,pcy0+13);x0=x0+96;}
+    ctx.strokeStyle='#8CE05E';ctx.lineWidth=1.6;ctx.beginPath();for(var q=0;q<=100;q++){var dd=DMAX*q/100,x=x0+(x1-x0)*q/100,y=yOf(prxAt(Math.max(0.02,dd/lb.d)));if(q===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();
+    var xc=x0+(x1-x0)*lb.d/DMAX;ctx.fillStyle='#8CE05E';ctx.beginPath();ctx.arc(xc,yOf(pr),3,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(234,242,246,0.6)';ctx.beginPath();ctx.moveTo(xc+5,yOf(pr));ctx.lineTo(xc+5,yOf(nf));ctx.moveTo(xc+2,yOf(pr));ctx.lineTo(xc+8,yOf(pr));ctx.moveTo(xc+2,yOf(nf));ctx.lineTo(xc+8,yOf(nf));ctx.stroke();
+    ctx.font='600 9px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';ctx.fillStyle='#EAF2F6';ctx.fillText(L.mob?('LINK  '+PTX_DBM+' dBm + '+gtx().toFixed(0)+' dBi, '+(lb.fsOnly?'free space':'n = 3')+', '+lb.d+' m'+(lb.walls.length?', walls '+wallLoss()+' dB':'')):('LINK BUDGET  '+PTX_DBM+' dBm + '+gtx().toFixed(0)+' dBi toward the client, '+(lb.fsOnly?'free space':'indoor, n = 3')+', '+lb.d+' m'+(lb.walls.length?', '+wallLoss()+' dB of walls':'')),x0,y0-5);
+    ctx.font='9px JetBrains Mono,ui-monospace,monospace';ctx.fillStyle='#8BA2AE';if(xc>x0+150)ctx.fillText(prxAt(1/lb.d).toFixed(0)+' dBm at 1 m',x0+8,yOf(prxAt(1/lb.d))+12);var lrt=xc<(x0+x1)/2,yA=Math.max(y0+9,Math.min(yOf(pr)-5,yOf(nf)-16));
+    ctx.fillStyle='#ffd28a';ctx.textAlign='left';ctx.fillText(L.mob?'noise '+nf.toFixed(0)+' dBm':'noise floor '+nf.toFixed(0)+' dBm at '+bw+' MHz',x0+(L.mob?4:150),yOf(nf)-4);
+    ctx.fillStyle='#8CE05E';ctx.textAlign=lrt?'left':'right';ctx.fillText(pr.toFixed(0)+' dBm at '+lb.d+' m',lrt?xc+14:xc-8,yA);
+    ctx.fillStyle=snr>=snrMin()[mcsSel]?'#8CE05E':'#ffd28a';ctx.textAlign=lrt?'left':'right';ctx.fillText('SNR '+snr.toFixed(0)+' dB, '+(m<0?'below '+(std==='a'?'rate':'MCS')+' 0':(std==='a'?'rate ':'MCS ')+m+' holds'),lrt?xc+14:xc-8,yA>=y0+20?yA-11:yA+11);
+    ctx.fillStyle='#8BA2AE';ctx.textAlign='center';ctx.fillText('0',x0,y1+10);ctx.fillText('30 m',(x0+x1)/2,y1+10);ctx.fillText('60 m',x1,y1+10);ctx.restore();}
   /* channel response across the width: the per-subcarrier fade from one bounce, with every particle in flight marked on it */
   function drawResp(L){if(L.mob)return;var fg=fadeGeom(L),nsd=S.nsd[bw],x0=L.ex+4,x1=L.ex+206,y0=62,y1=96;
     function yOf(db){return y1-(Math.max(-12,Math.min(4,db))+12)/16*(y1-y0)}
@@ -795,7 +822,7 @@ html.qam-fs .rig{display:none}
     if(sy>1&&sy<=64){ctx.strokeStyle='rgba(255,255,255,0.10)';ctx.beginPath();for(var i=1;i<sy;i++){var yy=-R+i*(2*R/sy);ctx.moveTo(-pw/2,yy);ctx.lineTo(pw/2,yy);}ctx.stroke();}
     if(sx*sy<=256){ctx.fillStyle='rgba(79,189,234,0.5)';ctx.beginPath();for(var x=0;x<sx;x++)for(var y=0;y<sy;y++){var px=(-L.Rf+(2*L.Rf/sx)*(x+0.5))*L.sh*k2,py=(sy===1?0:L.Rf-(2*L.Rf/sy)*(y+0.5))*k2;ctx.moveTo(px+1,py);ctx.arc(px,py,1,0,Math.PI*2);}ctx.fill();}
     ctx.strokeStyle='rgba(255,255,255,0.22)';ctx.beginPath();ctx.moveTo(0,R+8);ctx.lineTo(0,-R-12);ctx.stroke();
-    ctx.fillStyle='#8BA2AE';ctx.font='10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='center';ctx.fillText('Q',0,-R-16);ctx.font='9px JetBrains Mono,ui-monospace,monospace';ctx.fillText(L.mob?'edge-on':'RX PLANE, EDGE-ON',0,R+20);ctx.fillText(L.mob?'':'I is depth',0,R+31);ctx.restore();}
+    ctx.fillStyle='#8BA2AE';ctx.font='10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='center';ctx.fillText('Q',0,-R-16);ctx.font='9px JetBrains Mono,ui-monospace,monospace';if(!(lb.on&&!L.mob&&L.cx<L.cxB-30)){ctx.fillText(L.mob?'edge-on':'RX PLANE, EDGE-ON',0,R+20);ctx.fillText(L.mob?lb.d+' m':'I is depth',0,R+31);if(!L.mob)ctx.fillText('CLIENT '+lb.d+' m, drag',0,R+42);}ctx.restore();}
   function drawInset(L){var IS=L.IS,x0=L.fx-IS/2,y0=L.fy-IS/2;ctx.save();ctx.fillStyle='rgba(3,10,16,0.55)';ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect?ctx.roundRect(x0,y0,IS,IS,10):ctx.rect(x0,y0,IS,IS);ctx.fill();ctx.stroke();
     ctx.fillStyle='#8BA2AE';ctx.font='600 9px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';ctx.fillText('FACE-ON'+(heatMode===1?'  HEAT':heatMode===2?'  HITS + HEAT':''),x0+10,y0+14);
     var ev=evmDb();if(ev){ctx.textAlign='right';ctx.fillStyle=ev.db<-25?'#8CE05E':ev.db<-18?'#B0C4CF':'#ffd28a';ctx.fillText('EVM '+ev.db.toFixed(1)+' dB ('+ev.pct.toFixed(1)+'%)',x0+IS-10,y0+14);}
@@ -816,7 +843,7 @@ html.qam-fs .rig{display:none}
     fctx.putImageData(fimg,0,0);ctx.save();ctx.imageSmoothingEnabled=true;ctx.globalAlpha=band===2?0.95:0.45;ctx.drawImage(fc,0,0,fw,fh,0,0,fw*FC,fh*FC);ctx.restore();}
   function drawPattern(L){var Rp=(L.cx-L.ex)*0.42;ctx.save();ctx.translate(L.ex,L.ay);ctx.strokeStyle='rgba(234,242,246,0.28)';ctx.lineWidth=1;ctx.setLineDash([3,4]);ctx.beginPath();
     for(var i=0;i<=180;i++){var th=-Math.PI+i/180*Math.PI*2;var r=Rp*patA(th);var x=Math.cos(th)*r,y=-Math.sin(th)*r;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.closePath();ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='rgba(176,196,207,0.7)';ctx.font='9px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';ctx.fillText('main lobe',Rp*0.55,-8);ctx.fillText('side lobe',Rp*0.12,-Rp*0.24-6);ctx.textAlign='center';ctx.fillText('back lobe',L.ax-40-L.ex,-40);ctx.restore();}
+    if(ant==='yagi'&&Math.abs(aim)<0.03){ctx.fillStyle='rgba(176,196,207,0.7)';ctx.font='9px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='left';ctx.fillText('main lobe',Rp*0.55,-8);ctx.fillText('side lobe',Rp*0.12,-Rp*0.24-6);ctx.textAlign='center';ctx.fillText('back lobe',L.ax-40-L.ex,-40);}ctx.restore();}
   /* photons: directions drawn from the power pattern, straight lines at c */
   var photons=[],phEmit=0,phCount=0,phRx=0,rxFlash=[];
   function sampleDir(){for(var i=0;i<60;i++){var th=Math.random()*Math.PI*2-Math.PI;var a=patA(th);if(Math.random()<a*a)return th;}return 0;}
@@ -1132,9 +1159,11 @@ html.qam-fs .rig{display:none}
     var lead=band===0?(intOn?'Frame view: the strip is the channel to scale. Hold the cursor in the beam and watch the retries stack up':'Frame view: the strip is the channel to scale. Turn on Interference to hurt it with the cursor'):band===2?'Wave view: the carrier itself. Move the cursor in to add a second radio on a nearby channel':band===3?'Photon view: every dot is one photon of the '+fmtBig(PTX_W*S.tsym*1e-6/(6.626e-34*S.f*1e9))+' in this symbol':(!intOn?'Click a hit for its bits. Turn on Interference to add noise with the cursor':touchy&&!fs?'On a phone, tap Fullscreen to touch the beam without scrolling the page':touchy?'Drag a finger through the beam to add interference':'Hover or touch the beam to add interference');
     hint.textContent=lead+tail;}
   var fb2=document.getElementById('qam-follow');fb2.addEventListener('click',function(e){e.stopPropagation();if(band!==1)setTimeUI(1.5);followReq=true;});
+  var antSel=document.getElementById('qam-ant');Object.keys(ANT).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=ANT[k].name;antSel.appendChild(o);});antSel.value=ant;
+  antSel.addEventListener('change',function(){ant=antSel.value;aim=0;fieldDirty=true;heatClear();stat();});
   var lbb=document.getElementById('qam-lb'),LBR=document.getElementById('qam-lbrow'),dsl=document.getElementById('qam-dist'),dsv=document.getElementById('qam-dist-v'),mdb=document.getElementById('qam-model'),htb=document.getElementById('qam-heat');
   lbb.addEventListener('click',function(e){e.stopPropagation();lb.on=!lb.on;LBR.hidden=!lb.on;lbb.setAttribute('aria-pressed',lb.on);lbb.classList.toggle('on',lb.on);});
-  dsl.addEventListener('input',function(){lb.d=+dsl.value;dsv.textContent=lb.d+' m';});
+  dsl.addEventListener('input',function(){setDist(+dsl.value);dsv.textContent=lb.d+' m';fieldDirty=true;});
   mdb.addEventListener('click',function(e){e.stopPropagation();lb.fsOnly=!lb.fsOnly;mdb.textContent=lb.fsOnly?'Free space, n = 2':'Indoor, n = 3';});
   LBR.querySelectorAll('[data-wall]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();if(lb.walls.length>=3)return;var used=lb.walls.map(function(w){return w.pos});var pos=[0.35,0.6,0.8,0.5,0.25][lb.walls.length];lb.walls.push({type:b.getAttribute('data-wall'),pos:pos});});});
   LBR.addEventListener('click',function(e){e.stopPropagation()});
@@ -1151,11 +1180,15 @@ html.qam-fs .rig{display:none}
   function wallAt(L,x,y){for(var i=0;i<lb.walls.length;i++){var wx=wallX(L,lb.walls[i].pos),top=wallTop(L,lb.walls[i].pos);if(Math.abs(x-wx)<12&&y>top-16&&y<2*L.ay-top)return{i:i,x:Math.abs(x-wx)<8&&Math.abs(y-(top-9))<8};}return null;}
   function evPt(e){var r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*(W/r.width),y:(e.clientY-r.top)*(H/r.height)}}
   function setCur(e){var pt=evPt(e);cur.x=pt.x;cur.y=pt.y;var L=layout();
-    if(e.type==='pointerdown'){var wh=wallAt(L,cur.x,cur.y);if(wh){wallHit=true;if(wh.x){lb.walls.splice(wh.i,1);dragW=-1;}else dragW=wh.i;cur.on=false;return;}wallHit=false;}
+    if(e.type==='pointerdown'){var wh=wallAt(L,cur.x,cur.y);if(wh){wallHit=true;if(wh.x){lb.walls.splice(wh.i,1);dragW=-1;}else dragW=wh.i;cur.on=false;return;}wallHit=false;
+      var ar=L.mob?34:56;if(Math.hypot(cur.x-L.ax,cur.y-L.ay)<ar){dragA=true;dragMoved=false;wallHit=true;cur.on=false;try{c.setPointerCapture(e.pointerId)}catch(err){}return;}
+      if(band<2&&Math.abs(cur.x-L.cx)<L.pw/2+14&&Math.abs(cur.y-L.ay)<L.R+12&&!nearDot(cur.x,cur.y)){dragC=true;dragMoved=false;wallHit=true;cur.on=false;try{c.setPointerCapture(e.pointerId)}catch(err){}return;}}
+    if(dragA){var na=Math.atan2(-(cur.y-L.ay),cur.x-L.ax);if(Math.abs(na)<0.06)na=0;if(Math.abs(na-aim)>0.01)dragMoved=true;aim=na;fieldDirty=true;cur.on=false;return;}
+    if(dragC){var t=((cur.x-L.ex)/(L.cxB-L.ex)-(L.mob?0.45:0.4))/(L.mob?0.55:0.6);t=Math.max(0,Math.min(1,t));setDist(3*Math.pow(20,t));dsl.value=lb.d;dsv.textContent=lb.d+' m';dragMoved=true;fieldDirty=true;cur.on=false;return;}
     if(dragW>=0){var pos=(cur.x-L.ex)/(L.cx-L.pw/2-L.ex);lb.walls[dragW].pos=Math.max(0.06,Math.min(0.94,pos));cur.on=false;return;}
     cur.on=intOn&&inSide(L,cur.x,cur.y);}
-  c.addEventListener('pointermove',setCur);c.addEventListener('pointerdown',setCur);c.addEventListener('pointerleave',function(){cur.on=false});c.addEventListener('pointerup',function(e){dragW=-1;if(e.pointerType!=='mouse')cur.on=false});c.addEventListener('pointercancel',function(){dragW=-1;cur.on=false});
-  c.addEventListener('click',function(e){e.stopPropagation();if(wallHit){wallHit=false;return;}var pt=evPt(e);var d=nearDot(pt.x,pt.y);sel=d?d.i:-1;stat();});
+  c.addEventListener('pointermove',setCur);c.addEventListener('pointerdown',setCur);c.addEventListener('pointerleave',function(){cur.on=false});c.addEventListener('pointerup',function(e){dragW=-1;if(dragA&&!dragMoved){aim=0;fieldDirty=true;}dragA=false;dragC=false;if(e.pointerType!=='mouse')cur.on=false});c.addEventListener('pointercancel',function(){dragW=-1;dragA=false;dragC=false;cur.on=false});
+  c.addEventListener('click',function(e){e.stopPropagation();if(wallHit){wallHit=false;return;}if(dragA||dragC)return;var pt=evPt(e);var d=nearDot(pt.x,pt.y);sel=d?d.i:-1;stat();});
   c.addEventListener('pointermove',function(e){var pt=evPt(e);hoverDot=nearDot(pt.x,pt.y);});
   /* explainer */
   X=document.getElementById('qam-x');hint=document.getElementById('qam-hint');
@@ -1174,7 +1207,8 @@ html.qam-fs .rig{display:none}
       '<li>Streams. Set Streams to 2 and a second driven element appears on the mast and a second antenna beside the plane; two particles now leave every slot on the same subcarrier, one per stream, in two colours, and the frame takes half the airtime. The receiver can only tell them apart if the two paths look different enough, which needs the channel to have rank 2. On a bare line-of-sight bench it does not, so the second stream lands noisy (modelled here as a 6 dB SNR penalty per stream the channel cannot support). Turn Multipath on and the reflector gives rank 2 and it cleans up. That is the thing to remember about MIMO: it needs multipath. Real access points get a second stream in clear line of sight with cross-polarised antennas; three and four streams want a room full of reflections.</li>'+
       '<li>Every attempt starts with a short train of white pulses before any data: the preamble. Those are the L-STF and L-LTF, fixed patterns both ends know. The receiver uses them to find where the symbols start (timing), to measure how far its own oscillator is off from the sender’s (carrier frequency offset, a few parts per million, which is the constellation visibly spinning until it locks), and to learn the channel so it can equalise. Nothing decodes until LOCKED shows. Without that lock, the phasor in the lens would keep rotating against the receiver’s reference and every symbol would land in the wrong cell.</li>'+
       '<li>Each particle corkscrews down the beam because a symbol is a phasor: a vector with an amplitude and a phase riding the carrier. The radius of the corkscrew is the amplitude and its angle is the phase. It rides the antenna’s lobe, so the orbit widens as the beam spreads, and the last turn is the circle the symbol lands on: the constellation is that corkscrew seen end-on, frozen at the instant the receiver samples it. One honest caveat: the corkscrew is the phasor, not the flight path. The wave itself travels in a straight line, and what oscillates is the field, sideways to the direction of travel; a Yagi is linearly polarised, so the true picture is a straight ray with a sine wave riding across it. A real helix in space would mean circular polarisation, which this antenna does not produce. Follow a symbol shows both: a pinned panel under the antenna draws the straight ray with its transverse wave on the left and the same symbol as a spinning phasor on the right, slows the scene, names the byte and field it belongs to, and reports what the receiver decided when it lands.</li>'+
-      '<li><b>Link budget.</b> The scatter is not decoration. The radio is 20 dBm into a 10 dBi Yagi, the client has 2 dBi, the first metre costs the free-space figure and after that the power falls off with a log-distance exponent of 3, a typical indoor value (switch to free space, n = 2, to see how optimistic that is). Each wall takes a fixed bite: drywall 3 dB, cinderblock 6, brick or concrete 12, typical 5 GHz survey values you should measure rather than trust. What arrives is compared with the receiver\u2019s thermal noise floor, -174 dBm/Hz plus the channel width plus a 7 dB noise figure, which is why a wider channel raises the floor and costs SNR. The gap is the SNR, the SNR sets how far each symbol scatters, and a typical minimum-SNR table (about 5 dB for BPSK 1/2, 23 dB for 64-QAM 5/6, 34 dB for 1024-QAM 5/6, 40 dB for 4096-QAM 5/6) says which MCS the link can hold. Push the distance out or add concrete and rate adaptation walks down the ladder on its own. The heat map on the face-on target is what a signal analyser shows in persistence mode: tight bright clusters mean margin, smeared ones mean the next MCS up will fail, and the EVM figure in the corner is the RMS error vector, roughly the negative of the SNR.</li>'+
+      '<li><b>Antenna.</b> The menu swaps the antenna and its pattern, drawn in the plane of the screen, which for a ceiling omni is the vertical plane: '+ANT[ant].why+'. Each one carries its real gain, half-power beamwidth and front-to-back ratio, and the link budget uses the gain in the direction of the client, not the number on the datasheet. Drag the antenna to aim it and watch that gain fall off the side of the lobe; drag the client along the bench to move it; the field and photon views follow the same pattern. Tap the antenna without moving to point it back at the client.</li>'+
+      '<li><b>Link budget.</b> The scatter is not decoration. The radio is 20 dBm into the antenna above (10 dBi for the Yagi), the client has 2 dBi, the first metre costs the free-space figure and after that the power falls off with a log-distance exponent of 3, a typical indoor value (switch to free space, n = 2, to see how optimistic that is). Each wall takes a fixed bite: drywall 3 dB, cinderblock 6, brick or concrete 12, typical 5 GHz survey values you should measure rather than trust. What arrives is compared with the receiver\u2019s thermal noise floor, -174 dBm/Hz plus the channel width plus a 7 dB noise figure, which is why a wider channel raises the floor and costs SNR. The gap is the SNR, the SNR sets how far each symbol scatters, and a typical minimum-SNR table (about 5 dB for BPSK 1/2, 23 dB for 64-QAM 5/6, 34 dB for 1024-QAM 5/6, 40 dB for 4096-QAM 5/6) says which MCS the link can hold. Push the distance out or add concrete and rate adaptation walks down the ladder on its own. The heat map on the face-on target is what a signal analyser shows in persistence mode: tight bright clusters mean margin, smeared ones mean the next MCS up will fail, and the EVM figure in the corner is the RMS error vector, roughly the negative of the SNR.</li>'+
       '<li>The ladder at the top is the MCS index, live. The bright step is the rate in use, the outlined step is the one you picked, and the marker slides when rate adaptation moves it. The Mb/s figure next to it is the PHY rate that goes with the step.</li>'+
       '<li>One particle here is one subcarrier. A real '+bw+' MHz '+S.name+' channel sends '+S.nsd[bw]+' of them at once per stream every '+S.tsym+' µs, after a '+S.pre(ss).toFixed(1)+' µs preamble, which is where the rate table comes from. This frame fits in '+ns+' OFDM symbol'+(ns>1?'s':'')+'.</li>'+
       '<li><b>Time.</b> The slider is a slow-motion factor, and the picture changes with it because nothing looks the same at every scale. <i>Frames</i>: at real time this frame is a '+airtime(mcsCur,ss,bw).toFixed(0)+' µs flash and the channel does thousands of them a second, so all you can see is the medium; the strip at the bottom is the DCF cycle to scale: preamble, data, SIFS, ACK, DIFS, backoff, and every retry pushes the next frame further right. <i>Symbols</i>: about a hundred thousand times slower, one particle per symbol, the view described above. <i>Waves</i>: a billion times slower, the carrier itself. A '+S.f.toFixed(1)+' GHz cycle is '+(1e3/S.f).toFixed(0)+' ps and a wavelength is '+(30/S.f).toFixed(1)+' cm, so what leaves the antenna is a field shaped by the Yagi’s pattern, main lobe, side lobes and back lobe, and one symbol is '+cyc.toLocaleString()+' of those cycles at a single amplitude and phase. With Multipath on, the wall shows the reflection as a mirror image of the antenna, and the fringes where the two copies meet are the fades from the multipath item above. Move the cursor into the scene and it becomes a second radio on a nearby channel; the beat pattern is what interference means to an RF engineer. <i>Photons</i>: slower still. A 20 dBm radio at '+S.f.toFixed(1)+' GHz emits about '+fmtBig(nph)+' photons per symbol, each with the same energy, '+fmtBig(6.626e-34*S.f*1e9)+' J, leaving in directions drawn from the pattern. Only about '+Math.round(rxFrac*100)+'% of the pattern points at the receiver here, and in the real room free-space loss over '+BENCH_M+' m at '+S.f.toFixed(1)+' GHz is 56 dB, so it catches one photon in about 400,000. That is why a symbol is a smooth phasor and never looks grainy: the receiver averages an astronomical number of them. Three things the photon picture gets wrong on purpose. At radio frequencies the field is a coherent state with so many photons per mode that the wave picture is the correct one and the particle picture adds nothing you could measure. A photon has no path between emission and detection, so the dots are a probability picture drawn from the pattern, not trajectories. And one symbol lasts '+S.tsym+' µs, which at the speed of light is '+(S.tsym*1e-6*299792458/1000).toFixed(1)+' km long: a whole frame is in the air at once, stretched across the county, and drawing it as dots on a '+BENCH_M+' m bench squeezes that by a factor of a thousand.</li>'+
