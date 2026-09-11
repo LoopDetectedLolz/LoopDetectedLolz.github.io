@@ -78,6 +78,7 @@ a:hover{color:#cbf4b3}
 
 /* status + category pills */
 a.tag{text-decoration:none;transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+@media (pointer:coarse){a.tag{min-height:38px}#qam-dl{display:inline-flex;align-items:center;min-height:38px}}
 a.tag:hover{transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(0,0,0,0.7)}
 .tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
   color:var(--blue-light);border:1px solid rgba(79,189,234,0.45);background:rgba(47,168,224,0.10);border-radius:var(--r-pill);padding:5px 12px;white-space:nowrap}
@@ -207,7 +208,8 @@ a.tag:hover{transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(0,0,0,0.7
 @media (prefers-reduced-motion:no-preference){.rig img{animation:botFloat 5s ease-in-out infinite}}
 @media (max-width:520px){.rig{width:84px}}
 /* the page always ends with room for him, so nothing is permanently covered */
-.page{padding-bottom:calc(104px + 40px)}
+.page{min-height:100vh;min-height:100svh;display:flex;flex-direction:column}
+.page>main{flex:1 0 auto;width:100%;padding-bottom:calc(104px + 40px)}  /* width:100% because the auto side margins would otherwise stop the flex stretch */
 
 footer{padding:var(--s6) 0 var(--s4);color:var(--text-muted);font-size:13px}
 footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--s2);padding-right:calc(104px + 40px)}
@@ -275,7 +277,8 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
 .w-read b{color:var(--green)}
 .widget.over .w-read b:first-child{color:var(--orange)}
 .w-note{margin-top:var(--s2);font-size:13px;color:var(--text-dim);line-height:1.6}
-.band{position:relative;height:64px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);overflow:hidden}
+/* the 5 GHz spectrum strip in the channel 173 post. NOT .band: that is the call-to-action card */
+.spectrum{position:relative;height:64px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);overflow:hidden}
 .band-scan{position:absolute;left:0;top:0;bottom:0;width:90.6%;background:repeating-linear-gradient(135deg,rgba(94,210,218,0.10) 0 6px,transparent 6px 12px);border-right:2px dashed rgba(94,210,218,0.7);pointer-events:none}
 .blk{position:absolute;top:8px;bottom:8px;left:var(--l);width:var(--w);font:600 11px var(--mono);letter-spacing:0.04em;color:var(--text-dim);background:rgba(3,10,16,0.55);border:1px solid rgba(255,255,255,0.14);border-radius:8px;cursor:pointer;padding:0;overflow:hidden;white-space:nowrap;transition:transform 200ms var(--ease),background 200ms var(--ease)}
 .blk:hover{transform:translateY(-1px)}
@@ -286,7 +289,9 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
 .band-axis span{position:absolute;transform:translateX(-50%)}
 .band-axis span:nth-child(1){left:0;transform:none}.band-axis span:nth-child(2){left:26.85%}.band-axis span:nth-child(3){left:42.95%}
 .band-axis span:nth-child(4){left:77.18%}.band-axis span:nth-child(5){left:93.96%}.band-axis span:nth-child(6){left:100%;transform:translateX(-100%)}
-@media (max-width:520px){.band-axis span:nth-child(2),.band-axis span:nth-child(3){display:none}.blk.hot{font-size:0}}
+@media (max-width:520px){.band-axis span:nth-child(2),.band-axis span:nth-child(3),.band-axis span:nth-child(5){display:none}
+  /* the narrow blocks cannot hold 'U-NII-2A' at this width, so show the number alone */
+  .blk{font-size:0}.blk::after{content:attr(data-short);font:600 11px var(--mono);letter-spacing:0.04em}.blk.hot::after{font-size:11px}}
 
 /* ── field kit ─────────────────────────────────────────────────────────── */
 .kit{margin-top:var(--s5);padding:var(--s5)}

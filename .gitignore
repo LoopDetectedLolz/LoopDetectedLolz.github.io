@@ -5,6 +5,9 @@ evidence
 evidence/
 verification-register.md
 
+# the local simulator workbench renders here; qam-lab.html itself is tracked
+lab.html
+
 # build scratch and one-off tooling
 data-url.txt
 preview-graphics.png
