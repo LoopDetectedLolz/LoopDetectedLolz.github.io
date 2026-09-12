@@ -311,8 +311,24 @@ def qa_qam(b, base, page_url):
     check("use", "the distance slider is parked while a feed drives", pg.evaluate("document.getElementById('qam-dist').disabled"), None, True)
     pg.wait_for_timeout(1500)
     near("math", "the feed's SNR reaches the budget", pg.evaluate("document.getElementById('qam')._dbg().lb.snr"), 33, 0.6)
+    # the journey: three hops, scrubbed, each hop's SNR against its own AP's floor
+    trail = [{"ts": 1700000000, "ap": "A", "serial": "S1", "prev": None, "type": None, "latency_ms": None, "band": "5", "channel": 36, "bw": 80, "rssi_dbm": None, "join": True},
+             {"ts": 1700000600, "ap": "B", "serial": "S2", "prev": "A", "type": "802.11", "latency_ms": 25, "band": "5", "channel": 149, "bw": 80, "rssi_dbm": -64, "join": False},
+             {"ts": 1700001200, "ap": "B", "serial": "S2", "prev": "B", "type": "802.11", "latency_ms": 640, "band": "2.4", "channel": 6, "bw": 20, "rssi_dbm": -79, "join": False}]
+    aps = {"S1": {"name": "A", "model": "AP-635", "radios": {"5": {"noise_dbm": -92}}}, "S2": {"name": "B", "model": "AP-735", "radios": {"5": {"noise_dbm": -90}, "2.4": {"noise_dbm": -96}}}}
+    out = pg.evaluate("document.getElementById('qam')._mon(" + json.dumps({"source": "qa", "ts": 1700001200, "client": {"name": "QA phone"}, "ap": {"name": "B", "serial": "S2"}, "radio": {"band": "2.4", "channel": 6, "bw": 20, "noise_dbm": -96}, "link": {"rssi_dbm": -79, "snr_db": 17, "speed_mbps": 43, "max_mbps": 287}, "trail": trail, "aps": aps}) + ")")
+    check("use", "a reading with a trail shows the journey", out["hops"] == 3 and not pg.evaluate("document.getElementById('qam-journey').hidden"), out["hops"], 3)
+    j = pg.evaluate("document.getElementById('qam')._journey(1)")
+    near("math", "hop 1: SNR = -64 dBm against AP B's -90 floor", j["snr"], 26, 0.01)
+    check("math", "hop 1: width follows the hop's channel (80 MHz)", j["bw"] == 80, j["bw"], 80)
+    j2 = pg.evaluate("document.getElementById('qam')._journey(2)")
+    near("math", "hop 2: SNR = -79 against the 2.4 GHz floor of -96", j2["snr"], 17, 0.01)
+    check("use", "hop 2: a 640 ms roam is called out", "640 ms" in j2["cap"], j2["cap"][-80:], "640 ms")
+    stats = pg.inner_text("#qam-jstats")
+    check("use", "the journey stats count the join, the band flip and the slow roam", "1 fresh join" in stats and "1 band flip" in stats and "1 slower than half a second" in stats, stats[:160], "1 fresh join, 1 band flip, 1 slower")
     pg.evaluate("document.getElementById('qam')._mon(null)")
     check("use", "back to the sliders frees them", not pg.evaluate("document.getElementById('qam-dist').disabled"), None, True)
+    check("use", "and hides the journey", pg.evaluate("document.getElementById('qam-journey').hidden"), None, True)
     text_hygiene(pg, "#qam", "simulator"); tap_targets(pg, "#qam", "simulator")
     check("use", "no page errors", not errs, errs[:3], [])
     pg.close()

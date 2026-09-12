@@ -5,6 +5,7 @@ page polls.
 
     python3 client-pull.py --client "Dustin's iPhone" --out reading.json     # one reading, open it on the Live chip
     python3 client-pull.py --client aa:bb:cc:dd:ee:ff --serve 8830          # poll every 30 s, serve /latest.json on localhost
+    python3 client-pull.py --client iPhone --trail 24 --out reading.json     # plus the last day's roams: the journey
     python3 client-pull.py --list                                             # who is on, to pick a name
     python3 client-pull.py --client x --dry-run
 
@@ -39,6 +40,7 @@ ENDPOINTS = {
     "clients": "/monitoring/v1/clients/wireless",
     "client":  "/monitoring/v1/clients/wireless/{mac}",
     "ap":      "/monitoring/v1/aps/{serial}",
+    "trail":   "/monitoring/v1/clients/wireless/{mac}/mobility_trail",
 }
 
 DRY = False
@@ -151,7 +153,54 @@ def find_client(tok, who, group=None):
     return norm_mac(hit[0]["macaddr"]), rows
 
 
-def reading(tok, mac):
+AP_CACHE = {}
+
+
+def ap_info(tok, serial):
+    """An AP's name, model and per band noise floor and power, cached for the run."""
+    if not serial:
+        return {}
+    if serial not in AP_CACHE:
+        ap = get(tok, ENDPOINTS["ap"].format(serial=serial), quiet=True) or {}
+        radios = {}
+        for r in ap.get("radios", []) or []:
+            nf = r.get("noise_floor")
+            radios[band_key(r.get("band"))] = {"noise_dbm": -abs(nf) if isinstance(nf, (int, float)) else None, "tx_dbm": r.get("tx_power"), "util_pct": r.get("utilization"), "mac": norm_mac(r.get("macaddr"))}
+        AP_CACHE[serial] = {"serial": serial, "name": ap.get("name"), "model": (lambda m: m if not m or m.upper().startswith("AP-") else "AP-" + m)(str(ap.get("model") or "")), "radios": radios}
+    return AP_CACHE[serial]
+
+
+def trail(tok, mac, hours):
+    """The client's roams over the window, oldest first, one row per hop: where it
+    landed, where it came from, how long the roam took, what it heard. An entry
+    with no previous AP is a fresh association and its RSSI is 0 or missing."""
+    now = int(time.time())
+    rows, offset = [], 0
+    while True:
+        page = get(tok, ENDPOINTS["trail"].format(mac=mac), {"calculate_total": "true", "limit": 100, "offset": offset, "from_timestamp": now - int(hours * 3600), "to_timestamp": now}) or {}
+        part = page.get("trails", [])
+        rows.extend(part)
+        offset += len(part)
+        if not part or offset >= (page.get("total") or 0) or offset >= 5000:
+            break
+    out = []
+    for t in rows:
+        ch, bw = channel_width(t.get("channel"))
+        lat = t.get("latency")
+        rssi = t.get("rssi")
+        out.append({
+            "ts": int(t["ts"] / 1000) if t.get("ts", 0) > 1e12 else t.get("ts"),
+            "ap": t.get("ap_name"), "serial": t.get("ap_serial"), "prev": t.get("previous_ap_name"),
+            "type": t.get("roaming_type"), "latency_ms": int(lat) if str(lat or "").lstrip("-").isdigit() else None,
+            "band": band_key(t.get("band")), "channel": ch, "bw": bw, "bssid": norm_mac(t.get("bssid")),
+            "rssi_dbm": rssi if isinstance(rssi, (int, float)) and rssi < 0 else None,
+            "join": not t.get("previous_ap_name"),
+        })
+    out.sort(key=lambda r: r["ts"] or 0)
+    return out
+
+
+def reading(tok, mac, hours=0):
     c = get(tok, ENDPOINTS["client"].format(mac=mac)) or {}
     if not c:
         return None
@@ -167,8 +216,16 @@ def reading(tok, mac):
     snr = c.get("snr")
     if not isinstance(snr, (int, float)) and isinstance(sig, (int, float)) and nf is not None:
         snr = sig - nf
+    tr = trail(tok, mac, hours) if hours else []
+    aps = {}
+    for t in tr:
+        if t["serial"] and t["serial"] not in aps:
+            aps[t["serial"]] = ap_info(tok, t["serial"])
+    if serial and serial not in aps:
+        aps[serial] = ap_info(tok, serial)
     return {
         "source": "aruba-central-classic", "kind": "client", "ts": int(time.time()),
+        "trail": tr, "trail_hours": hours, "aps": aps,
         "client": {"mac": mac, "name": c.get("name"), "username": c.get("username"), "ip": c.get("ip_address"), "os": c.get("os_type"), "network": c.get("network")},
         "ap": {"serial": serial, "name": ap.get("name"), "model": (lambda m: m if not m or m.upper().startswith("AP-") else "AP-" + m)(str(ap.get("model") or ""))},
         "radio": {"band": band, "channel": ch, "bw": bw, "channel_raw": c.get("channel"), "tx_dbm": radio.get("tx_power"), "noise_dbm": nf, "util_pct": radio.get("utilization")},
@@ -178,14 +235,14 @@ def reading(tok, mac):
     }
 
 
-def serve(port, every, tok, mac):
+def serve(port, every, tok, mac, hours=0):
     """The relay: poll on a timer, answer GET /latest.json to anyone on this machine."""
     state = {"latest": None, "err": None}
 
     def poll():
         while True:
             try:
-                r = reading(tok, mac)
+                r = reading(tok, mac, hours)
                 if r:
                     state["latest"], state["err"] = r, None
                     print(f"  {time.strftime('%H:%M:%S')} {r['client'].get('name') or mac}: {r['link'].get('rssi_dbm')} dBm, SNR {r['link'].get('snr_db')}, {r['link'].get('speed_mbps')} of {r['link'].get('max_mbps')} Mb/s on {r['ap'].get('name')}")
@@ -231,6 +288,7 @@ def main():
     ap.add_argument("--out", help="write one reading here and stop")
     ap.add_argument("--serve", type=int, metavar="PORT", help="poll and serve /latest.json on 127.0.0.1:PORT")
     ap.add_argument("--every", type=int, default=30, help="seconds between polls when serving (default 30)")
+    ap.add_argument("--trail", type=float, default=0, metavar="HOURS", help="also pull the client's roaming trail over this many hours (the journey)")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
     DRY = args.dry_run
@@ -255,15 +313,16 @@ def main():
         print(f"no client matching {args.client!r} among {len(rows or [])} on the air; try --list")
         sys.exit(1)
     if args.serve:
-        serve(args.serve, max(10, args.every), tok, mac)
+        serve(args.serve, max(10, args.every), tok, mac, args.trail)
         return
-    r = reading(tok, mac)
+    r = reading(tok, mac, args.trail)
     if not r:
         sys.exit("no reading for that client")
     out = args.out or "reading.json"
     with open(out, "w") as f:
         json.dump(r, f, indent=1)
-    print(f"wrote {out}: {r['client'].get('name') or mac} at {r['link'].get('rssi_dbm')} dBm, SNR {r['link'].get('snr_db')} dB, {r['link'].get('speed_mbps')} of {r['link'].get('max_mbps')} Mb/s on {r['ap'].get('name')}")
+    print(f"wrote {out}: {r['client'].get('name') or mac} at {r['link'].get('rssi_dbm')} dBm, SNR {r['link'].get('snr_db')} dB, {r['link'].get('speed_mbps')} of {r['link'].get('max_mbps')} Mb/s on {r['ap'].get('name')}"
+          + (f"; {len(r['trail'])} hops over {args.trail:g} h across {len(r['aps'])} APs" if args.trail else ""))
 
 
 if __name__ == "__main__":

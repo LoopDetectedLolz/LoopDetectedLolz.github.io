@@ -155,7 +155,26 @@ real device and daylight. Asked for on 2026-09-12 and not yet built, in the orde
    per-client retries and no call quality through the API (UCC is configuration only), so
    `retry_pct` and `mos` are null from Central; a Mist reading (not yet written) would fill
    them. The client API writes the channel as `116 (80 MHz)` where the AP API wrote `116E`.
-5. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
+5. **The client journey**: built 2026-09-12 on the home tenant. `client-pull.py --trail 48`
+   adds the client's roams from `/monitoring/v1/clients/wireless/{mac}/mobility_trail`
+   (oldest first: AP landed on, AP left, roam type, latency in ms, band, channel and width
+   from the Aruba channel string, RSSI at the landing; a fresh association has no previous
+   AP and no RSSI) plus every visited AP's radios so each hop has its own noise floor. The
+   simulator's Live row grows a strip: the signal line through the landings coloured by AP,
+   hollow dots for joins, the AP that held the client as a band, roam latency as ticks
+   (orange past 100 ms), an orange wash where the client sat under -75 dBm, a scrub slider,
+   click to jump, Play at one hop every 1.4 s. Each hop is a reading: band and width from
+   the channel, SNR from that AP's floor, MCS from the SNR since a hop carries no rate, the
+   sliders parked. The stats line counts joins, same-AP band flips, ping-pongs (back within a
+   minute), median and slow roams, and the share of weak landings. Seen on the iPhone: 195
+   hops in 48 h, median roam 25 ms, one of 5.5 s, 67 band flips; the Watch roams 2,321 times
+   a week at about -83 dBm. Also seen: dozens of clients with a hop at the same second, a
+   mass event (AP reboot or config push), which is the "what changed before it broke" tool
+   waiting to be drawn. `lab-kick.py --client X --group G --yes` is the one write in the set:
+   it disconnects a client so a roam can be made to happen; refuses without --yes, one
+   client, only APs in the named group. Not yet on the planner's map: placing hops on the
+   field needs AP positions, which this site has none of.
+6. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
    if a newer app refuses the import, the icons and the key table are there to build by hand.
 
 Ideas parked, none of them decided:
