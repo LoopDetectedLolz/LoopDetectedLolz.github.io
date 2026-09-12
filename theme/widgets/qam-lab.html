@@ -47,6 +47,13 @@
     <button class="chip" id="qam-monconn" type="button" aria-pressed="false">Connect</button>
     <label class="chip" style="cursor:pointer">Open a snapshot<input type="file" id="qam-monfile" accept=".json,application/json" hidden></label>
     <button class="chip" id="qam-monstop" type="button" hidden>Back to the sliders</button>
+    <div id="qam-journey" hidden style="flex-basis:100%;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+      <svg id="qam-jsvg" viewBox="0 0 1000 130" width="100%" height="130" role="img" aria-label="The client's roams over the window: signal at each landing, which AP, how long each roam took" style="display:block;border-radius:10px;background:rgba(3,10,16,0.45)"></svg>
+      <label style="flex:1;min-width:220px">Scrub <input id="qam-jpos" type="range" min="0" max="0" step="1" value="0" style="flex:1;width:auto" aria-label="Which hop the link is showing"></label>
+      <button class="chip" id="qam-jplay" type="button" aria-pressed="false">Play the journey</button>
+      <span class="qam-lbnote" id="qam-jcap"></span>
+      <span class="qam-lbnote" id="qam-jstats"></span>
+    </div>
     <span class="qam-lbnote" id="qam-montile">No client yet. On the laptop, <code>python3 client-pull.py --client &lt;name or MAC&gt; --serve 8830</code> polls Central and serves the latest reading here; the page only ever reads localhost. Or save one reading with <code>--out</code> and open it.</span>
   </div>
   <div class="qam-app" id="qam-app"><div class="qam-tile" id="qam-app-l"></div><div class="qam-tile" id="qam-app-r"></div></div>
@@ -808,10 +815,11 @@
   function mcsForRate(mbps){if(!(mbps>0))return -1;var m=0;for(var i=0;i<MCS.length;i++)if(rateOf(std,i,ss,bw)<=mbps*1.02)m=i;return m}
   function monApply(r){if(!r||!r.link)throw new Error('no link in the reading');
     mon=r;monReads++;var link=r.link,radio=r.radio||{},w=+radio.bw||bw;
-    var was=std+'/'+ss+'/'+bw+'/'+mcsSel,phy=inferPhy(+link.max_mbps,w);
+    var was=std+'/'+ss+'/'+bw+'/'+mcsSel,phy=r.hop?null:inferPhy(+link.max_mbps,w);
     if(phy){if(std!==phy.std){setStd(phy.std);stdSel.value=std;}ss=phy.ss;bw=phy.bw;ssSel.value=ss;bwSel.value=bw;}else if(radio.bw&&S.widths.indexOf(+radio.bw)>=0){bw=+radio.bw;bwSel.value=bw;}
-    var m=mcsForRate(+link.speed_mbps);if(m>=0&&m!==mcsSel)setSel(m);
     monSnr=has(link.snr_db)?+link.snr_db:(has(link.rssi_dbm)&&has(radio.noise_dbm)?+link.rssi_dbm-+radio.noise_dbm:null);
+    var m=r.hop?(monSnr===null?-1:Math.max(0,mcsFor(monSnr))):mcsForRate(+link.speed_mbps);if(m>=0&&m!==mcsSel)setSel(m);
+    if(!r.hop)journeyLoad(r);
     [dsl,mdb].forEach(function(el){el.disabled=true});LBR.querySelectorAll('[data-wall]').forEach(function(b){b.disabled=true});[selM,ssSel,bwSel,stdSel].forEach(function(el){el.disabled=true});
     monStop.hidden=false;if(was!==std+'/'+ss+'/'+bw+'/'+mcsSel){heatClear();fieldDirty=true;}monRender();hintText();}
   function has(v){return v!==null&&v!==undefined&&v!==''&&isFinite(+v)}
@@ -819,10 +827,57 @@
     var when=mon.ts?new Date(mon.ts*1000>1e12?mon.ts:mon.ts*1000):null;
     monTile.innerHTML='<b>'+esc(c.name||c.mac||'client')+'</b>'+(c.os?' ('+esc(c.os)+')':'')+' on <b>'+esc(a.name||a.serial||'?')+'</b>'+(a.model?' '+esc(a.model):'')+', '+esc(String(rd.band||'?'))+' GHz ch '+esc(String(rd.channel||'?'))+(rd.bw?' at '+rd.bw+' MHz':'')+'. '+
       'Signal <b>'+(has(l.rssi_dbm)?(+l.rssi_dbm).toFixed(0)+' dBm':'?')+'</b>, SNR <b>'+(monSnr!==null?monSnr.toFixed(0)+' dB':'?')+'</b>'+(has(rd.noise_dbm)?', noise '+(+rd.noise_dbm).toFixed(0)+' dBm':'')+(has(rd.util_pct)?', channel '+(+rd.util_pct).toFixed(0)+'% busy':'')+'. '+
-      'Rate <b>'+(has(l.speed_mbps)?(+l.speed_mbps).toFixed(0):'?')+'</b> of '+(has(l.max_mbps)?(+l.max_mbps).toFixed(0):'?')+' Mb/s, read as '+STD[std].name+', '+ss+' stream'+(ss===1?'':'s')+', '+bw+' MHz, MCS '+mcsSel+(m0<mcsSel?' <b class="warn">(the SNR only holds MCS '+m0+')</b>':'')+'. '+
+      (has(l.speed_mbps)?'Rate <b>'+(+l.speed_mbps).toFixed(0)+'</b> of '+(has(l.max_mbps)?(+l.max_mbps).toFixed(0):'?')+' Mb/s, read as ':'No rate is reported at a roam, so the SNR picks the MCS: ')+STD[std].name+', '+ss+' stream'+(ss===1?'':'s')+', '+bw+' MHz, MCS '+mcsSel+(m0<mcsSel?' <b class="warn">(the SNR only holds MCS '+m0+')</b>':'')+'. '+
       (has(l.retry_pct)?'Retries <b>'+(+l.retry_pct).toFixed(0)+'%</b> on top of the noise. ':'No retry figure in this feed; the noise alone decides. ')+(has(l.health)?'Health '+l.health+'. ':'')+(has(mon.mos)?'Controller MOS <b>'+(+mon.mos).toFixed(1)+'</b> against the modelled figure in the call tile. ':'')+
       (when?'Read '+when.toLocaleTimeString()+(monTimer?', polling':'')+'. ':'')+(mon.source?esc(mon.source)+'. ':'')+'Sliders are parked while the feed drives.';}
-  function monClear(){mon=null;monSnr=null;monSnrCur=null;if(monTimer){clearInterval(monTimer);monTimer=null;}monConn.textContent='Connect';monConn.setAttribute('aria-pressed','false');monConn.classList.remove('on');
+  /* ── the journey: the client's roams as a strip you can scrub and play ──
+     Each hop is a reading of its own: the AP it landed on, the band and width
+     from the channel, the RSSI it reported, the noise floor of that AP's radio
+     (so SNR is per hop), and the roam's latency. A fresh association carries
+     no signal, so the link falls back to the sliders for that step. */
+  var J={trail:null,aps:{},i:0,timer:null,colors:{}},JR=document.getElementById('qam-journey'),jsvg=document.getElementById('qam-jsvg'),jpos=document.getElementById('qam-jpos'),jplay=document.getElementById('qam-jplay'),jcap=document.getElementById('qam-jcap'),jstats=document.getElementById('qam-jstats');
+  var JCOL=['#8CE05E','#5ED2DA','#4FBDEA','#B0C4CF','#2FA8E0','#8BA2AE'];
+  function jcolor(ap){if(!(ap in J.colors))J.colors[ap]=JCOL[Object.keys(J.colors).length%JCOL.length];return J.colors[ap]}
+  function jwhen(ts){var d=new Date(ts*1000);return d.toLocaleDateString(undefined,{weekday:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+  function journeyLoad(r){var tr=r&&r.trail;if(!tr||!tr.length){JR.hidden=true;J.trail=null;return;}
+    /* a poll every few seconds brings the same trail back; keep the scrub where it was unless a hop arrived */
+    var same=J.trail&&J.trail.length===tr.length&&J.trail[tr.length-1].ts===tr[tr.length-1].ts;
+    J.trail=tr;J.aps=r.aps||{};JR.hidden=false;jpos.max=tr.length-1;if(!same){J.colors={};J.i=tr.length-1;}jpos.value=J.i;journeyDraw();journeyStats();journeyCaption();}
+  function journeyDraw(){var tr=J.trail;if(!tr)return;var W=1000,H=130,x0=8,x1=W-8,t0=tr[0].ts,t1=tr[tr.length-1].ts,span=Math.max(1,t1-t0),X=function(t){return x0+(t-t0)/span*(x1-x0)},yR=function(r){return 8+(Math.min(-30,Math.max(-95,r))+30)/(-65)*70},out=[],i;
+    /* which AP held the client, as a band along the bottom */
+    for(i=0;i<tr.length;i++){var a=tr[i],b=tr[i+1],xa=X(a.ts),xb=b?X(b.ts):x1;out.push('<rect x="'+xa.toFixed(1)+'" y="98" width="'+Math.max(1.5,xb-xa).toFixed(1)+'" height="9" fill="'+jcolor(a.ap)+'" opacity="0.85"/>');}
+    /* weak landings: an orange wash where the client sat under -75 */
+    for(i=0;i<tr.length;i++){var c=tr[i];if(c.rssi_dbm!==null&&c.rssi_dbm<-75){var d=tr[i+1],xc=X(c.ts),xd=d?X(d.ts):x1;out.push('<rect x="'+xc.toFixed(1)+'" y="8" width="'+Math.max(1.5,xd-xc).toFixed(1)+'" height="70" fill="#F5A524" opacity="0.10"/>');}}
+    /* the signal line through the landings that had one, a hollow dot for a fresh join */
+    var path='',prev=null;
+    for(i=0;i<tr.length;i++){var e=tr[i];if(e.rssi_dbm===null){out.push('<circle cx="'+X(e.ts).toFixed(1)+'" cy="86" r="3.5" fill="none" stroke="#B0C4CF" stroke-width="1.2"/>');prev=null;continue;}
+      var px=X(e.ts),py=yR(e.rssi_dbm);path+=(prev===null?'M':'L')+px.toFixed(1)+' '+py.toFixed(1)+' ';prev=e;
+      out.push('<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+(i===J.i?5:2.6)+'" fill="'+jcolor(e.ap)+'"'+(i===J.i?' stroke="#fff" stroke-width="1.5"':'')+'/>');}
+    out.unshift('<path d="'+path+'" fill="none" stroke="rgba(234,242,246,0.55)" stroke-width="1.2"/>');
+    /* roam latency as a tick under the band: taller is slower, orange past 100 ms */
+    for(i=0;i<tr.length;i++){var f=tr[i];if(f.latency_ms===null)continue;var h=Math.min(18,3+Math.log10(1+f.latency_ms)*4.5);out.push('<rect x="'+(X(f.ts)-0.75).toFixed(1)+'" y="'+(110).toFixed(1)+'" width="1.5" height="'+h.toFixed(1)+'" fill="'+(f.latency_ms>100?'#F5A524':'rgba(176,196,207,0.7)')+'"/>');}
+    /* scale and the cursor */
+    [-40,-60,-80].forEach(function(v){out.push('<text x="'+(x1-2)+'" y="'+(yR(v)+3).toFixed(1)+'" font-size="9" fill="#8BA2AE" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">'+v+'</text>');});
+    out.push('<text x="'+x0+'" y="126" font-size="9" fill="#8BA2AE" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">'+jwhen(t0)+'</text><text x="'+x1+'" y="126" font-size="9" fill="#8BA2AE" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">'+jwhen(t1)+'</text>');
+    var cx=X(tr[J.i].ts);out.push('<line x1="'+cx.toFixed(1)+'" y1="4" x2="'+cx.toFixed(1)+'" y2="118" stroke="#fff" stroke-width="1" opacity="0.7"/>');
+    jsvg.innerHTML=out.join('');}
+  function journeyStats(){var tr=J.trail,n=tr.length,hours=Math.max(1/60,(tr[n-1].ts-tr[0].ts)/3600),joins=0,weak=0,withR=0,lat=[],slow=0,pp=0,flips=0,aps={},i;
+    for(i=0;i<n;i++){var t=tr[i];if(t.join)joins++;if(t.rssi_dbm!==null){withR++;if(t.rssi_dbm<-75)weak++;}if(t.latency_ms!==null){lat.push(t.latency_ms);if(t.latency_ms>500)slow++;}aps[t.ap]=(aps[t.ap]||0)+1;
+      if(!t.join&&t.prev===t.ap)flips++;if(i>=2&&!t.join&&tr[i-1].ap!==t.ap&&tr[i-2].ap===t.ap&&t.ts-tr[i-2].ts<=60)pp++;}
+    lat.sort(function(a,b){return a-b});var med=lat.length?lat[Math.floor(lat.length/2)]:null;
+    var apTxt=Object.keys(aps).map(function(k){return '<i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+jcolor(k)+';vertical-align:middle;margin-right:4px"></i>'+esc(k)+' '+aps[k]}).join(', ');
+    jstats.innerHTML=n+' hop'+(n===1?'':'s')+' in '+(hours>=48?(hours/24).toFixed(0)+' days':hours.toFixed(0)+' h')+' ('+(n/hours).toFixed(1)+' an hour), '+joins+' fresh join'+(joins===1?'':'s')+', '+flips+' band flip'+(flips===1?'':'s')+' on the same AP, '+pp+' ping-pong'+(pp===1?'':'s')+' (back within a minute). Roams took <b>'+(med===null?'?':med+' ms')+'</b> in the middle'+(slow?', <b class="warn">'+slow+' slower than half a second</b>':'')+'. '+(withR?'<b>'+Math.round(100*weak/withR)+'%</b> of landings under -75 dBm. ':'')+'APs: '+apTxt+'. Orange wash is time spent weak; the ticks under the band are roam latency, orange past 100 ms.';}
+  function journeyCaption(){var t=J.trail[J.i],ap=J.aps[t.serial]||{},rad=(ap.radios||{})[t.band]||{},nf=rad.noise_dbm!=null?rad.noise_dbm:(t.band==='2.4'?-97:-92);
+    jcap.innerHTML='<b>'+jwhen(t.ts)+'</b>: '+(t.join?'joined ':'roamed to ')+'<b>'+esc(t.ap||'?')+'</b>'+(t.prev&&t.prev!==t.ap?' from '+esc(t.prev):t.prev?' (band change)':'')+', '+esc(String(t.band))+' GHz ch '+esc(String(t.channel||'?'))+(t.bw?' at '+t.bw+' MHz':'')+(t.rssi_dbm!==null?', <b>'+t.rssi_dbm+' dBm</b>, SNR '+(t.rssi_dbm-nf).toFixed(0)+' dB against that radio\u2019s '+nf+' dBm floor':', no signal reported at a join, so the sliders hold for this step')+(t.latency_ms!==null?', roam took <b>'+(t.latency_ms>100?'<span class="warn">':'')+t.latency_ms+' ms'+(t.latency_ms>100?'</span>':'')+'</b>':'')+(t.type&&t.type!=='802.11'?', '+esc(t.type):'')+'.';}
+  function journeyGo(i){if(!J.trail)return;J.i=Math.max(0,Math.min(J.trail.length-1,i));jpos.value=J.i;var t=J.trail[J.i],ap=J.aps[t.serial]||{},rad=(ap.radios||{})[t.band]||{},nf=rad.noise_dbm!=null?rad.noise_dbm:(t.band==='2.4'?-97:-92);
+    monApply({hop:true,source:mon&&mon.source,ts:t.ts,client:mon&&mon.client,ap:{name:t.ap,serial:t.serial,model:ap.model},radio:{band:t.band,channel:t.channel,bw:t.bw,noise_dbm:nf,tx_dbm:rad.tx_dbm,util_pct:rad.util_pct},link:{rssi_dbm:t.rssi_dbm,snr_db:t.rssi_dbm===null?null:t.rssi_dbm-nf,speed_mbps:null,max_mbps:mon&&mon.link?mon.link.max_mbps:null,retry_pct:null,health:null},mos:null});
+    journeyDraw();journeyCaption();}
+  jpos.addEventListener('input',function(){journeyStop();journeyGo(+jpos.value)});
+  jsvg.addEventListener('click',function(e){if(!J.trail)return;var r=jsvg.getBoundingClientRect(),fx=(e.clientX-r.left)/r.width*1000,t0=J.trail[0].ts,t1=J.trail[J.trail.length-1].ts,best=0,bd=1e9,i;for(i=0;i<J.trail.length;i++){var x=8+(J.trail[i].ts-t0)/Math.max(1,t1-t0)*984,d=Math.abs(x-fx);if(d<bd){bd=d;best=i;}}journeyStop();journeyGo(best);});
+  function journeyStop(){if(J.timer){clearInterval(J.timer);J.timer=null;}jplay.textContent='Play the journey';jplay.setAttribute('aria-pressed','false');jplay.classList.remove('on');}
+  jplay.addEventListener('click',function(e){e.stopPropagation();if(J.timer){journeyStop();return;}if(!J.trail)return;if(J.i>=J.trail.length-1)J.i=-1;jplay.textContent='Stop';jplay.setAttribute('aria-pressed','true');jplay.classList.add('on');
+    J.timer=setInterval(function(){if(J.i>=J.trail.length-1){journeyStop();return;}journeyGo(J.i+1);},1400);});
+  function monClear(){mon=null;monSnr=null;monSnrCur=null;journeyStop();J.trail=null;JR.hidden=true;if(monTimer){clearInterval(monTimer);monTimer=null;}monConn.textContent='Connect';monConn.setAttribute('aria-pressed','false');monConn.classList.remove('on');
     [dsl,mdb,selM,ssSel,bwSel,stdSel].forEach(function(el){el.disabled=false});LBR.querySelectorAll('[data-wall]').forEach(function(b){b.disabled=false});monStop.hidden=true;heatClear();fieldDirty=true;
     monTile.textContent='Back on the sliders.';hintText();}
   function monPoll(){var u=monUrl.value.trim();if(!u)return;fetch(u,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(function(j){monApply(j)}).catch(function(e){monTile.textContent='No reading from '+u+': '+e.message+'. Is client-pull.py --serve running on the laptop?'+(location.protocol==='https:'?' A page on https can read http://127.0.0.1 in Chrome and Edge; Safari may refuse.':'');});}
@@ -831,7 +886,8 @@
   monConn.addEventListener('click',function(e){e.stopPropagation();if(monTimer){monClear();return;}monPoll();monTimer=setInterval(monPoll,5000);monConn.textContent='Stop';monConn.setAttribute('aria-pressed','true');monConn.classList.add('on');});
   monStop.addEventListener('click',function(e){e.stopPropagation();monClear();});
   monFile.addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{if(monTimer){clearInterval(monTimer);monTimer=null;monConn.textContent='Connect';}monApply(JSON.parse(String(rd.result)));}catch(err){monTile.textContent='Could not read it: '+err.message;}};rd.readAsText(f);this.value='';});
-  root._mon=function(r){if(r===null)monClear();else monApply(r);return{std:std,ss:ss,bw:bw,mcs:mcsSel,snr:monSnr,lost:monLost}};
+  root._mon=function(r){if(r===null)monClear();else monApply(r);return{std:std,ss:ss,bw:bw,mcs:mcsSel,snr:monSnr,lost:monLost,hops:J.trail?J.trail.length:0,hop:J.i}};
+  root._journey=function(i){journeyGo(i);return{i:J.i,snr:monSnr,bw:bw,mcs:mcsSel,cap:jcap.textContent}};
   var inb=document.getElementById('qam-int');inb.addEventListener('click',function(e){e.stopPropagation();intOn=!intOn;if(!intOn)cur.on=false;inb.setAttribute('aria-pressed',intOn);inb.classList.toggle('on',intOn);hintText();});
   var rmb=document.getElementById('qam-room');rmb.addEventListener('click',function(e){e.stopPropagation();room=!room;roomBest=null;heatClear();rmb.setAttribute('aria-pressed',room);rmb.classList.toggle('on',room);stat();});
   var mpb=document.getElementById('qam-mp');mpb.addEventListener('click',function(e){e.stopPropagation();mp=!mp;lastFade=null;vs=null;heatClear();mpb.setAttribute('aria-pressed',mp);mpb.classList.toggle('on',mp);});
