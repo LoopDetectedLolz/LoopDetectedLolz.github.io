@@ -174,7 +174,15 @@ real device and daylight. Asked for on 2026-09-12 and not yet built, in the orde
    it disconnects a client so a roam can be made to happen; refuses without --yes, one
    client, only APs in the named group. Not yet on the planner's map: placing hops on the
    field needs AP positions, which this site has none of.
-6. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
+6. **The Watch as probe and button**: built 2026-09-12, `WATCH.md`. The relay
+   (`client-pull.py --serve --lan`) gains `/glance` (one line for a wrist), `/mark?note=`
+   (a flag with a word, kept with `--marks-file`), `/marks`, `/alerts` (slow roam, rejoin,
+   weak, off the air, worked out between polls); marks ride in `latest.json` and the journey
+   strip draws them as orange flags, the hop caption names the nearest one. Two Shortcuts
+   are written up; none of it needs an app. The Watch cannot read Wi-Fi signal and nothing
+   here pretends it can: the AP is the meter, the Watch is the client. Not yet tried on the
+   real Watch; the relay's LAN mode and the Shortcuts are the parts to try first.
+7. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
    if a newer app refuses the import, the icons and the key table are there to build by hand.
 
 Ideas parked, none of them decided:
