@@ -169,6 +169,10 @@ The tools built on it live in `theme/widgets/tools-lab.html`, worked on with `py
 
 `python3 regress.py` is the visual regression harness: every page at 360, 768 and 1280, asserting no horizontal scroll, no page errors, no broken images, the mascot fixed at z-index 60, at least 140 px of clearance at the end of the content (page padding plus main padding, since the padding moved to `main` when the footer was pinned to the bottom), at most one green call to action per view, no contact copy outside the socials page, and no tap target under 38 px.
 
+## QA
+
+`QA.md` has both layers. `python3 qa.py` (Playwright; `PYTHONPATH=.qa/pylib` when it was installed there) builds both lab pages, serves them on a free port, uses them like a stranger and recomputes every number it reads from the standards; exit 1 on any failure. It cannot run inside a sandboxed session (Chromium needs macOS bootstrap ports), so it runs from a terminal. The reviewer brief in `QA.md` is for a spawned agent that reads the tools as a first-time engineer and reports what they would criticise. Run the bot after any change to `theme/sim/` or the lab widgets; run the reviewer before a promote.
+
 ## The field kit
 
 `kit.html` is a standalone page, built by `build-blog.py` from `theme/widgets/kit.{html,css,js}`, with no blog chrome and nothing linked to it from the nav. It walks a pop-up deployment from the bin to a working network in four phases: before you leave, on site with no uplink, uplink up, and before you drive away. It has to open with no signal, so everything ships inside it: the design tokens, jsQR 1.4.0 (Apache-2.0, `theme/vendor/jsqr.min.js`) for reading labels, and `sw.js`, which caches the kit and deliberately intercepts nothing else. A service worker that got its hands on the whole blog would be a support call.
