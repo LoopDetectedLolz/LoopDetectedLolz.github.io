@@ -89,9 +89,9 @@ Ideas parked from the mesh session, none of them decided:
 
 - Per-AP client counts instead of an even spread, once there is a floor plan or a heat
   map to weight them.
-- Real vendor path cost. Aruba's metric and Mist's parent choice are sketched as airtime
-  cost with a hop tax; the true formulas would make the profiles documentation instead of
-  sketches, and need the release notes to back them.
+- Real vendor path cost numbers. The shapes are right by the documents; the curves inside
+  (dB per doubling, node cost per child, Cisco's ease multipliers) are guesses that
+  reproduce the vendors' worked examples, and would need a lab measurement to pin down.
 - Terrain. The field is flat; a height map would replace the "rise in the ground" blob,
   and the 3D view is where it would pay off.
 - Dragging APs in the 3D view. Today it orbits; moving things is the plan view's job.
@@ -110,6 +110,11 @@ Both are plumbing questions, not physics ones, and both gate the GPS work.
   Aruba has used FTM for client ranging, and inter-AP measurements may only live inside the
   mesh or location engine. If it is there, GPS anchors the map and FTM tightens it, which
   beats either alone.
+- The mesh profiles are shaped from the vendor documents (AOS 8 `ap mesh-radio-profile` and
+  "Understanding Mesh Links"; Cisco mesh design guide 8.8 "Ease Calculation"; Mist "Wireless
+  Mesh Network Configuration"), read 2026-09-11 and cited in `mesh.js`. Still unverified:
+  the numbers inside them, Instant and Central's hop ceiling against AOS 8's default of 8,
+  and whether Mist is still single hop in the current release.
 - The `ENDPOINTS` block in the script the kit generates is marked to verify and has **not**
   been checked against a live tenant. The order of operations in that script is the part
   that is right: subscriptions before group, group before site assignment, RF calibration

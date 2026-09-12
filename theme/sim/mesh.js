@@ -55,22 +55,55 @@
   M.DEF = {
     fGHz: 5.2, bw: 40, tx: 23, ant: "omni", ss: 2, std: "ax", nf: 7, retry: 0.1,
     margin: 6,              /* dB of SNR above the lowest rate before a link counts */
+    profile: "aruba", maxHops: 4,
     clientTx: 20, clientAnt: 4, clientTarget: -67, clientBw: 20, clientF: 5.2,
     dedicated: false,       /* a second radio for the backhaul, or the client radio doing both */
-    tworay: true, rho: 0.5, /* ground reflection: magnitude of the bounce off rough ground */
-    profile: "generic", maxHops: 4
+    /* ground reflection: magnitude of the bounce off rough ground. Off by default
+       for planning: at these ranges the fade moves with a metre of mast height or
+       ground, so it is a thing to show and to budget for, not to route on */
+    tworay: false, rho: 0.5
   };
 
-  /* how a vendor's mesh behaves, as far as a planner needs: how deep it will go
-     and how it picks a parent. Sketches, not documentation; verify against the
-     release you run. Mist relays hang one hop off a base as of 2026-09; Aruba
-     points chain, and the ceiling is yours to set. */
+  /* How a vendor's mesh picks a parent, as far as a planner needs. The shapes
+     come from the vendors' own documents, read 2026-09-11; the numbers inside
+     them (dB per child, the ease curve) are sketches, because nobody publishes
+     those. Verify against the release you run.
+       Aruba AOS 8, ap mesh-radio-profile: metric-algorithm distributed-tree-rssi
+       (default) picks "based on link-RSSI and node cost based on the number of
+       children"; best-link-rssi picks "the parent with the strongest RSSI,
+       regardless of the number of children". Path cost adds the link cost, the
+       parent's path cost and the parent's node cost; a link under link-threshold
+       (default 12) is penalised so "a less direct, higher quality link may be
+       preferred over the marginal link". hop-count default 8, children 64.
+       Cisco AWPP: adjusted ease = min(ease at each hop) / hop count, ease a
+       steep spreading function of SNR; their worked example takes two hops at
+       436906 over a direct link at 262144.
+       Mist: single hop only, relay to base, failover to another base, no more
+       than 4 relays per base recommended.
+       802.11s: the airtime link metric, summed along the path. */
   M.PROFILES = {
-    generic: { label: "Generic, airtime cost", maxHops: null, note: "parent by airtime cost, any depth you allow" },
-    aruba:   { label: "Aruba style: portals and points", maxHops: null, note: "points chain through points; keep the hop ceiling honest" },
-    mist:    { label: "Mist style: base and relay", maxHops: 1, note: "a relay must hear a base directly; one hop, no chaining" }
+    aruba:     { label: "Aruba: distributed-tree-rssi", metric: "rssi-tree", maxHops: null, thr: 12, nodeCost: 4,
+                 note: "path cost summed to the portal: a steep cost per link by its SNR, plus a cost per child the parent carries; marginal links last" },
+    arubabest: { label: "Aruba: best-link-rssi", metric: "rssi", maxHops: null, thr: 12,
+                 note: "strongest link that has a path, however many children the parent has" },
+    cisco:     { label: "Cisco AWPP: adjusted ease", metric: "ease", maxHops: null, thr: 12,
+                 note: "the weakest link on the path sets the ease, divided by the hop count" },
+    mist:      { label: "Mist: base and relay", metric: "rssi", maxHops: 1, thr: 12, maxChildren: 4,
+                 note: "a relay must hear a base directly; one hop, no chaining" },
+    s11:       { label: "802.11s airtime metric", metric: "airtime", maxHops: null, thr: 0,
+                 note: "airtime summed along the path, which happily takes one slow direct link over two fast hops" }
   };
-  M.profile = function (id) { return M.PROFILES[id] || M.PROFILES.generic; };
+  M.profile = function (id) { return M.PROFILES[id] || M.PROFILES.aruba; };
+  /* Cisco's spreading function is not published; this doubles the ease every
+     3 dB and knocks a marginal link down hard, which reproduces the shape of
+     their example: two good hops beat one middling direct link */
+  M.ease = function (snr, thr) { return Math.pow(2, snr / 3) * (snr < thr ? 0.05 : 1); };
+  /* Aruba's link cost is not published either. This doubles every 4 dB the link
+     weakens from 50 dB, so one marginal link costs more than two good hops but
+     two near-equal hops do not beat one good direct link; a link under the
+     threshold costs a fortune, which is the documented "penalised to filter
+     marginal links" */
+  M.linkCostRssi = function (snr, thr) { return Math.pow(2, (50 - snr) / 4) + (snr < thr ? 200 : 0); };
   function cfg(c) { var o = {}, k; for (k in M.DEF) o[k] = M.DEF[k]; for (k in (c || {})) if (c[k] !== undefined) o[k] = c[k]; return o; }
   M.cfg = cfg;
 
@@ -262,22 +295,71 @@
       var L = (aps[i].down || aps[j].down) ? null : M.link(aps[i], aps[j], C, obstacles);
       links[i][j] = L; links[j][i] = L;
     }
-    var done = [], gws = 0;
-    for (i = 0; i < n; i++) { done.push(false); if (aps[i].gw && !aps[i].down) { cost[i] = 0; depth[i] = 0; gws++; } }
-    for (;;) {
-      var u = -1;
-      for (i = 0; i < n; i++) if (!done[i] && cost[i] < Infinity && (u < 0 || cost[i] < cost[u])) u = i;
-      if (u < 0) break;
-      done[u] = true;
-      if (depth[u] >= maxHops) continue;                 /* nothing may hang off the last allowed hop */
-      for (j = 0; j < n; j++) {
-        if (j === u || done[j] || aps[j].gw || aps[j].down) continue;
-        var L2 = links[u][j];
-        if (!L2 || !L2.ok) continue;
-        var nc = cost[u] + M.linkCost(L2);
-        if (nc < cost[j]) { cost[j] = nc; parent[j] = u; depth[j] = depth[u] + 1; }
+    var gws = 0;
+    for (i = 0; i < n; i++) if (aps[i].gw && !aps[i].down) { cost[i] = 0; depth[i] = 0; gws++; }
+
+    /* does k sit under root in the current tree, so root cannot hang off it */
+    function under(k, root) { var g = 0; while (k >= 0 && g++ < n + 1) { if (k === root) return true; k = parent[k]; } return false; }
+    function kids(j) { var c = 0, q; for (q = 0; q < n; q++) if (parent[q] === j) c++; return c; }
+    /* Aruba style path cost of j: its link, its parent's path cost, its parent's node cost */
+    function pathCost(j) {
+      var c = 0, k = j, g = 0;
+      while (parent[k] >= 0 && g++ < n + 1) { c += M.linkCostRssi(links[k][parent[k]].snr, P.thr) + P.nodeCost * (kids(parent[k]) - 1); k = parent[k]; }
+      return c;
+    }
+    /* the least ease on the way from j to its portal */
+    function pathEase(j) {
+      var e = Infinity, k = j, g = 0;
+      while (parent[k] >= 0 && g++ < n + 1) { e = Math.min(e, M.ease(links[k][parent[k]].snr, P.thr)); k = parent[k]; }
+      return e;
+    }
+    /* how good j looks to i as a parent, higher is better; -Infinity is no */
+    function metric(i, j) {
+      var L = links[i][j];
+      if (!L || !L.ok || depth[j] < 0 || depth[j] >= maxHops || under(j, i)) return -Infinity;
+      if (P.metric === "rssi") return (P.maxChildren && !under(i, j) && kids(j) - (parent[i] === j ? 1 : 0) >= P.maxChildren ? -1000 : 0) + L.snr - (L.snr < P.thr ? 40 : 0);
+      if (P.metric === "rssi-tree") return -(M.linkCostRssi(L.snr, P.thr) + pathCost(j) + P.nodeCost * (kids(j) - (parent[i] === j ? 1 : 0)));
+      if (P.metric === "ease") return Math.min(M.ease(L.snr, P.thr), pathEase(j)) / (depth[j] + 1);
+      return -(cost[j] + M.linkCost(L));                    /* airtime: less is more */
+    }
+    function redepth() {
+      var q, k, g;
+      for (q = 0; q < n; q++) {
+        if (aps[q].gw && !aps[q].down) { depth[q] = 0; cost[q] = 0; continue; }
+        depth[q] = -1; cost[q] = Infinity;
+        for (k = q, g = 0; parent[k] >= 0 && g <= n; k = parent[k], g++) {}
+        if (k !== q && aps[k].gw && !aps[k].down && g <= n) {
+          depth[q] = g;
+          var cc = 0; for (k = q; parent[k] >= 0; k = parent[k]) cc += M.linkCost(links[k][parent[k]]);
+          cost[q] = cc;
+        }
       }
     }
+
+    /* the way a mesh actually forms: everyone who can hear a node with a path
+       attaches to the best one by the metric, then keeps looking; the picture
+       settles in a few rounds. A point re-evaluates every round, so a
+       neighbour that came up later can still win. */
+    var round, changed;
+    for (round = 0; round < n + 4; round++) {
+      changed = false;
+      for (i = 0; i < n; i++) {
+        if ((aps[i].gw && !aps[i].down) || aps[i].down) continue;
+        var best = -1, bm = -Infinity;
+        for (j = 0; j < n; j++) {
+          if (j === i) continue;
+          var mm = metric(i, j);
+          /* a sitting parent keeps its seat unless somebody is clearly better,
+             which is every vendor's hysteresis in one line */
+          if (j === parent[i] && mm > -Infinity) mm = P.metric === "ease" ? mm * 1.2 : P.metric === "rssi" ? mm + 1 : mm * 0.9;
+          if (mm > bm) { bm = mm; best = j; }
+        }
+        if (best !== parent[i]) { parent[i] = best; changed = true; redepth(); }
+      }
+      if (!changed) break;
+    }
+    for (i = 0; i < n; i++) if (depth[i] < 0) parent[i] = -1;
+    redepth();
     var children = [], sub = [];
     for (i = 0; i < n; i++) { children.push([]); sub.push(1); }
     for (i = 0; i < n; i++) if (parent[i] >= 0) children[parent[i]].push(i);
@@ -287,22 +369,30 @@
     order.sort(function (p, q) { return depth[q] - depth[p]; });
     order.forEach(function (k) { if (parent[k] >= 0) sub[parent[k]] += sub[k]; });
 
-    /* a second parent for each point: the best other neighbour it could fall back
-       to that does not itself depend on this point, within the hop ceiling. No
-       backup is a single point of failure, and the table says so. */
-    function under(k, root) { while (k >= 0) { if (k === root) return true; k = parent[k]; } return false; }
+    /* a second parent for each point: the best other neighbour by the same
+       metric that does not itself depend on this point, within the hop ceiling.
+       No backup is a single point of failure, and the table says so. */
     var backup = [];
     for (i = 0; i < n; i++) {
-      var best = -1, bestL = null;
+      var bk = -1, bkm = -Infinity;
       if (depth[i] > 0) for (j = 0; j < n; j++) {
-        if (j === i || j === parent[i] || depth[j] < 0 || depth[j] >= maxHops || under(j, i)) continue;
-        var L3 = links[i][j];
-        if (L3 && L3.ok && (!bestL || L3.goodput > bestL.goodput)) { best = j; bestL = L3; }
+        if (j === i || j === parent[i]) continue;
+        var m2 = metric(i, j);
+        if (m2 > bkm) { bkm = m2; bk = j; }
       }
-      backup.push(best);
+      backup.push(bk);
     }
+    /* what the table shows for the chosen link, in the metric's own units */
+    var metricOf = function (i) {
+      if (depth[i] <= 0 || parent[i] < 0) return depth[i] === 0 ? "portal" : "";
+      var L = links[i][parent[i]];
+      if (P.metric === "airtime") return cost[i].toFixed(1) + " ms/Gb";
+      if (P.metric === "ease") return "ease 2^" + (Math.log2(Math.max(1e-9, Math.min(M.ease(L.snr, P.thr), pathEase(parent[i])) / depth[i]))).toFixed(1);
+      if (P.metric === "rssi-tree") return "cost " + pathCost(i).toFixed(1) + " at SNR " + L.snr.toFixed(0);
+      return "SNR " + L.snr.toFixed(0);
+    };
     return { links: links, parent: parent, depth: depth, children: children, subtree: sub, gateways: gws,
-             backup: backup, cost: cost, maxHops: maxHops, profile: P, aps: aps,
+             backup: backup, cost: cost, metricOf: metricOf, maxHops: maxHops, profile: P, aps: aps,
              maxDepth: depth.reduce(function (m, x) { return Math.max(m, x); }, 0),
              /* a failed AP is down, not unreachable: the two are different problems */
              unreachable: depth.map(function (x, k) { return x < 0 && !aps[k].down ? k : -1; }).filter(function (x) { return x >= 0; }) };
@@ -421,6 +511,10 @@
     if (spof) flags.push(spof + (spof === 1 ? " point has" : " points have") + " no second parent to fall back to. Lose the parent and they go dark.");
     if (unreached) flags.push(unreached + (unreached === 1 ? " AP has" : " APs have") + " no usable link to the mesh: too far, or something is in the way.");
     if (fres) flags.push(fres + (fres === 1 ? " link clears" : " links clear") + " the ground on paper but not the Fresnel zone. Raise the masts or shorten the hop.");
+    if (T.profile.maxChildren) {
+      var over = rows.filter(function (r) { return r.depth === 0 && T.children[r.i].length > T.profile.maxChildren; }).length;
+      if (over) flags.push(over + (over === 1 ? " base carries" : " bases carry") + " more than " + T.profile.maxChildren + " relays, past the vendor's recommendation.");
+    }
     if (worstDepth >= 3) flags.push("Hops run " + worstDepth + " deep" + (C.dedicated ? "." : ", and the client radio is carrying the backhaul. Every hop past the first halves what is left."));
     if (starved && binds !== "uplink") flags.push(starved + (starved === 1 ? " AP gets" : " APs get") + " less from the mesh than its clients are asking for.");
     if (binds === "uplink") flags.push("The uplink is the ceiling. The mesh carries " + (meshCap >= demand - 1e-9 ? "all " + demand.toFixed(0) + " Mb/s the clients ask for" : meshCap.toFixed(0) + " of the " + demand.toFixed(0) + " Mb/s the clients ask for") + ", but " + uplink + " Mb/s is all that leaves the site. More APs will not change that number.");
@@ -436,8 +530,8 @@
       assumptions: [
         "backhaul " + C.fGHz + " GHz, " + C.bw + " MHz, " + C.ss + " stream" + (C.ss === 1 ? "" : "s") + ", " + C.tx + " dBm unless an AP says otherwise, each end's gain taken toward the other from a cos^n fit to its antenna's beamwidths",
         "a link counts once its SNR sits " + C.margin + " dB above the lowest rate, and the weaker transmitter sets its rate",
-        (C.tworay ? "ground reflection at " + C.rho + " of the direct ray, so mast height moves the fade" : "no ground reflection"),
-        T.profile.label + ": " + T.profile.note + (T.profile.maxHops === null ? ", ceiling " + T.maxHops + " hops" : "") + " (behaviour sketch as of 2026-09, verify against your release)",
+        (C.tworay ? "ground reflection at " + C.rho + " of the direct ray in every budget, so mast height moves the fade and the tree" : "no ground reflection in the budgets; switch it on to see how far a metre of mast moves each link"),
+        T.profile.label + ": " + T.profile.note + (T.profile.maxHops === null ? ", ceiling " + T.maxHops + " hops" : "") + (T.profile.thr ? ", links under " + T.profile.thr + " dB SNR taken last" : "") + " (shape from the vendor's documents, numbers a sketch, 2026-09; verify against your release)",
         "a point holds one parent at a time; a second portal is failover and a split of the points, not a bonded link",
         (function () {
           var shared = rows.filter(function (r) { return r.depth >= 0 && !r.kind.dedicated; }).length,

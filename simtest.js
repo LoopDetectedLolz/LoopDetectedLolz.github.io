@@ -295,6 +295,24 @@ near("an omni's footprint is a circle", CT[0].r, CT[3].r, 0.001);
 var CTp = NFN.mesh.contour({ x: 0, y: 0, h: 3, ant: "pnarrow", aim: 0 }, {}, "open", 8);
 if (!(CTp[0].r > CTp[4].r * 3)) { fails++; console.log("  FAIL a patch should reach much further forward than back"); }
 n++;
+/* a row of APs at full power: every vendor metric hops along it, the 802.11s
+   airtime sum is the one that runs everyone straight back to the portal */
+var row = { aps: [{ x: 0, y: 0, h: 3, gw: true }, { x: 150, y: 0, h: 3 }, { x: 300, y: 0, h: 3 }, { x: 450, y: 0, h: 3 }],
+            w: 500, d: 100, tx: 20, tworay: false, uplink: 100, clients: 120, app: "web" };
+eq("Aruba distributed tree chains along the row", JSON.stringify(NFN.mesh.plan(Object.assign({}, row, { profile: "aruba" })).tree.parent), "[-1,0,1,2]");
+eq("Aruba best link chains along the row", JSON.stringify(NFN.mesh.plan(Object.assign({}, row, { profile: "arubabest" })).tree.parent), "[-1,0,1,2]");
+eq("Cisco ease chains along the row", JSON.stringify(NFN.mesh.plan(Object.assign({}, row, { profile: "cisco" })).tree.parent), "[-1,0,1,2]");
+eq("802.11s airtime goes straight to the portal", JSON.stringify(NFN.mesh.plan(Object.assign({}, row, { profile: "s11" })).tree.parent), "[-1,0,0,0]");
+eq("Mist puts everyone who can hear the base straight on it", JSON.stringify(NFN.mesh.plan(Object.assign({}, row, { profile: "mist" })).tree.depth), "[0,1,1,1]");
+/* two points at equal distance from two candidates: the tree metric spreads them */
+var fork = { aps: [{ x: 0, y: 0, h: 3, gw: true }, { x: 0, y: 200, h: 3, gw: true }, { x: 150, y: 100, h: 3 }, { x: 150, y: 100.5, h: 3 }],
+             w: 300, d: 300, tx: 20, tworay: false, uplink: 100, clients: 40 };
+var FK = NFN.mesh.plan(Object.assign({}, fork, { profile: "aruba" }));
+if (!(FK.tree.parent[2] !== FK.tree.parent[3])) { fails++; console.log("  FAIL distributed-tree should split twins across two portals: " + FK.tree.parent); }
+n++;
+var RS2 = NFN.mesh.plan(Object.assign({}, row, { profile: "aruba" }));
+eq("a marginal direct link is never chosen over a good hop", RS2.aps[3].link.d < 200, true);
+
 /* the antenna picker: a far point gets gain, a close one stays on an omni */
 var pick = { aps: [{ x: 0, y: 0, h: 3, gw: true, ant: "omni" }, { x: 120, y: 0, h: 3, ant: "auto" }, { x: 520, y: 0, h: 3, ant: "auto" }],
              w: 560, d: 120, tx: 8, tworay: false, uplink: 100, clients: 90, app: "web" };
