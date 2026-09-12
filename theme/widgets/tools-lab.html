@@ -867,6 +867,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
       <div id="m-selap" hidden>
         <div class="t-row"><label>Role</label>
           <div class="t-sight" style="flex:1;margin:0"><button class="t-btn" id="m-portal" type="button">Portal, has the uplink</button><button class="t-btn" id="m-point" type="button">Point</button></div></div>
+        <div class="t-row"><label for="m-apmodel">Model</label><select id="m-apmodel"></select></div>
+        <p class="t-hint" id="m-apmodelnote"></p>
         <div class="t-row"><label for="m-apant" id="m-apantlbl">Antenna</label><select id="m-apant"></select></div>
         <div class="t-row"><label for="m-aph">Mast height</label>
           <input type="range" id="m-aph" min="0.5" max="15" step="0.5" value="3"><output id="m-aph-v">3.0 m</output></div>
@@ -965,7 +967,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
           <input type="range" id="m-fade" min="0" max="15" step="1" value="0"><output id="m-fade-v">0 dB</output></div>
         <div class="t-row"><label for="m-ss">Streams</label>
           <select id="m-ss"><option>1</option><option selected>2</option><option>4</option></select></div>
-        <div class="t-row"><label for="m-kind">New APs are</label><select id="m-kind"></select></div>
+        <div class="t-row"><label for="m-mdl">New APs are</label><select id="m-mdl"></select></div>
+      <div class="t-row"><label for="m-kind">Generic box</label><select id="m-kind"></select></div>
         <div class="t-row"><label for="m-ant">New APs carry</label><select id="m-ant"></select></div>
         <div class="t-row"><label for="m-ray">Ground reflection</label>
           <select id="m-ray"><option value="0" selected>Off, plan without it</option><option value="1">Two ray, in every budget</option></select></div>
@@ -1076,7 +1079,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
               M.isAuto(p) ? "" : p.ant, p.aim === undefined || p.aim === null ? "" : Math.round(p.aim), p.kind || "",
               p.cant || "", p.caim === undefined || p.caim === null ? "" : Math.round(p.caim), p.tilt || "",
               p.band === undefined || p.band === null ? "" : p.band, p.bw === undefined || p.bw === null ? "" : p.bw,
-              p.ch === undefined || p.ch === null ? "" : p.ch].join(",");
+              p.ch === undefined || p.ch === null ? "" : p.ch, p.model || ""].join(",");
     }).join(";");
   }
   function deAps(s) {
@@ -1088,7 +1091,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
                gw: /p/.test(b[4] || ""), down: /d/.test(b[4] || ""),
                ant: M.ANTENNAS[b[5]] ? b[5] : "auto", aim: aim, kind: M.KINDS[b[7]] ? b[7] : undefined,
                cant: M.ANTENNAS[b[8]] ? b[8] : undefined, caim: caim, tilt: tilt === null ? 0 : NFN.clamp(tilt, -10, 45),
-               band: band === null ? null : band, bw: bw === null ? null : bw, ch: ch === null ? null : ch };
+               band: band === null ? null : band, bw: bw === null ? null : bw, ch: ch === null ? null : ch,
+               model: b[14] && NFN.aps && NFN.aps.model(b[14]) ? b[14] : undefined };
     }).filter(Boolean);
     return out.length ? out.slice(0, 24) : undefined;
   }
@@ -1142,6 +1146,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     f: NFN.f.num(5.2, 5.2, 6.0), bw: NFN.f.int(40, 20, 160), dfs: NFN.f.bool(false),
     tx: NFN.f.num(17, 0, 30), fade: NFN.f.num(0, 0, 15), ss: NFN.f.int(2, 1, 4),
     ant: NFN.f.pick("auto", ["auto"].concat(Object.keys(M.ANTENNAS))), kind: NFN.f.pick("dual", Object.keys(M.KINDS)),
+    mdl: NFN.f.pick("", [""].concat(NFN.aps ? NFN.aps.MODELS.map(function (m) { return m.id; }) : [])),
     ray: NFN.f.bool(false),
     cl: NFN.f.int(100, 0, 20000),
     dev: NFN.f.pick("ax2", CAP.DEVICES.map(function (d) { return d.id; })),
@@ -1176,7 +1181,11 @@ Tap anything to change it. The big number is what gets off the site, and the not
   CAP.APPS.forEach(function (a) { $("m-app").add(new Option(a.label, a.id)); });
   Object.keys(M.KINDS).forEach(function (k) { $("m-kind").add(new Option(M.KINDS[k].label, k)); $("m-apkind").add(new Option(M.KINDS[k].label, k)); });
   $("m-ant").add(new Option("Automatic, picked for the site", "auto")); $("m-apant").add(new Option("Automatic", "auto"));
+  function modelLabel(m) { return m.id + (m.verified ? "" : " (unverified)") + ", " + (m.place === "outdoor" ? "outdoor" : "indoor") + " Wi-Fi " + ({ ac: "5", ax: m.radios["6"] ? "6E" : "6", be: "7" })[m.gen] + ", " + (m.antKind === "ext" ? "connectors" : NFN.aps.KINDS[m.antKind].label); }
+  $("m-mdl").add(new Option("Generic box, pick the antenna", "")); $("m-apmodel").add(new Option("Generic box", ""));
+  if (NFN.aps) NFN.aps.MODELS.forEach(function (m) { $("m-mdl").add(new Option(modelLabel(m), m.id)); $("m-apmodel").add(new Option(modelLabel(m), m.id)); });
   Object.keys(M.ANTENNAS).forEach(function (k) {
+    if (M.ANTENNAS[k].hidden) return;
     var a = M.ANTENNAS[k], lbl = a.label + ", " + a.g + " dBi" + (a.h >= 360 ? "" : ", " + a.h + " by " + a.v + " deg") + (a.tilt ? ", " + a.tilt + " deg down" : "");
     $("m-ant").add(new Option(lbl, k)); $("m-apant").add(new Option(lbl, k)); $("m-apcant").add(new Option(lbl, k));
   });
@@ -1192,7 +1201,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     $("m-land").value = st.get("land"); $("m-dom").value = st.get("dom");
     $("m-up").value = st.get("up"); $("m-prof").value = st.get("prof"); $("m-hops").value = st.get("hops");
     $("m-band").value = st.get("f").toFixed(1); $("m-bw").value = st.get("bw"); $("m-dfs").value = st.get("dfs") ? "1" : "0";
-    $("m-tx").value = st.get("tx"); $("m-fade").value = st.get("fade"); $("m-ant").value = st.get("ant"); $("m-kind").value = st.get("kind"); $("m-ss").value = st.get("ss");
+    $("m-tx").value = st.get("tx"); $("m-fade").value = st.get("fade"); $("m-ant").value = st.get("ant"); $("m-kind").value = st.get("kind"); $("m-mdl").value = st.get("mdl"); $("m-ss").value = st.get("ss");
     $("m-ray").value = st.get("ray") ? "1" : "0";
     $("m-cl").value = st.get("cl"); $("m-dev").value = st.get("dev"); $("m-app").value = st.get("app");
     $("m-edge").value = st.get("edge"); $("m-cbw").value = st.get("cbw");
@@ -1204,7 +1213,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
       .set("land", $("m-land").value).set("dom", $("m-dom").value)
       .set("up", Math.max(1, +$("m-up").value || 1)).set("prof", $("m-prof").value).set("hops", +$("m-hops").value)
       .set("f", +$("m-band").value).set("bw", +$("m-bw").value).set("dfs", $("m-dfs").value === "1")
-      .set("tx", +$("m-tx").value).set("fade", +$("m-fade").value).set("ant", $("m-ant").value).set("kind", $("m-kind").value).set("ss", +$("m-ss").value)
+      .set("tx", +$("m-tx").value).set("fade", +$("m-fade").value).set("ant", $("m-ant").value).set("kind", $("m-kind").value).set("mdl", $("m-mdl").value).set("ss", +$("m-ss").value)
       .set("ray", $("m-ray").value === "1")
       .set("cl", Math.max(0, +$("m-cl").value || 0)).set("dev", $("m-dev").value).set("app", $("m-app").value)
       .set("edge", +$("m-edge").value).set("cbw", +$("m-cbw").value)
@@ -1757,7 +1766,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     }
     if (mode === "ap") {
       var aps = st.get("ap").slice(); if (aps.length >= 24) return;
-      aps.push({ x: f.x, y: f.y, h: 3, gw: !aps.some(function (a) { return a.gw; }), kind: st.get("kind"), ant: st.get("ant"), aim: null, tilt: 0, band: null, bw: null, ch: null });
+      aps.push({ x: f.x, y: f.y, h: 3, gw: !aps.some(function (a) { return a.gw; }), kind: st.get("mdl") ? undefined : st.get("kind"), ant: st.get("ant"), aim: null, tilt: 0, band: null, bw: null, ch: null, model: st.get("mdl") || undefined });
       st.set("ap", aps); sel = { kind: "ap", i: aps.length - 1 }; setMode("move"); run();
     } else if (mode === "ob") {
       var obs = st.get("ob").slice(), tp = $("m-obtype").value, def = M.OBSTACLES[tp]; if (obs.length >= 24) return;
@@ -1840,8 +1849,17 @@ Tap anything to change it. The big number is what gets off the site, and the not
       $("m-portal").classList.toggle("m-on", !!a.gw); $("m-point").classList.toggle("m-on", !a.gw);
       $("m-apkind").value = a.kind || (M.kind(a, {}) === M.KINDS.tri ? "tri" : "dual");
       $("m-apantlbl").textContent = r.kind.dedicated ? "Backhaul antenna" : "Antenna";
-      $("m-apant").value = M.isAuto(a) ? "auto" : a.ant;
-      $("m-apant").options[0].textContent = M.isAuto(a) ? "Automatic: " + r.antenna.label.toLowerCase() : "Automatic";
+      var mdl = a.model && NFN.aps ? NFN.aps.model(a.model) : null, builtIn = mdl && mdl.antKind !== "ext";
+      $("m-apmodel").value = a.model || "";
+      $("m-apant").disabled = !!builtIn;
+      if (builtIn) { $("m-apant").options[0].textContent = "Built in, " + r.antenna.label.replace(/^AP-\d+ built in, /, "") + (r.antenna.h < 360 ? ", " + r.antenna.h + " by " + Math.round(r.antenna.v) + " deg" : "") + ", " + r.antenna.g + " dBi"; $("m-apant").value = "auto"; }
+      else { $("m-apant").value = M.isAuto(a) ? "auto" : a.ant; $("m-apant").options[0].textContent = M.isAuto(a) ? "Automatic: " + r.antenna.label.toLowerCase() : "Automatic"; }
+      $("m-aptx").max = res.txCap !== undefined && res.txCap !== null ? res.txCap : 30;
+      $("m-apmodelnote").textContent = mdl
+        ? (mdl.verified ? "From HPE QuickSpecs, read 2026-09-12: " : "Unverified, from memory of the datasheet, check before you trust it: ") +
+          Object.keys(mdl.radios).map(function (b) { return b + " GHz " + mdl.radios[b].ss + "x" + mdl.radios[b].ss + ", " + mdl.radios[b].tx + " dBm conducted" + (mdl.ant[b] !== undefined ? ", " + mdl.ant[b] + " dBi" : ""); }).join("; ") +
+          (mdl.antKind === "dtomni" ? ". Its omnis are shaped for a ceiling, with the gain about 30 degrees below level; on a pole that is what the tilt means." : "") + (mdl.note ? " " + mdl.note + "." : "") + (mdl.dual5 ? " Dual 5 GHz: one radio can carry the backhaul." : "")
+        : "";
       var auto = a.aim === undefined || a.aim === null;
       $("m-apaim").value = Math.round(((res.aim + 180) % 360 + 360) % 360 - 180);
       $("m-apaim-v").textContent = compassTxt(res.aim) + (auto ? " auto" : " pinned");
@@ -1940,6 +1958,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
 
   function apEdit(fn) { if (sel && sel.kind === "ap") { fn(st.get("ap")[sel.i]); run(); } }
   $("m-apkind").addEventListener("change", function () { var v = this.value; apEdit(function (a) { a.kind = v; }); });
+  $("m-apmodel").addEventListener("change", function () { var v = this.value; apEdit(function (a) { a.model = v || undefined; a.kind = undefined; if (v && NFN.aps.model(v).antKind !== "ext") { a.ant = "auto"; } a.tx = undefined; }); });
   $("m-apant").addEventListener("change", function () { var v = this.value; apEdit(function (a) { a.ant = v; }); });
   $("m-apaim").addEventListener("input", function () { var v = +this.value; apEdit(function (a) { a.aim = v; }); });
   $("m-apauto").addEventListener("click", function () { apEdit(function (a) { a.aim = null; }); });
@@ -2059,7 +2078,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
       var col = apColor(r), a = st.get("ap")[k];
       return "<tr" + (sel && sel.kind === "ap" && sel.i === k ? ' style="background:rgba(255,255,255,0.04)"' : "") + "><td><i style='background:" + col + "'></i>AP " + (k + 1) + "</td>" +
         "<td>" + (r.gw ? "portal" : r.serves ? "point" : "bridge") + (r.kind.dedicated ? "" : ", shared") + (r.status === "down" ? ", down" : "") + "</td>" +
-        "<td>" + r.antenna.label + (r.antenna.h < 360 ? " " + compassTxt(p.tree.aps[k].aim) : "") + (M.isAuto(a) ? " ·auto" : "") + (r.kind.dedicated && r.serves ? " + " + r.clientAntenna.label.toLowerCase() : "") + "</td>" +
+        "<td>" + (a.model ? a.model + (NFN.aps.model(a.model).verified ? "" : " ?") + ": " : "") + r.antenna.label.replace(/^AP-\d+ built in, /, "built in ") + (r.antenna.h < 360 ? " " + compassTxt(p.tree.aps[k].aim) : "") + (M.isAuto(a) ? " ·auto" : "") + (r.kind.dedicated && r.serves ? " + " + r.clientAntenna.label.toLowerCase().replace(/^ap-\d+ built in, /, "built in ") : "") + "</td>" +
         "<td>" + (r.channel !== null && r.depth >= 0 ? r.channel : "") + "</td>" +
         "<td>" + (r.gw ? "uplink" : r.parent >= 0 ? "AP " + (r.parent + 1) : "none") + "</td>" +
         "<td>" + (r.depth >= 0 ? r.depth : "none") + "</td>" +
@@ -2127,7 +2146,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
       var a = aps[k], res = p.tree.aps[k];
       lines.push("AP " + (k + 1) + (a.gw ? " PORTAL" : r.serves ? " point" : " bridge") + (r.status === "down" ? " DOWN" : ""));
       lines.push("  mount: x " + Math.round(a.x) + " m, y " + Math.round(a.y) + " m, mast " + a.h + " m" + (res.z ? " on ground at " + res.z.toFixed(1) + " m" : ""));
-      lines.push("  box: " + r.kind.label.toLowerCase() + ", " + (a.tx === undefined ? st.get("tx") : a.tx) + " dBm" + (r.link && r.link.clamped ? " (capped by EIRP)" : "") + ", " + r.band + " GHz at " + r.bw + " MHz" + (r.channel !== null && r.depth >= 0 ? ", channel " + r.channel : ""));
+      lines.push("  box: " + (a.model ? a.model + (NFN.aps.model(a.model).verified ? "" : " (figures unverified)") + ", " : "") + r.kind.label.toLowerCase() + ", " + (a.tx === undefined ? st.get("tx") : a.tx) + " dBm" + (r.link && r.link.clamped ? " (capped by EIRP)" : "") + ", " + r.band + " GHz at " + r.bw + " MHz" + (r.channel !== null && r.depth >= 0 ? ", channel " + r.channel : ""));
       lines.push("  " + (r.kind.dedicated ? "backhaul antenna: " : "antenna: ") + r.antenna.label.toLowerCase() + (M.isAuto(a) ? " (picked)" : "") + (r.antenna.h < 360 ? ", azimuth " + compassTxt(res.aim) + (a.aim === null || a.aim === undefined ? " (auto)" : " (pinned)") : "") + ", down-tilt " + ((a.tilt || 0) + r.antenna.tilt) + " deg");
       if (r.kind.dedicated && r.serves) lines.push("  client antenna: " + r.clientAntenna.label.toLowerCase() + (r.clientAntenna.h < 360 ? ", azimuth " + compassTxt(res.caim) : "") + ", down-tilt " + ((a.ctilt || 0) + r.clientAntenna.tilt) + " deg");
       if (r.status === "unreachable") lines.push("  NO PATH: " + r.why);

@@ -5,7 +5,7 @@
    Run: node simtest.js */
 var fs = require("fs"), path = require("path");
 var dir = path.join(__dirname, "theme", "sim");
-["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js", "esx.js", "kml.js"].forEach(function (f) {
+["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js", "aps.js", "esx.js", "kml.js"].forEach(function (f) {
   new Function(fs.readFileSync(path.join(dir, f), "utf8")).call(globalThis);
 });
 var NFN = globalThis.NFN, fails = 0, n = 0;
@@ -449,6 +449,22 @@ var r1 = NFN.rng(7), r2 = NFN.rng(7), same = true;
 for (var i = 0; i < 50; i++) if (r1() !== r2()) same = false;
 eq("the same seed gives the same sequence", same, true);
 eq("different seeds do not", NFN.rng(7)() === NFN.rng(8)(), false);
+
+/* ── real boxes ────────────────────────────────────────────────────────── */
+eq("the catalogue has the outdoor Wi-Fi 6 family", ["AP-565", "AP-567", "AP-574", "AP-575", "AP-577", "AP-584", "AP-585", "AP-587"].every(function (k) { return !!NFN.aps.model(k); }), true);
+near("an AP-575 wears its own 5 dBi omni", NFN.mesh.ANTENNAS[NFN.aps.antennaFor("AP-575", 5)].g, 5, 0.001);
+eq("an AP-577 wears a 90 degree directional", NFN.mesh.ANTENNAS[NFN.aps.antennaFor("AP-577", 5)].h, 90);
+eq("a connectorised box leaves the antenna to the user", NFN.aps.antennaFor("AP-574", 5), null);
+var mAP = { aps: [{ x: 0, y: 0, h: 3, gw: true, model: "AP-575" }, { x: 250, y: 0, h: 3, model: "AP-575", tx: 30 }], w: 300, d: 100, tx: 30, tworay: false, uplink: 100, clients: 40 };
+var MP2 = NFN.mesh.plan(mAP);
+near("a model caps the power at its conducted ceiling", MP2.aps[1].link.tx, 28, 0.001);
+eq("and sets the streams", MP2.aps[1].link.ss, 4);
+eq("a tri band box has a radio to spare", NFN.mesh.kind({ model: "AP-675" }, {}).dedicated, true);
+eq("a dual radio box has not", NFN.mesh.kind({ model: "AP-575" }, {}).dedicated, false);
+var mOld = NFN.mesh.plan(Object.assign({}, mAP, { aps: mAP.aps.map(function (a) { return Object.assign({}, a, { model: "AP-375" }); }) }));
+eq("a Wi-Fi 5 box rates at 802.11ac", mOld.aps[1].link.std, "ac");
+eq("unverified rows say so", NFN.aps.model("AP-375").verified, false);
+eq("a 5 GHz only box cannot link on 6 GHz", NFN.mesh.plan(Object.assign({}, mAP, { fGHz: 6.0 })).aps[1].status, "unreachable");
 
 /* ── a Google Earth drawing ────────────────────────────────────────────── */
 var kmlSite = NFN.kml.toSite(NFN.kml.parse(fs.readFileSync(path.join(__dirname, "demo", "mesh-test.kml"), "utf8")));
