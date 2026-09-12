@@ -1159,6 +1159,19 @@ Tap anything to change it. The big number is what gets off the site, and the not
   var img = { url: null, w: 0, h: 0, op: 0.55 };
   try { var savedImg = localStorage.getItem("nfn-mesh-img"); if (savedImg) { img.url = savedImg; var im0 = new Image(); im0.onload = function () { img.w = im0.naturalWidth; img.h = im0.naturalHeight; run(); }; im0.src = savedImg; } } catch (e) {}
 
+  var MOTION = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  /* the shared defs: a soft coloured glow, a wide bloom for the links, and a
+     lit sphere for every node so the glyphs read as objects, not discs */
+  function defs() {
+    var g = '<filter id="m-glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+            '<filter id="m-bloom" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7" result="b"/><feComponentTransfer in="b" result="c"><feFuncA type="linear" slope="0.9"/></feComponentTransfer><feMerge><feMergeNode in="c"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+            '<filter id="m-soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>';
+    [["#8CE05E", "g"], ["#5ED2DA", "t"], ["#4FBDEA", "b"], ["#c9a0ff", "p"], ["#F5A524", "o"], ["#8BA2AE", "d"], ["#EAF2F6", "w"]].forEach(function (c) {
+      g += '<radialGradient id="m-orb-' + c[1] + '" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#ffffff" stop-opacity="0.85"/><stop offset="0.25" stop-color="' + c[0] + '"/><stop offset="1" stop-color="' + c[0] + '" stop-opacity="0.75"/></radialGradient>';
+    });
+    return g;
+  }
+  function orbOf(col) { return { "#8CE05E": "g", "#5ED2DA": "t", "#4FBDEA": "b", "#c9a0ff": "p", "#F5A524": "o", "#EAF2F6": "w" }[col] || "d"; }
   function apColor(r) {
     return r.status === "down" ? "rgba(139,162,174,0.55)" : r.status === "unreachable" ? WARN : r.gw ? "#8CE05E" : HOPC[Math.min(Math.max(r.depth, 1), HOPC.length - 1)];
   }
@@ -1167,7 +1180,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     layout();
     var aps = st.get("ap"), obs = st.get("ob"), hills = st.get("tr"), crowds = st.get("cr"), pts = st.get("pt"), c = st.get("c"),
         parts = [], i, fw = st.get("fw"), fd = st.get("fd"), m = model(), res = p.tree.aps;
-    parts.push('<defs><filter id="m-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+    parts.push('<defs>' + defs() +
                '<radialGradient id="m-cell" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#8CE05E" stop-opacity="0.14"/><stop offset="1" stop-color="#8CE05E" stop-opacity="0.04"/></radialGradient>' +
                '<radialGradient id="m-crowd"><stop offset="0" stop-color="#EAF2F6" stop-opacity="0.22"/><stop offset="1" stop-color="#EAF2F6" stop-opacity="0.03"/></radialGradient>' +
                '<pattern id="m-grid" width="' + (20 * L.s) + '" height="' + (20 * L.s) + '" patternUnits="userSpaceOnUse" x="' + L.ox + '" y="' + L.oy + '">' +
@@ -1238,8 +1251,14 @@ Tap anything to change it. The big number is what gets off the site, and the not
       if (r.depth <= 0 || r.parent < 0) return;
       var a = aps[k], b = aps[r.parent], Lk = r.link, col = Lk.fresnelBad ? WARN : HOPC[Math.min(r.depth, HOPC.length - 1)],
           wdt = NFN.clamp(1.5 + Lk.goodput / 120, 1.5, 6), mx = (X(a.x) + X(b.x)) / 2, my = (Y(a.y) + Y(b.y)) / 2;
-      parts.push('<line x1="' + X(b.x) + '" y1="' + Y(b.y) + '" x2="' + X(a.x) + '" y2="' + Y(a.y) + '" stroke="' + col + '" stroke-width="' + wdt + '" stroke-opacity="0.85"' +
+      parts.push('<line x1="' + X(b.x) + '" y1="' + Y(b.y) + '" x2="' + X(a.x) + '" y2="' + Y(a.y) + '" stroke="' + col + '" stroke-width="' + (wdt * 3) + '" stroke-opacity="0.22" stroke-linecap="round" filter="url(#m-soft)"/>');
+      parts.push('<line x1="' + X(b.x) + '" y1="' + Y(b.y) + '" x2="' + X(a.x) + '" y2="' + Y(a.y) + '" stroke="' + col + '" stroke-width="' + wdt + '" stroke-opacity="0.9" stroke-linecap="round"' +
                  (Lk.fresnelBad ? ' stroke-dasharray="7 5"' : "") + ' filter="url(#m-glow)"/>');
+      /* traffic: a pulse rides the link from the portal side, faster on a faster link */
+      if (MOTION && r.status !== "down") {
+        var dur = NFN.clamp(6 - Lk.goodput / 80, 1.6, 6).toFixed(2), rev = 'M' + X(b.x) + ' ' + Y(b.y) + ' L' + X(a.x) + ' ' + Y(a.y);
+        parts.push('<circle r="3.2" fill="#ffffff" fill-opacity="0.95" filter="url(#m-glow)"><animateMotion dur="' + dur + 's" repeatCount="indefinite" path="' + rev + '"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="' + dur + 's" repeatCount="indefinite"/></circle>');
+      }
       var lbl = mbs(Lk.goodput * (1 - r.cci)) + (r.cci > 0.05 ? " · " + Math.round(r.cci * 100) + "% air lost" : "") + (Lk.blockedBy && Lk.blockedBy !== "band" ? " · " + Lk.diffraction.toFixed(0) + " dB " + (Lk.blockedBy === "foliage" ? "trees" : "in the way") : "") + (Lk.fresnelBad ? " · Fresnel" : "") + (Lk.measured ? " · measured" : "");
       parts.push('<rect x="' + (mx - lbl.length * 3.1 - 5) + '" y="' + (my - 9) + '" width="' + (lbl.length * 6.2 + 10) + '" height="17" rx="5" fill="rgba(6,16,25,0.85)" stroke="' + col + '" stroke-opacity="0.5"/>');
       parts.push(T(mx, my + 4, lbl, col, "middle", 10, 'pointer-events="none"'));
@@ -1281,10 +1300,14 @@ Tap anything to change it. The big number is what gets off the site, and the not
                    ' A28 28 0 0 1 ' + (cx + 28 * Math.cos(caim + chalf)) + ' ' + (cy + 28 * Math.sin(caim + chalf)) + ' Z" fill="#EAF2F6" fill-opacity="0.10" stroke="#EAF2F6" stroke-opacity="0.4" stroke-width="1"/>');
       }
       if (on) parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="17" fill="none" stroke="#fff" stroke-opacity="0.8" stroke-width="1.5"/>');
-      var fo = r.status === "down" ? 0.25 : r.status === "unreachable" ? 0.35 : 0.95;
-      if (r.gw) parts.push('<polygon points="' + hex(cx, cy, 12) + '" fill="' + col + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.5" filter="url(#m-glow)"/>');
-      else if (!r.serves) parts.push('<polygon points="' + cx + ',' + (cy - 11) + ' ' + (cx + 11) + ',' + cy + ' ' + cx + ',' + (cy + 11) + ' ' + (cx - 11) + ',' + cy + '" fill="' + col + '" fill-opacity="' + fo + '" stroke="' + (r.status === "unreachable" ? WARN : "#06202A") + '" stroke-width="1.5" filter="url(#m-glow)"/>');
-      else parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="10" fill="' + col + '" fill-opacity="' + fo + '" stroke="' + (r.status === "unreachable" ? WARN : "#06202A") + '" stroke-width="1.5"' + (r.status === "unreachable" ? ' stroke-dasharray="3 2"' : "") + ' filter="url(#m-glow)"/>');
+      var fo = r.status === "down" ? 0.25 : r.status === "unreachable" ? 0.35 : 1, fill = r.status === "down" ? col : "url(#m-orb-" + orbOf(col) + ")";
+      if (r.status !== "down" && r.status !== "unreachable") {
+        parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + (r.gw ? 20 : 16) + '" fill="' + col + '" fill-opacity="0.22" filter="url(#m-soft)"/>');
+        if (r.gw && MOTION) parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="14" fill="none" stroke="' + col + '" stroke-width="1.5"><animate attributeName="r" values="13;26" dur="2.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0" dur="2.6s" repeatCount="indefinite"/></circle>');
+      }
+      if (r.gw) parts.push('<polygon points="' + hex(cx, cy, 12) + '" fill="' + fill + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.5" filter="url(#m-glow)"/>');
+      else if (!r.serves) parts.push('<polygon points="' + cx + ',' + (cy - 11) + ' ' + (cx + 11) + ',' + cy + ' ' + cx + ',' + (cy + 11) + ' ' + (cx - 11) + ',' + cy + '" fill="' + fill + '" fill-opacity="' + fo + '" stroke="' + (r.status === "unreachable" ? WARN : "#06202A") + '" stroke-width="1.5" filter="url(#m-glow)"/>');
+      else parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="10" fill="' + fill + '" fill-opacity="' + fo + '" stroke="' + (r.status === "unreachable" ? WARN : "#06202A") + '" stroke-width="1.5"' + (r.status === "unreachable" ? ' stroke-dasharray="3 2"' : "") + ' filter="url(#m-glow)"/>');
       if (r.status === "down") parts.push('<path d="M' + (cx - 6) + ' ' + (cy - 6) + 'L' + (cx + 6) + ' ' + (cy + 6) + 'M' + (cx + 6) + ' ' + (cy - 6) + 'L' + (cx - 6) + ' ' + (cy + 6) + '" stroke="' + WARN + '" stroke-width="2"/>');
       var tag = "AP " + (k + 1) + (r.gw ? " portal" : r.depth > 0 ? " · " + r.depth + (r.depth === 1 ? " hop" : " hops") : "") + (r.channel !== null && r.depth >= 0 ? " · ch " + r.channel : ""),
           sub = r.status === "down" ? "down" : r.status === "unreachable" ? "no path" : r.gw ? "uplink" + (r.serves ? "" : ", no clients") : !r.serves ? "bridge, no clients" : mbs(r.delivered) + " to " + Math.round(r.clients) + " clients";
@@ -1359,25 +1382,41 @@ Tap anything to change it. The big number is what gets off the site, and the not
 
   function draw3d(p, cl, walk) {
     W = Math.max(420, Math.min(900, ($("m-map").clientWidth || 900) - 12));
-    var V = proj3(), P = V.P, items = [], ground = [], i, j,
+    var V = proj3(), P = V.P, items = [], i, j,
         aps = st.get("ap"), res = p.tree.aps, obs = st.get("ob"), hills = st.get("tr"), crowds = st.get("cr"), pts = st.get("pt"), c = st.get("c"), m = model(),
         fw = st.get("fw"), fd = st.get("fd"), layers = st.get("l3"),
         has = function (ch) { return layers.indexOf(ch) >= 0; },
-        gz = function (x, y) { return M.ground(x, y, hills); };
+        gz = function (x, y) { return M.ground(x, y, hills); },
+        LIGHT = norm3([-0.55, -0.35, 0.75]);           /* from the north west, high */
     function add(z, svg) { items.push({ z: z, s: svg }); }
+    function shade(a, b, cq) {                       /* lighting from three world points, 0 dark to 1 lit */
+      var n = norm3(cross3([b[0] - a[0], b[1] - a[1], (b[2] - a[2]) * V.k], [cq[0] - a[0], cq[1] - a[1], (cq[2] - a[2]) * V.k]));
+      if (n[2] < 0) n = [-n[0], -n[1], -n[2]];
+      return 0.35 + 0.65 * Math.max(0, dot3(n, LIGHT));
+    }
+    /* depth fog: the far edge of the field fades toward the sky */
+    var zNear = Infinity, zFar = -Infinity;
+    [[0, 0], [fw, 0], [0, fd], [fw, fd]].forEach(function (q) { var z = P(q[0], q[1], 0).z; zNear = Math.min(zNear, z); zFar = Math.max(zFar, z); });
+    function fog(z) { return NFN.clamp(1 - 0.55 * (z - zNear) / Math.max(1, zFar - zNear), 0.35, 1); }
 
-    /* the ground: a 20 m grid that follows the hills, drawn first and never sorted */
-    var gs = Math.max(10, Math.round(Math.max(fw, fd) / 40 / 10) * 10);
-    for (i = 0; i <= fw + 0.01; i += gs) { var col1 = []; for (j = 0; j <= fd + 0.01; j += gs) col1.push(P(Math.min(i, fw), Math.min(j, fd), gz(i, j))); ground.push('<polyline points="' + pts3(col1) + '" fill="none" stroke="rgba(255,255,255,' + (i === 0 || i >= fw - 0.01 ? 0.16 : 0.06) + ')"/>'); }
-    for (j = 0; j <= fd + 0.01; j += gs) { var row1 = []; for (i = 0; i <= fw + 0.01; i += gs) row1.push(P(Math.min(i, fw), Math.min(j, fd), gz(i, j))); ground.push('<polyline points="' + pts3(row1) + '" fill="none" stroke="rgba(255,255,255,' + (j === 0 || j >= fd - 0.01 ? 0.16 : 0.06) + ')"/>'); }
-    /* hills as filled contour rings so the shape reads */
-    hills.forEach(function (hl) {
-      [0.9, 0.5, 0.15].forEach(function (frac) {
-        var rr = hl.r / 2 * Math.sqrt(-2 * Math.log(frac)), ring = [], q;
-        for (q = 0; q < 24; q++) { var an = q / 24 * Math.PI * 2, x = hl.x + rr * Math.cos(an), y = hl.y + rr * Math.sin(an); ring.push(P(x, y, gz(x, y))); }
-        ground.push('<polygon points="' + pts3(ring) + '" fill="rgba(176,196,207,0.05)" stroke="rgba(176,196,207,0.3)" stroke-width="0.8"/>');
-      });
-    });
+    /* the sky and the ground: a gradient behind everything, then the field as
+       lit cells that follow the hills, sorted with everything else so a near
+       rise can hide what stands behind it */
+    var back = '<rect x="0" y="0" width="' + V.W + '" height="' + V.H + '" fill="url(#m-sky)"/>';
+    var gs = Math.max(fw, fd) / 34, cols = Math.ceil(fw / gs), rows = Math.ceil(fd / gs), gi, gj, Z = [];
+    for (gi = 0; gi <= cols; gi++) { Z.push([]); for (gj = 0; gj <= rows; gj++) { var gx = Math.min(fw, gi * gs), gy = Math.min(fd, gj * gs); Z[gi].push({ x: gx, y: gy, z: gz(gx, gy), s: P(gx, gy, gz(gx, gy)) }); } }
+    for (gi = 0; gi < cols; gi++) for (gj = 0; gj < rows; gj++) {
+      var q00 = Z[gi][gj], q10 = Z[gi + 1][gj], q11 = Z[gi + 1][gj + 1], q01 = Z[gi][gj + 1],
+          lit = shade([q00.x, q00.y, q00.z], [q10.x, q10.y, q10.z], [q01.x, q01.y, q01.z]),
+          face = [q00.s, q10.s, q11.s, q01.s], dz = depthOf(face), fg = fog(dz),
+          hgt = (q00.z + q10.z + q11.z + q01.z) / 4, hue = NFN.clamp(hgt / 12, -1, 1),
+          rr = Math.round(10 + 34 * lit + 18 * Math.max(0, hue)), gg = Math.round(34 + 58 * lit + 10 * Math.max(0, hue)), bb = Math.round(48 + 52 * lit - 20 * Math.max(0, hue));
+      add(dz + 1.2, '<polygon points="' + pts3(face) + '" fill="rgb(' + rr + ',' + gg + ',' + bb + ')" fill-opacity="' + (0.92 * fg).toFixed(2) + '" stroke="rgba(160,210,230,' + (0.07 * fg).toFixed(3) + ')" stroke-width="0.6"/>');
+    }
+    /* the field's edge */
+    var rim = [P(0, 0, gz(0, 0)), P(fw, 0, gz(fw, 0)), P(fw, fd, gz(fw, fd)), P(0, fd, gz(0, fd))];
+    add(depthOf(rim) + 1.1, '<polygon points="' + pts3(rim) + '" fill="none" stroke="rgba(180,220,235,0.22)" stroke-width="1"/>');
+
     /* footprints and crowds, painted on the ground */
     if (has("c")) {
       res.forEach(function (a, k) {
@@ -1386,22 +1425,28 @@ Tap anything to change it. The big number is what gets off the site, and the not
           var x = NFN.clamp(a.x + q.r * Math.cos(q.az * Math.PI / 180), -fw * 0.3, fw * 1.3), y = NFN.clamp(a.y + q.r * Math.sin(q.az * Math.PI / 180), -fd * 0.3, fd * 1.3);
           return P(x, y, gz(x, y) + 0.05);
         });
-        ground.push('<polygon points="' + pts3(ring) + '" fill="rgba(140,224,94,0.07)" stroke="rgba(140,224,94,0.3)" stroke-dasharray="3 5"/>');
+        add(depthOf(ring) + 0.6, '<polygon points="' + pts3(ring) + '" fill="url(#m-cell)" stroke="rgba(140,224,94,0.35)" stroke-dasharray="3 5" filter="url(#m-glow)"/>');
       });
       crowds.forEach(function (cr, k) {
-        var ring = [], q, w2 = p.who.crowds[k], bad = w2 && w2.unserved > 0.5;
-        for (q = 0; q < 24; q++) { var an = q / 24 * Math.PI * 2, x = cr.x + cr.r * Math.cos(an), y = cr.y + cr.r * Math.sin(an); ring.push(P(x, y, gz(x, y) + 0.1)); }
-        var cc = P(cr.x, cr.y, gz(cr.x, cr.y) + 1.2);
-        ground.push('<polygon points="' + pts3(ring) + '" fill="rgba(234,242,246,0.08)" stroke="' + (bad ? WARN : "rgba(234,242,246,0.5)") + '"/>' +
+        var ring = [], q, w2 = p.who.crowds[k], bad = w2 && w2.unserved > 0.5, rng = NFN.rng(k + 11), dots = "";
+        for (q = 0; q < 28; q++) { var an = q / 28 * Math.PI * 2, x = cr.x + cr.r * Math.cos(an), y = cr.y + cr.r * Math.sin(an); ring.push(P(x, y, gz(x, y) + 0.1)); }
+        for (q = 0; q < Math.min(40, Math.round(cr.n / 8) + 6); q++) {
+          var rr2 = cr.r * Math.sqrt(rng()), an2 = rng() * Math.PI * 2, px = cr.x + rr2 * Math.cos(an2), py = cr.y + rr2 * Math.sin(an2), pb = P(px, py, gz(px, py)), pt = P(px, py, gz(px, py) + 1.7);
+          dots += '<line x1="' + pb.x + '" y1="' + pb.y + '" x2="' + pt.x + '" y2="' + pt.y + '" stroke="' + (bad ? WARN : "#EAF2F6") + '" stroke-opacity="0.55" stroke-width="1.2"/><circle cx="' + pt.x + '" cy="' + pt.y + '" r="1.4" fill="' + (bad ? WARN : "#EAF2F6") + '" fill-opacity="0.8"/>';
+        }
+        var cc = P(cr.x, cr.y, gz(cr.x, cr.y) + 3);
+        add(depthOf(ring) + 0.5, '<polygon points="' + pts3(ring) + '" fill="url(#m-crowd)" stroke="' + (bad ? WARN : "rgba(234,242,246,0.45)") + '"/>' + dots +
                     T(cc.x, cc.y, Math.round(cr.n * p.who.factor) + " people", bad ? WARN : "#EAF2F6", "middle", 9.5, 'pointer-events="none"'));
       });
-      if (pts.length) ground.push('<polyline points="' + pts3(pts.map(function (q) { return P(q.x, q.y, gz(q.x, q.y) + 0.2); })) + '" fill="none" stroke="#4FBDEA" stroke-opacity="0.7" stroke-width="1.5" stroke-dasharray="5 4"/>');
+      if (pts.length) { var wp = pts.map(function (q) { return P(q.x, q.y, gz(q.x, q.y) + 0.2); }); add(depthOf(wp) + 0.4, '<polyline points="' + pts3(wp) + '" fill="none" stroke="#4FBDEA" stroke-opacity="0.8" stroke-width="1.5" stroke-dasharray="5 4" filter="url(#m-glow)"/>'); }
     }
 
-    /* obstacles as twelve sided prisms, faces lit from the north west */
+    /* obstacles as twelve sided prisms, lit, with a shadow on the ground */
     obs.forEach(function (o, k) {
-      var N = 12, top = [], base = [], q, blocks = false, g0 = gz(o.x, o.y);
+      var N = 12, top = [], base = [], q, blocks = false, g0 = gz(o.x, o.y), tint = (M.OBSTACLES[o.type] || {}).foliage ? [90, 170, 80] : [150, 175, 195];
       p.aps.forEach(function (r) { if (r.link && r.link.obstacle === k) blocks = true; });
+      var sh = []; for (q = 0; q < N; q++) { var an0 = q / N * Math.PI * 2, sx = o.x + o.r * 1.15 * Math.cos(an0) + o.h * 0.5, sy = o.y + o.r * 1.15 * Math.sin(an0) + o.h * 0.35; sh.push(P(sx, sy, gz(sx, sy) + 0.05)); }
+      add(depthOf(sh) + 0.7, '<polygon points="' + pts3(sh) + '" fill="rgba(0,0,0,0.35)" filter="url(#m-soft)"/>');
       for (q = 0; q < N; q++) {
         var an = q / N * Math.PI * 2, ox = o.x + o.r * Math.cos(an), oy = o.y + o.r * Math.sin(an);
         top.push(P(ox, oy, g0 + o.h)); base.push(P(ox, oy, gz(ox, oy)));
@@ -1410,12 +1455,11 @@ Tap anything to change it. The big number is what gets off the site, and the not
         var q2 = (q + 1) % N, face = [base[q], base[q2], top[q2], top[q]],
             wind = (face[1].x - face[0].x) * (face[2].y - face[0].y) - (face[2].x - face[0].x) * (face[1].y - face[0].y);
         if (wind >= 0) continue;
-        var an2 = (q + 0.5) / N * Math.PI * 2, lit = 0.5 + 0.5 * Math.max(0, Math.cos(an2 - Math.PI * 1.25)),
-            tint = (M.OBSTACLES[o.type] || {}).foliage ? "140,224,94," : "176,196,207,";
-        add(depthOf(face), '<polygon points="' + pts3(face) + '" fill="rgba(' + tint + (0.08 + 0.14 * lit).toFixed(3) + ')" stroke="rgba(' + tint + '0.35)" stroke-width="0.8"/>');
+        var an2 = (q + 0.5) / N * Math.PI * 2, nrm = [Math.cos(an2), Math.sin(an2), 0], lit = 0.3 + 0.7 * Math.max(0, dot3(nrm, LIGHT)) + 0.1;
+        add(depthOf(face), '<polygon points="' + pts3(face) + '" fill="rgb(' + Math.round(tint[0] * lit * 0.55) + ',' + Math.round(tint[1] * lit * 0.55) + ',' + Math.round(tint[2] * lit * 0.55) + ')" fill-opacity="0.92" stroke="rgba(200,225,240,0.18)" stroke-width="0.6"/>');
       }
-      add(depthOf(top) - 0.01, '<polygon points="' + pts3(top) + '" fill="rgba(176,196,207,0.30)" stroke="' + (blocks ? WARN : "rgba(176,196,207,0.6)") + '" stroke-width="1"/>' +
-          T(P(o.x, o.y, g0 + o.h).x, P(o.x, o.y, g0 + o.h).y - 6, M.OBSTACLES[o.type].label + " " + o.h + " m", "#B0C4CF", "middle", 9.5, 'pointer-events="none"'));
+      add(depthOf(top) - 0.01, '<polygon points="' + pts3(top) + '" fill="rgb(' + Math.round(tint[0] * 0.75) + ',' + Math.round(tint[1] * 0.75) + ',' + Math.round(tint[2] * 0.75) + ')" fill-opacity="0.95" stroke="' + (blocks ? WARN : "rgba(220,235,245,0.5)") + '" stroke-width="1"/>' +
+          T(P(o.x, o.y, g0 + o.h).x, P(o.x, o.y, g0 + o.h).y - 8, M.OBSTACLES[o.type].label + " " + o.h + " m", "#B0C4CF", "middle", 9.5, 'pointer-events="none"'));
     });
 
     /* links between mast tops, with the Fresnel tube and the ground bounce */
@@ -1423,60 +1467,74 @@ Tap anything to change it. The big number is what gets off the site, and the not
       if (r.depth <= 0 || r.parent < 0) return;
       var a = res[k], b = res[r.parent], Lk = r.link, za = a.z + a.h, zb = b.z + b.h,
           col = Lk.fresnelBad ? WARN : HOPC[Math.min(r.depth, HOPC.length - 1)],
-          A = P(a.x, a.y, za), B = P(b.x, b.y, zb), mid = P((a.x + b.x) / 2, (a.y + b.y) / 2, (za + zb) / 2);
-      add((A.z + B.z) / 2 - 0.5, '<line x1="' + A.x + '" y1="' + A.y + '" x2="' + B.x + '" y2="' + B.y + '" stroke="' + col + '" stroke-width="' + NFN.clamp(1.2 + Lk.goodput / 150, 1.2, 4) + '" stroke-opacity="0.9"' + (Lk.fresnelBad ? ' stroke-dasharray="6 4"' : "") + ' filter="url(#m-glow)"/>');
+          A = P(a.x, a.y, za), B = P(b.x, b.y, zb), mid = P((a.x + b.x) / 2, (a.y + b.y) / 2, (za + zb) / 2), wdt = NFN.clamp(1.2 + Lk.goodput / 150, 1.2, 4);
+      var seg = '<line x1="' + B.x + '" y1="' + B.y + '" x2="' + A.x + '" y2="' + A.y + '"';
+      add((A.z + B.z) / 2 - 0.5, seg + ' stroke="' + col + '" stroke-width="' + (wdt * 3) + '" stroke-opacity="0.22" stroke-linecap="round" filter="url(#m-soft)"/>' +
+          seg + ' stroke="' + col + '" stroke-width="' + wdt + '" stroke-opacity="0.95" stroke-linecap="round"' + (Lk.fresnelBad ? ' stroke-dasharray="6 4"' : "") + ' filter="url(#m-glow)"/>' +
+          (MOTION ? '<circle r="2.8" fill="#ffffff" filter="url(#m-glow)"><animateMotion dur="' + NFN.clamp(6 - Lk.goodput / 80, 1.6, 6).toFixed(2) + 's" repeatCount="indefinite" path="M' + B.x + ' ' + B.y + ' L' + A.x + ' ' + A.y + '"/></circle>' : ""));
       var lbl = mbs(Lk.goodput * (1 - r.cci)) + (Lk.fresnelBad ? " · Fresnel" : "") + (r.channel !== null ? " · ch " + r.channel : "");
       add((A.z + B.z) / 2 - 0.6, '<rect x="' + (mid.x - lbl.length * 3.1 - 5) + '" y="' + (mid.y - 20) + '" width="' + (lbl.length * 6.2 + 10) + '" height="16" rx="5" fill="rgba(6,16,25,0.85)" stroke="' + col + '" stroke-opacity="0.5"/>' + T(mid.x, mid.y - 8, lbl, col, "middle", 9.5, 'pointer-events="none"'));
 
       if (has("f")) {
         var d = Lk.d, ax = [b.x - a.x, b.y - a.y, zb - za], u = norm3(ax),
-            n1 = norm3(cross3(u, [0, 0, 1])), n2 = cross3(u, n1), NR = 14, top = [], bot = [], q, s;
+            n1 = norm3(cross3(u, [0, 0, 1])), n2 = cross3(u, n1), NR = 14, top = [], bot = [], q, s, anyBad = false;
         for (s = 0; s <= NR; s++) {
           var t = s / NR, d1 = d * t, d2 = d - d1, f1 = 0.6 * NFN.rf.fresnel1(Math.max(1, d1), Math.max(1, d2), Lk.band),
               cx3 = a.x + ax[0] * t, cy3 = a.y + ax[1] * t, cz3 = za + ax[2] * t, ring = [], bad = cz3 - f1 < gz(cx3, cy3);
           obs.forEach(function (o) { var off = Math.hypot(o.x - cx3, o.y - cy3); if (off <= o.r && gz(o.x, o.y) + o.h > cz3 - f1) bad = true; });
+          if (bad) anyBad = true;
           for (q = 0; q < 16; q++) {
             var th = q / 16 * Math.PI * 2, rx = f1 * (Math.cos(th) * n1[0] + Math.sin(th) * n2[0]), ry = f1 * (Math.cos(th) * n1[1] + Math.sin(th) * n2[1]), rz = f1 * (Math.cos(th) * n1[2] + Math.sin(th) * n2[2]);
             ring.push(P(cx3 + rx, cy3 + ry, cz3 + rz));
           }
           top.push(P(cx3 + f1 * n2[0], cy3 + f1 * n2[1], cz3 + f1 * n2[2]));
           bot.push(P(cx3 - f1 * n2[0], cy3 - f1 * n2[1], cz3 - f1 * n2[2]));
-          if (s % 2 === 0) add(depthOf(ring) - 0.2, '<polygon points="' + pts3(ring) + '" fill="' + (bad ? "rgba(245,165,36,0.10)" : "rgba(79,189,234,0.06)") + '" stroke="' + (bad ? WARN : "#4FBDEA") + '" stroke-opacity="' + (bad ? 0.7 : 0.35) + '" stroke-width="0.8"/>');
+          if (s % 2 === 0) add(depthOf(ring) - 0.2, '<polygon points="' + pts3(ring) + '" fill="none" stroke="' + (bad ? WARN : "#4FBDEA") + '" stroke-opacity="' + (bad ? 0.75 : 0.4) + '" stroke-width="0.8"/>');
         }
-        add((A.z + B.z) / 2 - 0.3, '<polyline points="' + pts3(top) + '" fill="none" stroke="#4FBDEA" stroke-opacity="0.35" stroke-width="0.8"/><polyline points="' + pts3(bot) + '" fill="none" stroke="' + (Lk.fresnelBad ? WARN : "#4FBDEA") + '" stroke-opacity="0.5" stroke-width="0.8"/>');
+        /* the tube's body as a soft translucent ribbon */
+        add((A.z + B.z) / 2 - 0.25, '<polygon points="' + pts3(top.concat(bot.slice().reverse())) + '" fill="' + (anyBad ? "rgba(245,165,36,0.14)" : "rgba(79,189,234,0.12)") + '" stroke="none" filter="url(#m-glow)"/>' +
+            '<polyline points="' + pts3(top) + '" fill="none" stroke="#4FBDEA" stroke-opacity="0.35" stroke-width="0.8"/><polyline points="' + pts3(bot) + '" fill="none" stroke="' + (anyBad ? WARN : "#4FBDEA") + '" stroke-opacity="0.55" stroke-width="0.8"/>');
       }
       if (has("t") && st.get("ray")) {
         var xb = Lk.d * a.h / Math.max(0.1, a.h + b.h), gx = a.x + (b.x - a.x) * xb / Lk.d, gy = a.y + (b.y - a.y) * xb / Lk.d, G = P(gx, gy, gz(gx, gy));
-        add((A.z + B.z + G.z) / 3 + 0.2, '<polyline points="' + pts3([A, G, B]) + '" fill="none" stroke="#5ED2DA" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="4 4"/>' +
-            '<circle cx="' + G.x + '" cy="' + G.y + '" r="2.5" fill="#5ED2DA"/>' + T(G.x, G.y + 13, (Lk.tworay >= 0 ? "+" : "") + Lk.tworay.toFixed(1) + " dB bounce", "#5ED2DA", "middle", 9, 'pointer-events="none"'));
+        add((A.z + B.z + G.z) / 3 + 0.2, '<polyline points="' + pts3([A, G, B]) + '" fill="none" stroke="#5ED2DA" stroke-opacity="0.6" stroke-width="1" stroke-dasharray="4 4"/>' +
+            '<circle cx="' + G.x + '" cy="' + G.y + '" r="3" fill="#5ED2DA" filter="url(#m-glow)"/>' + T(G.x, G.y + 13, (Lk.tworay >= 0 ? "+" : "") + Lk.tworay.toFixed(1) + " dB bounce", "#5ED2DA", "middle", 9, 'pointer-events="none"'));
       }
     });
 
-    /* masts and the boxes on top, with the antenna lobe around each */
+    /* masts and the boxes on top, with the antenna lobe as a lit surface */
     var LR = 0.055 * Math.max(fw, fd);
     res.forEach(function (a, k) {
       var r = p.aps[k], on = sel && sel.kind === "ap" && sel.i === k, col = apColor(r),
-          base = P(a.x, a.y, a.z), top = P(a.x, a.y, a.z + a.h), out = "";
-      out += '<line x1="' + base.x + '" y1="' + base.y + '" x2="' + top.x + '" y2="' + top.y + '" stroke="rgba(176,196,207,0.6)" stroke-width="1.5"/>';
-      out += '<ellipse cx="' + base.x + '" cy="' + base.y + '" rx="5" ry="2" fill="rgba(176,196,207,0.35)"/>';
+          base = P(a.x, a.y, a.z), top = P(a.x, a.y, a.z + a.h), out = "", shx = P(a.x + a.h * 0.5, a.y + a.h * 0.35, a.z);
+      add(base.z + 0.9, '<line x1="' + base.x + '" y1="' + base.y + '" x2="' + shx.x + '" y2="' + shx.y + '" stroke="rgba(0,0,0,0.45)" stroke-width="3" stroke-linecap="round" filter="url(#m-soft)"/>');
+      out += '<ellipse cx="' + base.x + '" cy="' + base.y + '" rx="5" ry="2.2" fill="rgba(190,215,230,0.35)"/>';
+      out += '<line x1="' + base.x + '" y1="' + base.y + '" x2="' + top.x + '" y2="' + top.y + '" stroke="rgba(120,150,170,0.9)" stroke-width="2.4"/>';
+      out += '<line x1="' + base.x + '" y1="' + base.y + '" x2="' + top.x + '" y2="' + top.y + '" stroke="rgba(230,245,255,0.7)" stroke-width="0.8"/>';
       if (has("l") && r.status !== "down") {
-        var ant = r.antenna, NA = 16, NE = 7, e, aa, wires = [];
+        var ant = r.antenna, NA = 14, NE = 8, e, aa, grid = [], lobeCol = col;
         function lobe(azD, elD) {
           var gdb = M.gainToward(a, azD, elD, m, "bh") - ant.g, rr = LR * Math.max(0, 1 + gdb / 30),
               ce = Math.cos(elD * Math.PI / 180), az = azD * Math.PI / 180;
-          return P(a.x + rr * ce * Math.cos(az), a.y + rr * ce * Math.sin(az), a.z + a.h + rr * Math.sin(elD * Math.PI / 180) / V.k);
+          return [a.x + rr * ce * Math.cos(az), a.y + rr * ce * Math.sin(az), a.z + a.h + rr * Math.sin(elD * Math.PI / 180) / V.k];
         }
-        for (e = 1; e < NE; e++) { var elD = -90 + e * 180 / NE, ring = []; for (aa = 0; aa <= NA; aa++) ring.push(lobe(aa * 360 / NA, elD)); wires.push('<polyline points="' + pts3(ring) + '" fill="none" stroke="' + col + '" stroke-opacity="0.35" stroke-width="0.7"/>'); }
-        for (aa = 0; aa < NA; aa += 2) { var mer = []; for (e = 0; e <= 12; e++) mer.push(lobe(aa * 360 / NA, -90 + e * 15)); wires.push('<polyline points="' + pts3(mer) + '" fill="none" stroke="' + col + '" stroke-opacity="0.25" stroke-width="0.7"/>'); }
-        add(top.z + 0.1, wires.join(""));
+        for (e = 0; e <= NE; e++) { grid.push([]); for (aa = 0; aa <= NA; aa++) grid[e].push(lobe(aa * 360 / NA, -90 + e * 180 / NE)); }
+        for (e = 0; e < NE; e++) for (aa = 0; aa < NA; aa++) {
+          var w0 = grid[e][aa], w1 = grid[e][aa + 1], w2 = grid[e + 1][aa + 1], w3 = grid[e + 1][aa],
+              face = [P(w0[0], w0[1], w0[2]), P(w1[0], w1[1], w1[2]), P(w2[0], w2[1], w2[2]), P(w3[0], w3[1], w3[2])],
+              lit = shade(w0, w1, w3);
+          add(depthOf(face) - 0.05, '<polygon points="' + pts3(face) + '" fill="' + lobeCol + '" fill-opacity="' + (0.06 + 0.16 * lit).toFixed(3) + '" stroke="' + lobeCol + '" stroke-opacity="0.22" stroke-width="0.5"/>');
+        }
       }
-      var fo = r.status === "down" ? 0.3 : 0.95;
+      var fo = r.status === "down" ? 0.3 : 1, fill = r.status === "down" ? col : "url(#m-orb-" + orbOf(col) + ")";
+      if (r.status !== "down" && r.status !== "unreachable") out += '<circle cx="' + top.x + '" cy="' + top.y + '" r="' + (r.gw ? 15 : 12) + '" fill="' + col + '" fill-opacity="0.25" filter="url(#m-soft)"/>';
+      if (r.gw && MOTION && r.status !== "down") out += '<circle cx="' + top.x + '" cy="' + top.y + '" r="10" fill="none" stroke="' + col + '" stroke-width="1.2"><animate attributeName="r" values="9;20" dur="2.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0" dur="2.6s" repeatCount="indefinite"/></circle>';
       if (on) out += '<circle cx="' + top.x + '" cy="' + top.y + '" r="12" fill="none" stroke="#fff" stroke-opacity="0.8" stroke-width="1.5"/>';
-      if (r.gw) out += '<polygon points="' + hex(top.x, top.y, 8) + '" fill="' + col + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.2" filter="url(#m-glow)"/>';
-      else if (!r.serves) out += '<polygon points="' + top.x + ',' + (top.y - 8) + ' ' + (top.x + 8) + ',' + top.y + ' ' + top.x + ',' + (top.y + 8) + ' ' + (top.x - 8) + ',' + top.y + '" fill="' + col + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.2" filter="url(#m-glow)"/>';
-      else out += '<circle cx="' + top.x + '" cy="' + top.y + '" r="7" fill="' + col + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.2" filter="url(#m-glow)"/>';
+      if (r.gw) out += '<polygon points="' + hex(top.x, top.y, 8) + '" fill="' + fill + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.2" filter="url(#m-glow)"/>';
+      else if (!r.serves) out += '<polygon points="' + top.x + ',' + (top.y - 8) + ' ' + (top.x + 8) + ',' + top.y + ' ' + top.x + ',' + (top.y + 8) + ' ' + (top.x - 8) + ',' + top.y + '" fill="' + fill + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.2" filter="url(#m-glow)"/>';
+      else out += '<circle cx="' + top.x + '" cy="' + top.y + '" r="7" fill="' + fill + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.2" filter="url(#m-glow)"/>';
       if (r.status === "down") out += '<path d="M' + (top.x - 5) + ' ' + (top.y - 5) + 'L' + (top.x + 5) + ' ' + (top.y + 5) + 'M' + (top.x + 5) + ' ' + (top.y - 5) + 'L' + (top.x - 5) + ' ' + (top.y + 5) + '" stroke="' + WARN + '" stroke-width="2"/>';
-      out += T(NFN.clamp(top.x, 50, V.W - 50), top.y - 13, "AP " + (k + 1) + (r.gw ? " portal" : "") + " · " + a.h + " m" + (a.z ? " on " + a.z.toFixed(0) + " m" : ""), "#EAF2F6", "middle", 9.5, 'pointer-events="none" font-weight="600"');
+      out += T(NFN.clamp(top.x, 50, V.W - 50), top.y - 14, "AP " + (k + 1) + (r.gw ? " portal" : "") + " · " + a.h + " m" + (Math.abs(a.z) >= 0.5 ? " on " + a.z.toFixed(0) + " m" : ""), "#EAF2F6", "middle", 9.5, 'pointer-events="none" font-weight="600"');
       add(top.z, '<g class="m-ap" data-kind="ap" data-i="' + k + '" style="cursor:move"><circle cx="' + top.x + '" cy="' + top.y + '" r="18" fill="transparent"/>' + out + "</g>");
     });
 
@@ -1494,8 +1552,10 @@ Tap anything to change it. The big number is what gets off the site, and the not
     items.sort(function (u, v) { return v.z - u.z; });
     var cap = "heights x" + V.k + " · drag the ground to orbit, drag a mast to move it, wheel or pinch to zoom" + (has("f") ? " · tube is 60% of F1" : "");
     $("m-map").innerHTML = '<svg viewBox="0 0 ' + V.W + " " + V.H + '" width="100%" role="img" aria-label="Three dimensional view of the site with masts, links and obstacles" id="m-svg" style="touch-action:none;display:block">' +
-      '<defs><filter id="m-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
-      ground.join("") + items.map(function (it) { return it.s; }).join("") +
+      '<defs>' + defs() + '<linearGradient id="m-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#061019" stop-opacity="0"/><stop offset="0.45" stop-color="#0b2233" stop-opacity="0.55"/><stop offset="1" stop-color="#061019" stop-opacity="0.2"/></linearGradient>' +
+      '<radialGradient id="m-cell" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#8CE05E" stop-opacity="0.16"/><stop offset="1" stop-color="#8CE05E" stop-opacity="0.04"/></radialGradient>' +
+      '<radialGradient id="m-crowd"><stop offset="0" stop-color="#EAF2F6" stop-opacity="0.22"/><stop offset="1" stop-color="#EAF2F6" stop-opacity="0.03"/></radialGradient></defs>' +
+      back + items.map(function (it) { return it.s; }).join("") +
       T(10, V.H - 8, cap, "rgba(139,162,174,0.8)", "start", 9) + "</svg>";
   }
 
@@ -2232,6 +2292,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
   writeUi(); run(); booted = true;
   root._mesh = function () { return M.plan(model()); };
   root._meshState = st;
+  root._redraw = function () { if (lastP) { if (st.get("view") === "3d") draw3d(lastP, lastCl, lastWalk); else drawMap(lastP, lastCl, lastWalk); } };
 })();
 </script>
 
