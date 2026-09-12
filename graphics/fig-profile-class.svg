@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-label="A library profile and a local profile render identically in the interface, but only the library profile has a path to the RadSec certificate that Central NAC needs">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .n{fill:#8BA2AE;font-size:10.5px;font-family:JetBrains Mono,ui-monospace,Menlo,monospace;letter-spacing:1.5px}
+    .row{font-size:12.5px}
+    .note{fill:#B0C4CF;font-size:12px}
+    .box{font-size:12.5px;font-weight:600}
+  </style>
+  <marker id="pg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8CE05E"/></marker>
+  </defs>
+  <text x="15" y="28" class="t hd">Same fields, same name, different object class.</text>
+
+  <text x="15" y="58" class="t n">WHAT THE UI DRAWS</text>
+  <g class="t">
+    <rect x="15" y="70" width="360" height="42" rx="8" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.12"/>
+    <text x="30" y="96" class="row" fill="#EAF2F6">guest-nac</text><text x="360" y="96" class="row" text-anchor="end" fill="#8BA2AE">Network profile</text>
+    <rect x="15" y="120" width="360" height="42" rx="8" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.12"/>
+    <text x="30" y="146" class="row" fill="#EAF2F6">guest-nac</text><text x="360" y="146" class="row" text-anchor="end" fill="#8BA2AE">Network profile</text>
+    <text x="15" y="190" class="t note">Two rows. One of them works.</text>
+  </g>
+
+  <text x="470" y="58" class="t n">WHAT THE TWO ROWS ACTUALLY ARE</text>
+  <g class="t">
+    <rect x="470" y="70" width="200" height="42" rx="8" fill="#8CE05E"/>
+    <text x="570" y="96" class="box" fill="#06202A" text-anchor="middle">Library profile</text>
+    <path d="M670 91 L722 91" stroke="#8CE05E" stroke-width="2" fill="none" marker-end="url(#pg)"/>
+    <rect x="730" y="70" width="155" height="42" rx="8" fill="#8CE05E" fill-opacity="0.14" stroke="#8CE05E" stroke-opacity="0.5"/>
+    <text x="807" y="90" class="box" fill="#B6F08F" text-anchor="middle">RadSec cert</text>
+    <text x="807" y="105" class="box" fill="#B6F08F" text-anchor="middle" font-size="11">issued</text>
+
+    <rect x="470" y="120" width="200" height="42" rx="8" fill="none" stroke="#F5A524" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <text x="570" y="146" class="box" fill="#F5A524" text-anchor="middle">Local profile</text>
+    <path d="M670 141 L722 141" stroke="#F5A524" stroke-width="1.6" fill="none" stroke-dasharray="5 4"/>
+    <path d="M726 133 L742 149 M742 133 L726 149" stroke="#F0705F" stroke-width="2"/>
+    <text x="760" y="145" class="t note" fill="#F5A524">no path to the certificate</text>
+    <text x="470" y="190" class="t note">The class decides, not the fields.</text>
+  </g>
+
+  <rect x="15" y="216" width="870" height="64" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+  <text x="32" y="242" class="t note">Central NAC on a tunneled WLAN authenticates nothing and reports no error, because the object it needed</text>
+  <text x="32" y="264" class="t note">to hang a certificate on was the wrong class. Check the class before you go looking at the certificate.</text>
+</svg>
