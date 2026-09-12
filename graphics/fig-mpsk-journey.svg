@@ -19,9 +19,9 @@
     <g transform="translate(607,58)"><rect width="132" height="58" rx="9" fill="#5ED2DA"/><text class="st" x="66" y="26" text-anchor="middle">Gateway looks</text><text class="st" x="66" y="42" text-anchor="middle">up the role</text></g>
   </g>
   <g transform="translate(755,58)">
-    <rect width="130" height="58" rx="9" fill="#F0705F" fill-opacity="0.14" stroke="#F0705F" stroke-width="1.6" stroke-dasharray="6 5"/>
-    <text class="t st" x="65" y="26" text-anchor="middle" fill="#FF9A8C">No such role,</text>
-    <text class="t st" x="65" y="42" text-anchor="middle" fill="#FF9A8C">no VLAN</text>
+    <rect width="130" height="58" rx="9" fill="#F5A524" fill-opacity="0.12" stroke="#F5A524" stroke-width="1.6" stroke-dasharray="6 5"/>
+    <text class="t st" x="65" y="26" text-anchor="middle" fill="#FFC168">No such role,</text>
+    <text class="t st" x="65" y="42" text-anchor="middle" fill="#FFC168">no VLAN</text>
   </g>
 
   <g stroke="#8BA2AE" stroke-width="1.4" marker-end="url(#j)" fill="none">

@@ -99,7 +99,7 @@ Lessons are posts with `academy: N` in the front matter. That alone makes the po
 
 ## Post extras
 
-Front matter can also carry `series:` and `series_order:` (reading-path card), and `interactive: poe|channel173` (widget from `theme/widgets/<name>.html` inlined under the hero). ```term fences render as terminal panels; a trailing `  <<` highlights that line. Wireless and RF survey post headers get the RF ring motif via `.post-head.cat-*`. The About page's "In the bag" strip is the `KIT` list in `build-blog.py`. Rig reactions (sleep on hidden tab, think on empty search, wave at page bottom) live in `theme/app.js` and are off under reduced motion.
+Front matter can also carry `series:` and `series_order:` (reading-path card), and `interactive: poe|channel173` (widget from `theme/widgets/<name>.html` inlined under the hero). A post body can carry extra diagrams with `{{figure: fig-<name>.svg | caption}}` on its own line: the builder inlines the SVG from `graphics/` in a `<figure class="figure panel">` with the caption as a `<figcaption>`. Body figures follow the hero palette with one exception: orange `#F5A524` is allowed as the warning colour, red stays Lab-only, and below 700px they scroll sideways inside the figure (`min-width:600px`) rather than shrinking past reading size, so keep their text at 11px or larger in a 900-wide viewBox. ```term fences render as terminal panels; a trailing `  <<` highlights that line. Wireless and RF survey post headers get the RF ring motif via `.post-head.cat-*`. The About page's "In the bag" strip is the `KIT` list in `build-blog.py`. Rig reactions (sleep on hidden tab, think on empty search, wave at page bottom) live in `theme/app.js` and are off under reduced motion.
 
 ## Design system
 
