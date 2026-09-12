@@ -380,6 +380,20 @@ var PC = NFN.mesh.plan(cal), PC0 = NFN.mesh.plan(Object.assign({}, cal, { meas: 
 near("a link measured 8 dB under the model teaches its APs", PC.tree.links[1][2].calib, -4, 0.01);
 if (!(PC.tree.links[1][2].prx < PC0.tree.links[1][2].prx)) { fails++; console.log("  FAIL the correction should lower the unmeasured neighbour link"); }
 n++;
+/* nobody picks a mesh parent by hand: a dish pinned at the portal still bonds
+   wherever the metric says, and the plan says so when the two disagree */
+var Bx = 850, Ax = Bx - 150 * Math.cos(10 * Math.PI / 180), Ay = 100 - 150 * Math.sin(10 * Math.PI / 180),
+    aimSite = { aps: [{ x: 50, y: 100, h: 5, gw: true, ant: "omni" }, { x: Ax, y: Ay, h: 5, ant: "omni" }, { x: Bx, y: 100, h: 5, ant: "dish", aim: 180 }], w: 900, d: 200, tworay: false, uplink: 200, clients: 30 },
+    PB = NFN.mesh.plan(Object.assign({}, aimSite, { profile: "arubabest" })), PT = NFN.mesh.plan(Object.assign({}, aimSite, { profile: "aruba" }));
+if (!(PB.tree.links[2][1].prx > PB.tree.links[2][0].prx)) { fails++; console.log("  FAIL the near AP in the beam's shoulder should be louder than the far portal"); }
+n++;
+eq("best-link-rssi bonds the dish to the louder near AP", PB.tree.parent[2], 1);
+eq("and the row says where the aim went instead", PB.aps[2].aimedAt, 0);
+if (!PB.flags.some(function (f) { return /aimed at AP 1 but bonds to AP 2/.test(f); })) { fails++; console.log("  FAIL the plan should flag the aim against the parent"); }
+n++;
+eq("an aim that agrees with the parent is not flagged", PT.aps[2].aimedAt >= 0 && PT.aps[2].aimedAt !== PT.tree.parent[2], false);
+eq("an omni has no aim to disagree", PT.aps[1].aimedAt, -1);
+
 /* a measured path loss, the number AirMatch reports, replaces the model too */
 var LP0 = NFN.mesh.link(A0, B0, { tworay: false }, [], []), LP = NFN.mesh.link(A0, B0, { tworay: false }, [], [], { pl: LP0.plModel + 10 });
 eq("a measured loss counts as a measurement", LP.measured, true);

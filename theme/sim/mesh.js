@@ -162,6 +162,24 @@
   var D = Math.PI / 180;
   function wrap(deg) { return ((deg + 180) % 360 + 360) % 360 - 180; }
   M.bearing = function (a, b) { return Math.atan2(b.y - a.y, b.x - a.x) / D; };
+  M.angDiff = function (a, b) { var d = ((a - b) % 360 + 540) % 360 - 180; return Math.abs(d); };
+
+  /* Nobody picks a mesh parent by hand: Aruba, Cisco and Mist all let the point
+     choose by their own metric, and an installer's aim only decides who sounds
+     loudest. So when a directional antenna is pinned at one AP and the tree
+     bonds the point to another, that is worth saying. Returns the index of the
+     AP the aim points at when it is not the parent, else -1. aps are resolved. */
+  M.aimedElsewhere = function (T, aps, i, C) {
+    var a = aps[i], ant = M.apAntenna(a, C);
+    if (!a || a.gw || a.down || T.depth[i] <= 0 || !(ant.h < 360) || a.aim === undefined || a.aim === null) return -1;
+    var best = -1, bd = Math.min(45, ant.h / 2 + 5), j;
+    for (j = 0; j < aps.length; j++) {
+      if (j === i || aps[j].down) continue;
+      var d = M.angDiff(a.aim, M.bearing(a, aps[j]));
+      if (d < bd) { bd = d; best = j; }
+    }
+    return best >= 0 && best !== T.parent[i] ? best : -1;
+  };
   /* screen azimuth (0 is +x, clockwise on the map) to a compass bearing, given
      the compass bearing of the map's +x axis */
   M.compass = function (azDeg, north) { return ((azDeg + 90 + (north || 0)) % 360 + 360) % 360; };
@@ -754,6 +772,7 @@
                   clients: K.serves ? mine : 0, demand: K.serves ? mine * A.kbps / 1000 : 0, cellMbps: cell,
                   backhaul: Infinity, delivered: 0, status: "ok", why: "", relays: 0, cci: cci ? cci[i].busy : 0, cciWith: cci ? cci[i].with : [] };
         r.backup = T.backup[i]; r.cost = T.cost[i];
+        r.aimedAt = M.aimedElsewhere(T, aps, i, C);
         if (a.down) {
           r.status = "down"; r.backhaul = 0; r.clients = 0; r.demand = 0;
           r.why = "failed, or switched off to see what happens";
@@ -833,6 +852,8 @@
     if (who.unserved > 0.5) flags.push(Math.round(who.unserved) + " people in the crowds have no AP above " + C.clientTarget + " dBm where they stand.");
     if (cciHit) flags.push(cciHit + (cciHit === 1 ? " link loses" : " links lose") + " more than a fifth of its air to co-channel neighbours. " + (CH.distinct < T.gateways ? "Portals share a channel; pin them apart." : "Another channel, or a narrower one so there are more, spreads them out."));
     if (clamped) flags.push(clamped + (clamped === 1 ? " link runs" : " links run") + " at less than the set power because " + M.domain(C.domain).label + " caps EIRP at " + M.domain(C.domain).eirp[M.bandOf(C.fGHz)] + " dBm in this band.");
+    var misaimed = rows.filter(function (r) { return r.aimedAt >= 0; });
+    if (misaimed.length) flags.push(misaimed.map(function (r) { return "AP " + (r.i + 1) + " is aimed at AP " + (r.aimedAt + 1) + " but bonds to AP " + (r.parent + 1); }).join("; ") + ". The point picks its own parent (" + T.profile.label + "); the aim only changes who is loudest. Aim at the parent shown, or move a mast so the one you want wins.");
     if (T.profile.maxChildren) {
       var over = rows.filter(function (r) { return r.depth === 0 && T.children[r.i].length > T.profile.maxChildren; }).length;
       if (over) flags.push(over + (over === 1 ? " base carries" : " bases carry") + " more than " + T.profile.maxChildren + " relays, past the vendor's recommendation.");
