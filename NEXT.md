@@ -29,7 +29,9 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
   client; portal or point, AP kind (dual radio shared, tri radio dedicated, bridge unit),
   antenna (omni, down-tilt omni, wide patch, narrow patch, highly directional) with an
   aim that defaults to the parent, mast height, power and a fail toggle per AP; footprints
-  drawn as the antenna's real shape and a wedge showing where a patch looks; links drawn by
+  drawn as the antenna's real shape and a wedge showing where a patch looks; a 3D toggle
+  with an orbiting camera, Fresnel tubes that go orange where they clip, antenna lobes as
+  wire surfaces, the ground bounce, and the camera in the URL; links drawn by
   hop depth with their rate, orange and dashed when the Fresnel zone is short; a backup
   parent per point drawn faint, or flagged as a single point of failure; demand, what the
   mesh carries and the uplink on one bar with the ceiling named; an N-1 table that fails
@@ -89,7 +91,9 @@ Ideas parked from the mesh session, none of them decided:
 - Real vendor path cost. Aruba's metric and Mist's parent choice are sketched as airtime
   cost with a hop tax; the true formulas would make the profiles documentation instead of
   sketches, and need the release notes to back them.
-- Terrain. The field is flat; a height map would replace the "rise in the ground" blob.
+- Terrain. The field is flat; a height map would replace the "rise in the ground" blob,
+  and the 3D view is where it would pay off.
+- Dragging APs in the 3D view. Today it orbits; moving things is the plan view's job.
 - Per-AP down-tilt on patches, and a second antenna per AP so a tri radio box can carry a
   patch for the backhaul and an omni for the clients. Today one antenna does both jobs,
   which is the honest picture of a dual radio unit and a pessimistic one of a tri radio.
