@@ -214,6 +214,9 @@
 .m-legend-box>summary::-webkit-details-marker{display:none}
 .m-legend-box[open]>.m-legend{margin-top:8px;flex-basis:100%}
 .m-bar select{font:13px var(--sans);color:var(--text);background:rgba(3,10,16,0.8);border:1px solid var(--t-line);border-radius:999px;min-height:38px;padding:0 12px}
+.m-keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:6px 14px;margin-top:10px;flex-basis:100%;font:11px var(--mono);color:var(--text-muted)}
+.m-keys span{display:flex;gap:8px;align-items:baseline}
+.m-keys kbd{font:600 10px var(--mono);color:var(--text);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-bottom-width:2px;border-radius:6px;padding:1px 6px;white-space:nowrap}
 .m-clock{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-8px 0 16px;padding:8px 12px;border:1px solid var(--t-line);border-radius:12px;background:rgba(3,10,16,0.45)}
 .m-clock select{min-height:38px}
 .m-todnote{font:11px var(--mono);color:var(--text-muted)}
@@ -975,6 +978,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <div class="t-row"><label for="m-dev">Typical device</label><select id="m-dev"></select></div>
         <div class="t-row"><label for="m-edge">Cell edge</label>
           <input type="range" id="m-edge" min="-80" max="-55" step="1" value="-67"><output id="m-edge-v">-67 dBm</output></div>
+        <div class="t-row"><label for="m-sec">Second AP at</label>
+          <input type="range" id="m-sec" min="-90" max="-55" step="1" value="-77"><output id="m-sec-v">-77 dBm</output></div>
         <div class="t-row"><label for="m-cbw">Client channel</label>
           <select id="m-cbw"><option selected>20</option><option>40</option><option>80</option></select></div>
       </details>
@@ -1151,7 +1156,9 @@ Tap anything to change it. The big number is what gets off the site, and the not
     cl: NFN.f.int(100, 0, 20000),
     dev: NFN.f.pick("ax2", CAP.DEVICES.map(function (d) { return d.id; })),
     app: NFN.f.pick("web", CAP.APPS.map(function (a) { return a.id; })),
-    edge: NFN.f.num(-67, -80, -55), cbw: NFN.f.int(20, 20, 80),
+    edge: NFN.f.num(-67, -80, -55), sec: NFN.f.num(-77, -90, -55), cbw: NFN.f.int(20, 20, 80),
+    wl: NFN.f.json([], function (l) { return l.map(function (w) { return [Math.round(w.x1 * 10) / 10, Math.round(w.y1 * 10) / 10, Math.round(w.x2 * 10) / 10, Math.round(w.y2 * 10) / 10, Math.round(w.db * 10) / 10].join(","); }).join(";"); },
+      function (v) { if (v === "") return []; return (v || "").split(";").map(function (p2) { var b = p2.split(",").map(parseFloat); return b.length >= 5 && b.every(isFinite) ? { x1: b[0], y1: b[1], x2: b[2], y2: b[3], db: NFN.clamp(b[4], 0, 60) } : null; }).filter(Boolean).slice(0, 400); }),
     tod: NFN.f.num(24, 0, 24), curve: NFN.f.pick("flat", Object.keys(M.CURVES)),
     view: NFN.f.pick("plan", ["plan", "3d"]),
     l3: { def: "fltc", get: function (v) { return /^[fltc]{0,4}$/.test(v) ? v : undefined; } },
@@ -1204,7 +1211,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     $("m-tx").value = st.get("tx"); $("m-fade").value = st.get("fade"); $("m-ant").value = st.get("ant"); $("m-kind").value = st.get("kind"); $("m-mdl").value = st.get("mdl"); $("m-ss").value = st.get("ss");
     $("m-ray").value = st.get("ray") ? "1" : "0";
     $("m-cl").value = st.get("cl"); $("m-dev").value = st.get("dev"); $("m-app").value = st.get("app");
-    $("m-edge").value = st.get("edge"); $("m-cbw").value = st.get("cbw");
+    $("m-edge").value = st.get("edge"); $("m-sec").value = st.get("sec"); $("m-cbw").value = st.get("cbw");
     $("m-tod").value = st.get("tod"); $("m-curve").value = st.get("curve");
     channelOptions();
   }
@@ -1216,7 +1223,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
       .set("tx", +$("m-tx").value).set("fade", +$("m-fade").value).set("ant", $("m-ant").value).set("kind", $("m-kind").value).set("mdl", $("m-mdl").value).set("ss", +$("m-ss").value)
       .set("ray", $("m-ray").value === "1")
       .set("cl", Math.max(0, +$("m-cl").value || 0)).set("dev", $("m-dev").value).set("app", $("m-app").value)
-      .set("edge", +$("m-edge").value).set("cbw", +$("m-cbw").value)
+      .set("edge", +$("m-edge").value).set("sec", +$("m-sec").value).set("cbw", +$("m-cbw").value)
       .set("tod", +$("m-tod").value).set("curve", $("m-curve").value);
   }
 
@@ -1232,7 +1239,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
              tworay: S.get("ray"),
              clients: S.get("cl"), dev: S.get("dev"), app: S.get("app"),
              tod: S.get("tod") >= 24 ? null : S.get("tod"), curve: S.get("curve"),
-             clientTarget: S.get("edge"), clientBw: S.get("cbw"), clientF: S.get("f") };
+             clientTarget: S.get("edge"), secondary: S.get("sec"), clientBw: S.get("cbw"), clientF: S.get("f"), walls: S.get("wl") };
   }
   function model(raw) { return modelOf(st, raw); }
   function resolveAnts(S) {
@@ -1333,6 +1340,10 @@ Tap anything to change it. The big number is what gets off the site, and the not
       parts.push('<g data-kind="crowd" data-i="' + k + '" style="cursor:move">' +
         '<circle cx="' + X(cr.x) + '" cy="' + Y(cr.y) + '" r="' + Math.max(10, cr.r * L.s) + '" fill="url(#m-crowd)" stroke="' + (on ? "#fff" : bad ? WARN : "rgba(234,242,246,0.5)") + '" stroke-width="' + (on ? 2 : 1) + '"' + (bad ? ' stroke-dasharray="4 3"' : "") + '/>' +
         T(X(cr.x), Y(cr.y) + 4, Math.round(cr.n * p.who.factor) + " people" + (bad ? ", " + Math.round(w2.unserved) + " unserved" : ""), bad ? WARN : "#EAF2F6", "middle", 9.5, 'pointer-events="none"') + "</g>");
+    });
+    /* walls: a line as heavy as its loss */
+    st.get("wl").forEach(function (w) {
+      parts.push('<line x1="' + X(w.x1) + '" y1="' + Y(w.y1) + '" x2="' + X(w.x2) + '" y2="' + Y(w.y2) + '" stroke="rgba(234,242,246,' + NFN.clamp(0.35 + w.db / 40, 0.35, 0.95).toFixed(2) + ')" stroke-width="' + NFN.clamp(1 + w.db / 6, 1, 5) + '" stroke-linecap="round"/>');
     });
     /* obstacles */
     obs.forEach(function (o, k) {
@@ -1563,6 +1574,11 @@ Tap anything to change it. The big number is what gets off the site, and the not
       if (pts.length) { var wp = pts.map(function (q) { return P(q.x, q.y, gz(q.x, q.y) + 0.2); }); add(depthOf(wp) + 0.4, '<polyline points="' + pts3(wp) + '" fill="none" stroke="#4FBDEA" stroke-opacity="0.8" stroke-width="1.5" stroke-dasharray="5 4" filter="url(#m-glow)"/>'); }
     }
 
+    /* walls as slabs three metres tall */
+    st.get("wl").forEach(function (w) {
+      var q0 = P(w.x1, w.y1, gz(w.x1, w.y1)), q1 = P(w.x2, w.y2, gz(w.x2, w.y2)), q2 = P(w.x2, w.y2, gz(w.x2, w.y2) + 3), q3 = P(w.x1, w.y1, gz(w.x1, w.y1) + 3), face = [q0, q1, q2, q3];
+      add(depthOf(face), '<polygon points="' + pts3(face) + '" fill="rgba(234,242,246,' + NFN.clamp(0.10 + w.db / 60, 0.1, 0.45).toFixed(2) + ')" stroke="rgba(234,242,246,0.5)" stroke-width="0.6"/>');
+    });
     /* obstacles as twelve sided prisms, lit, with a shadow on the ground */
     obs.forEach(function (o, k) {
       var N = 12, top = [], base = [], q, blocks = false, g0 = gz(o.x, o.y), tint = (M.OBSTACLES[o.type] || {}).foliage ? [90, 170, 80] : [150, 175, 195];
@@ -2008,7 +2024,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     ["fw", "fd"].forEach(function (k) { $("m-" + k + "-v").textContent = st.get(k) + " m"; });
     $("m-north-v").textContent = st.get("north") === 0 ? "up is N" : "up is " + M.compass(-90, st.get("north")).toFixed(0) + "°";
     $("m-hops-v").textContent = st.get("hops"); $("m-tx-v").textContent = st.get("tx") + " dBm"; $("m-fade-v").textContent = st.get("fade") + " dB";
-    $("m-edge-v").textContent = st.get("edge") + " dBm"; $("m-imgop-v").textContent = Math.round(img.op * 100) + "%";
+    $("m-edge-v").textContent = st.get("edge") + " dBm"; $("m-sec-v").textContent = st.get("sec") + " dBm"; $("m-imgop-v").textContent = Math.round(img.op * 100) + "%";
     $("m-hops").disabled = M.profile(st.get("prof")).maxHops !== null;
     $("m-profnote").textContent = M.profile(st.get("prof")).note + ".";
     $("m-tod-v").textContent = st.get("tod") >= 24 ? "peak" : hhmm(st.get("tod")) + ", " + Math.round(p.who.factor * 100) + "%";
@@ -2031,7 +2047,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     $("m-stats").innerHTML = [
       ["per client, of " + p.askKbps + " kb/s asked", kbs(p.perClientKbps)], [p.who.unserved > 0.5 ? "people, " + Math.round(p.who.unserved) + " unserved" : "people", String(Math.round(p.clients))],
       ["APs live", live + " of " + p.aps.length], ["Portals", p.tree.gateways + " on " + p.channels.distinct + " channel" + (p.channels.distinct === 1 ? "" : "s")],
-      ["Deepest", p.maxDepth + (p.maxDepth === 1 ? " hop" : " hops")], ["Field covered", pc(p.coverage)], ["No backup", String(p.spof)]
+      ["Deepest", p.maxDepth + (p.maxDepth === 1 ? " hop" : " hops")], ["covered, and with a second AP", pc(p.coverage) + " / " + pc(p.coverage2)], ["No backup", String(p.spof)]
     ].map(function (s) { return '<div class="t-stat"><b>' + s[1] + "</b><span>" + s[0] + "</span></div>"; }).join("");
 
     var top = Math.max(p.demand, p.meshMbps, p.uplink, 1) * 1.08;
@@ -2158,6 +2174,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     lines.push("");
     st.get("ob").forEach(function (o) { lines.push("obstacle: " + M.OBSTACLES[o.type].label.toLowerCase() + " at x " + Math.round(o.x) + ", y " + Math.round(o.y) + ", " + o.h + " m high, " + o.r + " m radius"); });
     st.get("tr").forEach(function (h) { lines.push("ground: " + (h.h >= 0 ? "hill" : "hollow") + " at x " + Math.round(h.x) + ", y " + Math.round(h.y) + ", " + h.h + " m, " + h.r + " m wide"); });
+    if (st.get("wl").length) lines.push("walls: " + st.get("wl").length + " from the survey, each costing its loss per crossing");
     st.get("cr").forEach(function (cr, k) { var w2 = p.who.crowds[k]; lines.push("crowd: " + cr.n + " people at x " + Math.round(cr.x) + ", y " + Math.round(cr.y) + ", radius " + cr.r + " m" + (w2 && w2.unserved > 0.5 ? ", " + Math.round(w2.unserved) + " UNSERVED" : "")); });
     if (c && cl) lines.push("client at x " + Math.round(c.x) + ", y " + Math.round(c.y) + ": " + (cl.ap >= 0 && cl.ok ? "AP " + (cl.ap + 1) + ", " + cl.rssi.toFixed(0) + " dBm, " + NFN.phy.label(cl.std, cl.mcs) + ", " + mbs(cl.alone) + " alone, " + mbs(cl.crowd) + " busy, ceiling is " + cl.binds : "no signal"));
     if (walk && walk.length) lines.push("walk: " + Math.round(walk[walk.length - 1].dist) + " m, " + walk.filter(function (w2) { return !w2.ok; }).length + " steps of " + walk.length + " with no signal");
@@ -2183,7 +2200,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
   });
 
   /* ── the controls ────────────────────────────────────────────────────── */
-  ["m-fw", "m-fd", "m-north", "m-land", "m-dom", "m-up", "m-prof", "m-hops", "m-band", "m-bw", "m-dfs", "m-tx", "m-fade", "m-ant", "m-kind", "m-ss", "m-ray", "m-cl", "m-dev", "m-app", "m-edge", "m-cbw", "m-tod", "m-curve"]
+  ["m-fw", "m-fd", "m-north", "m-land", "m-dom", "m-up", "m-prof", "m-hops", "m-band", "m-bw", "m-dfs", "m-tx", "m-fade", "m-ant", "m-kind", "m-ss", "m-ray", "m-cl", "m-dev", "m-app", "m-edge", "m-sec", "m-cbw", "m-tod", "m-curve"]
     .forEach(function (id) { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
   ["m-fw", "m-fd"].forEach(function (id) { $(id).addEventListener("input", function () {
     /* keep everything on the field when it shrinks */
@@ -2369,18 +2386,36 @@ Tap anything to change it. The big number is what gets off the site, and the not
     this.value = "";
   });
   $("m-esxfloor").addEventListener("change", function () { applyFloor(+this.value); });
+  /* Ekahau's measured antenna planes, kept in this browser so a reload still has them */
+  var patterns = {};
+  try { patterns = JSON.parse(localStorage.getItem("nfn-mesh-patterns") || "{}"); } catch (e) {}
+  Object.keys(patterns).forEach(function (id) { var q = patterns[id]; M.registerPattern(id, q.label, q.g, q.hp, q.ep, q.tilt, q.directional); });
   function applyFloor(k) {
     var fl = esxProj.floors[k], fw = NFN.clamp(Math.round(fl.w / 10) * 10, 60, 1200), fd = NFN.clamp(Math.round(fl.d / 10) * 10, 40, 800), sx = fw / fl.w, sy = fd / fl.d;
     st.set("fw", fw).set("fd", fd); $("m-fw").value = fw; $("m-fd").value = fd;
+    var byType = {}; esxProj.antennas.forEach(function (a) { byType[a.id] = a; });
+    var withPattern = 0;
     var aps = fl.aps.slice(0, 24).map(function (a, i) {
-      var directional = a.ant !== "omni";
+      var directional = a.ant !== "omni", ant = a.ant, pat = a.antennaTypeId && byType[a.antennaTypeId];
+      if (pat && !a.external) {
+        var id = "esx:" + pat.id;
+        M.registerPattern(id, pat.name + ", Ekahau pattern", pat.maxGain, pat.hplane, pat.eplane, pat.tilt, pat.directional);
+        patterns[id] = { label: pat.name + ", Ekahau pattern", g: pat.maxGain, hp: pat.hplane, ep: pat.eplane, tilt: pat.tilt, directional: pat.directional };
+        ant = id; directional = !!pat.directional; withPattern++;
+      }
       return { x: NFN.clamp(a.x * sx, 0, fw), y: NFN.clamp(a.y * sy, 0, fd), h: NFN.clamp(a.h === null ? 3 : a.h, 0.5, 15), gw: i === 0,
-               kind: a.external ? "tri" : "dual", ant: a.ant, aim: directional && a.aim !== null ? a.aim : null, tilt: NFN.clamp(a.tilt || 0, -10, 45),
+               kind: a.external ? "tri" : "dual", ant: ant, aim: directional && a.aim !== null ? a.aim : null, tilt: NFN.clamp(a.tilt || 0, -10, 45),
                tx: a.tx === null ? undefined : NFN.clamp(a.tx, 0, 30), band: null, bw: a.width && [20, 40, 80, 160].indexOf(a.width) >= 0 ? a.width : null, ch: null, name: a.name };
     });
+    try { localStorage.setItem("nfn-mesh-patterns", JSON.stringify(patterns)); } catch (e) {}
     if (aps.length) st.set("ap", aps);
+    st.set("wl", (fl.walls || []).map(function (w) { return { x1: w.x1 * sx, y1: w.y1 * sy, x2: w.x2 * sx, y2: w.y2 * sy, db: w.db }; }));
+    if (esxProj.requirement) {
+      if (esxProj.requirement.primary !== undefined) { st.set("edge", NFN.clamp(esxProj.requirement.primary, -80, -55)); $("m-edge").value = st.get("edge"); }
+      if (esxProj.requirement.secondary !== undefined) { st.set("sec", NFN.clamp(esxProj.requirement.secondary, -90, -55)); $("m-sec").value = st.get("sec"); }
+    }
     st.set("ob", []).set("tr", []).set("ms", {}).set("pt", []);
-    var note = pj_note(fl, aps);
+    var note = pj_note(fl, aps) + (withPattern ? " " + withPattern + " AP" + (withPattern === 1 ? " uses" : "s use") + " Ekahau's own measured antenna pattern." : "") + ((fl.walls || []).length ? " " + fl.walls.length + " walls came across with Ekahau's loss per crossing." : "") + (esxProj.requirement ? " The project's requirement set the cell edge and the second AP bar." : "");
     if (fl.image && esxBuf) {
       NFN.esx.read(esxBuf, fl.image).then(function (bytes) { setImage(bytes, null); }).catch(function () {});
     }
@@ -2434,6 +2469,83 @@ Tap anything to change it. The big number is what gets off the site, and the not
     var DO = window.DeviceOrientationEvent;
     if (DO && typeof DO.requestPermission === "function") DO.requestPermission().then(function (r) { if (r === "granted") go(); }).catch(go); else go();
   });
+
+  /* ── keys: the editor without a pointer ───────────────────────────────
+     Arrows move the selected thing a metre (ten with shift); brackets raise
+     and lower a mast, an obstacle or a hill; comma and full stop turn a patch;
+     semicolon and quote resize a crowd; P portal, F fail, X remove, Tab next
+     AP, 1 and 2 plan or 3D, Q E W S orbit, minus and equals zoom, H heights,
+     Escape clears. Nothing fires while a field has focus. */
+  M.KEYS = [
+    ["Arrows", "move the selected AP, obstacle, hill, crowd or client 1 m; Shift for 10 m"],
+    ["[ and ]", "mast down and up 0.5 m; obstacle or hill height; crowd headcount by 10"],
+    ["; and '", "crowd or obstacle radius down and up 5 m"],
+    [", and .", "turn the antenna 5 degrees; Shift for 15; 0 sets it back to automatic"],
+    ["P", "make the selected AP the portal, or a point again"],
+    ["F", "fail the selected AP, or bring it back"],
+    ["X", "remove the selected thing"],
+    ["Tab", "select the next AP; Shift+Tab the previous"],
+    ["N", "add an AP where the client stands, or in the middle"],
+    ["1 and 2", "plan view, 3D view"],
+    ["Q and E, W and S", "orbit the 3D camera"],
+    ["- and =", "zoom the 3D camera"],
+    ["H and Shift+H", "heights exaggeration down and up"],
+    ["Escape", "select nothing"]
+  ];
+  document.addEventListener("keydown", function (e) {
+    if (document.getElementById("tool-mesh").hidden) return;
+    var tg = e.target, tag = (tg && tg.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "select" || tag === "textarea" || (tg && tg.isContentEditable)) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var step = e.shiftKey ? 10 : 1, k = e.key, handled = true, aps = st.get("ap"), fw = st.get("fw"), fd = st.get("fd");
+    function moveSel(dx, dy) {
+      if (!sel) return false;
+      if (sel.kind === "cl") { var c = st.get("c"); if (!c) return false; st.set("c", { x: NFN.clamp(c.x + dx, 0, fw), y: NFN.clamp(c.y + dy, 0, fd) }); return true; }
+      var o = listOf(sel.kind) && listOf(sel.kind)[sel.i]; if (!o) return false;
+      o.x = NFN.clamp(o.x + dx, 0, fw); o.y = NFN.clamp(o.y + dy, 0, fd); return true;
+    }
+    if (k === "ArrowLeft") moveSel(-step, 0); else if (k === "ArrowRight") moveSel(step, 0);
+    else if (k === "ArrowUp") moveSel(0, -step); else if (k === "ArrowDown") moveSel(0, step);
+    else if (k === "[" || k === "]") {
+      var d = k === "]" ? 1 : -1;
+      if (sel && sel.kind === "ap") aps[sel.i].h = NFN.clamp(aps[sel.i].h + 0.5 * d, 0.5, 15);
+      else if (sel && sel.kind === "ob") st.get("ob")[sel.i].h = NFN.clamp(st.get("ob")[sel.i].h + 0.5 * d, 1, 30);
+      else if (sel && sel.kind === "hill") st.get("tr")[sel.i].h = NFN.clamp(st.get("tr")[sel.i].h + 0.5 * d, -10, 30);
+      else if (sel && sel.kind === "crowd") st.get("cr")[sel.i].n = Math.max(0, st.get("cr")[sel.i].n + 10 * d);
+      else handled = false;
+    } else if (k === ";" || k === "'") {
+      var d2 = k === "'" ? 5 : -5;
+      if (sel && sel.kind === "crowd") st.get("cr")[sel.i].r = NFN.clamp(st.get("cr")[sel.i].r + d2, 5, 150);
+      else if (sel && sel.kind === "ob") st.get("ob")[sel.i].r = NFN.clamp(st.get("ob")[sel.i].r + d2, 2, 60);
+      else if (sel && sel.kind === "hill") st.get("tr")[sel.i].r = NFN.clamp(st.get("tr")[sel.i].r + d2 * 2, 10, 300);
+      else handled = false;
+    } else if ((k === "," || k === ".") && sel && sel.kind === "ap") {
+      var cur = lastP ? lastP.tree.aps[sel.i].aim : 0; aps[sel.i].aim = cur + (k === "." ? 1 : -1) * (e.shiftKey ? 15 : 5);
+    } else if (k === "0" && sel && sel.kind === "ap") aps[sel.i].aim = null;
+    else if ((k === "p" || k === "P") && sel && sel.kind === "ap") aps[sel.i].gw = !aps[sel.i].gw;
+    else if ((k === "f" || k === "F") && sel && sel.kind === "ap") aps[sel.i].down = !aps[sel.i].down;
+    else if ((k === "x" || k === "X") && sel) {
+      if (sel.kind === "ap") $("m-rmap").click(); else if (sel.kind === "ob") $("m-rmob").click(); else if (sel.kind === "hill") $("m-rmhill").click(); else if (sel.kind === "crowd") $("m-rmcrowd").click(); else if (sel.kind === "cl") $("m-rmcl").click(); else handled = false;
+      if (handled) { e.preventDefault(); return; }
+    } else if (k === "Tab") {
+      var i0 = sel && sel.kind === "ap" ? sel.i : -1, nxt = ((i0 + (e.shiftKey ? -1 : 1)) % aps.length + aps.length) % aps.length; sel = { kind: "ap", i: nxt };
+    } else if (k === "n" || k === "N") {
+      var c2 = st.get("c") || { x: fw / 2, y: fd / 2 }, aps2 = aps.slice();
+      if (aps2.length < 24) { aps2.push({ x: c2.x, y: c2.y, h: 3, gw: !aps2.some(function (a) { return a.gw; }), kind: st.get("mdl") ? undefined : st.get("kind"), ant: st.get("ant"), aim: null, tilt: 0, band: null, bw: null, ch: null, model: st.get("mdl") || undefined }); st.set("ap", aps2); sel = { kind: "ap", i: aps2.length - 1 }; }
+    } else if (k === "1") st.set("view", "plan"); else if (k === "2") st.set("view", "3d");
+    else if (st.get("view") === "3d" && (k === "q" || k === "Q" || k === "e" || k === "E" || k === "w" || k === "W" || k === "s" || k === "S" || k === "-" || k === "=" || k === "+")) {
+      var cm = cam(), o = { yaw: cm.yaw, pitch: cm.pitch, zoom: cm.zoom };
+      if (k === "q" || k === "Q") o.yaw -= 6; if (k === "e" || k === "E") o.yaw += 6;
+      if (k === "w" || k === "W") o.pitch = NFN.clamp(o.pitch + 4, 8, 85); if (k === "s" || k === "S") o.pitch = NFN.clamp(o.pitch - 4, 8, 85);
+      if (k === "-") o.zoom = NFN.clamp(o.zoom * 1.1, 0.9, 4); if (k === "=" || k === "+") o.zoom = NFN.clamp(o.zoom / 1.1, 0.9, 4);
+      st.set("cam", o); e.preventDefault(); if (lastP) draw3d(lastP, lastCl, lastWalk); st.push(); return;
+    } else if (k === "h" || k === "H") st.set("zx", NFN.clamp(st.get("zx") + (e.shiftKey ? 1 : -1), 1, 10));
+    else if (k === "Escape") sel = null;
+    else handled = false;
+    if (handled) { e.preventDefault(); run(); }
+  });
+  /* the key list lives under the Key chip */
+  (function () { var lg = $("m-legend"); if (!lg) return; var ul = document.createElement("div"); ul.className = "m-keys"; ul.innerHTML = M.KEYS.map(function (kk) { return "<span><kbd>" + esc(kk[0]) + "</kbd>" + esc(kk[1]) + "</span>"; }).join(""); lg.parentNode.appendChild(ul); })();
 
   window.addEventListener("hashchange", function () { if (st.fromHash(location.hash)) { writeUi(); run(); } });
   window.addEventListener("resize", function () { if (!document.getElementById("tool-mesh").hidden) run(); });

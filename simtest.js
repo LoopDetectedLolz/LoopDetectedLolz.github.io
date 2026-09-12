@@ -487,7 +487,7 @@ eq("antenna names: a 70 degree sector", NFN.esx.antennaFor("ANT-3x3-5712 sector 
 eq("antenna names: a 30 degree sector", NFN.esx.antennaFor("Sector 30° 5 GHz"), "pnarrow");
 eq("antenna names: a dish", NFN.esx.antennaFor("PtP dish 5 GHz"), "dish");
 var esxBuf = fs.readFileSync(path.join(__dirname, "demo", "mesh-test.esx")), esxAb = esxBuf.buffer.slice(esxBuf.byteOffset, esxBuf.byteOffset + esxBuf.byteLength);
-eq("the zip lists its entries", NFN.esx.entries(esxAb).length, 6);
+eq("the zip lists its entries", NFN.esx.entries(esxAb).length, 10);
 NFN.esx.project(esxAb).then(function (pj) {
   eq("the project has a floor", pj.floors.length, 1);
   near("the floor is metres wide", pj.floors[0].w, 700, 0.001);
@@ -495,6 +495,25 @@ NFN.esx.project(esxAb).then(function (pj) {
   near("positions are in metres", pj.floors[0].aps[0].x, 70, 0.001);
   near("Ekahau's up is the planner's minus 90", pj.floors[0].aps[1].aim, -90, 0.001);
   eq("two 20 MHz channels is a 40 MHz radio", pj.floors[0].aps[0].width, 40);
+  /* Ekahau's own pieces: measured planes, walls, the requirement */
+  eq("the requirement comes across", pj.requirement.primary, -65);
+  eq("with its secondary", pj.requirement.secondary, -67);
+  eq("an antenna type with planes is offered", pj.antennas.length, 1);
+  var pid = NFN.mesh.registerPattern("esx:t1", "test ceiling omni", 5, pj.antennas[0].hplane, pj.antennas[0].eplane, 0, false);
+  near("the measured pattern peaks 30 degrees down", NFN.mesh.gainToward({ ant: pid, aim: 0 }, 0, -30, {}), 5, 0.5);
+  if (!(NFN.mesh.gainToward({ ant: pid, aim: 0 }, 0, 90, {}) < NFN.mesh.gainToward({ ant: pid, aim: 0 }, 0, -30, {}) - 6)) { fails++; console.log("  FAIL straight up should be well down on the peak"); }
+  n++;
+  eq("a wall segment comes across in metres", pj.floors[0].walls.length, 1);
+  near("brick is 33.33 dB/m times 0.3 m, the 10 dB in its name", pj.floors[0].walls[0].db, 10, 0.01);
+  var wl = pj.floors[0].walls, cross = NFN.mesh.wallsCrossed(100, 175, 500, 175, wl), miss = NFN.mesh.wallsCrossed(100, 175, 250, 175, wl);
+  eq("a path through the wall pays for it", cross.n, 1); near("ten dB", cross.db, 10, 0.01); eq("a path that stops short does not", miss.n, 0);
+  var wsite = { aps: [{ x: 100, y: 175, h: 3, gw: true }, { x: 500, y: 175, h: 3 }], w: 700, d: 350, tx: 20, tworay: false, uplink: 100, clients: 20, walls: wl };
+  var wp1 = NFN.mesh.plan(wsite), wp0 = NFN.mesh.plan(Object.assign({}, wsite, { walls: [] }));
+  near("the link loses the wall's ten dB", wp0.aps[1].link.prx - wp1.aps[1].link.prx, 10, 0.01);
+  if (!(wp1.coverage <= wp0.coverage)) { fails++; console.log("  FAIL a wall should not add coverage"); }
+  n++;
+  if (!(wp0.coverage2 <= wp0.coverage)) { fails++; console.log("  FAIL secondary coverage cannot beat primary"); }
+  n++;
   finish();
 }).catch(function (e) { fails++; n++; console.log("  FAIL reading the esx: " + e.message); finish(); });
 
