@@ -15,6 +15,7 @@
       <button class="chip" id="qam-mp" type="button" aria-pressed="false">Multipath</button>
       <button class="chip" id="qam-room" type="button" aria-pressed="false" title="Ceiling, floor and the wall behind the antenna; the strongest path wins">Room</button>
       <button class="chip" id="qam-lb" type="button" aria-pressed="false">Link budget</button>
+      <button class="chip" id="qam-mon" type="button" aria-pressed="false" title="Drive the link from a real client's monitoring data">Live</button>
       <button class="chip" id="qam-heat" type="button" title="Face-on target: hits, heat map, or both">Hits</button>
       <button class="chip" id="qam-follow" type="button">Follow a symbol</button>
       <button class="chip" id="qam-fs" type="button" aria-pressed="false">Fullscreen</button>
@@ -40,6 +41,13 @@
     <button class="chip" type="button" data-wall="cinder">Cinderblock 6 dB</button>
     <button class="chip" type="button" data-wall="brick">Brick / concrete 12 dB</button>
     <span class="qam-lbnote">Drag a wall along the beam, tap the × above it to remove it. Typical 5 GHz survey values; measure yours.</span>
+  </div>
+  <div class="qam-lbrow" id="qam-monrow" hidden>
+    <label>Feed <input id="qam-monurl" type="url" value="http://127.0.0.1:8830/latest.json" style="width:250px;accent-color:initial;font:12px var(--mono);color:var(--text);background:rgba(3,10,16,0.55);border:1px solid var(--line);border-radius:8px;padding:6px 8px" aria-label="URL of the local monitoring relay"></label>
+    <button class="chip" id="qam-monconn" type="button" aria-pressed="false">Connect</button>
+    <label class="chip" style="cursor:pointer">Open a snapshot<input type="file" id="qam-monfile" accept=".json,application/json" hidden></label>
+    <button class="chip" id="qam-monstop" type="button" hidden>Back to the sliders</button>
+    <span class="qam-lbnote" id="qam-montile">No client yet. On the laptop, <code>python3 client-pull.py --client &lt;name or MAC&gt; --serve 8830</code> polls Central and serves the latest reading here; the page only ever reads localhost. Or save one reading with <code>--out</code> and open it.</span>
   </div>
   <div class="qam-app" id="qam-app"><div class="qam-tile" id="qam-app-l"></div><div class="qam-tile" id="qam-app-r"></div></div>
   <div class="qam-rx" id="qam-rx">
@@ -180,7 +188,7 @@
   function wallLoss(upTo){var t=0;for(var i=0;i<lb.walls.length;i++)if(upTo===undefined||lb.walls[i].pos<=upTo)t+=WALLS[lb.walls[i].type].db;return t}
   function noiseFloor(){return -174+10*Math.log10(bw*1e6)+NF}
   function prxAt(frac){return PTX_DBM+gtx()+GR-pathLoss(Math.max(0.3,frac*lb.d))-wallLoss(frac)}
-  function prx(){return PTX_DBM+gtx()+GR-pathLoss(lb.d)-wallLoss()}
+  function prx(){if(mon&&monSnrCur!==null)return monSnrCur+noiseFloor();return PTX_DBM+gtx()+GR-pathLoss(lb.d)-wallLoss()}
   function snrDb(){return prx()-noiseFloor()}
   function mcsFor(snr){var t=snrMin(),m=-1;for(var i=0;i<t.length&&i<MCS.length;i++)if(snr>=t[i])m=i;return m}
   function esUnits(){return (sx*sx-1)/3+(sy*sy-1)/3}
@@ -245,6 +253,7 @@
   function retry(){if(TR&&TR.kind==='chat'){var mm=app.chat.msgs[app.chat.idx];if(mm&&mm.state!=='delivered')mm.state='sending';}clearRx();next=0;fly=[];ghosts=[];vs=null;errors=0;attempt++;pt=0;emitT=0;startPre();}
   /* end of a data burst: the FCS check decides, then the ACK or the timeout is booked */
   function dataDone(){frameUs+=airtime(mcsCur,ss,bw);fcs=checkFcs();var ok=fcs?fcs.ok:errors===0;
+    if(ok&&mon&&mon.link&&+mon.link.retry_pct>0&&Math.random()<+mon.link.retry_pct/100){ok=false;monLost++;}
     if(ok){frameUs+=SIFS+ACK;appDeliver(attempt,frameUs);okRun++;failRun=0;if(okRun>=3&&mcsCur<mcsSel){mcsCur++;adaptNote='Rate adaptation: clean run, MCS back up to '+mcsCur+'.';flash={text:'rate up: MCS '+(mcsCur-1)+' → '+mcsCur,t:2.2,up:true};okRun=0;}}
     else{frameUs+=ACKTO;retries++;failRun++;okRun=0;}return ok;}
   /* after an ACK timeout: give up, or double the contention window and maybe step the rate down */
@@ -689,6 +698,7 @@
   function stepInner(now){
     if(scene==='link'){try{drawLink();}catch(err){if(window.console)console.error('qam link',err);}requestAnimationFrame(step);return;}
     if(!lastNow)lastNow=now;var raw=now-lastNow;var dt=Math.min(50,raw)/1000;lastNow=now;var L=layout();
+    if(mon&&monSnr!==null){if(monSnrCur===null)monSnrCur=monSnr;else monSnrCur+=(monSnr-monSnrCur)*Math.min(1,dt*1.5);}
     govT+=dt;if(drawMs>9&&govT>0.8&&drop<3){drop++;govT=0;}else if(drawMs<3.5&&govT>4&&drop>0){drop--;govT=0;}quality();
     if(!paused&&!document.hidden){
       if(band===0){stepFrames(dt,L);}
@@ -782,6 +792,46 @@
   LBR.querySelectorAll('[data-wall]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();if(lb.walls.length>=3)return;var used=lb.walls.map(function(w){return w.pos});var pos=[0.35,0.6,0.8,0.5,0.25][lb.walls.length];lb.walls.push({type:b.getAttribute('data-wall'),pos:pos});});});
   LBR.addEventListener('click',function(e){e.stopPropagation()});
   htb.addEventListener('click',function(e){e.stopPropagation();heatClear();heatMode=(heatMode+1)%3;htb.textContent=['Hits','Heat','Both'][heatMode];htb.classList.toggle('on',heatMode>0);});
+
+  /* ── live: a real client's reading drives the link ──────────────────────
+     The page never calls a controller. client-pull.py on the laptop polls
+     Central (or writes one snapshot) and this reads localhost. A reading sets
+     the standard, streams and width from the client's top rate, the MCS from
+     its current rate, the SNR from the radio, and its retry share fails clean
+     frames at that rate on top of what the noise does. Monitoring is a minute's
+     average, so this is what the stream looks like statistically, not a replay. */
+  var mon=null,monSnr=null,monSnrCur=null,monLost=0,monTimer=null,monReads=0;
+  var monb=document.getElementById('qam-mon'),MONR=document.getElementById('qam-monrow'),monUrl=document.getElementById('qam-monurl'),monConn=document.getElementById('qam-monconn'),monFile=document.getElementById('qam-monfile'),monStop=document.getElementById('qam-monstop'),monTile=document.getElementById('qam-montile');
+  function rateOf(id,m,s,w){var T=STD[id],row=T.mcs[m];return s*T.nsd[w]*row[1]*row[2]/T.tsym}
+  /* which standard, streams and width top out at the client's maximum rate; the reading's width wins a tie */
+  function inferPhy(maxMbps,wantBw){if(!(maxMbps>0))return null;var best=null;['be','ax','ac','n'].forEach(function(id){var T=STD[id];for(var s=1;s<=Math.min(4,T.ssMax);s++)T.widths.forEach(function(w){var top=rateOf(id,T.mcs.length-1,s,w),err=Math.abs(top-maxMbps)/maxMbps+(w===wantBw?0:0.02)+(id==='be'?0.01:0);if(!best||err<best.err)best={std:id,ss:s,bw:w,err:err,top:top};});});return best&&best.err<0.25?best:null}
+  function mcsForRate(mbps){if(!(mbps>0))return -1;var m=0;for(var i=0;i<MCS.length;i++)if(rateOf(std,i,ss,bw)<=mbps*1.02)m=i;return m}
+  function monApply(r){if(!r||!r.link)throw new Error('no link in the reading');
+    mon=r;monReads++;var link=r.link,radio=r.radio||{},w=+radio.bw||bw;
+    var was=std+'/'+ss+'/'+bw+'/'+mcsSel,phy=inferPhy(+link.max_mbps,w);
+    if(phy){if(std!==phy.std){setStd(phy.std);stdSel.value=std;}ss=phy.ss;bw=phy.bw;ssSel.value=ss;bwSel.value=bw;}else if(radio.bw&&S.widths.indexOf(+radio.bw)>=0){bw=+radio.bw;bwSel.value=bw;}
+    var m=mcsForRate(+link.speed_mbps);if(m>=0&&m!==mcsSel)setSel(m);
+    monSnr=has(link.snr_db)?+link.snr_db:(has(link.rssi_dbm)&&has(radio.noise_dbm)?+link.rssi_dbm-+radio.noise_dbm:null);
+    [dsl,mdb].forEach(function(el){el.disabled=true});LBR.querySelectorAll('[data-wall]').forEach(function(b){b.disabled=true});[selM,ssSel,bwSel,stdSel].forEach(function(el){el.disabled=true});
+    monStop.hidden=false;if(was!==std+'/'+ss+'/'+bw+'/'+mcsSel){heatClear();fieldDirty=true;}monRender();hintText();}
+  function has(v){return v!==null&&v!==undefined&&v!==''&&isFinite(+v)}
+  function monRender(){if(!mon){return}var l=mon.link,a=mon.ap||{},c=mon.client||{},rd=mon.radio||{},m0=mcsFor(snrDb());
+    var when=mon.ts?new Date(mon.ts*1000>1e12?mon.ts:mon.ts*1000):null;
+    monTile.innerHTML='<b>'+esc(c.name||c.mac||'client')+'</b>'+(c.os?' ('+esc(c.os)+')':'')+' on <b>'+esc(a.name||a.serial||'?')+'</b>'+(a.model?' '+esc(a.model):'')+', '+esc(String(rd.band||'?'))+' GHz ch '+esc(String(rd.channel||'?'))+(rd.bw?' at '+rd.bw+' MHz':'')+'. '+
+      'Signal <b>'+(has(l.rssi_dbm)?(+l.rssi_dbm).toFixed(0)+' dBm':'?')+'</b>, SNR <b>'+(monSnr!==null?monSnr.toFixed(0)+' dB':'?')+'</b>'+(has(rd.noise_dbm)?', noise '+(+rd.noise_dbm).toFixed(0)+' dBm':'')+(has(rd.util_pct)?', channel '+(+rd.util_pct).toFixed(0)+'% busy':'')+'. '+
+      'Rate <b>'+(has(l.speed_mbps)?(+l.speed_mbps).toFixed(0):'?')+'</b> of '+(has(l.max_mbps)?(+l.max_mbps).toFixed(0):'?')+' Mb/s, read as '+STD[std].name+', '+ss+' stream'+(ss===1?'':'s')+', '+bw+' MHz, MCS '+mcsSel+(m0<mcsSel?' <b class="warn">(the SNR only holds MCS '+m0+')</b>':'')+'. '+
+      (has(l.retry_pct)?'Retries <b>'+(+l.retry_pct).toFixed(0)+'%</b> on top of the noise. ':'No retry figure in this feed; the noise alone decides. ')+(has(l.health)?'Health '+l.health+'. ':'')+(has(mon.mos)?'Controller MOS <b>'+(+mon.mos).toFixed(1)+'</b> against the modelled figure in the call tile. ':'')+
+      (when?'Read '+when.toLocaleTimeString()+(monTimer?', polling':'')+'. ':'')+(mon.source?esc(mon.source)+'. ':'')+'Sliders are parked while the feed drives.';}
+  function monClear(){mon=null;monSnr=null;monSnrCur=null;if(monTimer){clearInterval(monTimer);monTimer=null;}monConn.textContent='Connect';monConn.setAttribute('aria-pressed','false');monConn.classList.remove('on');
+    [dsl,mdb,selM,ssSel,bwSel,stdSel].forEach(function(el){el.disabled=false});LBR.querySelectorAll('[data-wall]').forEach(function(b){b.disabled=false});monStop.hidden=true;heatClear();fieldDirty=true;
+    monTile.textContent='Back on the sliders.';hintText();}
+  function monPoll(){var u=monUrl.value.trim();if(!u)return;fetch(u,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(function(j){monApply(j)}).catch(function(e){monTile.textContent='No reading from '+u+': '+e.message+'. Is client-pull.py --serve running on the laptop?'+(location.protocol==='https:'?' A page on https can read http://127.0.0.1 in Chrome and Edge; Safari may refuse.':'');});}
+  monb.addEventListener('click',function(e){e.stopPropagation();var on=MONR.hidden;MONR.hidden=!on;monb.setAttribute('aria-pressed',on);monb.classList.toggle('on',on);});
+  MONR.addEventListener('click',function(e){e.stopPropagation()});
+  monConn.addEventListener('click',function(e){e.stopPropagation();if(monTimer){monClear();return;}monPoll();monTimer=setInterval(monPoll,5000);monConn.textContent='Stop';monConn.setAttribute('aria-pressed','true');monConn.classList.add('on');});
+  monStop.addEventListener('click',function(e){e.stopPropagation();monClear();});
+  monFile.addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{if(monTimer){clearInterval(monTimer);monTimer=null;monConn.textContent='Connect';}monApply(JSON.parse(String(rd.result)));}catch(err){monTile.textContent='Could not read it: '+err.message;}};rd.readAsText(f);this.value='';});
+  root._mon=function(r){if(r===null)monClear();else monApply(r);return{std:std,ss:ss,bw:bw,mcs:mcsSel,snr:monSnr,lost:monLost}};
   var inb=document.getElementById('qam-int');inb.addEventListener('click',function(e){e.stopPropagation();intOn=!intOn;if(!intOn)cur.on=false;inb.setAttribute('aria-pressed',intOn);inb.classList.toggle('on',intOn);hintText();});
   var rmb=document.getElementById('qam-room');rmb.addEventListener('click',function(e){e.stopPropagation();room=!room;roomBest=null;heatClear();rmb.setAttribute('aria-pressed',room);rmb.classList.toggle('on',room);stat();});
   var mpb=document.getElementById('qam-mp');mpb.addEventListener('click',function(e){e.stopPropagation();mp=!mp;lastFade=null;vs=null;heatClear();mpb.setAttribute('aria-pressed',mp);mpb.classList.toggle('on',mp);});

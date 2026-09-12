@@ -141,7 +141,21 @@ real device and daylight. Asked for on 2026-09-12 and not yet built, in the orde
    live Mist org: the RRM neighbours shape is the least certain thing in it, and the parser
    says what it found. `demo/mesh-mist.json` is a synthetic fixture. Left out on purpose:
    security, VLANs, RADIUS, tunnelling; nothing in them has a picture to draw.
-4. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
+4. **The simulator on live monitoring**: built 2026-09-12 and run against the home tenant.
+   `client-pull.py --client <name or MAC>` reads one wireless client (signal, SNR, current and
+   top rate, band, channel and width, health) plus its AP radio's utilisation and noise floor
+   from Classic Central, writes a snapshot with `--out`, or with `--serve 8830` polls every
+   30 s and answers `GET /latest.json` on 127.0.0.1 with CORS open. The simulator's Live chip
+   opens a snapshot or polls the relay: the client's top rate picks the standard, streams and
+   width (`inferPhy`, 1200 Mb/s reads as 802.11ax 2x2 80 MHz), the current rate picks the MCS,
+   the SNR drives the scatter (eased, so a moving client drifts rather than jumps), and a retry
+   share, where the feed has one, fails clean frames at that rate on top of the noise. Sliders
+   park while the feed drives. Honest limit, said on screen: monitoring is a minute's average,
+   so this is what the stream looks like statistically, not a replay. Classic Central has no
+   per-client retries and no call quality through the API (UCC is configuration only), so
+   `retry_pct` and `mos` are null from Central; a Mist reading (not yet written) would fill
+   them. The client API writes the channel as `116 (80 MHz)` where the AP API wrote `116E`.
+5. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
    if a newer app refuses the import, the icons and the key table are there to build by hand.
 
 Ideas parked, none of them decided:
