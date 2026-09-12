@@ -1,4 +1,16 @@
 <section class="tools" id="tools" aria-label="Wi-Fi planning tools">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="tg-refract" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feGaussianBlur in="d" stdDeviation="9"/>
+  </filter>
+  <filter id="tg-refract-soft" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.02 0.03" numOctaves="1" seed="3" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feGaussianBlur in="d" stdDeviation="4"/>
+  </filter>
+</defs></svg>
 <style>
 .tools{--t-line:rgba(255,255,255,0.12);--t-solid:rgba(3,10,16,0.55)}
 .tools *{box-sizing:border-box}
@@ -7,14 +19,96 @@
 .t-head .eyebrow{margin:0}
 .t-lede{color:var(--text-dim);font-size:14px;line-height:1.65;max-width:70ch;margin:0 0 18px}
 .t-grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;align-items:start}
-.t-panel{background:rgba(255,255,255,0.055);-webkit-backdrop-filter:blur(26px) saturate(175%);backdrop-filter:blur(26px) saturate(175%);
-  border:1px solid rgba(255,255,255,0.13);border-radius:18px;padding:16px;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 26px 54px -30px rgba(0,0,0,0.8);animation:nfnRise 520ms var(--ease) both}
+.tools{--lg-spring:cubic-bezier(0.34,1.56,0.64,1)}
+/* ── liquid glass ────────────────────────────────────────────────────────
+   the pane: a gradient skin, refraction through a turbulence field where the
+   browser allows it and blur where it does not, a lit top edge and a shadowed
+   bottom, a conic rim that brightens where a light would strike it, and a
+   chromatic fringe from two rings a hair apart */
+.t-panel,.m-mapwrap,.tg{position:relative;isolation:isolate;color:var(--text);border-radius:22px;
+  background:linear-gradient(135deg,rgba(255,255,255,0.13),rgba(255,255,255,0.045) 40%,rgba(255,255,255,0.085));
+  -webkit-backdrop-filter:blur(22px) saturate(190%) brightness(1.05);backdrop-filter:blur(22px) saturate(190%) brightness(1.05);
+  -webkit-backdrop-filter:url(#tg-refract) saturate(190%) brightness(1.06);backdrop-filter:url(#tg-refract) saturate(190%) brightness(1.06);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.5),inset 0 -1px 0 rgba(255,255,255,0.10),inset 0 22px 40px -28px rgba(255,255,255,0.3),
+    inset 0 -30px 40px -30px rgba(0,0,0,0.42),0 30px 60px -28px rgba(0,0,0,0.85),0 2px 6px rgba(0,0,0,0.35)}
+.t-panel::before,.m-mapwrap::before,.tg::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:2;
+  background:conic-gradient(from 210deg,rgba(255,255,255,0.8),rgba(255,255,255,0.14) 18%,rgba(255,255,255,0.05) 40%,rgba(255,255,255,0.5) 55%,rgba(255,255,255,0.08) 72%,rgba(255,255,255,0.65) 90%,rgba(255,255,255,0.8));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
+.t-panel::after,.m-mapwrap::after,.tg::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;z-index:2;mix-blend-mode:screen;opacity:0.5;
+  box-shadow:inset 1px 0 0 rgba(255,80,80,0.5),inset -1px 0 0 rgba(80,160,255,0.5),inset 0 1px 0 rgba(255,80,80,0.3),inset 0 -1px 0 rgba(80,160,255,0.3)}
+.t-panel{padding:16px;animation:nfnRise 520ms var(--ease) both}
+.tg.thin,.t-panel.thin{-webkit-backdrop-filter:blur(14px) saturate(170%);backdrop-filter:blur(14px) saturate(170%);
+  -webkit-backdrop-filter:url(#tg-refract-soft) saturate(170%);backdrop-filter:url(#tg-refract-soft) saturate(170%)}
+/* the light on the glass: a specular that follows the pointer, a band that
+   sweeps every nine seconds, motes drifting inside; transform and opacity only */
+.lg-spec{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:1}
+.lg-spec i{position:absolute;left:-30%;top:-40%;width:60%;height:80%;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(255,255,255,0.22),rgba(255,255,255,0.05) 55%,transparent 72%);transition:transform 700ms var(--ease);will-change:transform}
+.lg-spec b{position:absolute;top:-60%;left:0;width:26%;height:220%;transform:translateX(-160%) rotate(14deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.13),rgba(255,255,255,0.04),transparent);filter:blur(10px);animation:lg-sweep 11s var(--ease) infinite}
+.lg-spec em{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;box-shadow:0 0 8px 2px rgba(255,255,255,0.5);opacity:0;animation:lg-mote 12s linear infinite}
+.lg-spec em:nth-child(3){left:12%;top:70%}.lg-spec em:nth-child(4){left:30%;top:40%;animation-duration:15s;animation-delay:-4s;width:2px;height:2px}
+.lg-spec em:nth-child(5){left:55%;top:80%;animation-duration:10s;animation-delay:-7s}.lg-spec em:nth-child(6){left:70%;top:30%;animation-duration:17s;animation-delay:-2s;width:2px;height:2px}
+.lg-spec em:nth-child(7){left:86%;top:60%;animation-duration:13s;animation-delay:-9s}
+@keyframes lg-sweep{0%,60%{transform:translateX(-160%) rotate(14deg)}100%{transform:translateX(560%) rotate(14deg)}}
+@keyframes lg-mote{0%{transform:translate3d(0,0,0);opacity:0}10%{opacity:0.7}50%{transform:translate3d(18px,-40px,0);opacity:0.45}90%{opacity:0.7}100%{transform:translate3d(-10px,-90px,0);opacity:0}}
+.t-panel>*:not(.lg-spec){position:relative;z-index:1}
 .t-grid>div>.t-panel:nth-child(2){animation-delay:80ms}
 .t-grid>div:nth-child(2)>.t-panel{animation-delay:120ms}
 .tools .t-head,.tools .t-lede,.tools .m-bar,.tools .m-clock{animation:nfnRise 520ms var(--ease) both}
 .tools .t-lede{animation-delay:40ms}.tools .m-bar{animation-delay:80ms}.tools .m-clock{animation-delay:160ms}
-@media (prefers-reduced-motion:reduce){.tools *{animation:none!important}}
+/* the light behind the page: three blobs that drift so the refraction has something to bend */
+.lg-blob{position:absolute;border-radius:50%;filter:blur(46px);opacity:0.6;pointer-events:none;will-change:transform}
+.lg-blob.a{width:46vw;height:46vw;left:-10%;top:-12%;background:radial-gradient(circle,rgba(79,189,234,0.75),rgba(79,189,234,0) 70%);animation:lg-drift 28s var(--ease) infinite alternate}
+.lg-blob.b{width:52vw;height:52vw;right:-16%;top:8%;background:radial-gradient(circle,rgba(140,224,94,0.55),rgba(140,224,94,0) 70%);animation:lg-drift 33s var(--ease) infinite alternate-reverse}
+.lg-blob.c{width:40vw;height:40vw;left:28%;bottom:-24%;background:radial-gradient(circle,rgba(94,210,218,0.65),rgba(94,210,218,0) 70%);animation:lg-drift 24s var(--ease) infinite alternate}
+@keyframes lg-drift{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(9vw,5vw,0) scale(1.1)}100%{transform:translate3d(-5vw,10vw,0) scale(0.94)}}
+/* pills, chips, selects and buttons are thin panes */
+.tools .t-btn,.tools .m-view,.tools .m-layer,.tools .m-mode,.tools .t-add,.tools .t-x,.m-bar select,.tools select,.tools input[type=number],.m-more,.m-legend-box>summary,.t-note,.t-out{
+  position:relative;color:var(--text);border:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04) 45%,rgba(255,255,255,0.08));
+  -webkit-backdrop-filter:blur(14px) saturate(170%);backdrop-filter:blur(14px) saturate(170%);
+  box-shadow:inset 0 1.2px 0 rgba(255,255,255,0.45),inset 0 -1px 0 rgba(255,255,255,0.08),inset 0 0 0 1px rgba(255,255,255,0.10),0 10px 24px -14px rgba(0,0,0,0.8);
+  transition:transform 420ms var(--lg-spring),box-shadow 300ms var(--ease),color 200ms var(--ease)}
+.tools .t-btn:hover,.tools .m-view:hover,.tools .m-layer:hover,.tools .t-add:hover{transform:translateY(-1px) scale(1.02);color:#fff;background:linear-gradient(135deg,rgba(255,255,255,0.18),rgba(255,255,255,0.07) 45%,rgba(255,255,255,0.12))}
+.tools .t-btn:active,.tools .m-view:active,.tools .m-layer:active{transform:scale(0.97);transition-duration:120ms}
+.tools .m-view.on{color:#06202A;background:linear-gradient(180deg,#a8ecf0,#5ED2DA 60%,#3fb9c2);box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.7),inset 0 -2px 6px rgba(0,0,0,0.2),0 12px 28px -10px rgba(94,210,218,0.9),0 0 0 1px rgba(255,255,255,0.2)}
+.tools .t-switch button.on{color:#06202A;background:linear-gradient(180deg,#a8ecf0,#5ED2DA 60%,#3fb9c2);border-color:transparent;box-shadow:0 12px 28px -10px rgba(94,210,218,0.9),inset 0 1.5px 0 rgba(255,255,255,0.7)}
+.tools .m-layer.on,.tools .m-on{color:#fff!important;background:linear-gradient(135deg,rgba(94,210,218,0.28),rgba(94,210,218,0.10))!important;border-color:transparent!important;
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.55),inset 0 0 0 1px rgba(94,210,218,0.7),0 0 24px -6px rgba(94,210,218,0.9),0 10px 24px -14px rgba(0,0,0,0.8)!important}
+#m-fail.m-on{background:linear-gradient(135deg,rgba(245,165,36,0.32),rgba(245,165,36,0.12))!important;box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.5),inset 0 0 0 1px rgba(245,165,36,0.75),0 0 24px -6px rgba(245,165,36,0.9)!important}
+.tools .t-add{color:#06202A;background:linear-gradient(180deg,#b6f094,#8CE05E 55%,#74cf4c);box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.75),inset 0 -2px 6px rgba(0,0,0,0.2),0 12px 30px -10px rgba(140,224,94,0.9),0 0 0 1px rgba(255,255,255,0.2)}
+.tools select,.tools input[type=number]{border-radius:12px;color:var(--text)}
+.tools select option{background:#0E2A3C;color:var(--text)}
+.m-more{border:0;border-radius:14px;padding:0 12px}
+.m-more>summary{color:var(--text-dim)}
+.m-more[open]{box-shadow:inset 0 1.2px 0 rgba(255,255,255,0.45),inset 0 0 0 1px rgba(255,255,255,0.14),0 18px 34px -20px rgba(0,0,0,0.85)}
+.t-note{border:0;border-radius:14px;color:#ffd28a;background:linear-gradient(135deg,rgba(245,165,36,0.22),rgba(245,165,36,0.06));box-shadow:inset 0 1.2px 0 rgba(255,255,255,0.35),inset 0 0 0 1px rgba(245,165,36,0.45),0 0 26px -10px rgba(245,165,36,0.8)}
+.t-note.t-bad{box-shadow:inset 0 1.2px 0 rgba(255,255,255,0.35),inset 0 0 0 1px rgba(245,165,36,0.7),0 0 30px -8px rgba(245,165,36,0.9)}
+.t-out{border:0;border-radius:14px;background:rgba(0,0,0,0.35);box-shadow:inset 0 2px 8px rgba(0,0,0,0.6),inset 0 -1px 0 rgba(255,255,255,0.08);-webkit-backdrop-filter:none;backdrop-filter:none}
+.t-stat{position:relative;border:0;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,0.11),rgba(255,255,255,0.035) 45%,rgba(255,255,255,0.07));
+  box-shadow:inset 0 1.2px 0 rgba(255,255,255,0.45),inset 0 0 0 1px rgba(255,255,255,0.10),0 10px 24px -14px rgba(0,0,0,0.8)}
+.t-stat b{text-shadow:0 0 12px rgba(234,242,246,0.28)}
+.t-big{color:#fff;text-shadow:0 0 34px rgba(140,224,94,0.35),0 2px 0 rgba(0,0,0,0.35)}
+.t-because b{text-shadow:0 0 10px rgba(245,165,36,0.5)}
+.t-table th{border-bottom-color:rgba(255,255,255,0.14)}
+/* the map is the hero pane */
+.m-mapwrap{margin-bottom:18px;padding:6px;border-radius:26px;animation:nfnRise 520ms var(--ease) both;animation-delay:120ms}
+.m-map{position:relative;z-index:1;user-select:none;-webkit-user-select:none}
+.m-map svg{display:block;border-radius:20px}
+/* meters: glossy fills that glow, with motes inside */
+.m-cbar{height:18px;border-radius:999px;border:0;background:rgba(0,0,0,0.35);box-shadow:inset 0 2px 6px rgba(0,0,0,0.6),inset 0 -1px 0 rgba(255,255,255,0.08);overflow:hidden}
+.m-cbar i{border-radius:999px}
+/* sliders: a sunk glass track and a glossy knob */
+.tools input[type=range]{-webkit-appearance:none;appearance:none;height:26px;background:transparent;accent-color:auto;filter:none}
+.tools input[type=range]::-webkit-slider-runnable-track{height:10px;border-radius:999px;background:linear-gradient(90deg,rgba(140,224,94,0.55),rgba(140,224,94,0.25));box-shadow:inset 0 2px 5px rgba(0,0,0,0.55),inset 0 -1px 0 rgba(255,255,255,0.10),0 0 14px -3px rgba(140,224,94,0.7)}
+.tools input[type=range]::-moz-range-track{height:10px;border-radius:999px;background:linear-gradient(90deg,rgba(140,224,94,0.55),rgba(140,224,94,0.25));box-shadow:inset 0 2px 5px rgba(0,0,0,0.55)}
+.tools input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-6px;border-radius:50%;border:0;
+  background:radial-gradient(circle at 35% 30%,#fff,#dfe9ee 55%,#b8c8d2);box-shadow:0 5px 12px -4px rgba(0,0,0,0.75),inset 0 -2px 4px rgba(0,0,0,0.15),0 0 0 1px rgba(255,255,255,0.4);transition:transform 200ms var(--lg-spring)}
+.tools input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;border:0;background:radial-gradient(circle at 35% 30%,#fff,#dfe9ee 55%,#b8c8d2);box-shadow:0 5px 12px -4px rgba(0,0,0,0.75)}
+.tools input[type=range]:active::-webkit-slider-thumb{transform:scale(1.12)}
+.m-zx input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(90deg,rgba(94,210,218,0.55),rgba(94,210,218,0.25));box-shadow:inset 0 2px 5px rgba(0,0,0,0.55),0 0 14px -3px rgba(94,210,218,0.7)}
+@media (prefers-reduced-motion:reduce){.tools *{animation:none!important;transition:none!important}}
 .t-panel h3{margin:0 0 12px;font:600 11px var(--mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-muted)}
 .t-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px;color:var(--text-dim)}
 .t-row label{flex:1 0 auto;min-width:124px}
@@ -89,17 +183,6 @@
 .m-legend{display:flex;flex-wrap:wrap;gap:10px;font:10.5px var(--mono);color:var(--text-muted)}
 .m-legend span{display:inline-flex;align-items:center;gap:5px}
 .m-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
-.m-map{position:relative;padding:6px;margin-bottom:18px;user-select:none;-webkit-user-select:none;overflow:hidden;
-  background:rgba(255,255,255,0.075);-webkit-backdrop-filter:blur(34px) saturate(185%);backdrop-filter:blur(34px) saturate(185%);
-  border:1px solid rgba(255,255,255,0.17);border-radius:24px;box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.3),0 40px 80px -34px rgba(0,0,0,0.85);animation-delay:120ms}
-.m-map::before{content:"";position:absolute;right:-8%;top:-30%;width:55%;height:160%;pointer-events:none;border-radius:50%;
-  background:radial-gradient(closest-side,rgba(140,224,94,0.10),transparent 70%)}
-.m-map::after{content:"";position:absolute;left:-10%;bottom:-40%;width:50%;height:150%;pointer-events:none;border-radius:50%;
-  background:radial-gradient(closest-side,rgba(47,168,224,0.12),transparent 70%)}
-.m-map svg{position:relative;z-index:1;border-radius:18px}
-.t-big{text-shadow:0 0 28px rgba(140,224,94,0.25)}
-.t-stat{background:rgba(255,255,255,0.035);box-shadow:inset 0 1px 0 rgba(255,255,255,0.10)}
-.m-cbar{background:rgba(255,255,255,0.04)}
 .m-cbar{overflow:visible}
 .m-cbar i{position:relative;overflow:hidden;box-shadow:0 0 16px -1px currentColor,inset 0 1px 0 rgba(255,255,255,0.35)}
 .m-cbar i::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.22),transparent 55%,rgba(0,0,0,0.12))}
@@ -768,7 +851,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
   </div>
   <details class="m-legend-box"><summary>Key</summary><div class="m-legend" id="m-legend"></div></details>
 </div>
-<div class="m-map t-panel" id="m-map"></div>
+<div class="m-mapwrap" id="m-mapwrap"><div class="lg-spec"><i></i><b></b><em></em><em></em><em></em><em></em><em></em></div><div class="m-map" id="m-map"></div></div>
 <div class="m-clock" id="m-clock">
   <button type="button" class="t-btn" id="m-play" aria-label="play the day">&#9654;</button>
   <select id="m-curve" aria-label="shape of the day"></select>
@@ -1427,12 +1510,22 @@ Tap anything to change it. The big number is what gets off the site, and the not
     for (gi = 0; gi <= cols; gi++) { Z.push([]); for (gj = 0; gj <= rows; gj++) { var gx = Math.min(fw, gi * gs), gy = Math.min(fd, gj * gs); Z[gi].push({ x: gx, y: gy, z: gz(gx, gy), s: P(gx, gy, gz(gx, gy)) }); } }
     for (gi = 0; gi < cols; gi++) for (gj = 0; gj < rows; gj++) {
       var q00 = Z[gi][gj], q10 = Z[gi + 1][gj], q11 = Z[gi + 1][gj + 1], q01 = Z[gi][gj + 1],
-          lit = shade([q00.x, q00.y, q00.z], [q10.x, q10.y, q10.z], [q01.x, q01.y, q01.z]),
+          lit0 = shade([q00.x, q00.y, q00.z], [q10.x, q10.y, q10.z], [q01.x, q01.y, q01.z]),
+          lit = NFN.clamp((lit0 - 0.35) / 0.65, 0, 1),          /* flat ground sits mid tone, slopes swing both ways */
           face = [q00.s, q10.s, q11.s, q01.s], dz = depthOf(face), fg = fog(dz),
-          hgt = (q00.z + q10.z + q11.z + q01.z) / 4, hue = NFN.clamp(hgt / 12, -1, 1),
-          rr = Math.round(10 + 34 * lit + 18 * Math.max(0, hue)), gg = Math.round(34 + 58 * lit + 10 * Math.max(0, hue)), bb = Math.round(48 + 52 * lit - 20 * Math.max(0, hue));
+          hgt = (q00.z + q10.z + q11.z + q01.z) / 4, hue = NFN.clamp(hgt / 10, -1, 1),
+          rr = Math.round(4 + 70 * lit + 30 * Math.max(0, hue)), gg = Math.round(20 + 105 * lit + 16 * Math.max(0, hue)), bb = Math.round(34 + 76 * lit - 30 * Math.max(0, hue) + 16 * Math.max(0, -hue));
       add(dz + 1.2, '<polygon points="' + pts3(face) + '" fill="rgb(' + rr + ',' + gg + ',' + bb + ')" fill-opacity="' + (0.92 * fg).toFixed(2) + '" stroke="rgba(160,210,230,' + (0.07 * fg).toFixed(3) + ')" stroke-width="0.6"/>');
     }
+    /* contour lines every two metres on each hill, so the relief reads */
+    hills.forEach(function (hl) {
+      var sgm = hl.r / 2, lvl, top = Math.abs(hl.h);
+      for (lvl = 2; lvl < top; lvl += 2) {
+        var rr2 = sgm * Math.sqrt(2 * Math.log(top / lvl)), ring = [], q;
+        for (q = 0; q <= 36; q++) { var an = q / 36 * Math.PI * 2, x = hl.x + rr2 * Math.cos(an), y = hl.y + rr2 * Math.sin(an); ring.push(P(x, y, gz(x, y) + 0.15)); }
+        add(depthOf(ring) + 1.0, '<polyline points="' + pts3(ring) + '" fill="none" stroke="rgba(200,240,210,' + (hl.h > 0 ? 0.28 : 0.2) + ')" stroke-width="0.9"' + (hl.h < 0 ? ' stroke-dasharray="3 3"' : "") + '/>');
+      }
+    });
     /* the field's edge */
     var rim = [P(0, 0, gz(0, 0)), P(fw, 0, gz(fw, 0)), P(fw, fd, gz(fw, fd)), P(0, fd, gz(0, fd))];
     add(depthOf(rim) + 1.1, '<polygon points="' + pts3(rim) + '" fill="none" stroke="rgba(180,220,235,0.22)" stroke-width="1"/>');
@@ -1917,7 +2010,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
 
     var live = p.aps.filter(function (r) { return r.status !== "down" && r.status !== "unreachable"; }).length;
     $("m-stats").innerHTML = [
-      ["Per client", kbs(p.perClientKbps) + " of " + p.askKbps + " kb/s"], ["People", String(Math.round(p.clients)) + (p.who.unserved > 0.5 ? ", " + Math.round(p.who.unserved) + " unserved" : "")],
+      ["per client, of " + p.askKbps + " kb/s asked", kbs(p.perClientKbps)], [p.who.unserved > 0.5 ? "people, " + Math.round(p.who.unserved) + " unserved" : "people", String(Math.round(p.clients))],
       ["APs live", live + " of " + p.aps.length], ["Portals", p.tree.gateways + " on " + p.channels.distinct + " channel" + (p.channels.distinct === 1 ? "" : "s")],
       ["Deepest", p.maxDepth + (p.maxDepth === 1 ? " hop" : " hops")], ["Field covered", pc(p.coverage)], ["No backup", String(p.spof)]
     ].map(function (s) { return '<div class="t-stat"><b>' + s[1] + "</b><span>" + s[0] + "</span></div>"; }).join("");
@@ -2325,6 +2418,29 @@ Tap anything to change it. The big number is what gets off the site, and the not
 
   window.addEventListener("hashchange", function () { if (st.fromHash(location.hash)) { writeUi(); run(); } });
   window.addEventListener("resize", function () { if (!document.getElementById("tool-mesh").hidden) run(); });
+
+  /* the light on the glass: every pane gets a specular, a sweep and motes; the
+     ground gets three drifting blobs so the refraction has something to bend */
+  (function () {
+    Array.prototype.forEach.call(document.querySelectorAll("#tools .t-panel"), function (pnl, k) {
+      if (pnl.querySelector(".lg-spec")) return;
+      var sp = document.createElement("div"); sp.className = "lg-spec";
+      sp.innerHTML = "<i></i><b style='animation-delay:" + (-(k * 2.3) % 11).toFixed(1) + "s'></b>" + (k % 2 ? "<em></em><em></em><em></em><em></em><em></em>" : "");
+      pnl.insertBefore(sp, pnl.firstChild);
+    });
+    var g = document.querySelector(".ground");
+    /* a page without the site's ground layer gets one, so the glass has light behind it */
+    if (!g) { g = document.createElement("div"); g.className = "ground"; document.body.insertBefore(g, document.body.firstChild); }
+    if (!g.querySelector(".lg-blob")) ["a", "b", "c"].forEach(function (c) { var d = document.createElement("div"); d.className = "lg-blob " + c; g.appendChild(d); });
+    if (MOTION) root.addEventListener("pointermove", function (e) {
+      Array.prototype.forEach.call(root.querySelectorAll(".lg-spec > i"), function (sI) {
+        var pane = sI.parentNode.parentNode, r = pane.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > innerHeight) return;
+        var dx = (e.clientX - (r.left + r.width / 2)) / Math.max(1, r.width), dy = (e.clientY - (r.top + r.height / 2)) / Math.max(1, r.height);
+        sI.style.transform = "translate3d(" + (dx * r.width * 0.6).toFixed(1) + "px," + (dy * r.height * 0.6).toFixed(1) + "px,0)";
+      });
+    });
+  })();
 
   writeUi(); run(); booted = true;
   root._mesh = function () { return M.plan(model()); };
