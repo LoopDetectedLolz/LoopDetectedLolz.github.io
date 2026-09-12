@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 210" role="img" aria-label="Six steps of a tunneled MPSK client: association, passphrase match, role assigned on the access point, tunnel to the gateway, gateway role lookup, and no matching role so no VLAN">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{font-size:15px;font-weight:700}
+    .st{font-size:11.5px;font-weight:600}
+    .n{font-size:10.5px;letter-spacing:1.5px}
+    .note{font-size:12px}
+  </style>
+  <marker id="j" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="15" y="28" class="t hd" fill="#ffffff">Every step succeeds except the one that matters.</text>
+
+  <g class="t" fill="#06202A">
+    <g transform="translate(15,58)"><rect width="132" height="58" rx="9" fill="#8CE05E"/><text class="st" x="66" y="26" text-anchor="middle">Client</text><text class="st" x="66" y="42" text-anchor="middle">associates</text></g>
+    <g transform="translate(163,58)"><rect width="132" height="58" rx="9" fill="#8CE05E"/><text class="st" x="66" y="26" text-anchor="middle">Passphrase</text><text class="st" x="66" y="42" text-anchor="middle">matched</text></g>
+    <g transform="translate(311,58)"><rect width="132" height="58" rx="9" fill="#8CE05E"/><text class="st" x="66" y="26" text-anchor="middle">Role assigned</text><text class="st" x="66" y="42" text-anchor="middle">on the AP</text></g>
+    <g transform="translate(459,58)"><rect width="132" height="58" rx="9" fill="#5ED2DA"/><text class="st" x="66" y="26" text-anchor="middle">Tunnel up to</text><text class="st" x="66" y="42" text-anchor="middle">the gateway</text></g>
+    <g transform="translate(607,58)"><rect width="132" height="58" rx="9" fill="#5ED2DA"/><text class="st" x="66" y="26" text-anchor="middle">Gateway looks</text><text class="st" x="66" y="42" text-anchor="middle">up the role</text></g>
+  </g>
+  <g transform="translate(755,58)">
+    <rect width="130" height="58" rx="9" fill="#F0705F" fill-opacity="0.14" stroke="#F0705F" stroke-width="1.6" stroke-dasharray="6 5"/>
+    <text class="t st" x="65" y="26" text-anchor="middle" fill="#FF9A8C">No such role,</text>
+    <text class="t st" x="65" y="42" text-anchor="middle" fill="#FF9A8C">no VLAN</text>
+  </g>
+
+  <g stroke="#8BA2AE" stroke-width="1.4" marker-end="url(#j)" fill="none">
+    <path d="M149 87 L159 87"/><path d="M297 87 L307 87"/><path d="M445 87 L455 87"/><path d="M593 87 L603 87"/><path d="M741 87 L751 87"/>
+  </g>
+
+  <text x="15" y="146" class="t mono n" fill="#8BA2AE">WHAT THE CLIENT REPORTS</text>
+  <text x="15" y="168" class="t note" fill="#B0C4CF">Connected. The whole way across. No hop raises a failure, which is why this one burns an afternoon</text>
+  <text x="15" y="188" class="t note" fill="#B0C4CF">before anybody thinks to go and look at the role list on the gateway.</text>
+</svg>

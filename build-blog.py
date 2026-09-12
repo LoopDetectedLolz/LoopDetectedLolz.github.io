@@ -90,6 +90,16 @@ def series_nav(p):
             '<h3>%s <span class="meta">part %d of %d</span></h3><div class="ser-steps">%s</div></section>'
             % (E(p["series"]), idx + 1, len(members), tiles))
 
+FIG_RE = re.compile(r'<p>\{\{figure:\s*([^|}]+?)\s*(?:\|\s*(.*?)\s*)?\}\}</p>', re.S)
+def figures(html):
+    """{{figure: name.svg | optional caption}} on its own line becomes an inlined figure."""
+    def one(m):
+        cap = (m.group(2) or "").strip()
+        return '<figure class="figure panel">%s%s</figure>' % (
+            svg(m.group(1).strip()),
+            '<figcaption>%s</figcaption>' % cap if cap else '')
+    return FIG_RE.sub(one, html)
+
 def parse_post(path):
     raw = open(path, encoding="utf-8").read()
     m = re.match(r'^---\n(.*?)\n---\n(.*)$', raw, re.S)
@@ -103,7 +113,7 @@ def parse_post(path):
     body = re.sub(r'```mermaid.*?```', '', m.group(2), flags=re.S)
     meta["readtime"] = max(2, round(len(re.findall(r'\w+', body)) / 220))
     meta["tags"] = [t.strip() for t in meta.get("tags", "").split(",") if t.strip()]
-    meta["html"] = terminalize(markdown.markdown(body, extensions=["fenced_code", "tables"]))
+    meta["html"] = figures(terminalize(markdown.markdown(body, extensions=["fenced_code", "tables"])))
     meta["series"] = meta.get("series", "").strip()
     meta["series_order"] = int(meta.get("series_order", "0") or 0)
     meta["interactive"] = meta.get("interactive", "").strip()

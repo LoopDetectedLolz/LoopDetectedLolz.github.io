@@ -196,6 +196,9 @@ a.tag:hover{transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(0,0,0,0.7
 .prose td{padding:var(--s2) var(--s3);border:1px solid var(--line);vertical-align:top;color:var(--text-dim)}
 .figure{margin:0 0 var(--s5);padding:var(--s4);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
 .figure svg{display:block;width:100%;height:auto;min-width:0}
+.figure figcaption{margin-top:var(--s3);font-family:var(--mono);font-size:11.5px;line-height:1.65;color:var(--text-muted)}
+/* body figures carry detail: let them scroll on a phone rather than shrink past reading size */
+@media (max-width:700px){figure.figure svg{min-width:600px}figure.figure{padding:var(--s3)}}
 .origin{margin:0 0 var(--s5)}
 .origin .eyebrow{display:block;color:var(--teal);margin-bottom:4px}
 .end{position:relative;margin-top:var(--s4);padding:var(--s6) var(--s7)}
@@ -502,11 +505,11 @@ html.qam-fs .rig{display:none}
 <section class="hero g-hero rise" data-view="pop">
   <div class="sheen"></div><div class="glow"></div>
   <span class="tag green"><span class="dot"></span>Latest field note</span>
-  <h1 class="h-hero">The Banner Is a Wi-Fi Link You Can Break</h1>
-  <p class="lede">The animation at the top of this site sends a real frame from a packet capture, one symbol per particle, through a link budget you can drag walls into. Four minutes on what it is doing and why the Teams call breaks before the chat does.</p>
+  <h1 class="h-hero">The Wizard Is Lying About the Shape of Your Config</h1>
+  <p class="lede">A tunneled MPSK client that authenticates and lands nowhere, a Central NAC certificate that never gets issued, and a device quietly overriding group policy. Three features, one shape, and none of them raise an error.</p>
   <div class="row">
-    <a class="btn cta" href="p/how-the-banner-works.html" data-origin="zoom">Read the writeup</a>
-    <span class="meta">3 min &#183; Sep 11, 2026</span>
+    <a class="btn cta" href="p/wizard-object-model.html" data-origin="zoom">Read the writeup</a>
+    <span class="meta">5 min &#183; Sep 12, 2026</span>
   </div>
 </section>
 
@@ -514,7 +517,12 @@ html.qam-fs .rig{display:none}
 
 <section>
   <div class="grid" id="posts">
-    <a class="card g-card hidden" href="p/how-the-banner-works.html" data-origin="zoom" data-rise data-cat="Wireless" data-text="the banner is a wi-fi link you can break the animation at the top of this site sends a real frame from a packet capture, one symbol per particle, through a link budget you can drag walls into. four minutes on what it is doing and why the teams call breaks before the chat does. wireless rf lab" data-featured>
+    <a class="card g-card hidden" href="p/wizard-object-model.html" data-origin="zoom" data-rise data-cat="Wireless" data-text="the wizard is lying about the shape of your config a tunneled mpsk client that authenticates and lands nowhere, a central nac certificate that never gets issued, and a device quietly overriding group policy. three features, one shape, and none of them raise an error. wireless central new central mpsk" data-featured>
+  <div class="card-top"><span class="tag c-green">Wireless</span><span class="meta">Sep 12</span></div>
+  <h3 class="h-card">The Wizard Is Lying About the Shape of Your Config</h3>
+  <p>A tunneled MPSK client that authenticates and lands nowhere, a Central NAC certificate that never gets issued, and a device quietly overriding group policy. Three features, one shape, and none of them raise an error.</p>
+  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Airheads thread</span><b>5 min</b></div>
+</a><a class="card g-card" href="p/how-the-banner-works.html" data-origin="zoom" data-rise data-cat="Wireless" data-text="the banner is a wi-fi link you can break the animation at the top of this site sends a real frame from a packet capture, one symbol per particle, through a link budget you can drag walls into. four minutes on what it is doing and why the teams call breaks before the chat does. wireless rf lab">
   <div class="card-top"><span class="tag c-green">Wireless</span><span class="meta">Sep 11</span></div>
   <h3 class="h-card">The Banner Is a Wi-Fi Link You Can Break</h3>
   <p>The animation at the top of this site sends a real frame from a packet capture, one symbol per particle, through a link budget you can drag walls into. Four minutes on what it is doing and why the Teams call breaks before the chat does.</p>

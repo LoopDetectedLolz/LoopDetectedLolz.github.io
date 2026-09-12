@@ -22,10 +22,14 @@ The token file holds access_token and refresh_token. Access tokens live two
 hours; with the client id and secret set the script refreshes and rewrites
 the file, otherwise download a fresh one.
 
+TLS is verified. If your laptop inspects outbound TLS the python.org build
+will not trust the inspecting certificate; on a Mac the script then trusts
+the keychains the way Chrome does, or set CENTRAL_CA_FILE to a PEM.
+
 Endpoints were read from the CA cluster's own Swagger on 2026-09-12. Another
 cluster serves the same paths from its own gateway host.
 """
-import argparse, json, os, sys, time, urllib.error, urllib.parse, urllib.request
+import argparse, json, os, platform, ssl, subprocess, sys, tempfile, time, urllib.error, urllib.parse, urllib.request
 
 BASE = os.environ.get("CENTRAL_BASE", "https://apigw-ca.central.arubanetworks.com").rstrip("/")
 TOKEN_FILE = os.path.expanduser(os.environ.get("CENTRAL_TOKEN_FILE", "~/.config/nfn/central-token.json"))
@@ -49,6 +53,33 @@ DRY = False
 CALLS = 0
 
 
+def tls_context():
+    """Verification stays on. python.org's Python trusts only its own bundle, so a
+    laptop whose TLS is inspected on the way out (a corporate proxy) fails with
+    'self-signed certificate in certificate chain' while Chrome sails through.
+    CENTRAL_CA_FILE names a PEM to trust; otherwise, on a Mac, trust what the
+    keychains trust, which is what Chrome does; otherwise the default bundle."""
+    ca = os.environ.get("CENTRAL_CA_FILE")
+    if ca:
+        return ssl.create_default_context(cafile=os.path.expanduser(ca))
+    if platform.system() == "Darwin":
+        pem = b""
+        for kc in ("/System/Library/Keychains/SystemRootCertificates.keychain", "/Library/Keychains/System.keychain",
+                   os.path.expanduser("~/Library/Keychains/login.keychain-db")):
+            try:
+                pem += subprocess.run(["security", "find-certificate", "-a", "-p", kc], capture_output=True, timeout=20).stdout
+            except (OSError, subprocess.TimeoutExpired):
+                pass
+        if b"BEGIN CERTIFICATE" in pem:
+            ctx = ssl.create_default_context()
+            ctx.load_verify_locations(cadata=pem.decode("ascii", "ignore"))
+            return ctx
+    return ssl.create_default_context()
+
+
+CTX = None
+
+
 def load_token():
     try:
         with open(TOKEN_FILE) as f:
@@ -63,7 +94,7 @@ def refresh(tok):
         sys.exit("token expired; set CENTRAL_CLIENT_ID and CENTRAL_CLIENT_SECRET to refresh it, or download a new token file")
     q = urllib.parse.urlencode({"client_id": cid, "client_secret": sec, "grant_type": "refresh_token", "refresh_token": tok["refresh_token"]})
     req = urllib.request.Request(BASE + ENDPOINTS["refresh"] + "?" + q, data=b"", method="POST")
-    with urllib.request.urlopen(req, timeout=30) as r:
+    with urllib.request.urlopen(req, timeout=30, context=CTX) as r:
         new = json.load(r)
     tok.update(new)
     try:
@@ -87,7 +118,7 @@ def get(tok, path, params=None, quiet=False):
         try:
             CALLS += 1
             time.sleep(0.15)  # the classic gateway allows about 7 calls a second
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with urllib.request.urlopen(req, timeout=60, context=CTX) as r:
                 raw = r.read()
                 return json.loads(raw) if raw else {}
         except urllib.error.HTTPError as e:
@@ -113,7 +144,7 @@ def band_key(b):
 
 
 def main():
-    global DRY
+    global DRY, CTX
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--group", required=True, help="Central group name, as shown in Network Structure")
     ap.add_argument("--site", help="site name, for its address and position (default: the group name)")
@@ -121,6 +152,7 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="print the calls and make none")
     args = ap.parse_args()
     DRY = args.dry_run
+    CTX = tls_context()
     tok = {} if DRY else load_token()
 
     print(("DRY RUN: " if DRY else "") + f"group {args.group} from {BASE}")

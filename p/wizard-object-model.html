@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wireless Academy · Network Field Notes</title>
-<meta name="description" content="Wireless fundamentals, one lesson a week, each with a lab you can run on Aruba and Mist gear.">
-<link rel="canonical" href="https://networkfieldnotes.com/academy.html">
+<title>The Wizard Is Lying About the Shape of Your Config</title>
+<meta name="description" content="A tunneled MPSK client that authenticates and lands nowhere, a Central NAC certificate that never gets issued, and a device quietly overriding group policy. Three features, one shape, and none of them raise an error.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/wizard-object-model.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="Wireless Academy · Network Field Notes">
-<meta property="og:description" content="Wireless fundamentals, one lesson a week, each with a lab you can run on Aruba and Mist gear.">
-<meta property="og:url" content="https://networkfieldnotes.com/academy.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/academy.png">
+<meta property="og:title" content="The Wizard Is Lying About the Shape of Your Config">
+<meta property="og:description" content="A tunneled MPSK client that authenticates and lands nowhere, a Central NAC certificate that never gets issued, and a device quietly overriding group policy. Three features, one shape, and none of them raise an error.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/wizard-object-model.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/wizard-object-model.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Wireless Academy · Network Field Notes">
-<meta name="twitter:description" content="Wireless fundamentals, one lesson a week, each with a lab you can run on Aruba and Mist gear.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy.png">
-
+<meta name="twitter:title" content="The Wizard Is Lying About the Shape of Your Config">
+<meta name="twitter:description" content="A tunneled MPSK client that authenticates and lands nowhere, a Central NAC certificate that never gets issued, and a device quietly overriding group policy. Three features, one shape, and none of them raise an error.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/wizard-object-model.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-12"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "The Wizard Is Lying About the Shape of Your Config", "description": "A tunneled MPSK client that authenticates and lands nowhere, a Central NAC certificate that never gets issued, and a device quietly overriding group policy. Three features, one shape, and none of them raise an error.", "datePublished": "2026-09-12", "image": "https://networkfieldnotes.com/og/wizard-object-model.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/wizard-object-model.html", "keywords": "Wireless, Central, New Central, MPSK"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -484,34 +484,216 @@ body.acad .callout.origin .eyebrow{color:#ffd28a}
 html.qam-fs,html.qam-fs body{overflow:hidden}
 html.qam-fs .rig{display:none}
 </style></head>
-<body class="acad">
+<body>
 <div class="ground"></div>
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
-  <a class="brand" href="/"><span class="mk"><img src="logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
-  <nav class="nav"><a class="pill" href="/">Posts</a><a class="pill on" href="academy.html">Academy</a><a class="pill" href="simulator.html">Simulator</a><a class="pill" href="about.html">About</a><a class="pill outline" href="index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  <a class="brand" href="../"><span class="mk"><img src="../logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
+  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill" href="../academy.html">Academy</a><a class="pill" href="../simulator.html">Simulator</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
   
 </div></div></header>
 <main class="wrap">
-<section class="hero g-hero rise acad-hero" data-view="pop">
-  <div class="sheen"></div><div class="glow"></div>
-  <span class="tag c-orange"><span class="dot"></span>Wireless Academy</span>
-  <h1 class="h-hero">The theory, and the lab that proves it</h1>
-  <p class="lede">Twelve lessons on how Wi-Fi actually works, pitched at the engineer who runs a network but never got taught why. Each one ends with something you can go and measure on an Aruba AP, a Mist AP, and a Sidekick, because a number you measured yourself is the only kind that sticks.</p>
-  <div class="row">
-    <a class="btn cta" href="p/academy-01-what-a-radio-actually-sends.html" data-origin="zoom">Start with lesson 1</a>
-    <span class="meta">1 of 12 published &#183; new lesson weekly</span>
-  </div>
-</section>
-<section class="acad-why g-card" data-rise>
-  <span class="eyebrow">Why orange</span>
-  <p>The colour is a nod to the Airheads community. My first expert-level certification came out of an AOS 6 lab and a stack of forum posts by people who answered questions they didn't have to. This section is me paying that forward, one lesson a week.</p>
-</section>
-<section>
-  <div class="lessons"><a class="lesson g-card live" href="p/academy-01-what-a-radio-actually-sends.html" data-origin="zoom" data-rise><span class="ser-n">Lesson 1</span><b>What a Radio Actually Sends</b><p>Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.</p><span class="lab"><span class="eyebrow">Lab</span>Read RSSI on an Aruba AP and a Mist AP, double the distance, watch it fall about 6 dB. Confirm on the Sidekick.</span><span class="meta">Sep 10, 2026 &#183; 7 min</span></a><div class="lesson g-card soon" data-rise><span class="ser-n">Lesson 2</span><b>Bands, Channels and Widths</b><p>2.4, 5 and 6 GHz, the U-NII blocks, DFS, and what a wider channel actually costs.</p><span class="lab"><span class="eyebrow">Lab</span>Change channel width on both platforms and watch client PHY rates and airtime move.</span><span class="meta">Planned for the week of Sep 17</span></div><div class="lesson g-card soon" data-rise><span class="ser-n">Lesson 3</span><b>The Link Budget</b><p>EIRP, antenna gain, receive sensitivity, free space path loss. Where the signal goes.</p><span class="lab"><span class="eyebrow">Lab</span>Predict RSSI at 10 m, measure it, explain the gap.</span><span class="meta">Planned for the week of Sep 24</span></div><div class="lesson g-card soon" data-rise><span class="ser-n">Lesson 4</span><b>Modulation and Data Rates</b><p>MCS, coding rate, spatial streams. Why &quot;speed&quot; is a table, not a number.</p><span class="lab"><span class="eyebrow">Lab</span>Read MCS in the Central and Mist client views, force a lower rate, measure throughput.</span><span class="meta">Planned for the week of Oct 1</span></div><div class="lesson g-card soon" data-rise><span class="ser-n">Lesson 5</span><b>Airtime Is the Only Resource</b><p>Half duplex, contention, PHY rate versus throughput, and the overhead nobody budgets for.</p><span class="lab"><span class="eyebrow">Lab</span>Airtime utilisation per SSID, with the mDNS post as the case study.</span><span class="meta">Planned for the week of Oct 8</span></div><div class="lesson g-card soon" data-rise><span class="ser-n">Lesson 6</span><b>Interference From Yourself</b><p>Co-channel and adjacent-channel interference, reuse, cell overlap.</p><span class="lab"><span class="eyebrow">Lab</span>Two APs on one channel. Count retries, watch airtime.</span><span class="meta">Planned for the week of Oct 15</span></div><div class="lesson g-card soon" data-rise><span class="ser-n">Lesson 7</span><b>Noise, SNR, and Why RSSI Lies</b><p>Noise floor, SNR, and what a spectrum analyser shows that a Wi-Fi card can&#x27;t.</p><span class="lab"><span class="eyebrow">Lab</span>Spectrum view with a real interferer. RSSI stays put, SNR collapses.</span><span class="meta">Planned for the week of Oct 22</span></div><div class="lesson g-card soon" data-rise><span class="ser-n">Lesson 8</span><b>Joining a Network</b><p>Probe, authentication, association, the 4-way handshake, EAP. What happens before the first packet.</p><span class="lab"><span class="eyebrow">Lab</span>Capture a join on Mist and on Aruba, then read the same join in ClearPass Access Tracker.</span><span class="meta">Planned for the week of Oct 29</span></div><div class="lesson g-card soon" data-rise><span class="ser-n">Lesson 9</span><b>Roaming: the Client Decides</b><p>Thresholds, 802.11k/v/r, sticky clients, and why the AP can only suggest.</p><span class="lab"><span class="eyebrow">Lab</span>A walk test with the Mist client timeline and the Central client events.</span><span class="meta">Planned for the week of Nov 5</span></div><div class="lesson g-card soon" data-rise><span class="ser-n">Lesson 10</span><b>Capacity, Not Coverage</b><p>Clients per radio, cell size, minimum basic rate, application budgets.</p><span class="lab"><span class="eyebrow">Lab</span>Raise the minimum basic rate on both platforms and watch the cell shrink.</span><span class="meta">Planned for the week of Nov 12</span></div><div class="lesson g-card soon" data-rise><span class="ser-n">Lesson 11</span><b>Surveys and What a Heatmap Can&#x27;t See</b><p>Predictive, AP-on-a-stick, validation. Channel lists and blind spots.</p><span class="lab"><span class="eyebrow">Lab</span>A one-room passive survey on the Sidekick, cross-checked against the AP&#x27;s real channel.</span><span class="meta">Planned for the week of Nov 19</span></div><div class="lesson g-card soon" data-rise><span class="ser-n">Lesson 12</span><b>A Troubleshooting Method</b><p>Client, RF, infrastructure, upstream. Which tool shows which layer.</p><span class="lab"><span class="eyebrow">Lab</span>Break it three ways and find each one with the right tool.</span><span class="meta">Planned for the week of Nov 26</span></div></div>
-</section>
+<div class="narrow">
+  <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
+  <article>
+    <header class="post-head g-hero cat-Wireless" data-view="zoom">
+      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Sep 12, 2026 &#183; 5 min</span></div>
+      <h1 class="h-hero">The Wizard Is Lying About the Shape of Your Config</h1>
+    </header>
+    <div class="post-body g-card" data-rise>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A WLAN wizard creates a role on the access point and never creates the matching role on the gateway, so tunneled client traffic arrives on a device that has no such role">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .big{font-size:20px;font-weight:700}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .eyebrow{font-size:11px;letter-spacing:2px;font-weight:600}
+    .lane{font-size:10.5px;letter-spacing:2px}
+    .box{font-size:13px;font-weight:600}
+    .note{font-size:12px}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8CE05E"/></marker>
+  <marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#F5A524"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#5ED2DA"/></marker>
+  </defs>
+
+  <text x="30" y="34" class="t mono eyebrow" fill="#8CE05E">THREE FAILURES, ONE SHAPE</text>
+  <text x="30" y="64" class="t big" fill="#ffffff">The wizard writes objects on one device class and calls it done.</text>
+
+  <rect x="30" y="86" width="840" height="62" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+  <text x="44" y="121" class="t mono lane" fill="#8BA2AE">CENTRAL</text>
+  <rect x="250" y="98" width="190" height="38" rx="8" fill="#5ED2DA"/>
+  <text x="345" y="122" class="t box" fill="#06202A" text-anchor="middle">WLAN wizard</text>
+
+  <rect x="30" y="162" width="840" height="62" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+  <text x="44" y="197" class="t mono lane" fill="#8BA2AE">ACCESS POINT</text>
+  <rect x="250" y="174" width="250" height="38" rx="8" fill="#8CE05E"/>
+  <text x="375" y="198" class="t box" fill="#06202A" text-anchor="middle">Role: guest, created here</text>
+
+  <rect x="30" y="238" width="840" height="62" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+  <text x="44" y="273" class="t mono lane" fill="#8BA2AE">GATEWAY</text>
+  <rect x="250" y="250" width="250" height="38" rx="8" fill="none" stroke="#F5A524" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="375" y="274" class="t box" fill="#F5A524" text-anchor="middle">Role: guest, never created</text>
+
+  <path d="M320 136 L320 172" stroke="#8CE05E" stroke-width="2" fill="none" marker-end="url(#ag)"/>
+  <path d="M320 212 L320 248" stroke="#5ED2DA" stroke-width="1.8" fill="none" marker-end="url(#at)"/>
+  <text x="306" y="234" class="t mono" font-size="10.5" fill="#5ED2DA" text-anchor="end">tunneled client traffic</text>
+
+  <path d="M440 117 L600 117 L600 269 L512 269" stroke="#F5A524" stroke-width="1.8" fill="none" stroke-dasharray="6 5" marker-end="url(#ao)"/>
+  <text x="620" y="273" class="t note" fill="#F5A524">the wizard does not write this one</text>
+  <text x="30" y="324" class="t note" fill="#B0C4CF">Nothing errors. An object that was never created cannot refuse.</text>
+</svg></div>
+      
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Three community threads in one week that all turned out to be the same problem</div>
+      <div class="prose"><p>Three threads inside about a week, and they didn't look anything like each other.</p>
+<p>One person added an MPSK passphrase, the client authenticated, and then it sat there with no VLAN. One person stood up Central NAC on a tunneled WLAN and the RadSec certificate never got issued. One person just wanted a list of the devices in their fleet that were overriding group policy, and there isn't one in the UI.</p>
+<p>Three features, three people, one root cause. What the UI shows you is a flat list. What you actually built is a graph, it spans more than one class of device, and the wizard that built it wrote some of those objects and skipped the rest. Nothing errors. That's the whole problem.</p>
+<h2>The role that stops at the AP</h2>
+<p>Start with MPSK Local, because this is the one where the documentation says the quiet part out loud and people still get caught.</p>
+<p>When you add a passphrase to an MPSK Local profile, you also pick a role for it. That role gets created on the AP side. If the SSID is tunneled, the client's traffic terminates on a gateway, and the gateway has never heard of that role. Central's own MPSK Local page tells you to make sure the role in the profile also exists on the gateways, because the WLAN wizard isn't going to put it there for you.</p>
+<p>So the client associates, the passphrase matches, the AP assigns the role, traffic goes up the tunnel, and the gateway looks for a role it doesn't have. No VLAN. Meanwhile the client sits there showing connected, which is the least useful symptom available.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 210" role="img" aria-label="Six steps of a tunneled MPSK client: association, passphrase match, role assigned on the access point, tunnel to the gateway, gateway role lookup, and no matching role so no VLAN">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{font-size:15px;font-weight:700}
+    .st{font-size:11.5px;font-weight:600}
+    .n{font-size:10.5px;letter-spacing:1.5px}
+    .note{font-size:12px}
+  </style>
+  <marker id="j" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="15" y="28" class="t hd" fill="#ffffff">Every step succeeds except the one that matters.</text>
+
+  <g class="t" fill="#06202A">
+    <g transform="translate(15,58)"><rect width="132" height="58" rx="9" fill="#8CE05E"/><text class="st" x="66" y="26" text-anchor="middle">Client</text><text class="st" x="66" y="42" text-anchor="middle">associates</text></g>
+    <g transform="translate(163,58)"><rect width="132" height="58" rx="9" fill="#8CE05E"/><text class="st" x="66" y="26" text-anchor="middle">Passphrase</text><text class="st" x="66" y="42" text-anchor="middle">matched</text></g>
+    <g transform="translate(311,58)"><rect width="132" height="58" rx="9" fill="#8CE05E"/><text class="st" x="66" y="26" text-anchor="middle">Role assigned</text><text class="st" x="66" y="42" text-anchor="middle">on the AP</text></g>
+    <g transform="translate(459,58)"><rect width="132" height="58" rx="9" fill="#5ED2DA"/><text class="st" x="66" y="26" text-anchor="middle">Tunnel up to</text><text class="st" x="66" y="42" text-anchor="middle">the gateway</text></g>
+    <g transform="translate(607,58)"><rect width="132" height="58" rx="9" fill="#5ED2DA"/><text class="st" x="66" y="26" text-anchor="middle">Gateway looks</text><text class="st" x="66" y="42" text-anchor="middle">up the role</text></g>
+  </g>
+  <g transform="translate(755,58)">
+    <rect width="130" height="58" rx="9" fill="#F0705F" fill-opacity="0.14" stroke="#F0705F" stroke-width="1.6" stroke-dasharray="6 5"/>
+    <text class="t st" x="65" y="26" text-anchor="middle" fill="#FF9A8C">No such role,</text>
+    <text class="t st" x="65" y="42" text-anchor="middle" fill="#FF9A8C">no VLAN</text>
+  </g>
+
+  <g stroke="#8BA2AE" stroke-width="1.4" marker-end="url(#j)" fill="none">
+    <path d="M149 87 L159 87"/><path d="M297 87 L307 87"/><path d="M445 87 L455 87"/><path d="M593 87 L603 87"/><path d="M741 87 L751 87"/>
+  </g>
+
+  <text x="15" y="146" class="t mono n" fill="#8BA2AE">WHAT THE CLIENT REPORTS</text>
+  <text x="15" y="168" class="t note" fill="#B0C4CF">Connected. The whole way across. No hop raises a failure, which is why this one burns an afternoon</text>
+  <text x="15" y="188" class="t note" fill="#B0C4CF">before anybody thinks to go and look at the role list on the gateway.</text>
+</svg><figcaption>Five hops succeed and the sixth has nothing to look up. Nobody logs a failure, because an object that was never created cannot refuse.</figcaption></figure>
+<p>While you're in there, three more MPSK Local constraints worth knowing before you design around it: wpa2-psk-aes only, 24 passphrases per SSID, and passphrases as strings rather than hex. The first one has a consequence people miss. 6 GHz requires WPA3, so an MPSK Local SSID isn't going on 6 GHz at all. If the plan involved 6 GHz and per-device passphrases, the plan changes before the AP order does.</p>
+<h2>Two profiles, one name, different classes</h2>
+<p>Second case. New Central, tunneled WLAN, Central NAC doing the authentication. Everything configured, nothing authenticating, and the RadSec certificate the gateway needs never appeared.</p>
+<p>What it came down to was which kind of profile the WLAN was built from. A library profile and a local profile look the same in the UI. Same fields, same name if you named them the same, same spot in the layout. They are not the same object class, and some features only wire themselves to one of them. Central NAC is one of those: the certificate follows the library profile.</p>
+<p>That's a miserable thing to debug, because there's nothing to debug. You built something visually identical to the thing that works. My read is that local profiles exist so one scope can override without disturbing everything above it, which is reasonable, and rendering both classes the same way is what turns a reasonable design into a trap.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-label="A library profile and a local profile render identically in the interface, but only the library profile has a path to the RadSec certificate that Central NAC needs">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .n{fill:#8BA2AE;font-size:10.5px;font-family:JetBrains Mono,ui-monospace,Menlo,monospace;letter-spacing:1.5px}
+    .row{font-size:12.5px}
+    .note{fill:#B0C4CF;font-size:12px}
+    .box{font-size:12.5px;font-weight:600}
+  </style>
+  <marker id="pg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8CE05E"/></marker>
+  </defs>
+  <text x="15" y="28" class="t hd">Same fields, same name, different object class.</text>
+
+  <text x="15" y="58" class="t n">WHAT THE UI DRAWS</text>
+  <g class="t">
+    <rect x="15" y="70" width="360" height="42" rx="8" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.12"/>
+    <text x="30" y="96" class="row" fill="#EAF2F6">guest-nac</text><text x="360" y="96" class="row" text-anchor="end" fill="#8BA2AE">Network profile</text>
+    <rect x="15" y="120" width="360" height="42" rx="8" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.12"/>
+    <text x="30" y="146" class="row" fill="#EAF2F6">guest-nac</text><text x="360" y="146" class="row" text-anchor="end" fill="#8BA2AE">Network profile</text>
+    <text x="15" y="190" class="t note">Two rows. One of them works.</text>
+  </g>
+
+  <text x="470" y="58" class="t n">WHAT THE TWO ROWS ACTUALLY ARE</text>
+  <g class="t">
+    <rect x="470" y="70" width="200" height="42" rx="8" fill="#8CE05E"/>
+    <text x="570" y="96" class="box" fill="#06202A" text-anchor="middle">Library profile</text>
+    <path d="M670 91 L722 91" stroke="#8CE05E" stroke-width="2" fill="none" marker-end="url(#pg)"/>
+    <rect x="730" y="70" width="155" height="42" rx="8" fill="#8CE05E" fill-opacity="0.14" stroke="#8CE05E" stroke-opacity="0.5"/>
+    <text x="807" y="90" class="box" fill="#B6F08F" text-anchor="middle">RadSec cert</text>
+    <text x="807" y="105" class="box" fill="#B6F08F" text-anchor="middle" font-size="11">issued</text>
+
+    <rect x="470" y="120" width="200" height="42" rx="8" fill="none" stroke="#F5A524" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <text x="570" y="146" class="box" fill="#F5A524" text-anchor="middle">Local profile</text>
+    <path d="M670 141 L722 141" stroke="#F5A524" stroke-width="1.6" fill="none" stroke-dasharray="5 4"/>
+    <path d="M726 133 L742 149 M742 133 L726 149" stroke="#F0705F" stroke-width="2"/>
+    <text x="760" y="145" class="t note" fill="#F5A524">no path to the certificate</text>
+    <text x="470" y="190" class="t note">The class decides, not the fields.</text>
+  </g>
+
+  <rect x="15" y="216" width="870" height="64" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+  <text x="32" y="242" class="t note">Central NAC on a tunneled WLAN authenticates nothing and reports no error, because the object it needed</text>
+  <text x="32" y="264" class="t note">to hang a certificate on was the wrong class. Check the class before you go looking at the certificate.</text>
+</svg><figcaption>The fields are identical and the class is not. Only one of these two rows has a path to a certificate.</figcaption></figure>
+<p>So the habit now is: before I debug a feature that won't wire itself up, I check what class the object is, not what the object says.</p>
+<h2>The override you can't see</h2>
+<p>Third case, and this one is a visibility gap rather than a footgun. Somebody wanted to know which of their devices were overriding group policy. Reasonable question, especially before an audit, and the UI won't answer it.</p>
+<p>The API will. Ask it for the objects that live on the device rather than the ones it inherits, <code>object-type=LOCAL</code>, and you get the list nobody built a page for. Nothing is broken and nothing is hidden on purpose. It's just a view that doesn't exist.</p>
+<p>I've started treating that as the general move. If the UI can't tell me what's local and what's inherited, the API usually can, and what comes back is the config that's actually running.</p>
+<h2>What good looks like</h2>
+<p>Same shape three times. A wizard writes objects in more than one place: AP and gateway, library and scope, group and device. It writes the ones it knows about, the rest are yours, and nothing tells you which ones it skipped, because an object that was never created doesn't generate an error. It just isn't there.</p>
+<p>Two rules fall out of that.</p>
+<p><strong>When a wizard writes objects for you, go find out what it didn't write.</strong> If the feature spans an AP and a gateway, look at both. If it spans a library and a scope, find out which one got the object.</p>
+<p><strong>When the UI can't answer a question about what's local, ask the API.</strong> Overrides, profile classes, device-level objects. The UI is a view. The API is closer to the config.</p>
+<p>Neither of those is clever. Both of them would have saved three people a day each.</p>
+<h2>Checks for the three cases</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to check</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tunneled MPSK client connects, gets no VLAN</td>
+<td>Does the role named in the MPSK Local profile exist on the gateway</td>
+<td>Gateway role list, not the WLAN wizard</td>
+</tr>
+<tr>
+<td>6 GHz in an MPSK design</td>
+<td>MPSK Local is wpa2-psk-aes only, so there's no 6 GHz SSID to be had</td>
+<td>MPSK Local profile constraints</td>
+</tr>
+<tr>
+<td>More than 24 devices needing their own passphrase</td>
+<td>24 passphrases per SSID, strings not hex</td>
+<td>Same place</td>
+</tr>
+<tr>
+<td>Central NAC configured, no RadSec certificate</td>
+<td>Whether the WLAN was built on a library profile or a local one</td>
+<td>Profile class, before the certificate</td>
+</tr>
+<tr>
+<td>Need the devices overriding group policy</td>
+<td>Query the API for local objects instead of hunting for a UI list</td>
+<td><code>object-type=LOCAL</code></td>
+</tr>
+</tbody>
+</table>
+<h2>Bottom line</h2>
+<p>None of these three are bugs. They're the same gap between the object model and the picture the UI draws of it, and all three fail silently, which is why they cost hours instead of minutes.</p>
+<p>If something authenticated and then did nothing at all, stop looking at the thing that authenticated. Go find the object that was never created on the other side.</p></div>
+    </div>
+    
+    <section class="end g-card" data-rise>
+      <h3>More field notes</h3>
+      <div class="postnav"><a class="pn g-card" href="how-the-banner-works.html"><span class="eyebrow">Older</span>The Banner Is a Wi-Fi Link You Can Break</a></div>
+    </section>
+  </article>
+</div>
 </main>
-<a class="rig" href="socials.html" data-origin="genie" aria-label="Where else to find me"><img src="character/nfn-bot-think.svg" alt="" width="104" height="104"></a>
+<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-signal.svg" alt="" width="104" height="104"></a>
 <footer><div class="wrap">
   <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
   <span><a href="/rss.xml">RSS</a></span>
