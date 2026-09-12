@@ -2405,7 +2405,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
           var model = a.model && NFN.aps && NFN.aps.model(a.model) ? a.model : undefined, keep = cur[k] && cur.length === n ? cur[k] : {};
           return { x: pos[k].x, y: pos[k].y, h: keep.h || 3, gw: !/point/i.test(a.mesh_role || ""), down: /down/i.test(a.status || ""),
                    tx: isFinite(+r5.tx_dbm) ? +r5.tx_dbm : undefined, ant: model ? "auto" : (keep.ant || "auto"), aim: null, kind: model ? undefined : keep.kind, cant: keep.cant, caim: null, tilt: keep.tilt || 0,
-                   band: r5.band ? +r5.band : null, bw: isFinite(parseInt(r5.bw, 10)) ? parseInt(r5.bw, 10) : null, ch: isFinite(+r5.channel) ? +r5.channel : null, model: model, name: a.name };
+                   band: r5.band ? +r5.band : null, bw: /\d+/.test(String(r5.bw || "")) ? +String(r5.bw).match(/\d+/)[0] : null, ch: /^\d+/.test(String(r5.channel || "")) ? parseInt(r5.channel, 10) : null, model: model, name: a.name };
         });
         /* the loss AirMatch heard, both directions averaged, on the band the pair runs */
         var idx = {}, ms = {}, seen = {};
