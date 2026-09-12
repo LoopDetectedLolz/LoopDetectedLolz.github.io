@@ -27,8 +27,9 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
   includes it, so it is invisible to the site until it is wired into a page.
 - **The mesh planner** (`#mesh/v1`): a draggable site map with APs, obstacles and a
   client; portal or point, AP kind (dual radio shared, tri radio dedicated, bridge unit),
-  antenna (omni, down-tilt omni, wide patch, narrow patch, highly directional) with an
-  aim that defaults to the parent, mast height, power and a fail toggle per AP; footprints
+  antenna (automatic by default, picked by a search over the whole site with a reason per
+  AP; or omni, down-tilt omni, wide patch, narrow patch, highly directional) with an aim
+  that defaults to the parent and can be pinned, mast height, power and a fail toggle per AP; footprints
   drawn as the antenna's real shape and a wedge showing where a patch looks; a 3D toggle
   with an orbiting camera, Fresnel tubes that go orange where they clip, antenna lobes as
   wire surfaces, the ground bounce, and the camera in the URL; links drawn by

@@ -753,9 +753,9 @@ it would get.</p>
     <div class="t-panel" style="margin-top:16px">
       <h3>The site</h3>
       <div class="t-row"><label for="m-fw">Field, across</label>
-        <input type="range" id="m-fw" min="60" max="1200" step="10" value="480"><output id="m-fw-v">480 m</output></div>
+        <input type="range" id="m-fw" min="60" max="1200" step="10" value="700"><output id="m-fw-v">700 m</output></div>
       <div class="t-row"><label for="m-fd">Field, deep</label>
-        <input type="range" id="m-fd" min="40" max="800" step="10" value="300"><output id="m-fd-v">300 m</output></div>
+        <input type="range" id="m-fd" min="40" max="800" step="10" value="360"><output id="m-fd-v">360 m</output></div>
       <div class="t-row"><label for="m-land">Ground</label><select id="m-land"></select></div>
       <div class="t-row"><label for="m-up">Uplink off site</label>
         <input type="number" id="m-up" min="1" max="10000" step="1" value="100"><span style="font:11px var(--mono);color:var(--text-muted)">Mb/s</span></div>
@@ -769,7 +769,7 @@ it would get.</p>
       <div class="t-row"><label for="m-bw">Channel width</label>
         <select id="m-bw"><option>20</option><option selected>40</option><option>80</option><option>160</option></select></div>
       <div class="t-row"><label for="m-tx">Default power</label>
-        <input type="range" id="m-tx" min="0" max="30" step="1" value="20"><output id="m-tx-v">20 dBm</output></div>
+        <input type="range" id="m-tx" min="0" max="30" step="1" value="17"><output id="m-tx-v">17 dBm</output></div>
       <div class="t-row"><label for="m-ss">Streams</label>
         <select id="m-ss"><option>1</option><option selected>2</option><option>4</option></select></div>
       <div class="t-row"><label for="m-kind">New APs are</label><select id="m-kind"></select></div>
@@ -795,6 +795,7 @@ it would get.</p>
       <div class="t-stats" id="m-stats"></div>
       <div class="m-ceiling" id="m-ceiling"></div>
       <div id="m-flags"></div>
+      <div id="m-reasons"></div>
       <h3 style="margin-top:20px">Every access point</h3>
       <div class="t-scroll"><table class="t-table m-table"><thead><tr>
         <th>AP</th><th>Role</th><th>Antenna</th><th>Parent</th><th>Hops</th><th>Link</th><th>Cost</th><th>Backhaul</th><th>Delivers</th><th>Backup</th>
@@ -830,7 +831,7 @@ it would get.</p>
   function serAps(a) {
     return a.map(function (p) {
       return [Math.round(p.x), Math.round(p.y), p.h, p.tx === undefined ? "" : p.tx, (p.gw ? "p" : "") + (p.down ? "d" : ""),
-              p.ant || "", p.aim === undefined || p.aim === null ? "" : Math.round(p.aim), p.kind || ""].join(",");
+              M.isAuto(p) ? "" : p.ant, p.aim === undefined || p.aim === null ? "" : Math.round(p.aim), p.kind || ""].join(",");
     }).join(";");
   }
   function deAps(s) {
@@ -841,7 +842,7 @@ it would get.</p>
       if (!isFinite(x) || !isFinite(y) || !isFinite(h)) return null;
       return { x: x, y: y, h: NFN.clamp(h, 0.5, 15), tx: isFinite(tx) ? NFN.clamp(tx, 0, 30) : undefined,
                gw: /p/.test(b[4] || ""), down: /d/.test(b[4] || ""),
-               ant: M.ANTENNAS[b[5]] ? b[5] : undefined, aim: isFinite(aim) ? aim : null, kind: M.KINDS[b[7]] ? b[7] : undefined };
+               ant: M.ANTENNAS[b[5]] ? b[5] : "auto", aim: isFinite(aim) ? aim : null, kind: M.KINDS[b[7]] ? b[7] : undefined };
     }).filter(Boolean);
     return out.length ? out.slice(0, 24) : undefined;
   }
@@ -859,20 +860,20 @@ it would get.</p>
   function serCl(c) { return c ? Math.round(c.x) + "," + Math.round(c.y) : ""; }
   function deCl(s) { if (!s) return null; var b = s.split(","), x = parseFloat(b[0]), y = parseFloat(b[1]); return isFinite(x) && isFinite(y) ? { x: x, y: y } : null; }
 
-  var DEF_APS = [{ x: 50, y: 150, h: 4, gw: true, kind: "tri", ant: "omni" }, { x: 190, y: 90, h: 3, kind: "dual", ant: "omni" },
-                 { x: 190, y: 220, h: 3, kind: "dual", ant: "dtomni" }, { x: 340, y: 150, h: 3, kind: "dual", ant: "pwide", aim: null },
-                 { x: 450, y: 70, h: 3, kind: "dual", ant: "pnarrow", aim: null }],
-      DEF_OBS = [{ x: 265, y: 150, type: "building", h: 12, r: 12 }],
-      DEF_CL = { x: 300, y: 240 };
+  var DEF_APS = [{ x: 60, y: 180, h: 4, gw: true, kind: "tri", ant: "auto", aim: null }, { x: 260, y: 110, h: 3, kind: "dual", ant: "auto", aim: null },
+                 { x: 260, y: 270, h: 3, kind: "dual", ant: "auto", aim: null }, { x: 470, y: 180, h: 3, kind: "dual", ant: "auto", aim: null },
+                 { x: 650, y: 90, h: 3, kind: "dual", ant: "auto", aim: null }],
+      DEF_OBS = [{ x: 370, y: 180, type: "building", h: 12, r: 12 }],
+      DEF_CL = { x: 420, y: 300 };
   var booted = false, mode = "move", sel = null;   /* sel: {kind:'ap'|'ob'|'cl', i} */
   var st = NFN.State("mesh", {
-    fw: NFN.f.int(480, 60, 1200), fd: NFN.f.int(300, 40, 800),
+    fw: NFN.f.int(700, 60, 1200), fd: NFN.f.int(360, 40, 800),
     land: NFN.f.pick("open", Object.keys(M.LAND)),
     up: NFN.f.num(100, 1, 10000),
     prof: NFN.f.pick("generic", Object.keys(M.PROFILES)), hops: NFN.f.int(4, 1, 8),
     f: NFN.f.num(5.2, 5.2, 6.0), bw: NFN.f.int(40, 20, 160),
-    tx: NFN.f.num(20, 0, 30), ss: NFN.f.int(2, 1, 4),
-    ant: NFN.f.pick("omni", Object.keys(M.ANTENNAS)), kind: NFN.f.pick("dual", Object.keys(M.KINDS)),
+    tx: NFN.f.num(17, 0, 30), ss: NFN.f.int(2, 1, 4),
+    ant: NFN.f.pick("auto", ["auto"].concat(Object.keys(M.ANTENNAS))), kind: NFN.f.pick("dual", Object.keys(M.KINDS)),
     ray: NFN.f.bool(true),
     cl: NFN.f.int(300, 0, 20000),
     dev: NFN.f.pick("ax2", CAP.DEVICES.map(function (d) { return d.id; })),
@@ -896,6 +897,7 @@ it would get.</p>
   Object.keys(M.OBSTACLES).forEach(function (k) { $("m-obtype").add(new Option(M.OBSTACLES[k].label, k)); });
   CAP.DEVICES.forEach(function (d) { $("m-dev").add(new Option(d.label, d.id)); });
   Object.keys(M.KINDS).forEach(function (k) { $("m-kind").add(new Option(M.KINDS[k].label, k)); $("m-apkind").add(new Option(M.KINDS[k].label, k)); });
+  $("m-ant").add(new Option("Automatic, picked for the site", "auto")); $("m-apant").add(new Option("Automatic", "auto"));
   Object.keys(M.ANTENNAS).forEach(function (k) {
     var a = M.ANTENNAS[k], lbl = a.label + ", " + a.g + " dBi" + (a.h >= 360 ? "" : ", " + a.h + " by " + a.v + " deg") + (a.tilt ? ", " + a.tilt + " deg down" : "");
     $("m-ant").add(new Option(lbl, k)); $("m-apant").add(new Option(lbl, k));
@@ -920,8 +922,21 @@ it would get.</p>
       .set("cl", Math.max(0, +$("m-cl").value || 0)).set("dev", $("m-dev").value).set("app", $("m-app").value)
       .set("edge", +$("m-edge").value).set("cbw", +$("m-cbw").value);
   }
-  function model() {
-    return { aps: st.get("ap"), obstacles: st.get("ob"), w: st.get("fw"), d: st.get("fd"), land: st.get("land"),
+  /* the plan sees the antenna each AP actually wears: the picked one where the
+     choice is automatic. raw hands the picker the undecided list. */
+  var lastSug = null;
+  function resolveAnts() {
+    var aps = st.get("ap");
+    if (!aps.some(function (a) { return M.isAuto(a) && !a.down; })) { lastSug = null; aps.forEach(function (a) { a._ant = a.ant; }); return; }
+    /* mid-drag the last answer stands; the search runs again when the finger lifts */
+    if (drag && drag.moved && aps.every(function (a) { return a._ant; })) return;
+    var S = M.suggest(model(true));
+    aps.forEach(function (a, i) { a._ant = S.ants[i]; });
+    lastSug = S;
+  }
+  function model(raw) {
+    var aps = raw ? st.get("ap") : st.get("ap").map(function (a) { var o = {}, k; for (k in a) o[k] = a[k]; o.ant = M.isAuto(a) ? (a._ant || "omni") : a.ant; return o; });
+    return { aps: aps, obstacles: st.get("ob"), w: st.get("fw"), d: st.get("fd"), land: st.get("land"),
              uplink: st.get("up"), profile: st.get("prof"), maxHops: st.get("hops"),
              fGHz: st.get("f"), bw: st.get("bw"), tx: st.get("tx"), ant: st.get("ant"), ss: st.get("ss"),
              tworay: st.get("ray"),
@@ -1355,7 +1370,8 @@ it would get.</p>
       $("m-portal").classList.toggle("m-on", !!a.gw); $("m-point").classList.toggle("m-on", !a.gw);
       $("m-aph").value = a.h; $("m-aph-v").textContent = a.h.toFixed(1) + " m";
       $("m-apkind").value = a.kind || (M.kind(a, {}) === M.KINDS.tri ? "tri" : "dual");
-      $("m-apant").value = a.ant || st.get("ant");
+      $("m-apant").value = M.isAuto(a) ? "auto" : a.ant;
+      $("m-apant").options[0].textContent = M.isAuto(a) ? "Automatic: " + r.antenna.label.toLowerCase() : "Automatic";
       var auto = a.aim === undefined || a.aim === null, aimNow = p.tree.aps[sel.i].aim;
       $("m-apaim").value = Math.round(((aimNow + 180) % 360 + 360) % 360 - 180);
       $("m-apaim-v").textContent = Math.round(aimNow) + "°" + (auto ? " auto" : "");
@@ -1421,7 +1437,7 @@ it would get.</p>
   /* ── the answer ──────────────────────────────────────────────────────── */
   function pc(x) { return Math.round(x * 100) + "%"; }
   function run() {
-    readUi();
+    readUi(); resolveAnts();
     var m = model(), p = M.plan(m), c = st.get("c"), cl = c ? M.client(m, p, c) : null, R = M.resilience(m);
     ["fw", "fd"].forEach(function (k) { $("m-" + k + "-v").textContent = st.get(k) + " m"; });
     $("m-hops-v").textContent = st.get("hops"); $("m-tx-v").textContent = st.get("tx") + " dBm";
@@ -1445,7 +1461,7 @@ it would get.</p>
       ["Per client", p.perClientKbps >= 1000 ? (p.perClientKbps / 1000).toFixed(1) + " Mb/s" : p.perClientKbps.toFixed(0) + " kb/s"],
       ["Asked", p.askKbps + " kb/s"], ["APs live", live + " of " + p.aps.length],
       ["Portals", String(p.tree.gateways)], ["Deepest", p.maxDepth + (p.maxDepth === 1 ? " hop" : " hops")],
-      ["Field covered", pc(p.coverage)], ["Sharing a radio", p.aps.filter(function (r) { return r.depth >= 0 && !r.kind.dedicated; }).length + " of " + p.aps.length],
+      ["Field covered", pc(p.coverage)], ["Antennas picked", st.get("ap").filter(function (a) { return M.isAuto(a); }).length + " of " + p.aps.length],
       ["No backup", String(p.spof)]
     ].map(function (s) { return '<div class="t-stat"><b>' + s[1] + "</b><span>" + s[0] + "</span></div>"; }).join("");
 
@@ -1456,13 +1472,17 @@ it would get.</p>
       return '<div class="m-cb"><span>' + b[0] + '</span><div class="m-cbar"><i style="width:' + (b[1] / top * 100) + '%;background:' + (bind ? WARN : b[2]) + '"></i></div><b style="color:' + (bind ? "#ffd28a" : b[2]) + '">' + mbs(b[1]) + (bind ? " · the ceiling" : "") + "</b></div>";
     }).join("");
 
+    $("m-reasons").innerHTML = lastSug && lastSug.reasons.length
+      ? '<h3 style="margin-top:20px">What to put on the masts</h3><p class="t-hint">Picked for these mount points, heights and this crowd: what the clients get, headroom on every link, coverage of the field, nobody orphaned, and an omni whenever gain is not needed. A starting point, not a survey. Pick an antenna by hand on any AP to overrule it.</p><ul class="t-assume" style="margin-top:6px">' +
+        lastSug.reasons.map(function (q) { return "<li>AP " + (q.i + 1) + ": " + esc(q.why) + "</li>"; }).join("") + "</ul>"
+      : "";
     $("m-flags").innerHTML = p.flags.map(function (f) { return '<div class="t-note' + (/ceiling|no second|down|orphan|Fresnel|no usable|No portal/i.test(f) ? " t-bad" : "") + '">' + esc(f) + "</div>"; }).join("");
 
     $("m-rows").innerHTML = p.aps.map(function (r, k) {
       var col = r.status === "down" || r.status === "unreachable" ? WARN : r.gw ? "#8CE05E" : HOPC[Math.min(Math.max(r.depth, 1), HOPC.length - 1)];
       return "<tr" + (sel && sel.kind === "ap" && sel.i === k ? ' style="background:rgba(255,255,255,0.04)"' : "") + "><td><i style='background:" + col + "'></i>AP " + (k + 1) + "</td>" +
         "<td>" + (r.gw ? "portal" : r.serves ? "point" : "bridge") + (r.kind.dedicated ? "" : ", shared") + (r.status === "down" ? ", down" : "") + "</td>" +
-        "<td>" + r.antenna.label + (r.antenna.h < 360 ? " " + Math.round(p.tree.aps[k].aim) + "°" : "") + "</td>" +
+        "<td>" + r.antenna.label + (r.antenna.h < 360 ? " " + Math.round(p.tree.aps[k].aim) + "°" : "") + (M.isAuto(st.get("ap")[k]) ? " ·auto" : "") + "</td>" +
         "<td>" + (r.gw ? "uplink" : r.parent >= 0 ? "AP " + (r.parent + 1) : "none") + "</td>" +
         "<td>" + (r.depth >= 0 ? r.depth : "none") + "</td>" +
         "<td>" + (r.link ? mbs(r.link.goodput) + (r.link.fresnelBad ? " !" : "") : r.gw ? "wired" : "0") + "</td>" +
@@ -1492,7 +1512,7 @@ it would get.</p>
     ].concat(p.aps.map(function (r, k) {
       var a = st.get("ap")[k];
       return "  AP " + (k + 1) + " at " + Math.round(a.x) + "," + Math.round(a.y) + " m, mast " + a.h + " m, " + (a.tx === undefined ? st.get("tx") : a.tx) + " dBm, " +
-        r.kind.label.toLowerCase() + ", " + r.antenna.label.toLowerCase() + (r.antenna.h < 360 ? " aimed " + Math.round(p.tree.aps[k].aim) + " deg" : "") + ": " +
+        r.kind.label.toLowerCase() + ", " + r.antenna.label.toLowerCase() + (M.isAuto(a) ? " (picked)" : "") + (r.antenna.h < 360 ? " aimed " + Math.round(p.tree.aps[k].aim) + " deg" + (a.aim === null || a.aim === undefined ? " (auto)" : " (pinned)") : "") + ": " +
         (r.status === "down" ? "DOWN" : r.gw ? "portal, uplink" : r.status === "unreachable" ? "NO PATH (" + r.why + ")" :
          "parent AP " + (r.parent + 1) + ", " + r.depth + " hop" + (r.depth === 1 ? "" : "s") + ", link " + mbs(r.link.goodput) + " at " + r.link.snr.toFixed(0) + " dB SNR over " + r.link.d.toFixed(0) + " m" +
          (r.link.fresnelBad ? ", FRESNEL " + (r.link.clearance * 100).toFixed(0) + "%" : "") + (r.link.diffraction > 0.5 ? ", " + r.link.diffraction.toFixed(0) + " dB diffraction" : "") +
