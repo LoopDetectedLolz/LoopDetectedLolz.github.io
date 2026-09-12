@@ -50,7 +50,8 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
     python3 lab.py qam          # the live simulator widget, same loop
     python3 lab.py --diff       # what the lab copy has that the live one does not
     python3 lab.py --promote    # copy the lab widget over the live one and rebuild
-    node simtest.js             # 191 model checks, no browser
+    node simtest.js             # 202 model checks, no browser
+    node simsweep.js 400        # invariants over 400 random sites, about 40 s
     python3 regress.py          # every page at 360, 768 and 1280
     python3 capture.py academy-01   # regenerate the lesson figures from the live simulator
     python3 build-blog.py       # build the site
@@ -90,7 +91,9 @@ Run `node simtest.js` and `python3 regress.py` before promoting anything.
 3. **GPS and FTM**, once the lab answers the questions below. Positions are already
    recorded per AP in the kit and ride in the CSV and the plan, so the groundwork is done.
 
-Everything on the list of twenty from 2026-09-11 is in the lab. Not yet verified by anyone
+Everything on the list of twenty from 2026-09-11 is in the lab, the interface was folded
+into progressive disclosure on 2026-09-12, `simsweep.js` baselines the model (80,761 checks
+over 400 sites, clean after one real fix), and an Ekahau .esx opens straight into the field. Not yet verified by anyone
 on a phone in a field: the GPS placement, the compass aim and the image scale, which need a
 real device and daylight. Ideas parked, none of them decided:
 
@@ -102,6 +105,11 @@ real device and daylight. Ideas parked, none of them decided:
 - The antenna picker choosing the client antenna and the backhaul width as well as the
   backhaul antenna. Today it picks one thing per AP and the note says what 20 MHz would buy.
 - Co-channel between client radios of neighbouring APs. Today only backhaul links share air.
+- Export back to Ekahau. Reading .esx is done; writing one means matching their schema
+  exactly, and a half-right project file is worse than the CSV. Needs a real .esx from
+  the current release to copy the shape from, and the antenna catalogue to map back.
+- The Ekahau reader was tested on a synthetic project shaped like the exports seen; open a
+  real .esx and check the direction convention (0 taken as up the plan) and the image entry.
 
 ## To verify in the lab, with the AP-735
 

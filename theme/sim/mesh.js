@@ -609,8 +609,9 @@
     for (i = 0; i < aps.length; i++) chan.push(null);
     for (i = 0; i < aps.length; i++) if (T.depth[i] === 0) {
       var c = aps[i].ch !== undefined && aps[i].ch !== null ? aps[i].ch : null;
-      if (c === null) { var tries = 0; while (tries++ < list.length && used[list[next % list.length]]) next++; c = list.length ? list[next % list.length] : 0; next++; }
-      used[c] = true; chan[i] = c;
+      if (c === null) { var tries = 0; while (tries++ < list.length && used[list[next % list.length]]) next++; c = list.length ? list[next % list.length] : null; next++; }
+      if (c !== null) used[c] = true;
+      chan[i] = c;
     }
     for (i = 0; i < aps.length; i++) if (T.depth[i] > 0) { var k = i; while (T.parent[k] >= 0) k = T.parent[k]; chan[i] = chan[k]; }
     return { chan: chan, list: list, distinct: Object.keys(used).length };
@@ -744,6 +745,7 @@
     var flags = [], spof = rows.filter(function (r) { return r.depth > 0 && r.backup < 0; }).length,
         downN = rows.filter(function (r) { return r.status === "down"; }).length;
     if (!T.gateways) flags.push("No portal. Mark the AP with the uplink as a portal, or nothing gets off the site.");
+    if (!CH.list.length) flags.push("There is no " + C.bw + " MHz channel in " + M.bandOf(C.fGHz) + " GHz for " + M.domain(C.domain).label + (st.dfs ? "" : " without DFS") + ". Pick a narrower channel or put DFS back in the plan.");
     if (downN) flags.push(downN + (downN === 1 ? " AP is" : " APs are") + " down. The tree below is the one the mesh falls back to.");
     if (spof) flags.push(spof + (spof === 1 ? " point has" : " points have") + " no second parent to fall back to. Lose the parent and they go dark.");
     if (unreached) flags.push(unreached + (unreached === 1 ? " AP has" : " APs have") + " no usable link to the mesh: too far, something in the way, or a different band.");

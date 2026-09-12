@@ -86,6 +86,20 @@
 .m-map svg{border-radius:10px}
 .m-on{color:#06202A!important;background:var(--teal)!important;border-color:var(--teal)!important}
 #m-fail.m-on{background:var(--orange)!important;border-color:var(--orange)!important}
+.m-more{margin-top:12px;border:1px solid var(--t-line);border-radius:11px;padding:0 12px}
+.m-more>summary{cursor:pointer;list-style:none;font:600 11px var(--mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-muted);padding:11px 0;display:flex;align-items:center;gap:8px}
+.m-more>summary::-webkit-details-marker{display:none}
+.m-more>summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--text-muted);border-bottom:1.5px solid var(--text-muted);transform:rotate(-45deg);transition:transform .2s cubic-bezier(0.32,0.72,0,1)}
+.m-more[open]>summary::before{transform:rotate(45deg)}
+.m-more[open]>summary{color:var(--text-dim)}
+.m-more>*:not(summary){margin-bottom:10px}
+.m-more>.t-scroll{margin-top:4px}
+.m-more>details{margin-top:0}
+.m-legend-box{margin-left:auto}
+.m-legend-box>summary{cursor:pointer;list-style:none;font:11px var(--mono);color:var(--text-muted);min-height:38px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid var(--t-line);border-radius:999px}
+.m-legend-box>summary::-webkit-details-marker{display:none}
+.m-legend-box[open]>.m-legend{margin-top:8px;flex-basis:100%}
+.m-bar select{font:13px var(--sans);color:var(--text);background:rgba(3,10,16,0.8);border:1px solid var(--t-line);border-radius:999px;min-height:38px;padding:0 12px}
 .m-clock{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-8px 0 16px;padding:8px 12px;border:1px solid var(--t-line);border-radius:12px;background:rgba(3,10,16,0.45)}
 .m-clock select{min-height:38px}
 .m-todnote{font:11px var(--mono);color:var(--text-muted)}
@@ -693,10 +707,8 @@ should be carved up. The half power contour is the useful cell, not the last row
   <span class="eyebrow">Outdoors</span>
   <h2>Mesh on a field</h2>
 </div>
-<p class="t-lede">Drop access points on the ground, pick which ones have the uplink, and watch the mesh build itself from the
-portals outward. Every link is a real budget over real geometry, every hop is paid for, and the whole thing runs into the
-same wall at the end: the uplink. Drag anything. Fail an AP and see who goes dark. Put a crowd where the people will be
-and a client where you are standing, and read what they would get.</p>
+<p class="t-lede">Put access points where the masts can go, mark the one with the uplink, and the mesh builds itself. Drag anything.
+Tap anything to change it. The big number is what gets off the site, and the notes under it say what is in the way.</p>
 
 <div class="m-bar">
   <div class="m-modes" role="group" aria-label="Plan or three dimensional view">
@@ -704,23 +716,26 @@ and a client where you are standing, and read what they would get.</p>
     <button type="button" class="m-view" data-view="3d">3D</button>
   </div>
   <div class="m-modes" id="m-modes2d" role="group" aria-label="What a tap on the map does">
-    <button type="button" class="m-mode on" data-mode="move">Move</button>
-    <button type="button" class="m-mode" data-mode="ap">Add AP</button>
-    <button type="button" class="m-mode" data-mode="ob">Add obstacle</button>
-    <select id="m-obtype" aria-label="obstacle type"></select>
-    <button type="button" class="m-mode" data-mode="hill">Add hill</button>
-    <button type="button" class="m-mode" data-mode="crowd">Add crowd</button>
-    <button type="button" class="m-mode" data-mode="client">Place client</button>
-    <button type="button" class="m-mode" data-mode="path">Draw a walk</button>
+    <select id="m-add" aria-label="what a tap on the map does">
+      <option value="move">Tap to select, drag to move</option>
+      <option value="ap">Tap to add an access point</option>
+      <option value="ob">Tap to add an obstacle</option>
+      <option value="hill">Tap to add a hill</option>
+      <option value="crowd">Tap to add a crowd</option>
+      <option value="client">Tap to place the client</option>
+      <option value="path">Tap along a walk</option>
+    </select>
+    <select id="m-obtype" aria-label="obstacle type" hidden></select>
+    <button type="button" class="m-mode" data-mode="move" id="m-done" hidden>Done</button>
   </div>
   <div class="m-modes" id="m-modes3d" role="group" aria-label="Layers in the 3D view" hidden>
-    <button type="button" class="m-layer" data-layer="f">Fresnel tubes</button>
-    <button type="button" class="m-layer" data-layer="l">Antenna lobes</button>
-    <button type="button" class="m-layer" data-layer="t">Ground bounce</button>
-    <button type="button" class="m-layer" data-layer="c">Footprints and client</button>
+    <button type="button" class="m-layer" data-layer="f">Fresnel</button>
+    <button type="button" class="m-layer" data-layer="l">Lobes</button>
+    <button type="button" class="m-layer" data-layer="t">Bounce</button>
+    <button type="button" class="m-layer" data-layer="c">Footprints</button>
     <label class="m-zx">heights x<input type="range" id="m-zx" min="1" max="10" step="1" value="5"><output id="m-zx-v">5</output></label>
   </div>
-  <div class="m-legend" id="m-legend"></div>
+  <details class="m-legend-box"><summary>Key</summary><div class="m-legend" id="m-legend"></div></details>
 </div>
 <div class="m-map t-panel" id="m-map"></div>
 <div class="m-clock" id="m-clock">
@@ -737,37 +752,41 @@ and a client where you are standing, and read what they would get.</p>
       <p class="t-hint" id="m-selhint">Tap an AP, an obstacle, a hill, a crowd or the client on the map.</p>
       <div id="m-selap" hidden>
         <div class="t-row"><label>Role</label>
-          <div class="t-sight" style="flex:1;margin:0"><button class="t-btn" id="m-portal" type="button">Portal</button><button class="t-btn" id="m-point" type="button">Point</button></div></div>
-        <div class="t-row"><label for="m-apkind">The box</label><select id="m-apkind"></select></div>
+          <div class="t-sight" style="flex:1;margin:0"><button class="t-btn" id="m-portal" type="button">Portal, has the uplink</button><button class="t-btn" id="m-point" type="button">Point</button></div></div>
         <div class="t-row"><label for="m-apant" id="m-apantlbl">Antenna</label><select id="m-apant"></select></div>
-        <div class="t-row"><label for="m-apaim">Aimed</label>
-          <input type="range" id="m-apaim" min="-180" max="180" step="5" value="0"><output id="m-apaim-v">auto</output></div>
-        <div class="t-sight"><button class="t-btn" id="m-apauto" type="button">Aim it automatically</button><button class="t-btn" id="m-apcompass" type="button">Aim with the compass</button></div>
-        <div class="t-row" style="margin-top:8px"><label for="m-aptilt">Down-tilt</label>
-          <input type="range" id="m-aptilt" min="-10" max="45" step="1" value="0"><output id="m-aptilt-v">0°</output></div>
-        <div id="m-clientant">
-          <div class="t-row"><label for="m-apcant">Client antenna</label><select id="m-apcant"></select></div>
-          <div class="t-row"><label for="m-apcaim">Clients aimed</label>
-            <input type="range" id="m-apcaim" min="-180" max="180" step="5" value="0"><output id="m-apcaim-v">auto</output></div>
-          <button class="t-btn" id="m-apcauto" type="button" style="width:100%;margin-bottom:8px">Aim the client antenna at the crowd</button>
-        </div>
         <div class="t-row"><label for="m-aph">Mast height</label>
           <input type="range" id="m-aph" min="0.5" max="15" step="0.5" value="3"><output id="m-aph-v">3.0 m</output></div>
-        <div class="t-row"><label for="m-aptx">Transmit power</label>
-          <input type="range" id="m-aptx" min="0" max="30" step="1" value="20"><output id="m-aptx-v">20 dBm</output></div>
-        <div class="t-row"><label for="m-apband">Backhaul band</label>
-          <select id="m-apband"><option value="">Site default</option><option value="5.2">5 GHz</option><option value="6.0">6 GHz</option></select></div>
-        <div class="t-row"><label for="m-apbw">Backhaul width</label>
-          <select id="m-apbw"><option value="">Site default</option><option>20</option><option>40</option><option>80</option><option>160</option></select></div>
-        <div class="t-row" id="m-chrow"><label for="m-apch">Channel</label><select id="m-apch"></select></div>
         <div class="t-sight"><button class="t-btn" id="m-fail" type="button">Fail this AP</button><button class="t-btn" id="m-rmap" type="button">Remove</button></div>
         <p class="t-hint" id="m-apnote"></p>
-        <h3 style="margin-top:14px">A link from here</h3>
-        <div class="t-row"><label for="m-explain">To</label><select id="m-explain"></select></div>
-        <p class="t-hint" id="m-explainout"></p>
-        <h3 style="margin-top:14px">Measured on site</h3>
-        <p class="t-hint">Stand at this mast, read the RSSI from a neighbour off the AP, and type it. The model steps aside for that link and learns from the gap.</p>
-        <div id="m-meas"></div>
+        <details class="m-more"><summary>Aim, tilt, radio</summary>
+          <div class="t-row"><label for="m-apkind">The box</label><select id="m-apkind"></select></div>
+          <div class="t-row"><label for="m-apaim">Aimed</label>
+            <input type="range" id="m-apaim" min="-180" max="180" step="5" value="0"><output id="m-apaim-v">auto</output></div>
+          <div class="t-sight"><button class="t-btn" id="m-apauto" type="button">Aim it automatically</button><button class="t-btn" id="m-apcompass" type="button">Aim with the compass</button></div>
+          <div class="t-row" style="margin-top:8px"><label for="m-aptilt">Down-tilt</label>
+            <input type="range" id="m-aptilt" min="-10" max="45" step="1" value="0"><output id="m-aptilt-v">0°</output></div>
+          <div id="m-clientant">
+            <div class="t-row"><label for="m-apcant">Client antenna</label><select id="m-apcant"></select></div>
+            <div class="t-row"><label for="m-apcaim">Clients aimed</label>
+              <input type="range" id="m-apcaim" min="-180" max="180" step="5" value="0"><output id="m-apcaim-v">auto</output></div>
+            <button class="t-btn" id="m-apcauto" type="button" style="width:100%;margin-bottom:8px">Aim the client antenna at the crowd</button>
+          </div>
+          <div class="t-row"><label for="m-aptx">Transmit power</label>
+            <input type="range" id="m-aptx" min="0" max="30" step="1" value="20"><output id="m-aptx-v">20 dBm</output></div>
+          <div class="t-row"><label for="m-apband">Backhaul band</label>
+            <select id="m-apband"><option value="">Site default</option><option value="5.2">5 GHz</option><option value="6.0">6 GHz</option></select></div>
+          <div class="t-row"><label for="m-apbw">Backhaul width</label>
+            <select id="m-apbw"><option value="">Site default</option><option>20</option><option>40</option><option>80</option><option>160</option></select></div>
+          <div class="t-row" id="m-chrow"><label for="m-apch">Channel</label><select id="m-apch"></select></div>
+        </details>
+        <details class="m-more"><summary>A link from here</summary>
+          <div class="t-row"><label for="m-explain">To</label><select id="m-explain"></select></div>
+          <p class="t-hint" id="m-explainout"></p>
+        </details>
+        <details class="m-more"><summary>Measured on site</summary>
+          <p class="t-hint">Stand at this mast, read the RSSI from a neighbour off the AP, and type it. The model steps aside for that link and learns from the gap.</p>
+          <div id="m-meas"></div>
+        </details>
       </div>
       <div id="m-selob" hidden>
         <div class="t-row"><label for="m-obh">Height</label>
@@ -781,7 +800,7 @@ and a client where you are standing, and read what they would get.</p>
           <input type="range" id="m-hlh" min="-10" max="30" step="0.5" value="6"><output id="m-hlh-v">6.0 m</output></div>
         <div class="t-row"><label for="m-hlr">Width</label>
           <input type="range" id="m-hlr" min="10" max="300" step="5" value="60"><output id="m-hlr-v">60 m</output></div>
-        <p class="t-hint">A gaussian hill: the height is the top, the width is where it is about a tenth as high. Negative digs a hollow.</p>
+        <p class="t-hint">A smooth hill: the height is the top, the width is where it is about a tenth as high. Negative digs a hollow.</p>
         <button class="t-btn" id="m-rmhill" type="button" style="width:100%">Remove</button>
       </div>
       <div id="m-selcrowd" hidden>
@@ -797,7 +816,7 @@ and a client where you are standing, and read what they would get.</p>
         <button class="t-btn" id="m-rmcl" type="button" style="width:100%;margin-top:8px">Take the client away</button>
       </div>
       <div id="m-selpath" hidden>
-        <p class="t-hint">Tap the map to add waypoints; the plot below the answer reads the walk. Drag a waypoint to move it.</p>
+        <p class="t-hint">Tap the map to add waypoints; the plot under the answer reads the walk. Drag a waypoint to move it.</p>
         <div class="t-sight"><button class="t-btn" id="m-pathundo" type="button">Drop the last point</button><button class="t-btn" id="m-rmpath" type="button">Clear the walk</button></div>
       </div>
     </div>
@@ -808,56 +827,64 @@ and a client where you are standing, and read what they would get.</p>
         <input type="range" id="m-fw" min="60" max="1200" step="10" value="700"><output id="m-fw-v">700 m</output></div>
       <div class="t-row"><label for="m-fd">Field, deep</label>
         <input type="range" id="m-fd" min="40" max="800" step="10" value="360"><output id="m-fd-v">360 m</output></div>
-      <div class="t-row"><label for="m-north">Compass</label>
-        <input type="range" id="m-north" min="0" max="359" step="1" value="0"><output id="m-north-v">up is N</output></div>
-      <div class="t-row"><label for="m-land">Ground</label><select id="m-land"></select></div>
-      <div class="t-row"><label for="m-dom">Regulatory domain</label><select id="m-dom"></select></div>
       <div class="t-row"><label for="m-up">Uplink off site</label>
         <input type="number" id="m-up" min="1" max="10000" step="1" value="100"><span style="font:11px var(--mono);color:var(--text-muted)">Mb/s</span></div>
-      <h3 style="margin-top:22px">Under the map</h3>
-      <p class="t-hint">A site plan or a satellite screenshot. It stays in this browser, not in the link. Then tap two points you know the distance between.</p>
-      <input type="file" id="m-img" accept="image/*" aria-label="site image" style="font:12px var(--sans);color:var(--text-dim);max-width:100%">
-      <div class="t-sight" style="margin-top:8px"><button class="t-btn" id="m-scale" type="button">Set the scale</button><button class="t-btn" id="m-rmimg" type="button">Remove image</button></div>
-      <div class="t-row" style="margin-top:8px"><label for="m-imgop">Image opacity</label>
-        <input type="range" id="m-imgop" min="0" max="100" step="5" value="55"><output id="m-imgop-v">55%</output></div>
-      <p class="t-hint" id="m-scalenote"></p>
-      <h3 style="margin-top:22px">From where you stand</h3>
-      <p class="t-hint">On a phone at the mount point: the first fix sets the corner of the field, every fix after lands an AP where you are.</p>
-      <div class="t-sight"><button class="t-btn" id="m-gps" type="button">Add an AP here</button><button class="t-btn" id="m-gpsreset" type="button">Forget the fix</button></div>
-      <p class="t-hint" id="m-gpsnote"></p>
-
-      <h3 style="margin-top:22px">The backhaul</h3>
-      <div class="t-row"><label for="m-prof">Picks parents like</label><select id="m-prof"></select></div>
-      <p class="t-hint" id="m-profnote"></p>
-      <div class="t-row"><label for="m-hops">Hop ceiling</label>
-        <input type="range" id="m-hops" min="1" max="8" step="1" value="4"><output id="m-hops-v">4</output></div>
-      <div class="t-row"><label for="m-band">Band</label>
-        <select id="m-band"><option value="5.2" selected>5 GHz</option><option value="6.0">6 GHz</option></select></div>
-      <div class="t-row"><label for="m-bw">Channel width</label>
-        <select id="m-bw"><option>20</option><option selected>40</option><option>80</option><option>160</option></select></div>
-      <div class="t-row"><label for="m-dfs">DFS channels</label>
-        <select id="m-dfs"><option value="0" selected>Left out</option><option value="1">In the plan</option></select></div>
-      <div class="t-row"><label for="m-tx">Default power</label>
-        <input type="range" id="m-tx" min="0" max="30" step="1" value="17"><output id="m-tx-v">17 dBm</output></div>
-      <div class="t-row"><label for="m-fade">Fade margin</label>
-        <input type="range" id="m-fade" min="0" max="15" step="1" value="0"><output id="m-fade-v">0 dB</output></div>
-      <div class="t-row"><label for="m-ss">Streams</label>
-        <select id="m-ss"><option>1</option><option selected>2</option><option>4</option></select></div>
-      <div class="t-row"><label for="m-kind">New APs are</label><select id="m-kind"></select></div>
-      <div class="t-row"><label for="m-ant">New APs carry</label><select id="m-ant"></select></div>
-      <div class="t-row"><label for="m-ray">Ground reflection</label>
-        <select id="m-ray"><option value="0" selected>Off, plan without it</option><option value="1">Two ray, in every budget</option></select></div>
-
-      <h3 style="margin-top:22px">The crowd</h3>
       <div class="t-row"><label for="m-cl">Loose clients</label>
         <input type="number" id="m-cl" min="0" max="20000" step="10" value="300"></div>
-      <p class="t-hint">Spread evenly across the APs. Crowds on the map add to this and go where they stand.</p>
-      <div class="t-row"><label for="m-dev">Typical device</label><select id="m-dev"></select></div>
       <div class="t-row"><label for="m-app">Doing</label><select id="m-app"></select></div>
-      <div class="t-row"><label for="m-edge">Cell edge</label>
-        <input type="range" id="m-edge" min="-80" max="-55" step="1" value="-67"><output id="m-edge-v">-67 dBm</output></div>
-      <div class="t-row"><label for="m-cbw">Client channel</label>
-        <select id="m-cbw"><option selected>20</option><option>40</option><option>80</option></select></div>
+      <div class="t-row"><label for="m-land">Ground</label><select id="m-land"></select></div>
+
+      <details class="m-more"><summary>The radios</summary>
+        <div class="t-row"><label for="m-prof">Picks parents like</label><select id="m-prof"></select></div>
+        <p class="t-hint" id="m-profnote"></p>
+        <div class="t-row"><label for="m-hops">Hop ceiling</label>
+          <input type="range" id="m-hops" min="1" max="8" step="1" value="4"><output id="m-hops-v">4</output></div>
+        <div class="t-row"><label for="m-band">Band</label>
+          <select id="m-band"><option value="5.2" selected>5 GHz</option><option value="6.0">6 GHz</option></select></div>
+        <div class="t-row"><label for="m-bw">Channel width</label>
+          <select id="m-bw"><option>20</option><option selected>40</option><option>80</option><option>160</option></select></div>
+        <div class="t-row"><label for="m-dfs">DFS channels</label>
+          <select id="m-dfs"><option value="0" selected>Left out</option><option value="1">In the plan</option></select></div>
+        <div class="t-row"><label for="m-tx">Default power</label>
+          <input type="range" id="m-tx" min="0" max="30" step="1" value="17"><output id="m-tx-v">17 dBm</output></div>
+        <div class="t-row"><label for="m-fade">Fade margin</label>
+          <input type="range" id="m-fade" min="0" max="15" step="1" value="0"><output id="m-fade-v">0 dB</output></div>
+        <div class="t-row"><label for="m-ss">Streams</label>
+          <select id="m-ss"><option>1</option><option selected>2</option><option>4</option></select></div>
+        <div class="t-row"><label for="m-kind">New APs are</label><select id="m-kind"></select></div>
+        <div class="t-row"><label for="m-ant">New APs carry</label><select id="m-ant"></select></div>
+        <div class="t-row"><label for="m-ray">Ground reflection</label>
+          <select id="m-ray"><option value="0" selected>Off, plan without it</option><option value="1">Two ray, in every budget</option></select></div>
+        <div class="t-row"><label for="m-dev">Typical device</label><select id="m-dev"></select></div>
+        <div class="t-row"><label for="m-edge">Cell edge</label>
+          <input type="range" id="m-edge" min="-80" max="-55" step="1" value="-67"><output id="m-edge-v">-67 dBm</output></div>
+        <div class="t-row"><label for="m-cbw">Client channel</label>
+          <select id="m-cbw"><option selected>20</option><option>40</option><option>80</option></select></div>
+      </details>
+      <details class="m-more"><summary>Rules and compass</summary>
+        <div class="t-row"><label for="m-dom">Regulatory domain</label><select id="m-dom"></select></div>
+        <div class="t-row"><label for="m-north">Compass</label>
+          <input type="range" id="m-north" min="0" max="359" step="1" value="0"><output id="m-north-v">up is N</output></div>
+      </details>
+      <details class="m-more"><summary>A picture under the map</summary>
+        <p class="t-hint">A site plan or a satellite screenshot. It stays in this browser, not in the link. Then tap two points you know the distance between.</p>
+        <input type="file" id="m-img" accept="image/*" aria-label="site image" style="font:12px var(--sans);color:var(--text-dim);max-width:100%">
+        <div class="t-sight" style="margin-top:8px"><button class="t-btn" id="m-scale" type="button">Set the scale</button><button class="t-btn" id="m-rmimg" type="button">Remove image</button></div>
+        <div class="t-row" style="margin-top:8px"><label for="m-imgop">Image opacity</label>
+          <input type="range" id="m-imgop" min="0" max="100" step="5" value="55"><output id="m-imgop-v">55%</output></div>
+        <p class="t-hint" id="m-scalenote"></p>
+      </details>
+      <details class="m-more"><summary>From an Ekahau project</summary>
+        <p class="t-hint">Open an .esx file: the floor plan and its scale become the field, the access points you own become masts with their heights, aims and power. Antennas are matched by name where they can be.</p>
+        <input type="file" id="m-esx" accept=".esx,application/zip" aria-label="Ekahau project" style="font:12px var(--sans);color:var(--text-dim);max-width:100%">
+        <div class="t-row" style="margin-top:8px" id="m-esxfloorrow" hidden><label for="m-esxfloor">Floor</label><select id="m-esxfloor"></select></div>
+        <p class="t-hint" id="m-esxnote"></p>
+      </details>
+      <details class="m-more"><summary>On site with a phone</summary>
+        <p class="t-hint">At the mount point: the first fix sets the middle of the field, every fix after lands an AP where you are.</p>
+        <div class="t-sight"><button class="t-btn" id="m-gps" type="button">Add an AP here</button><button class="t-btn" id="m-gpsreset" type="button">Forget the fix</button></div>
+        <p class="t-hint" id="m-gpsnote"></p>
+      </details>
     </div>
   </div>
 
@@ -867,42 +894,45 @@ and a client where you are standing, and read what they would get.</p>
       <div class="t-stats" id="m-stats"></div>
       <div class="m-ceiling" id="m-ceiling"></div>
       <div id="m-flags"></div>
-      <div id="m-reasons"></div>
       <div id="m-advice"></div>
-      <h3 style="margin-top:20px">Every access point</h3>
-      <div class="t-scroll"><table class="t-table m-table"><thead><tr>
-        <th>AP</th><th>Role</th><th>Antenna</th><th>Ch</th><th>Parent</th><th>Hops</th><th>Link</th><th>Metric</th><th>Air lost</th><th>Backhaul</th><th>Delivers</th><th>Backup</th>
-      </tr></thead><tbody id="m-rows"></tbody></table></div>
-      <h3 style="margin-top:20px">Lose one</h3>
-      <p class="t-hint">Each AP failed in turn, everything else recalculated. Orphans are the APs that lose their way to a portal.</p>
-      <div class="t-scroll"><table class="t-table m-table"><thead><tr>
-        <th>If this fails</th><th>Orphans</th><th>Portals left</th><th>Mesh carries</th><th>Lost</th><th>Coverage</th>
-      </tr></thead><tbody id="m-n1"></tbody></table></div>
-      <h3 style="margin-top:20px">Lose two</h3>
-      <p class="t-hint" id="m-n2note">Every pair failed together, the worst shown first.</p>
-      <div class="t-scroll"><table class="t-table m-table"><thead><tr>
-        <th>If these fail</th><th>Orphans</th><th>Portals left</th><th>Mesh carries</th><th>Lost</th>
-      </tr></thead><tbody id="m-n2"></tbody></table></div>
+      <details class="m-more" id="m-reasonsbox"><summary>What to put on the masts</summary><div id="m-reasons"></div></details>
+      <details class="m-more" open><summary>Every access point</summary>
+        <div class="t-scroll"><table class="t-table m-table"><thead><tr>
+          <th>AP</th><th>Role</th><th>Antenna</th><th>Ch</th><th>Parent</th><th>Hops</th><th>Link</th><th>Metric</th><th>Air lost</th><th>Backhaul</th><th>Delivers</th><th>Backup</th>
+        </tr></thead><tbody id="m-rows"></tbody></table></div>
+      </details>
+      <details class="m-more"><summary>What fails when something fails</summary>
+        <p class="t-hint">Each AP failed in turn, everything else recalculated. Orphans are the APs that lose their way to a portal.</p>
+        <div class="t-scroll"><table class="t-table m-table"><thead><tr>
+          <th>If this fails</th><th>Orphans</th><th>Portals left</th><th>Mesh carries</th><th>Lost</th><th>Coverage</th>
+        </tr></thead><tbody id="m-n1"></tbody></table></div>
+        <p class="t-hint" id="m-n2note" style="margin-top:12px">Every pair failed together, the worst shown first.</p>
+        <div class="t-scroll"><table class="t-table m-table"><thead><tr>
+          <th>If these fail</th><th>Orphans</th><th>Portals left</th><th>Mesh carries</th><th>Lost</th>
+        </tr></thead><tbody id="m-n2"></tbody></table></div>
+      </details>
       <div id="m-walk"></div>
-      <ul class="t-assume" id="m-assume"></ul>
-      <div class="t-acts">
-        <button class="t-btn" id="m-copy" type="button">Copy the install sheet</button>
-        <button class="t-btn" id="m-link" type="button">Copy the link</button>
-        <button class="t-btn" id="m-json" type="button">Download JSON</button>
-        <button class="t-btn" id="m-csv" type="button">Download CSV</button>
-        <label class="t-btn" style="display:inline-flex;align-items:center;cursor:pointer">Import<input type="file" id="m-import" accept=".json,.csv,application/json,text/csv" hidden></label>
-        <button class="t-btn" id="m-reset" type="button">Start again</button>
-      </div>
-      <h3 style="margin-top:20px">Scenarios</h3>
-      <div class="t-acts" style="margin-top:6px">
-        <button class="t-btn" id="m-saveA" type="button">Save as A</button>
-        <button class="t-btn" id="m-saveB" type="button">Save as B</button>
-        <button class="t-btn" id="m-loadA" type="button">Open A</button>
-        <button class="t-btn" id="m-loadB" type="button">Open B</button>
-        <button class="t-btn" id="m-cmp" type="button">Compare A, B and this</button>
-      </div>
-      <div id="m-compare"></div>
-      <textarea class="t-out" id="m-sheet" readonly aria-label="Install sheet"></textarea>
+      <details class="m-more"><summary>Assumptions</summary><ul class="t-assume" id="m-assume" style="margin-top:6px"></ul></details>
+      <details class="m-more"><summary>Share, export, compare</summary>
+        <div class="t-acts" style="margin-top:6px">
+          <button class="t-btn" id="m-copy" type="button">Copy the install sheet</button>
+          <button class="t-btn" id="m-link" type="button">Copy the link</button>
+          <button class="t-btn" id="m-json" type="button">Download JSON</button>
+          <button class="t-btn" id="m-csv" type="button">Download CSV</button>
+          <label class="t-btn" style="display:inline-flex;align-items:center;cursor:pointer">Import<input type="file" id="m-import" accept=".json,.csv,application/json,text/csv" hidden></label>
+          <button class="t-btn" id="m-reset" type="button">Start again</button>
+        </div>
+        <h3 style="margin-top:16px">Scenarios</h3>
+        <div class="t-acts" style="margin-top:6px">
+          <button class="t-btn" id="m-saveA" type="button">Save as A</button>
+          <button class="t-btn" id="m-saveB" type="button">Save as B</button>
+          <button class="t-btn" id="m-loadA" type="button">Open A</button>
+          <button class="t-btn" id="m-loadB" type="button">Open B</button>
+          <button class="t-btn" id="m-cmp" type="button">Compare A, B and this</button>
+        </div>
+        <div id="m-compare"></div>
+        <textarea class="t-out" id="m-sheet" readonly aria-label="Install sheet"></textarea>
+      </details>
     </div>
   </div>
 </div>
@@ -1538,19 +1568,19 @@ and a client where you are standing, and read what they would get.</p>
     if (mode === "ap") {
       var aps = st.get("ap").slice(); if (aps.length >= 24) return;
       aps.push({ x: f.x, y: f.y, h: 3, gw: !aps.some(function (a) { return a.gw; }), kind: st.get("kind"), ant: st.get("ant"), aim: null, tilt: 0, band: null, bw: null, ch: null });
-      st.set("ap", aps); sel = { kind: "ap", i: aps.length - 1 }; run();
+      st.set("ap", aps); sel = { kind: "ap", i: aps.length - 1 }; setMode("move"); run();
     } else if (mode === "ob") {
       var obs = st.get("ob").slice(), tp = $("m-obtype").value, def = M.OBSTACLES[tp]; if (obs.length >= 24) return;
       obs.push({ x: f.x, y: f.y, type: tp, h: def.h, r: def.r });
-      st.set("ob", obs); sel = { kind: "ob", i: obs.length - 1 }; run();
+      st.set("ob", obs); sel = { kind: "ob", i: obs.length - 1 }; setMode("move"); run();
     } else if (mode === "hill") {
       var hl = st.get("tr").slice(); if (hl.length >= 24) return;
-      hl.push({ x: f.x, y: f.y, r: 60, h: 6 }); st.set("tr", hl); sel = { kind: "hill", i: hl.length - 1 }; run();
+      hl.push({ x: f.x, y: f.y, r: 60, h: 6 }); st.set("tr", hl); sel = { kind: "hill", i: hl.length - 1 }; setMode("move"); run();
     } else if (mode === "crowd") {
       var cr = st.get("cr").slice(); if (cr.length >= 24) return;
-      cr.push({ x: f.x, y: f.y, r: 30, n: 200 }); st.set("cr", cr); sel = { kind: "crowd", i: cr.length - 1 }; run();
+      cr.push({ x: f.x, y: f.y, r: 30, n: 200 }); st.set("cr", cr); sel = { kind: "crowd", i: cr.length - 1 }; setMode("move"); run();
     } else if (mode === "client") {
-      st.set("c", { x: f.x, y: f.y }); sel = { kind: "cl", i: 0 }; run();
+      st.set("c", { x: f.x, y: f.y }); sel = { kind: "cl", i: 0 }; setMode("move"); run();
     } else if (mode === "path") {
       var pt = st.get("pt").slice(); if (pt.length >= 40) return;
       pt.push({ x: f.x, y: f.y }); st.set("pt", pt); sel = { kind: "pt", i: pt.length - 1 }; run();
@@ -1577,12 +1607,12 @@ and a client where you are standing, and read what they would get.</p>
 
   function setMode(mm) {
     mode = mm;
-    Array.prototype.forEach.call(document.querySelectorAll("#tool-mesh .m-mode"), function (x) { var on = x.getAttribute("data-mode") === mode; x.classList.toggle("on", on); x.setAttribute("aria-pressed", on ? "true" : "false"); });
+    if (mode !== "scale") $("m-add").value = mode;
+    $("m-obtype").hidden = mode !== "ob"; $("m-done").hidden = mode === "move";
     $("m-map").style.cursor = mode === "move" ? "" : "crosshair";
   }
-  Array.prototype.forEach.call(document.querySelectorAll("#tool-mesh .m-mode"), function (b) {
-    b.addEventListener("click", function () { setMode(b.getAttribute("data-mode")); if (mode === "path") { sel = { kind: "pt", i: -1 }; run(); } });
-  });
+  $("m-add").addEventListener("change", function () { setMode(this.value); if (mode === "path") { sel = { kind: "pt", i: -1 }; run(); } });
+  $("m-done").addEventListener("click", function () { setMode("move"); });
   function viewUi() {
     var v = st.get("view");
     Array.prototype.forEach.call(document.querySelectorAll("#tool-mesh .m-view"), function (x) { x.classList.toggle("on", x.getAttribute("data-view") === v); x.setAttribute("aria-pressed", x.getAttribute("data-view") === v ? "true" : "false"); });
@@ -1790,11 +1820,9 @@ and a client where you are standing, and read what they would get.</p>
 
     var live = p.aps.filter(function (r) { return r.status !== "down" && r.status !== "unreachable"; }).length;
     $("m-stats").innerHTML = [
-      ["Per client", kbs(p.perClientKbps)], ["Asked", p.askKbps + " kb/s"], ["People", String(Math.round(p.clients))],
-      ["APs live", live + " of " + p.aps.length], ["Portals", String(p.tree.gateways)], ["Channels", String(p.channels.distinct)],
-      ["Deepest", p.maxDepth + (p.maxDepth === 1 ? " hop" : " hops")],
-      ["Field covered", pc(p.coverage)], ["Unserved", String(Math.round(p.who.unserved))],
-      ["No backup", String(p.spof)], ["Antennas picked", st.get("ap").filter(function (a) { return M.isAuto(a); }).length + " of " + p.aps.length]
+      ["Per client", kbs(p.perClientKbps) + " of " + p.askKbps + " kb/s"], ["People", String(Math.round(p.clients)) + (p.who.unserved > 0.5 ? ", " + Math.round(p.who.unserved) + " unserved" : "")],
+      ["APs live", live + " of " + p.aps.length], ["Portals", p.tree.gateways + " on " + p.channels.distinct + " channel" + (p.channels.distinct === 1 ? "" : "s")],
+      ["Deepest", p.maxDepth + (p.maxDepth === 1 ? " hop" : " hops")], ["Field covered", pc(p.coverage)], ["No backup", String(p.spof)]
     ].map(function (s) { return '<div class="t-stat"><b>' + s[1] + "</b><span>" + s[0] + "</span></div>"; }).join("");
 
     var top = Math.max(p.demand, p.meshMbps, p.uplink, 1) * 1.08;
@@ -1804,8 +1832,9 @@ and a client where you are standing, and read what they would get.</p>
     }).join("");
 
     $("m-flags").innerHTML = p.flags.map(function (f) { return '<div class="t-note' + (/ceiling|no second|down|orphan|Fresnel|no usable|No portal|unserved|no AP|co-channel|caps/i.test(f) ? " t-bad" : "") + '">' + esc(f) + "</div>"; }).join("");
+    $("m-reasonsbox").hidden = !(lastSug && lastSug.reasons.length);
     $("m-reasons").innerHTML = lastSug && lastSug.reasons.length
-      ? '<h3 style="margin-top:20px">What to put on the masts</h3><p class="t-hint">Picked for these mount points, heights and this crowd: what the clients get, headroom on every link, coverage of the field, nobody orphaned, and an omni whenever gain is not needed. A starting point, not a survey. Pick an antenna by hand on any AP to overrule it.</p><ul class="t-assume" style="margin-top:6px">' +
+      ? '<p class="t-hint">Picked for these mount points, heights and this crowd: what the clients get, headroom on every link, coverage of the field, nobody orphaned, and an omni whenever gain is not needed. A starting point, not a survey. Pick an antenna by hand on any AP to overrule it.</p><ul class="t-assume" style="margin-top:6px">' +
         lastSug.reasons.map(function (q) { return "<li>AP " + (q.i + 1) + ": " + esc(q.why) + "</li>"; }).join("") + "</ul>"
       : "";
 
@@ -1825,7 +1854,7 @@ and a client where you are standing, and read what they would get.</p>
       advice = lines;
     }
     $("m-advice").innerHTML = advice && advice.length
-      ? '<h3 style="margin-top:20px">Where the uplink should be, how high the masts</h3><ul class="t-assume" style="margin-top:6px">' + advice.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") + "</ul>" +
+      ? '<h3 style="margin-top:20px">Advice</h3><ul class="t-assume" style="margin-top:6px">' + advice.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") + "</ul>" +
         (advice.some(function (l) { return /raise both masts/.test(l); }) ? '<div class="t-acts" style="margin-top:8px"><button class="t-btn" id="m-applyh" type="button">Raise the masts as suggested</button></div>' : "")
       : "";
     var applyBtn = $("m-applyh");
@@ -1880,7 +1909,7 @@ and a client where you are standing, and read what they would get.</p>
       sv.push(T(40, Hp - 8, "0 m", "#8BA2AE", "start", 9) + T(Wp - 16, Hp - 8, Math.round(maxD) + " m walked", "#8BA2AE", "end", 9));
       var handoffs = 0; for (var q = 1; q < walk.length; q++) if (walk[q].ap !== walk[q - 1].ap) handoffs++;
       var holes = walk.filter(function (w2) { return !w2.ok; }).length;
-      $("m-walk").innerHTML = '<h3 style="margin-top:20px">The walk</h3><p class="t-hint">Bars are what a client alone would get at each step, coloured by the AP serving it; the line is the signal. ' + handoffs + " handoff" + (handoffs === 1 ? "" : "s") + (holes ? ", " + holes + " of " + walk.length + " steps with no signal" : ", no holes") + '.</p><div class="t-elev"><svg viewBox="0 0 ' + Wp + " " + Hp + '" width="100%" role="img" aria-label="Throughput and signal along the walk">' + sv.join("") + "</svg></div>";
+      $("m-walk").innerHTML = '<details class="m-more" open><summary>The walk</summary><p class="t-hint">Bars are what a client alone would get at each step, coloured by the AP serving it; the line is the signal. ' + handoffs + " handoff" + (handoffs === 1 ? "" : "s") + (holes ? ", " + holes + " of " + walk.length + " steps with no signal" : ", no holes") + '.</p><div class="t-elev"><svg viewBox="0 0 ' + Wp + " " + Hp + '" width="100%" role="img" aria-label="Throughput and signal along the walk">' + sv.join("") + "</svg></div></details>";
     } else $("m-walk").innerHTML = "";
 
     $("m-assume").innerHTML = p.assumptions.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("");
@@ -2078,6 +2107,67 @@ and a client where you are standing, and read what they would get.</p>
   $("m-scale").addEventListener("click", function () { scalePts = []; setMode("scale"); $("m-scalenote").textContent = "Tap two points on the map that you know the distance between."; });
   $("m-rmimg").addEventListener("click", function () { img.url = null; try { localStorage.removeItem("nfn-mesh-img"); } catch (e) {} $("m-scalenote").textContent = ""; run(); });
   $("m-imgop").addEventListener("input", function () { img.op = +this.value / 100; run(); });
+
+  /* ── an Ekahau project ───────────────────────────────────────────────── */
+  var esxProj = null, esxBuf = null;
+  $("m-esx").addEventListener("change", function () {
+    var f = this.files && this.files[0]; if (!f || !NFN.esx) return;
+    $("m-esxnote").textContent = "Reading...";
+    f.arrayBuffer().then(function (ab) {
+      esxBuf = ab;
+      return NFN.esx.project(ab);
+    }).then(function (pj) {
+      esxProj = pj;
+      var sel2 = $("m-esxfloor"); sel2.innerHTML = "";
+      pj.floors.forEach(function (fl, k) { sel2.add(new Option(fl.name + " (" + fl.aps.length + " APs, " + Math.round(fl.w) + " x " + Math.round(fl.d) + " m)", String(k))); });
+      $("m-esxfloorrow").hidden = pj.floors.length < 2;
+      if (!pj.floors.length) { $("m-esxnote").textContent = "No floor plans in that project."; return; }
+      applyFloor(0);
+    }).catch(function (e) { $("m-esxnote").textContent = "Could not read it: " + e.message; });
+    this.value = "";
+  });
+  $("m-esxfloor").addEventListener("change", function () { applyFloor(+this.value); });
+  function applyFloor(k) {
+    var fl = esxProj.floors[k], fw = NFN.clamp(Math.round(fl.w / 10) * 10, 60, 1200), fd = NFN.clamp(Math.round(fl.d / 10) * 10, 40, 800), sx = fw / fl.w, sy = fd / fl.d;
+    st.set("fw", fw).set("fd", fd); $("m-fw").value = fw; $("m-fd").value = fd;
+    var aps = fl.aps.slice(0, 24).map(function (a, i) {
+      var directional = a.ant !== "omni";
+      return { x: NFN.clamp(a.x * sx, 0, fw), y: NFN.clamp(a.y * sy, 0, fd), h: NFN.clamp(a.h === null ? 3 : a.h, 0.5, 15), gw: i === 0,
+               kind: a.external ? "tri" : "dual", ant: a.ant, aim: directional && a.aim !== null ? a.aim : null, tilt: NFN.clamp(a.tilt || 0, -10, 45),
+               tx: a.tx === null ? undefined : NFN.clamp(a.tx, 0, 30), band: null, bw: a.width && [20, 40, 80, 160].indexOf(a.width) >= 0 ? a.width : null, ch: null, name: a.name };
+    });
+    if (aps.length) st.set("ap", aps);
+    st.set("ob", []).set("tr", []).set("ms", {}).set("pt", []);
+    var note = pj_note(fl, aps);
+    if (fl.image && esxBuf) {
+      NFN.esx.read(esxBuf, fl.image).then(function (bytes) {
+        var u8 = new Uint8Array(bytes), type = u8[0] === 0x89 ? "image/png" : u8[0] === 0xff ? "image/jpeg" : "image/png",
+            blob = new Blob([bytes], { type: type }), rd = new FileReader();
+        rd.onload = function () {
+          var im = new Image();
+          im.onload = function () {
+            var kk = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), cv = document.createElement("canvas");
+            cv.width = Math.round(im.naturalWidth * kk); cv.height = Math.round(im.naturalHeight * kk);
+            cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+            img.url = cv.toDataURL("image/jpeg", 0.8); img.w = cv.width; img.h = cv.height;
+            try { localStorage.setItem("nfn-mesh-img", img.url); } catch (e) {}
+            run();
+          };
+          im.src = String(rd.result);
+        };
+        rd.readAsDataURL(blob);
+      }).catch(function () {});
+    }
+    $("m-esxnote").textContent = note;
+    sel = null; writeUi(); run();
+  }
+  function pj_note(fl, aps) {
+    var ext = aps.filter(function (a) { return a.kind === "tri"; }).length, aimed = aps.filter(function (a) { return a.aim !== null; }).length;
+    return (esxProj.name ? esxProj.name + ", " : "") + fl.name + ": " + aps.length + " AP" + (aps.length === 1 ? "" : "s") + " placed from Ekahau's coordinates and scale" +
+      (aps.length ? "; AP 1 is the portal until you say otherwise" : "") + (ext ? "; " + ext + " with external antennas read as tri radio boxes" : "") +
+      (aimed ? "; " + aimed + " directional aim" + (aimed === 1 ? "" : "s") + " kept from the survey, taking Ekahau's 0 as up the plan" : "") +
+      ". Heights, power and channel widths came across where the project had them. Antennas were matched by name to the planner's five; check them.";
+  }
 
   /* ── from where you stand ────────────────────────────────────────────── */
   var geo = null;

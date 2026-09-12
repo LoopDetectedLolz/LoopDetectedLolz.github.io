@@ -5,7 +5,7 @@
    Run: node simtest.js */
 var fs = require("fs"), path = require("path");
 var dir = path.join(__dirname, "theme", "sim");
-["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js"].forEach(function (f) {
+["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js", "esx.js"].forEach(function (f) {
   new Function(fs.readFileSync(path.join(dir, f), "utf8")).call(globalThis);
 });
 var NFN = globalThis.NFN, fails = 0, n = 0;
@@ -450,5 +450,24 @@ for (var i = 0; i < 50; i++) if (r1() !== r2()) same = false;
 eq("the same seed gives the same sequence", same, true);
 eq("different seeds do not", NFN.rng(7)() === NFN.rng(8)(), false);
 
-console.log((fails ? "FAILED " : "ok  ") + (n - fails) + "/" + n + " model checks");
-process.exit(fails ? 1 : 0);
+/* ── an Ekahau project ─────────────────────────────────────────────────── */
+eq("antenna names: an internal omni", NFN.esx.antennaFor("Aruba AP-635 Internal 5 GHz"), "omni");
+eq("antenna names: a 70 degree sector", NFN.esx.antennaFor("ANT-3x3-5712 sector 70 deg"), "pwide");
+eq("antenna names: a 30 degree sector", NFN.esx.antennaFor("Sector 30° 5 GHz"), "pnarrow");
+eq("antenna names: a dish", NFN.esx.antennaFor("PtP dish 5 GHz"), "dish");
+var esxBuf = fs.readFileSync(path.join(__dirname, "demo", "mesh-test.esx")), esxAb = esxBuf.buffer.slice(esxBuf.byteOffset, esxBuf.byteOffset + esxBuf.byteLength);
+eq("the zip lists its entries", NFN.esx.entries(esxAb).length, 6);
+NFN.esx.project(esxAb).then(function (pj) {
+  eq("the project has a floor", pj.floors.length, 1);
+  near("the floor is metres wide", pj.floors[0].w, 700, 0.001);
+  eq("only the surveyor's own APs come across", pj.floors[0].aps.length, 2);
+  near("positions are in metres", pj.floors[0].aps[0].x, 70, 0.001);
+  near("Ekahau's up is the planner's minus 90", pj.floors[0].aps[1].aim, -90, 0.001);
+  eq("two 20 MHz channels is a 40 MHz radio", pj.floors[0].aps[0].width, 40);
+  finish();
+}).catch(function (e) { fails++; n++; console.log("  FAIL reading the esx: " + e.message); finish(); });
+
+function finish() {
+  console.log((fails ? "FAILED " : "ok  ") + (n - fails) + "/" + n + " model checks");
+  process.exit(fails ? 1 : 0);
+}
