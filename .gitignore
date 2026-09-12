@@ -22,3 +22,4 @@ _og_tmp.svg
 graphics/.pre-glass/
 theme/style.v1.css
 build-blog.py.preglass
+__pycache__/
