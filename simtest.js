@@ -340,6 +340,100 @@ eq("a shared relay halves once", MP.aps[3].relays, 1);
 eq("a bridge unit serves no clients", MP.aps[3].clients, 0);
 near("so the clients land on the three that do", MP.aps[1].clients, 40, 0.001);
 
+/* ── the twenty: link physics ──────────────────────────────────────────── */
+var A0 = { x: 0, y: 0, h: 3, ant: "omni", aim: 0 }, B0 = { x: 200, y: 0, h: 3, ant: "omni", aim: 180 };
+near("compass: +x on the map is east", NFN.mesh.compass(0, 0), 90, 0.001);
+near("compass: -y on the map is north", NFN.mesh.compass(-90, 0), 0, 0.001);
+near("compass round trip", NFN.mesh.fromCompass(NFN.mesh.compass(37, 15), 15), 37, 0.001);
+near("a 10 degree down-tilt on a patch costs at the horizon", NFN.mesh.gainToward({ x: 0, y: 0, h: 3, ant: "pnarrow", aim: 0, tilt: 10 }, 0, 0, {}),
+     12 + 10 * Math.log10(Math.pow(Math.cos(10 * Math.PI / 180), NFN.rf.cosN(45))), 0.01);
+eq("different bands never link", NFN.mesh.link(Object.assign({}, A0, { band: 5.2 }), Object.assign({}, B0, { band: 6.0 }), { tworay: false }).ok, false);
+var LW = NFN.mesh.link(Object.assign({}, A0, { bw: 20 }), Object.assign({}, B0, { bw: 80 }), { tworay: false });
+eq("the narrower end sets the width", LW.bw, 20);
+near("and 20 MHz buys 6 dB of SNR over 80", LW.snr - NFN.mesh.link(A0, B0, { tworay: false, bw: 80 }).snr, 6.02, 0.05);
+near("fade margin comes straight off the budget", NFN.mesh.link(A0, B0, { tworay: false }).prx - NFN.mesh.link(A0, B0, { tworay: false, fade: 6 }).prx, 6, 0.001);
+var LE = NFN.mesh.link(Object.assign({}, A0, { ant: "dish", tx: 30 }), Object.assign({}, B0, { ant: "dish", aim: 180, tx: 30 }), { tworay: false, domain: "eu" });
+eq("ETSI caps a dish at 30 dBm EIRP", LE.clamped, true);
+near("so 30 dBm into 18 dBi becomes 12 dBm", LE.tx, 12, 0.001);
+eq("FCC leaves 23 dBm into an omni alone", NFN.mesh.link(A0, B0, { tworay: false, domain: "us" }).clamped, false);
+near("foliage: 12 m of trees at 5 GHz is about 12 dB", NFN.mesh.foliage(12, 5.2), 0.2 * Math.pow(5200, 0.3) * Math.pow(12, 0.6), 0.001);
+var LT = NFN.mesh.link(A0, B0, { tworay: false }, [{ x: 100, y: 0, h: 9, r: 6, type: "tree" }]),
+    LB = NFN.mesh.link(A0, B0, { tworay: false }, [{ x: 100, y: 0, h: 9, r: 6, type: "building" }]);
+eq("a tree line is taken through the canopy", LT.blockedBy, "foliage");
+if (!(LT.diffraction < LB.diffraction)) { fails++; console.log("  FAIL trees should cost less than a building of the same height: " + LT.diffraction + " vs " + LB.diffraction); }
+n++;
+var hill = [{ x: 100, y: 0, r: 40, h: 8 }];
+near("a hill lifts the ground", NFN.mesh.ground(100, 0, hill), 8, 0.001);
+var LH = NFN.mesh.link(A0, B0, { tworay: false }, [], hill);
+eq("and blocks a link over 3 m masts", LH.blockedBy, "ground");
+if (!(LH.diffraction > 15)) { fails++; console.log("  FAIL an 8 m hill between 3 m masts should be a wall: " + LH.diffraction); }
+n++;
+var upH = NFN.mesh.clearHeight(A0, B0, { tworay: false }, [], hill);
+if (!(upH !== null && upH >= 5)) { fails++; console.log("  FAIL clearing an 8 m hill needs several metres more mast: " + upH); }
+n++;
+var LM = NFN.mesh.link(A0, B0, { tworay: false }, [], [], -70);
+eq("a measured link replaces the model", LM.measured, true);
+near("at the measured level", LM.prx, -70, 0.001);
+var cal = { aps: [{ x: 0, y: 0, h: 3, gw: true }, { x: 150, y: 0, h: 3 }, { x: 300, y: 0, h: 3 }], w: 350, d: 100, tx: 20, tworay: false, uplink: 100, clients: 30,
+            meas: { "0-1": NFN.mesh.link({ x: 0, y: 0, h: 3, aim: 0 }, { x: 150, y: 0, h: 3, aim: 180 }, { tworay: false, tx: 20 }).model - 8 } };
+var PC = NFN.mesh.plan(cal), PC0 = NFN.mesh.plan(Object.assign({}, cal, { meas: {} }));
+near("a link measured 8 dB under the model teaches its APs", PC.tree.links[1][2].calib, -4, 0.01);
+if (!(PC.tree.links[1][2].prx < PC0.tree.links[1][2].prx)) { fails++; console.log("  FAIL the correction should lower the unmeasured neighbour link"); }
+n++;
+
+/* ── the twenty: the site ──────────────────────────────────────────────── */
+var site = { aps: [{ x: 50, y: 100, h: 3, gw: true }, { x: 250, y: 100, h: 3 }, { x: 450, y: 100, h: 3, gw: true }, { x: 650, y: 100, h: 3 }],
+             w: 700, d: 200, tx: 20, tworay: false, uplink: 200, clients: 100, app: "web" };
+var SP = NFN.mesh.plan(site);
+eq("two portals get two channels", SP.channels.distinct, 2);
+eq("a point sits on its portal's channel", SP.aps[1].channel, SP.aps[0].channel);
+eq("and the other on the other", SP.aps[3].channel, SP.aps[2].channel);
+var SPp = NFN.mesh.plan(Object.assign({}, site, { aps: site.aps.map(function (a) { return a.gw ? Object.assign({}, a, { ch: 42 }) : a; }) }));
+eq("pinning both portals on one channel", SPp.channels.distinct, 1);
+if (!(SPp.aps[1].cci > SP.aps[1].cci)) { fails++; console.log("  FAIL sharing a channel should cost air: " + SP.aps[1].cci + " -> " + SPp.aps[1].cci); }
+n++;
+if (!(SPp.aps[1].backhaul < SP.aps[1].backhaul)) { fails++; console.log("  FAIL and that air should come off the backhaul"); }
+n++;
+var crowdSite = Object.assign({}, site, { clients: 0, crowds: [{ x: 640, y: 120, r: 30, n: 200 }] });
+var SC = NFN.mesh.plan(crowdSite);
+near("a crowd joins the AP standing in it", SC.aps[3].clients, 200, 1);
+near("and nobody else gets them", SC.aps[1].clients, 0, 0.001);
+var far = NFN.mesh.plan(Object.assign({}, site, { clients: 0, crowds: [{ x: 350, y: 195, r: 5, n: 50 }], clientTarget: -55 }));
+if (!(far.who.unserved > 40)) { fails++; console.log("  FAIL a crowd nobody reaches should be counted unserved: " + far.who.unserved); }
+n++;
+near("the festival curve peaks at nine", NFN.mesh.crowdFactor({ tod: 21, curve: "festival" }), 1, 0.001);
+var mid = NFN.mesh.plan(Object.assign({}, site, { tod: 12, curve: "festival" }));
+if (!(mid.clients < 20)) { fails++; console.log("  FAIL midday at a festival should be quiet: " + mid.clients); }
+n++;
+var two = NFN.mesh.plan(Object.assign({}, site, { aps: site.aps.map(function (a, k) { return k === 0 ? Object.assign({}, a, { kind: "tri", ant: "pnarrow", cant: "omni", aim: 0 }) : a; }) }));
+eq("a tri radio box carries a client antenna of its own", two.aps[0].clientAntenna.label, "Omni");
+eq("beside its backhaul patch", two.aps[0].antenna.label, "Narrow patch");
+var ct = NFN.mesh.contour(two.tree.aps[0], Object.assign({}, two.tree.aps[0].C || {}, { tx: 20 }), "open", 8);
+near("so its footprint is still round", ct[0].r, ct[4].r, 0.001);
+
+/* ── the twenty: advice ────────────────────────────────────────────────── */
+var SG2 = NFN.mesh.suggestPortal(Object.assign({}, site, { aps: site.aps.map(function (a) { return Object.assign({}, a, { gw: false }); }) }));
+if (!(SG2.single && SG2.single.i >= 0)) { fails++; console.log("  FAIL the portal advisor should name a mast"); }
+n++;
+var lowSite = Object.assign({}, site, { aps: site.aps.map(function (a) { return Object.assign({}, a, { h: 0.8 }); }) });
+var SH = NFN.mesh.suggestHeights(lowSite, NFN.mesh.plan(lowSite));
+if (!(SH.length > 0 && SH[0].up > 0)) { fails++; console.log("  FAIL 0.8 m masts over 200 m should be told to go up"); }
+n++;
+var R2 = NFN.mesh.resilience(site, true);
+eq("lose two tries every pair", R2.pairsTried, 6);
+if (!(R2.pairs[0].orphans.length >= R2.pairs[R2.pairs.length - 1].orphans.length)) { fails++; console.log("  FAIL pairs should be worst first"); }
+n++;
+var S2 = NFN.mesh.secondPortal(Object.assign({}, site, { aps: site.aps.map(function (a, k) { return Object.assign({}, a, { gw: k === 0 }); }) }));
+if (!(S2.best && S2.best.orphans <= S2.now)) { fails++; console.log("  FAIL a second portal should not make the sweep worse"); }
+n++;
+var EX = NFN.mesh.explain(site, SP, 1, 3);
+if (!(EX.link && EX.why.length > 5)) { fails++; console.log("  FAIL explain should say why 2 to 4 was not used"); }
+n++;
+var WK = NFN.mesh.walk(site, SP, [{ x: 50, y: 150 }, { x: 650, y: 150 }], 50);
+eq("a 600 m walk at 50 m steps is thirteen readings", WK.length, 13);
+eq("that starts on the first AP", WK[0].ap, 0);
+eq("and ends on the last", WK[WK.length - 1].ap, 3);
+
 /* ── state round trip ──────────────────────────────────────────────────── */
 var st = NFN.State("capacity", { bw: NFN.f.int(80, 20, 320), std: NFN.f.pick("ax", ["a", "n", "ac", "ax", "be"]), seed: NFN.f.int(1, 1, 1e9) });
 st.set("bw", 160).set("seed", 4242);

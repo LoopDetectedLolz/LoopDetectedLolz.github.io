@@ -29,10 +29,53 @@
     }
   };
 
+  /* the channel numbers behind those counts, so a plan can name them. US rules;
+     ETSI below. Verify against the domain you deploy in: these were written from
+     the tables as generally published, 2026-09, not from a regulator's text. */
+  function range(from, to, step) { var o = [], c; for (c = from; c <= to; c += step) o.push(c); return o; }
+  CH.LISTS = {
+    us: {
+      "2.4": { 20: { clear: [1, 6, 11], dfs: [] }, 40: { clear: [3], dfs: [] } },
+      "5": {
+        20:  { clear: [36, 40, 44, 48, 149, 153, 157, 161, 165, 169, 173, 177], dfs: range(52, 64, 4).concat(range(100, 144, 4)) },
+        40:  { clear: [38, 46, 151, 159, 167], dfs: [54, 62, 102, 110, 118, 126, 134, 142] },
+        80:  { clear: [42, 155], dfs: [58, 106, 122, 138] },
+        160: { clear: [], dfs: [50, 114] }
+      },
+      "6": {
+        20: { clear: range(1, 233, 4), dfs: [] }, 40: { clear: range(3, 227, 8), dfs: [] },
+        80: { clear: range(7, 215, 16), dfs: [] }, 160: { clear: range(15, 207, 32), dfs: [] }, 320: { clear: [31, 95, 159], dfs: [] }
+      }
+    },
+    /* ETSI: 5150 to 5350 (36 to 64, radar detection above 5250), 5470 to 5725
+       (100 to 140, radar detection), nothing above; 6 GHz is 5945 to 6425 */
+    eu: {
+      "2.4": { 20: { clear: [1, 5, 9, 13], dfs: [] }, 40: { clear: [3], dfs: [] } },
+      "5": {
+        20:  { clear: [36, 40, 44, 48], dfs: range(52, 64, 4).concat(range(100, 140, 4)) },
+        40:  { clear: [38, 46], dfs: [54, 62, 102, 110, 118, 126, 134] },
+        80:  { clear: [42], dfs: [58, 106, 122] },
+        160: { clear: [], dfs: [50, 114] }
+      },
+      "6": {
+        20: { clear: range(1, 93, 4), dfs: [] }, 40: { clear: range(3, 91, 8), dfs: [] },
+        80: { clear: range(7, 87, 16), dfs: [] }, 160: { clear: range(15, 79, 32), dfs: [] }, 320: { clear: [31], dfs: [] }
+      }
+    }
+  };
+  CH.DOMAINS = { us: "United States, FCC", eu: "Europe, ETSI" };
+
   CH.band = function (b) { return CH.BANDS[b] || CH.BANDS["5"]; };
 
+  CH.list = function (band, bw, useDfs, domain) {
+    var L = (CH.LISTS[domain] || CH.LISTS.us)[band] || (CH.LISTS[domain] || CH.LISTS.us)["5"],
+        w = L[bw] ? bw : Object.keys(L)[0], e = L[w];
+    return e.clear.concat(useDfs ? e.dfs : []);
+  };
+
   /* how many channels a plan actually has to play with */
-  CH.count = function (band, bw, useDfs) {
+  CH.count = function (band, bw, useDfs, domain) {
+    if (domain && domain !== "us") return CH.list(band, bw, useDfs, domain).length;
     var b = CH.band(band), w = b.widths.indexOf(bw) >= 0 ? bw : b.widths[0];
     /* can be zero, and that is a real answer: there is no 160 MHz channel in
        5 GHz outside DFS, so a site that turns DFS off has none at all */
