@@ -5,6 +5,7 @@ page polls.
 
     python3 client-pull.py --client "Dustin's iPhone" --out reading.json     # one reading, open it on the Live chip
     python3 client-pull.py --client aa:bb:cc:dd:ee:ff --serve 8830          # poll every 30 s, serve /latest.json on localhost
+    python3 client-pull.py --client Watch --trail 8 --serve 8830 --lan      # plus /glance and /mark for a Watch on the Wi-Fi
     python3 client-pull.py --client iPhone --trail 24 --out reading.json     # plus the last day's roams: the journey
     python3 client-pull.py --list                                             # who is on, to pick a name
     python3 client-pull.py --client x --dry-run
@@ -16,7 +17,10 @@ code refuses any other method), with the same token file central-pull.py uses:
     export CENTRAL_BASE=https://apigw-ca.central.arubanetworks.com
     export CENTRAL_CLIENT_ID=... CENTRAL_CLIENT_SECRET=...   # to refresh an expired token
 
-The relay listens on 127.0.0.1 only and answers GET /latest.json with
+The relay listens on 127.0.0.1 (or every interface with --lan, so a Watch or a
+phone on the same Wi-Fi can read GET /glance, one line of text, and flag a
+moment with GET or POST /mark?note=kitchen; marks show on the journey strip)
+and answers GET /latest.json with
 Access-Control-Allow-Origin: * so the page on any origin can read it. A page
 on https can read http://127.0.0.1 in Chrome and Edge (localhost is trusted);
 Safari may refuse, so use the snapshot there.
@@ -235,15 +239,61 @@ def reading(tok, mac, hours=0):
     }
 
 
-def serve(port, every, tok, mac, hours=0):
-    """The relay: poll on a timer, answer GET /latest.json to anyone on this machine."""
-    state = {"latest": None, "err": None}
+def glance(r, marks, alerts):
+    """One line for a wrist: who, where, how loud, how fast, and anything worth a buzz."""
+    if not r:
+        return "no reading yet"
+    l, a = r["link"], r["ap"]
+    s = f"{r['client'].get('name') or r['client'].get('mac')} on {a.get('name') or '?'}: {l.get('rssi_dbm')} dBm, SNR {l.get('snr_db')}, {l.get('speed_mbps')} of {l.get('max_mbps')} Mb/s"
+    if alerts:
+        s += ". " + " ".join(a.rstrip(".") for a in alerts)
+    if marks:
+        s += f". {len(marks)} mark{'s' if len(marks) != 1 else ''}"
+    return s + "."
+
+
+def alerts_for(r, prev):
+    """What would earn a tap on the wrist: a slow roam since the last poll, a weak
+    stretch, a client that vanished."""
+    out = []
+    if not r:
+        return ["Client is off the air."]
+    tr = r.get("trail") or []
+    if prev and prev.get("trail"):
+        seen = {(t["ts"], t["ap"]) for t in prev["trail"]}
+        new = [t for t in tr if (t["ts"], t["ap"]) not in seen]
+        for t in new:
+            if t.get("latency_ms") and t["latency_ms"] > 500:
+                out.append(f"Slow roam to {t['ap']}: {t['latency_ms']} ms.")
+            elif t.get("join"):
+                out.append(f"Rejoined on {t['ap']}.")
+    rssi = r["link"].get("rssi_dbm")
+    if isinstance(rssi, (int, float)) and rssi < -75:
+        out.append(f"Weak at {rssi} dBm.")
+    return out
+
+
+def serve(port, every, tok, mac, hours=0, lan=False, marks_file=None):
+    """The relay: poll on a timer; answer GET /latest.json (the reading, the trail,
+    the marks), GET /glance (one line of text for a Watch to show or speak),
+    and take POST or GET /mark?note=... from a wrist or a phone to flag a
+    moment. Marks carry only a time and a word; the token never leaves here."""
+    state = {"latest": None, "err": None, "marks": [], "alerts": [], "prev": None}
+    if marks_file and os.path.exists(marks_file):
+        try:
+            state["marks"] = json.load(open(marks_file))
+        except (OSError, ValueError):
+            pass
 
     def poll():
         while True:
             try:
                 r = reading(tok, mac, hours)
+                state["alerts"] = alerts_for(r, state["prev"])
                 if r:
+                    state["prev"] = state["latest"]
+                    r["marks"] = state["marks"]
+                    r["alerts"] = state["alerts"]
                     state["latest"], state["err"] = r, None
                     print(f"  {time.strftime('%H:%M:%S')} {r['client'].get('name') or mac}: {r['link'].get('rssi_dbm')} dBm, SNR {r['link'].get('snr_db')}, {r['link'].get('speed_mbps')} of {r['link'].get('max_mbps')} Mb/s on {r['ap'].get('name')}")
                 else:
@@ -254,25 +304,89 @@ def serve(port, every, tok, mac, hours=0):
                 print("  poll failed: " + state["err"], file=sys.stderr)
             time.sleep(every)
 
+    def add_mark(note):
+        note = re.sub(r"[^\w .,'!?/-]", "", str(note or "").strip())[:60] or "mark"
+        m = {"ts": int(time.time()), "note": note}
+        state["marks"].append(m)
+        if state["latest"] is not None:
+            state["latest"]["marks"] = state["marks"]
+        if marks_file:
+            try:
+                json.dump(state["marks"], open(marks_file, "w"))
+            except OSError:
+                pass
+        print(f"  {time.strftime('%H:%M:%S')} mark: {note}")
+        return m
+
     class H(http.server.BaseHTTPRequestHandler):
-        def do_GET(self):
-            if self.path.split("?")[0] != "/latest.json":
-                self.send_response(404); self.end_headers(); return
-            body = json.dumps(state["latest"] or {"error": state["err"] or "no reading yet"}).encode()
-            self.send_response(200 if state["latest"] else 503)
-            self.send_header("Content-Type", "application/json")
+        def reply(self, code, body, ctype="application/json"):
+            data = body.encode() if isinstance(body, str) else body
+            self.send_response(code)
+            self.send_header("Content-Type", ctype + "; charset=utf-8")
             self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
             self.send_header("Cache-Control", "no-store")
-            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Content-Length", str(len(data)))
             self.end_headers()
-            self.wfile.write(body)
+            self.wfile.write(data)
+
+        def do_OPTIONS(self):
+            self.reply(204, "")
+
+        def do_GET(self):
+            path, _, q = self.path.partition("?")
+            qs = urllib.parse.parse_qs(q)
+            if path == "/latest.json":
+                self.reply(200 if state["latest"] else 503, json.dumps(state["latest"] or {"error": state["err"] or "no reading yet", "marks": state["marks"]}))
+            elif path == "/glance":
+                self.reply(200, glance(state["latest"], state["marks"], state["alerts"]), "text/plain")
+            elif path == "/alerts":
+                self.reply(200, "\n".join(state["alerts"]) or "quiet", "text/plain")
+            elif path == "/mark":
+                # a Shortcut on a Watch finds GET easiest; the note rides in the query
+                m = add_mark((qs.get("note") or [""])[0])
+                self.reply(200, f"marked {m['note']} at {time.strftime('%H:%M:%S', time.localtime(m['ts']))}", "text/plain")
+            elif path == "/marks":
+                self.reply(200, json.dumps(state["marks"]))
+            else:
+                self.reply(404, "not here", "text/plain")
+
+        def do_POST(self):
+            path = self.path.partition("?")[0]
+            n = int(self.headers.get("Content-Length") or 0)
+            raw = self.rfile.read(n) if n else b""
+            if path == "/mark":
+                note = ""
+                try:
+                    j = json.loads(raw or b"{}")
+                    note = j.get("note", "") if isinstance(j, dict) else str(j)
+                except ValueError:
+                    note = raw.decode(errors="replace")
+                m = add_mark(note)
+                self.reply(200, json.dumps(m))
+            elif path == "/marks/clear":
+                state["marks"] = []
+                if state["latest"] is not None:
+                    state["latest"]["marks"] = []
+                self.reply(200, "cleared", "text/plain")
+            else:
+                self.reply(404, "not here", "text/plain")
 
         def log_message(self, *a):
             pass
 
     threading.Thread(target=poll, daemon=True).start()
-    srv = http.server.ThreadingHTTPServer(("127.0.0.1", port), H)
+    srv = http.server.ThreadingHTTPServer(("0.0.0.0" if lan else "127.0.0.1", port), H)
     print(f"  serving http://127.0.0.1:{port}/latest.json every {every} s (ctrl-c to stop); point the simulator's Live chip at it")
+    if lan:
+        try:
+            import socket
+            sck = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); sck.connect(("192.0.2.1", 80)); ip = sck.getsockname()[0]; sck.close()
+            print(f"  on this network: http://{ip}:{port}/glance for a Watch or phone, /mark?note=kitchen to flag a moment")
+        except OSError:
+            print("  on this network: http://<this mac>:{port}/glance and /mark?note=...")
+        print("  the LAN can read the reading and add marks; it cannot see the token or change anything in Central")
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
@@ -289,6 +403,8 @@ def main():
     ap.add_argument("--serve", type=int, metavar="PORT", help="poll and serve /latest.json on 127.0.0.1:PORT")
     ap.add_argument("--every", type=int, default=30, help="seconds between polls when serving (default 30)")
     ap.add_argument("--trail", type=float, default=0, metavar="HOURS", help="also pull the client's roaming trail over this many hours (the journey)")
+    ap.add_argument("--lan", action="store_true", help="with --serve: listen on every interface so a Watch or phone on the Wi-Fi can read /glance and add marks")
+    ap.add_argument("--marks-file", metavar="PATH", help="with --serve: keep the marks in this file across restarts")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
     DRY = args.dry_run
@@ -313,7 +429,7 @@ def main():
         print(f"no client matching {args.client!r} among {len(rows or [])} on the air; try --list")
         sys.exit(1)
     if args.serve:
-        serve(args.serve, max(10, args.every), tok, mac, args.trail)
+        serve(args.serve, max(10, args.every), tok, mac, args.trail, args.lan, args.marks_file)
         return
     r = reading(tok, mac, args.trail)
     if not r:
