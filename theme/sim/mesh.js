@@ -49,7 +49,10 @@
     dish:    { label: "Highly directional",  g: 18, h: 15,  v: 15, tilt: 0,  f2b: 30 }
   };
   M.antenna = function (id) { return M.ANTENNAS[id] || M.ANTENNAS.omni; };
-  M.isAuto = function (ap) { return !ap.ant || ap.ant === "auto" || !M.ANTENNAS[ap.ant]; };
+  M.isAuto = function (ap) {
+    if (ap.model && NFN.aps) { var m = NFN.aps.model(ap.model); if (m && m.antKind !== "ext") return false; }
+    return !ap.ant || ap.ant === "auto" || !M.ANTENNAS[ap.ant];
+  };
 
   /* what kind of box is on the mast: whether the backhaul has its own radio, and
      whether anybody can associate to it at all. A box with its own backhaul
@@ -61,8 +64,12 @@
   };
   M.kind = function (ap, C) {
     if (ap && ap.kind && M.KINDS[ap.kind]) return M.KINDS[ap.kind];
+    if (ap && ap.model && NFN.aps) { var D = NFN.aps.describe(ap.model); if (D) return D.dedicated ? M.KINDS.tri : M.KINDS.dual; }
     return (C && C.dedicated) ? M.KINDS.tri : M.KINDS.dual;
   };
+  /* the older standard on a link decides its rate table */
+  var GEN = ["a", "n", "ac", "ax", "be"];
+  M.stdMin = function (x, y) { return GEN[Math.min(GEN.indexOf(x) < 0 ? 3 : GEN.indexOf(x), GEN.indexOf(y) < 0 ? 3 : GEN.indexOf(y))]; };
 
   /* Regulatory ceilings on EIRP, dBm, outdoors, for the band the backhaul or the
      client radio sits in. Typical figures as generally published, 2026-09, not a
@@ -172,6 +179,7 @@
      means less power into it. Returns what actually goes out. */
   M.apTx = function (ap, C, gainDbi, fGHz) {
     var want = ap.tx === undefined ? C.tx : ap.tx;
+    if (ap.txCap !== undefined && ap.txCap !== null) want = Math.min(want, ap.txCap);
     if (gainDbi === undefined) return want;
     var lim = M.domain(C.domain).eirp[M.bandOf(fGHz === undefined ? M.apBand(ap, C) : fGHz)];
     return lim === undefined ? want : Math.min(want, lim - gainDbi);
@@ -217,11 +225,22 @@
     });
   };
   M.resolve = function (aps, st) {
-    var aims = M.aims(aps, st), caims = M.clientAims(aps, st), terrain = st && st.terrain;
+    var aims = M.aims(aps, st), caims = M.clientAims(aps, st), terrain = st && st.terrain, C = cfg(st);
     return aps.map(function (a, i) {
       var o = {}, k; for (k in a) o[k] = a[k];
       o.aim = aims[i]; o.caim = caims[i]; o.i = i;
       o.z = M.ground(a.x, a.y, terrain);          /* ground under the mast */
+      /* a real box: its built in antennas, its streams and its power ceiling
+         on the band the backhaul uses, and on the band the clients use */
+      if (a.model && NFN.aps) {
+        var D = NFN.aps.describe(a.model);
+        if (D) {
+          var bb = M.bandOf(M.apBand(o, C)), cb = M.bandOf(C.clientF);
+          if (D.model.antKind !== "ext") { o.ant = NFN.aps.antennaFor(a.model, bb); o.cant = NFN.aps.antennaFor(a.model, cb) || o.cant; }
+          o.ss = D.ssFor(bb); o.txCap = D.txMax(bb); o.std = D.std;
+          if (!D.model.radios[bb]) o.noBand = true;
+        }
+      }
       return o;
     });
   };
@@ -335,13 +354,14 @@
         model = tx + ga + gb - fspl - worst.loss + ray,
         prx = (meas !== undefined && meas !== null && isFinite(meas) ? meas : model + (calib || 0)) - C.fade,
         nf = NFN.rf.noiseFloor(bw, C.nf), snr = prx - nf,
-        mcs = NFN.phy.mcsFor(C.std, snr - C.margin),
-        phy = mcs >= 0 ? NFN.phy.rate(C.std, mcs, C.ss, bw) : 0,
-        good = mcs >= 0 ? NFN.mac.throughput({ std: C.std, mcs: mcs, ss: C.ss, bw: bw, bytes: 1500, agg: 64, retry: C.retry }) / 1e6 : 0;
+        ss = Math.min(a.ss || C.ss, b.ss || C.ss), std = M.stdMin(a.std || C.std, b.std || C.std),
+        mcs = (a.noBand || b.noBand) ? -1 : NFN.phy.mcsFor(std, snr - C.margin),
+        phy = mcs >= 0 ? NFN.phy.rate(std, mcs, ss, bw) : 0,
+        good = mcs >= 0 ? NFN.mac.throughput({ std: std, mcs: mcs, ss: ss, bw: bw, bytes: 1500, agg: 64, retry: C.retry }) / 1e6 : 0;
     return {
       d: d, d3: d3, fspl: fspl, diffraction: worst.loss, blockedBy: worst.loss > 0.5 ? worst.by : null,
       obstacle: worst.by === "obstacle" || worst.by === "foliage" ? worst.idx : -1, foliage: fol,
-      band: f, bw: bw, tx: tx, clamped: clamped, tworay: ray, ga: ga, gb: gb,
+      band: f, bw: bw, ss: ss, std: std, tx: tx, clamped: clamped, tworay: ray, ga: ga, gb: gb,
       model: model, measured: meas !== undefined && meas !== null && isFinite(meas), calib: calib || 0,
       prx: prx, noise: nf, snr: snr, mcs: mcs, phyMbps: phy, goodput: good,
       f1: f1mid, clearance: clearMin,
