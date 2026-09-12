@@ -270,8 +270,45 @@ if (!(CL.alone <= chain.uplink + 1e-9)) { fails++; console.log("  FAIL a client 
 n++;
 if (!(CL.crowd <= CL.alone)) { fails++; console.log("  FAIL the crowd should not help"); }
 n++;
-var cov = NFN.mesh.coverage([{ x: 50, y: 50 }], 1000, 100, 100);
-near("a huge cell covers the whole field", cov, 1, 0.001);
+var cov = NFN.mesh.coverage([{ x: 50, y: 50, h: 3, tx: 30, aim: 0 }], { tx: 30 }, "open", 100, 100);
+near("a hot omni covers the whole field", cov, 1, 0.001);
+
+/* antennas */
+var OM = { x: 0, y: 0, h: 3, ant: "omni", aim: 0 }, NP = { x: 0, y: 0, h: 3, ant: "pnarrow", aim: 0 };
+near("an omni is the same all round", NFN.mesh.gainToward(OM, 137, 0, {}), NFN.mesh.gainToward(OM, 0, 0, {}), 0.001);
+near("a patch on boresight gives its full gain", NFN.mesh.gainToward(NP, 0, 0, {}), 12, 0.001);
+near("half power beamwidth means 3 dB down at the edge", NFN.mesh.gainToward(NP, 22.5, 0, {}), 9, 0.05);
+near("and the back is the front to back ratio", NFN.mesh.gainToward(NP, 180, 0, {}), 12 - 25, 0.001);
+near("a down-tilt omni is down 3 dB at the horizon", NFN.mesh.gainToward({ x: 0, y: 0, h: 3, ant: "dtomni", aim: 0 }, 0, 0, {}),
+     5 + 10 * Math.log10(Math.pow(Math.cos(12 * Math.PI / 180), NFN.rf.cosN(30))), 0.01);
+var LO = NFN.mesh.link({ x: 0, y: 0, h: 3, ant: "omni", aim: 0 }, { x: 300, y: 0, h: 3, ant: "omni", aim: 180 }, { tworay: false }),
+    LP = NFN.mesh.link({ x: 0, y: 0, h: 3, ant: "pnarrow", aim: 0 }, { x: 300, y: 0, h: 3, ant: "pnarrow", aim: 180 }, { tworay: false }),
+    LX = NFN.mesh.link({ x: 0, y: 0, h: 3, ant: "pnarrow", aim: 90 }, { x: 300, y: 0, h: 3, ant: "pnarrow", aim: 180 }, { tworay: false });
+near("two narrow patches facing each other pick up 14 dB over omnis", LP.prx - LO.prx, 14, 0.01);
+if (!(LX.prx < LP.prx - 10)) { fails++; console.log("  FAIL a patch aimed sideways should lose most of its gain: " + (LP.prx - LX.prx)); }
+n++;
+var AA = NFN.mesh.aims([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 0, y: 50 }]);
+near("an unset aim points at the nearest AP", AA[0], 90, 0.001);
+near("and the far one looks back", AA[1], 180, 0.001);
+var CT = NFN.mesh.contour({ x: 0, y: 0, h: 3, ant: "omni", aim: 0 }, {}, "open", 8);
+near("an omni's footprint is a circle", CT[0].r, CT[3].r, 0.001);
+var CTp = NFN.mesh.contour({ x: 0, y: 0, h: 3, ant: "pnarrow", aim: 0 }, {}, "open", 8);
+if (!(CTp[0].r > CTp[4].r * 3)) { fails++; console.log("  FAIL a patch should reach much further forward than back"); }
+n++;
+/* a patch on a point ends up looking at its parent, not at whoever was nearest */
+var look = { aps: [{ x: 0, y: 0, h: 3, gw: true }, { x: 300, y: 0, h: 3, ant: "pnarrow", aim: null }, { x: 340, y: 120, h: 3, ant: "omni" }],
+             w: 400, d: 200, tx: 20, tworay: false, uplink: 100, clients: 50 };
+var LK = NFN.mesh.plan(look);
+eq("the patch feeds from the portal", LK.tree.parent[1], 0);
+near("and is turned to face it", Math.abs(LK.tree.aps[1].aim), 180, 0.5);
+
+var mix = { aps: [{ x: 0, y: 0, h: 3, gw: true }, { x: 200, y: 0, h: 3, kind: "tri" }, { x: 400, y: 0, h: 3, kind: "dual" }, { x: 600, y: 0, h: 3, kind: "bridge" }],
+            w: 650, d: 100, tx: 5, tworay: false, uplink: 100, clients: 120, app: "web" };
+var MP = NFN.mesh.plan(mix);
+eq("a dedicated relay halves nothing", MP.aps[2].relays, 0);
+eq("a shared relay halves once", MP.aps[3].relays, 1);
+eq("a bridge unit serves no clients", MP.aps[3].clients, 0);
+near("so the clients land on the three that do", MP.aps[1].clients, 40, 0.001);
 
 /* ── state round trip ──────────────────────────────────────────────────── */
 var st = NFN.State("capacity", { bw: NFN.f.int(80, 20, 320), std: NFN.f.pick("ax", ["a", "n", "ac", "ax", "be"]), seed: NFN.f.int(1, 1, 1e9) });

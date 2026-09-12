@@ -25,10 +25,34 @@
     hill:     { label: "Rise in the ground", h: 6, r: 20 }
   };
 
+  /* antennas, the universal five. g is dBi, h and v the half power beamwidths in
+     degrees, tilt the built-in down-tilt, f2b how far down the back is. Patterns
+     are the cos^n fit to the beamwidth that rf.js uses everywhere else. */
+  M.ANTENNAS = {
+    omni:    { label: "Omni",                g: 5,  h: 360, v: 40, tilt: 0,  f2b: 0 },
+    dtomni:  { label: "Down-tilt omni",      g: 5,  h: 360, v: 30, tilt: 12, f2b: 0 },
+    pwide:   { label: "Wide patch",          g: 8,  h: 90,  v: 70, tilt: 0,  f2b: 20 },
+    pnarrow: { label: "Narrow patch",        g: 12, h: 45,  v: 45, tilt: 0,  f2b: 25 },
+    dish:    { label: "Highly directional",  g: 18, h: 15,  v: 15, tilt: 0,  f2b: 30 }
+  };
+  M.antenna = function (id) { return M.ANTENNAS[id] || M.ANTENNAS.omni; };
+
+  /* what kind of box is on the mast: whether the backhaul has its own radio, and
+     whether anybody can associate to it at all */
+  M.KINDS = {
+    dual:   { label: "Dual radio, backhaul shares the client radio", dedicated: false, serves: true },
+    tri:    { label: "Tri radio, dedicated backhaul",                dedicated: true,  serves: true },
+    bridge: { label: "Bridge unit, backhaul only",                    dedicated: true,  serves: false }
+  };
+  M.kind = function (ap, C) {
+    if (ap && ap.kind && M.KINDS[ap.kind]) return M.KINDS[ap.kind];
+    return (C && C.dedicated) ? M.KINDS.tri : M.KINDS.dual;
+  };
+
   /* defaults for an outdoor AP: a 5 GHz two stream backhaul at 40 MHz, an omni
      with a few dBi, a mast a few metres up. Change them in the tool. */
   M.DEF = {
-    fGHz: 5.2, bw: 40, tx: 23, ant: 5, ss: 2, std: "ax", nf: 7, retry: 0.1,
+    fGHz: 5.2, bw: 40, tx: 23, ant: "omni", ss: 2, std: "ax", nf: 7, retry: 0.1,
     margin: 6,              /* dB of SNR above the lowest rate before a link counts */
     clientTx: 20, clientAnt: 4, clientTarget: -67, clientBw: 20, clientF: 5.2,
     dedicated: false,       /* a second radio for the backhaul, or the client radio doing both */
@@ -48,6 +72,74 @@
   M.profile = function (id) { return M.PROFILES[id] || M.PROFILES.generic; };
   function cfg(c) { var o = {}, k; for (k in M.DEF) o[k] = M.DEF[k]; for (k in (c || {})) if (c[k] !== undefined) o[k] = c[k]; return o; }
   M.cfg = cfg;
+
+  /* ── antennas pointing somewhere ───────────────────────────────────────── */
+  var PAT = {};
+  function pats(id) {
+    if (!PAT[id]) {
+      var a = M.antenna(id);
+      PAT[id] = {
+        h: a.h >= 360 ? function () { return 1; } : NFN.rf.patternFront(a.h, a.f2b),
+        v: a.h >= 360 ? NFN.rf.patternOmni(a.v) : NFN.rf.patternFront(a.v, a.f2b),
+        floor: a.f2b ? Math.pow(10, -a.f2b / 10) : 0.02
+      };
+    }
+    return PAT[id];
+  }
+  var D = Math.PI / 180;
+  function wrap(deg) { return ((deg + 180) % 360 + 360) % 360 - 180; }
+  M.bearing = function (a, b) { return Math.atan2(b.y - a.y, b.x - a.x) / D; };
+  M.apAntenna = function (ap, C) { return M.antenna(ap.ant || (C && C.ant) || "omni"); };
+  M.apTx = function (ap, C) { return ap.tx === undefined ? C.tx : ap.tx; };
+
+  /* dBi from this AP toward an azimuth (degrees, 0 is +x) and an elevation
+     (degrees, positive is up). The aim is the antenna's azimuth; the built-in
+     tilt points its boresight down. */
+  M.gainToward = function (ap, azDeg, elDeg, C) {
+    var id = ap.ant || (C && C.ant) || "omni", a = M.antenna(id), P = pats(id),
+        dAz = wrap(azDeg - (ap.aim === undefined || ap.aim === null ? 0 : ap.aim)) * D,
+        dEl = wrap(elDeg + a.tilt) * D;
+    return a.g + 10 * Math.log10(Math.max(P.floor, P.h(dAz) * P.v(dEl)));
+  };
+
+  /* an unset aim points at the nearest other live AP, which is what an installer
+     does with a patch when nobody has told them otherwise */
+  M.aims = function (aps) {
+    return aps.map(function (a, i) {
+      if (a.aim !== undefined && a.aim !== null && isFinite(a.aim)) return a.aim;
+      var best = -1, bd = Infinity, j;
+      for (j = 0; j < aps.length; j++) {
+        if (j === i || aps[j].down) continue;
+        var dd = Math.hypot(aps[j].x - a.x, aps[j].y - a.y);
+        if (dd < bd) { bd = dd; best = j; }
+      }
+      return best < 0 ? 0 : M.bearing(a, aps[best]);
+    });
+  };
+  M.resolve = function (aps) {
+    var aims = M.aims(aps);
+    return aps.map(function (a, i) { var o = {}, k; for (k in a) o[k] = a[k]; o.aim = aims[i]; return o; });
+  };
+
+  /* signal at a phone held at chest height, x and y on the field */
+  M.rssiAt = function (ap, x, y, C, land) {
+    var Cc = cfg(C), n = M.land(land).n, d = Math.max(1, Math.hypot(ap.x - x, ap.y - y)),
+        d3 = Math.hypot(d, ap.h - 1.2), az = M.bearing(ap, { x: x, y: y }),
+        el = Math.atan2(1.2 - ap.h, d) / D;
+    return M.apTx(ap, Cc) + M.gainToward(ap, az, el, Cc) - NFN.rf.logDistance(d3, Cc.clientF, n);
+  };
+
+  /* the footprint at the target level, as a radius per azimuth. This is the
+     antenna's real shape on the ground, which for a patch is not a circle. */
+  M.contour = function (ap, C, land, steps) {
+    var Cc = cfg(C), n = M.land(land).n, out = [], k, N = steps || 72;
+    for (k = 0; k < N; k++) {
+      var az = k * 360 / N,
+          budget = M.apTx(ap, Cc) + M.gainToward(ap, az, 0, Cc) - Cc.clientTarget - NFN.rf.fspl(1, Cc.clientF);
+      out.push({ az: az, r: Math.pow(10, budget / (10 * n)) });
+    }
+    return out;
+  };
 
   /* ── one link ──────────────────────────────────────────────────────────── */
 
@@ -102,10 +194,14 @@
       if (loss > worst.loss) worst = { loss: loss, by: "obstacle", idx: idx, v: v };
     });
 
-    /* the weaker transmitter sets the rate: a link is only as fast as its slow direction */
-    var tx = Math.min(a.tx === undefined ? C.tx : a.tx, b.tx === undefined ? C.tx : b.tx),
+    /* the weaker transmitter sets the rate: a link is only as fast as its slow
+       direction. Each end's gain is what its antenna gives toward the other. */
+    var tx = Math.min(M.apTx(a, C), M.apTx(b, C)),
+        elAB = Math.atan2(b.h - a.h, d) / D,
+        ga = M.gainToward(a, M.bearing(a, b), elAB, C),
+        gb = M.gainToward(b, M.bearing(b, a), -elAB, C),
         ray = C.tworay ? M.twoRay(d, a.h, b.h, f, C.rho) : 0,
-        prx = tx + 2 * C.ant - fspl - worst.loss + ray,
+        prx = tx + ga + gb - fspl - worst.loss + ray,
         nf = NFN.rf.noiseFloor(C.bw, C.nf), snr = prx - nf,
         mcs = NFN.phy.mcsFor(C.std, snr - C.margin),
         phy = mcs >= 0 ? NFN.phy.rate(C.std, mcs, C.ss, C.bw) : 0,
@@ -113,7 +209,7 @@
     return {
       d: d, d3: d3, fspl: fspl, diffraction: worst.loss, blockedBy: worst.loss > 0.5 ? worst.by : null,
       obstacle: worst.by === "obstacle" ? worst.idx : -1,
-      tx: tx, tworay: ray,
+      tx: tx, tworay: ray, ga: ga, gb: gb,
       prx: prx, noise: nf, snr: snr, mcs: mcs, phyMbps: phy, goodput: good,
       f1: f1mid, clearance: clearMin,
       /* 60% of the first Fresnel zone is the rule of thumb for "clear" */
@@ -129,8 +225,34 @@
      small per-hop tax breaks ties toward fewer hops. */
   M.linkCost = function (L) { return 1000 / L.goodput + 1; };   /* ms per gigabit, plus a hop */
 
-  M.tree = function (aps, c, obstacles) {
-    var C = cfg(c), P = M.profile(C.profile),
+  /* An unset aim on a patch has to point at the parent, and the parent depends
+     on the aim. So: build the tree once with every auto-aimed patch standing in
+     as an omni, which finds the parent the geometry wants; turn each such point
+     toward that parent and each such portal toward its children; build again
+     with the real patterns. Two passes is what an installer does with a phone
+     and a colleague shouting. */
+  M.tree = function (apsIn, c, obstacles) {
+    var C = cfg(c), aps = M.resolve(apsIn), auto = [], i, j;
+    for (i = 0; i < aps.length; i++) {
+      var a0 = apsIn[i];
+      if ((a0.aim === undefined || a0.aim === null) && M.apAntenna(a0, C).h < 360) auto.push(i);
+    }
+    if (!auto.length) return build(aps, C, obstacles);
+    var plain = aps.map(function (a, k) { var o = {}, q; for (q in a) o[q] = a[q]; if (auto.indexOf(k) >= 0) o.ant = "omni"; return o; }),
+        T0 = build(plain, C, obstacles);
+    auto.forEach(function (k) {
+      if (T0.parent[k] >= 0) aps[k].aim = M.bearing(aps[k], aps[T0.parent[k]]);
+      else if (T0.children[k].length) {
+        var sx = 0, sy = 0;
+        for (j = 0; j < T0.children[k].length; j++) { var b = M.bearing(aps[k], aps[T0.children[k][j]]) * D; sx += Math.cos(b); sy += Math.sin(b); }
+        aps[k].aim = Math.atan2(sy, sx) / D;
+      }
+    });
+    return build(aps, C, obstacles);
+  };
+
+  function build(aps, C, obstacles) {
+    var P = M.profile(C.profile),
         maxHops = P.maxHops === null ? Math.max(1, C.maxHops || 8) : P.maxHops,
         n = aps.length, links = [], cost = [], parent = [], depth = [], i, j;
     for (i = 0; i < n; i++) { links.push([]); cost.push(Infinity); parent.push(-1); depth.push(-1); }
@@ -179,27 +301,29 @@
       backup.push(best);
     }
     return { links: links, parent: parent, depth: depth, children: children, subtree: sub, gateways: gws,
-             backup: backup, cost: cost, maxHops: maxHops, profile: P,
+             backup: backup, cost: cost, maxHops: maxHops, profile: P, aps: aps,
              maxDepth: depth.reduce(function (m, x) { return Math.max(m, x); }, 0),
              /* a failed AP is down, not unreachable: the two are different problems */
              unreachable: depth.map(function (x, k) { return x < 0 && !aps[k].down ? k : -1; }).filter(function (x) { return x >= 0; }) };
-  };
+  }
 
   /* ── coverage ──────────────────────────────────────────────────────────── */
 
+  /* the reference cell: a plain omni at the default power, for the legend */
   M.cellRadius = function (c, land) {
     var C = cfg(c);
-    return NFN.rf.cellRadius({ txDbm: C.clientTx, antDbi: C.clientAnt, targetDbm: C.clientTarget,
+    return NFN.rf.cellRadius({ txDbm: C.tx, antDbi: M.ANTENNAS.omni.g, targetDbm: C.clientTarget,
                                fGHz: C.clientF, n: M.land(land).n, rxAntDbi: 0 });
   };
 
-  /* share of the field inside some cell, by sampling: cheap, and honest about
-     the holes between circles */
-  M.coverage = function (aps, radius, w, dpt) {
-    var cols = 40, rows = Math.max(4, Math.round(cols * dpt / w)), hit = 0, i, j, k;
+  /* share of the field where some serving AP puts the target level on a phone,
+     by sampling: cheap, and honest about the holes between footprints. aps here
+     are the live, reached, client-serving ones with aims resolved. */
+  M.coverage = function (aps, c, land, w, dpt) {
+    var C = cfg(c), cols = 40, rows = Math.max(4, Math.round(cols * dpt / w)), hit = 0, i, j, k;
     for (i = 0; i < cols; i++) for (j = 0; j < rows; j++) {
       var x = (i + 0.5) / cols * w, y = (j + 0.5) / rows * dpt, inside = false;
-      for (k = 0; k < aps.length && !inside; k++) if (Math.hypot(aps[k].x - x, aps[k].y - y) <= radius) inside = true;
+      for (k = 0; k < aps.length && !inside; k++) if (M.rssiAt(aps[k], x, y, C, land) >= C.clientTarget) inside = true;
       if (inside) hit++;
     }
     return hit / (cols * rows);
@@ -210,15 +334,16 @@
   /* st: { aps:[{x,y,h,gw}], obstacles:[{x,y,h,r}], w, d, land, uplink (Mb/s),
            clients, dev, app, radio settings as in DEF } */
   M.plan = function (st) {
-    var C = cfg(st), aps = st.aps || [], obs = st.obstacles || [],
-        T = M.tree(aps, C, obs), n = aps.length, i,
+    var C = cfg(st), apsIn = st.aps || [], obs = st.obstacles || [],
+        T = M.tree(apsIn, C, obs), aps = T.aps, n = aps.length, i,
         land = st.land || "open",
         radius = M.cellRadius(C, land),
-        cover = n ? M.coverage(aps, radius, st.w || 200, st.d || 140) : 0,
+        serving = aps.filter(function (a, k) { return T.depth[k] >= 0 && M.kind(a, C).serves; }),
+        cover = serving.length ? M.coverage(serving, C, land, st.w || 200, st.d || 140) : 0,
         clients = st.clients || 0, dev = st.dev || "ax2", app = st.app || "web",
         A = NFN.capacity.app(app),
         demand = clients * A.kbps / 1000,
-        reach = n - T.unreachable.length,
+        reach = serving.length,
         perAp = reach > 0 ? clients / reach : 0,
         demandAp = perAp * A.kbps / 1000,
         /* what one radio can hand its own clients, before the backhaul has a say */
@@ -227,8 +352,11 @@
         rows = [], delivered = 0, worstDepth = 0;
 
     for (i = 0; i < n; i++) {
-      var a = aps[i], r = { i: i, gw: !!a.gw, depth: T.depth[i], parent: T.parent[i], link: null,
-                            clients: perAp, demand: demandAp, backhaul: Infinity, delivered: 0, status: "ok", why: "" };
+      var a = aps[i], K = M.kind(a, C),
+          r = { i: i, gw: !!a.gw, depth: T.depth[i], parent: T.parent[i], link: null,
+                kind: K, antenna: M.apAntenna(a, C), aim: a.aim, serves: K.serves,
+                clients: K.serves ? perAp : 0, demand: K.serves ? demandAp : 0,
+                backhaul: Infinity, delivered: 0, status: "ok", why: "", relays: 0 };
       r.backup = T.backup[i]; r.cost = T.cost[i];
       if (a.down) {
         r.status = "down"; r.backhaul = 0; r.clients = 0; r.demand = 0;
@@ -237,18 +365,19 @@
         r.status = "unreachable"; r.backhaul = 0;
         r.why = T.gateways ? "no link to the mesh reaches this AP within " + T.maxHops + (T.maxHops === 1 ? " hop" : " hops") : "there is no portal to reach";
       } else if (!a.gw) {
-        /* walk to the gateway: every link on the way is shared by everyone behind it */
+        /* walk to the gateway: every link on the way is shared by everyone behind
+           it, and every relay that has one radio doing both jobs hears the parent
+           and repeats to the child on the same medium, so it halves what passes */
         var k = i, hops = 0;
         while (T.parent[k] >= 0) {
           var L = T.links[k][T.parent[k]], share = L.goodput / T.subtree[k];
           if (hops === 0) r.link = L;
           r.backhaul = Math.min(r.backhaul, share);
           k = T.parent[k]; hops++;
+          if (T.parent[k] >= 0 && !M.kind(aps[k], C).dedicated) r.relays++;
         }
-        /* one radio doing both: the relay hears the parent and repeats to the
-           child on the same medium, so every hop past the first halves it */
-        if (!C.dedicated && T.depth[i] > 1) r.backhaul /= Math.pow(2, T.depth[i] - 1);
-        r.delivered = Math.min(r.backhaul, cell);
+        if (r.relays) r.backhaul /= Math.pow(2, r.relays);
+        r.delivered = K.serves ? Math.min(r.backhaul, cell) : 0;
         if (r.link && r.link.fresnelBad) r.status = "fresnel";
         else if (r.delivered < r.demand) r.status = "starved";
         r.why = r.status === "fresnel" ? "the mast is too low for the Fresnel zone: line of sight on paper, loss on the air"
@@ -256,7 +385,7 @@
               : "";
         worstDepth = Math.max(worstDepth, T.depth[i]);
       } else {
-        r.backhaul = Infinity; r.delivered = cell;
+        r.backhaul = Infinity; r.delivered = K.serves ? cell : 0;
       }
       if (r.status !== "unreachable" && r.status !== "down") delivered += Math.min(r.delivered, r.demand);
       rows.push(r);
@@ -304,15 +433,20 @@
       unreachable: unreached, fresnel: fres, starved: starved, maxDepth: T.maxDepth,
       flags: flags,
       assumptions: [
-        "backhaul " + C.fGHz + " GHz, " + C.bw + " MHz, " + C.ss + " stream" + (C.ss === 1 ? "" : "s") + ", " + C.tx + " dBm into a " + C.ant + " dBi omni at both ends",
+        "backhaul " + C.fGHz + " GHz, " + C.bw + " MHz, " + C.ss + " stream" + (C.ss === 1 ? "" : "s") + ", " + C.tx + " dBm unless an AP says otherwise, each end's gain taken toward the other from a cos^n fit to its antenna's beamwidths",
         "a link counts once its SNR sits " + C.margin + " dB above the lowest rate, and the weaker transmitter sets its rate",
         (C.tworay ? "ground reflection at " + C.rho + " of the direct ray, so mast height moves the fade" : "no ground reflection"),
         T.profile.label + ": " + T.profile.note + (T.profile.maxHops === null ? ", ceiling " + T.maxHops + " hops" : "") + " (behaviour sketch as of 2026-09, verify against your release)",
         "a point holds one parent at a time; a second portal is failover and a split of the points, not a bonded link",
-        C.dedicated ? "a dedicated backhaul radio, so relaying costs no client airtime" : "one radio carries clients and backhaul, so each hop past the first halves the capacity behind it",
+        (function () {
+          var shared = rows.filter(function (r) { return r.depth >= 0 && !r.kind.dedicated; }).length,
+              bridges = rows.filter(function (r) { return r.depth >= 0 && !r.serves; }).length;
+          return (shared ? shared + " of " + n + " APs carry clients and backhaul on one radio, so each such relay halves what passes through it" : "every AP has a dedicated backhaul radio, so relaying costs no client airtime") +
+                 (bridges ? "; " + bridges + " bridge unit" + (bridges === 1 ? "" : "s") + " serve no clients" : "");
+        })(),
         "every link's capacity is shared equally by the APs behind it",
         "clients spread evenly across the APs the mesh reaches, " + A.label.toLowerCase() + " at " + A.kbps + " kb/s each",
-        "client cell edge at " + C.clientTarget + " dBm, path loss exponent " + M.land(land).n + " for " + M.land(land).label.toLowerCase(),
+        "client cell edge at " + C.clientTarget + " dBm on a phone at chest height, path loss exponent " + M.land(land).n + " for " + M.land(land).label.toLowerCase() + "; a plain omni at " + C.tx + " dBm reaches " + radius.toFixed(0) + " m",
         "flat ground; a short mast shows up as knife edge loss at the ground, which stands in for the two ray fade",
         "no interference from anybody else's network, and no MU-MIMO or OFDMA gain"
       ]
@@ -338,13 +472,12 @@
 
   /* ── a client standing somewhere ───────────────────────────────────────── */
   M.client = function (st, plan, cl) {
-    var C = cfg(st), land = M.land(st.land || "open"), dev = NFN.capacity.device(st.dev || "ax2"),
+    var C = cfg(st), dev = NFN.capacity.device(st.dev || "ax2"),
         A = NFN.capacity.app(st.app || "web"), best = -1, bestR = -Infinity, i;
-    (st.aps || []).forEach(function (a, k) {
+    plan.tree.aps.forEach(function (a, k) {
       var r = plan.aps[k];
-      if (r.status === "down" || r.status === "unreachable") return;
-      var d3 = Math.hypot(Math.hypot(a.x - cl.x, a.y - cl.y), a.h - 1.2),      /* a phone held at chest height */
-          rssi = (a.tx === undefined ? C.clientTx : Math.min(a.tx, C.clientTx)) + C.clientAnt - NFN.rf.logDistance(d3, C.clientF, land.n);
+      if (r.status === "down" || r.status === "unreachable" || !r.serves) return;
+      var rssi = M.rssiAt(a, cl.x, cl.y, C, st.land || "open");
       if (rssi > bestR) { bestR = rssi; best = k; }
     });
     if (best < 0) return { ap: -1, why: "no live AP on the site" };

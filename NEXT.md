@@ -26,7 +26,10 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
   planner, the arena aiming tool and the mesh planner. Nothing in `build-blog.py`
   includes it, so it is invisible to the site until it is wired into a page.
 - **The mesh planner** (`#mesh/v1`): a draggable site map with APs, obstacles and a
-  client; portal or point, mast height, power and a fail toggle per AP; links drawn by
+  client; portal or point, AP kind (dual radio shared, tri radio dedicated, bridge unit),
+  antenna (omni, down-tilt omni, wide patch, narrow patch, highly directional) with an
+  aim that defaults to the parent, mast height, power and a fail toggle per AP; footprints
+  drawn as the antenna's real shape and a wedge showing where a patch looks; links drawn by
   hop depth with their rate, orange and dashed when the Fresnel zone is short; a backup
   parent per point drawn faint, or flagged as a single point of failure; demand, what the
   mesh carries and the uplink on one bar with the ceiling named; an N-1 table that fails
@@ -61,8 +64,9 @@ Run `node simtest.js` and `python3 regress.py` before promoting anything.
   is a re-run.
 - A mesh point holds one parent at a time. Two portals are failover and a split of the
   points, not a bonded link, and the planner will not pretend otherwise.
-- Each hop past the first halves the capacity behind it when the client radio carries the
-  backhaul. A dedicated backhaul radio is a toggle, not an assumption.
+- Every relay that shares one radio between clients and backhaul halves what passes
+  through it. Whether it does is a property of the AP kind, set per AP, not a global
+  assumption.
 
 ## Next, in the order agreed
 
@@ -86,6 +90,9 @@ Ideas parked from the mesh session, none of them decided:
   cost with a hop tax; the true formulas would make the profiles documentation instead of
   sketches, and need the release notes to back them.
 - Terrain. The field is flat; a height map would replace the "rise in the ground" blob.
+- Per-AP down-tilt on patches, and a second antenna per AP so a tri radio box can carry a
+  patch for the backhaul and an omni for the clients. Today one antenna does both jobs,
+  which is the honest picture of a dual radio unit and a pessimistic one of a tri radio.
 
 ## To verify in the lab, with the AP-735
 
