@@ -3,7 +3,7 @@
 number it reads with formulas of its own, in Python, from the standards.
 
     python3 qa.py                 # everything: build both lab pages, serve them, drive them, report
-    python3 qa.py --only mesh     # one tool: capacity | venue | mesh | qam
+    python3 qa.py --only mesh     # one tool: capacity | venue | mesh | story | qam
     python3 qa.py --headed        # watch it
     python3 qa.py --keep          # leave the server up afterwards for a look
 
@@ -336,9 +336,59 @@ def qa_qam(b, base, page_url):
     check("use", "no page errors", not errs, errs[:3], [])
     pg.close()
 
+# ── what happened ───────────────────────────────────────────────────────────
+def qa_story(b, base, page_url):
+    section("What happened")
+    pg, errs = open_lab(b, base + page_url, hash_="#story/v1")
+    check("use", "the link opened the story tool", pg.evaluate("!document.getElementById('tool-story').hidden"), None, True)
+    pg.click("#s-demo"); pg.wait_for_timeout(1500)
+    s = pg.evaluate("document.getElementById('tool-story')._story()")
+    fx = json.load(open(os.path.join(ROOT, "demo/mesh-story.json")))
+    check("math", "every hop in the file is counted", s["hops"] == sum(len(t["hops"]) for t in fx["story"]["trails"]), s["hops"], sum(len(t["hops"]) for t in fx["story"]["trails"]))
+    check("math", "two spikes: the channel move and the reboot", s["spikes"] == 2, s["spikes"], 2)
+    stats = pg.inner_text("#s-stats")
+    check("use", "the stats tiles show clients, hops, spikes, weak landings, events", all(w in stats.lower() for w in ("clients", "hops", "spikes", "weak", "events")), stats.replace("\n", " ")[:80], "five tiles")
+    sp = pg.inner_text("#s-spikes")
+    check("use", "each spike is pinned on its cause", "channel move" in sp and "came up" in sp, sp[:160], "mentions a channel move and a reboot")
+    bars = pg.locator("#s-time rect[data-bin]").count()
+    check("use", "the timeline has a bar per busy bin", bars > 10, bars, "> 10")
+    pg.locator("#s-time rect[data-bin]").first.click(); pg.wait_for_timeout(300)
+    check("use", "tapping a bar names who moved", len(pg.inner_text("#s-binout")) > 20, pg.inner_text("#s-binout")[:80], "a sentence")
+    g = s["graph"]
+    check("math", "one node per live radio", len(g["nodes"]) == sum(1 for a in fx["aps"] for r in a["radios"] if r.get("status") != "Down"), len(g["nodes"]), "live radios")
+    check("math", "the demo's 5 GHz radios share 149: two co-channel pairs", g["cochannel"] == 2, g["cochannel"], 2)
+    check("math", "edge loss is the mean of both directions", all(abs(e["loss"] - sum(e["losses"]) / len(e["losses"])) < 1e-9 for e in g["edges"]), None, "means")
+    # what-if: move the middle 5 GHz radio away, pairs fall to zero
+    pg.select_option("#s-wradio", fx["aps"][1]["serial"] + "/5"); pg.wait_for_timeout(200)
+    opts = pg.evaluate("[...document.getElementById('s-wch').options].map(o=>o.value)")
+    other = [o for o in opts if o not in ("149",)][0]
+    pg.select_option("#s-wch", other); pg.wait_for_timeout(300)
+    wout = pg.inner_text("#s-wout")
+    check("use", "the what-if says how the pairs change", "2 co-channel pairs becomes 0" in wout, wout[:120], "2 becomes 0")
+    check("use", "the what-if is in the link", "radio=" in pg.evaluate("location.hash") and "ch=" in pg.evaluate("location.hash"), pg.evaluate("location.hash")[:60], "radio= and ch=")
+    check("use", "six weather blocks, one per radio", pg.locator("#s-weather svg").count() == 6, pg.locator("#s-weather svg").count(), 6)
+    check("use", "the microwave hour is outlined", pg.evaluate("document.querySelectorAll('#s-weather rect[stroke=\"#F5A524\"]').length") == 1, pg.evaluate("document.querySelectorAll('#s-weather rect[stroke=\"#F5A524\"]').length"), 1)
+    rows = pg.locator("#s-actual tr").count()
+    check("use", "one actual row per AP", rows == len(fx["aps"]), rows, len(fx["aps"]))
+    for r in pg.locator("#s-actual tr").all():
+        cells = [c.strip() for c in r.inner_text().split("\t")]
+        def val(t):
+            m = re.match(r"([0-9.]+) (kb/s|Mb/s|Gb/s)", t); return float(m.group(1)) * {"kb/s": 1e-3, "Mb/s": 1, "Gb/s": 1e3}[m.group(2)] if m else None
+        mean, peak = val(cells[2]), val(cells[3])
+        check("math", f"{cells[0]}: peak at least the mean", mean is not None and peak is not None and peak >= mean * 0.99, (mean, peak), "peak >= mean")
+    top = pg.locator("#s-clients tr").first.inner_text()
+    check("use", "the restless watch tops the client list", "Demo-Watch" in top, top[:40], "Demo-Watch")
+    open_all_details(pg, "#tool-story"); text_hygiene(pg, "#tool-story", "story"); tap_targets(pg, "#tool-story", "story")
+    check("use", "no page errors", not errs, errs[:3], [])
+    pg.close()
+    pg, errs = open_lab(b, base + page_url, width=390, hash_="#story/v1")
+    pg.click("#s-demo"); pg.wait_for_timeout(1200)
+    check("use", "phone: no sideways scroll with a story loaded", pg.evaluate("document.documentElement.scrollWidth") <= 390, pg.evaluate("document.documentElement.scrollWidth"), "<= 390")
+    pg.close()
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--only", choices=["capacity", "venue", "mesh", "qam"])
+    ap.add_argument("--only", choices=["capacity", "venue", "mesh", "qam", "story"])
     ap.add_argument("--headed", action="store_true"); ap.add_argument("--keep", action="store_true")
     a = ap.parse_args()
     pages = build_pages(); httpd, base = serve()
@@ -356,6 +406,7 @@ def main():
             if a.only in (None, "mesh"): qa_mesh(b, base, pages["tools"])
             if a.only in (None, "capacity"): qa_capacity(b, base, pages["tools"])
             if a.only in (None, "venue"): qa_venue(b, base, pages["tools"])
+            if a.only in (None, "story"): qa_story(b, base, pages["tools"])
             if a.only in (None, "qam"): qa_qam(b, base, pages["qam"])
         except Exception as e:
             check("use", "the bot itself ran to the end", False, repr(e)[:300], "no exception")

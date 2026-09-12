@@ -20,7 +20,7 @@ import http.server, socketserver
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PORT = 8823
-SIM = ["core", "rf", "phy", "mac", "channels", "capacity", "venue", "mesh", "aps", "esx", "kml", "emit"]          # model files, loaded separately in the lab
+SIM = ["core", "rf", "phy", "mac", "channels", "capacity", "venue", "mesh", "aps", "esx", "kml", "emit", "story"]          # model files, loaded separately in the lab
 WIDGET = "qam"                                           # set from argv in main()
 
 

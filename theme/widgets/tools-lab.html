@@ -235,6 +235,7 @@
   <button type="button" data-tool="capacity" class="on">How many access points</button>
   <button type="button" data-tool="venue">Aiming at a seating block</button>
   <button type="button" data-tool="mesh">Mesh on a field</button>
+  <button type="button" data-tool="story">What happened</button>
 </div>
 
 <div class="t-tool" id="tool-capacity">
@@ -2691,6 +2692,232 @@ Tap anything to change it. The big number is what gets off the site, and the not
 </script>
 
 
+<div class="t-tool" id="tool-story" hidden>
+<div class="t-head">
+  <span class="eyebrow">Troubleshooting</span>
+  <h2>What happened</h2>
+</div>
+<p class="t-lede">Two days of a site on one page: every client's roams as a timeline with the spikes explained by what changed just before them, the radios as a graph joined by the loss AirMatch measured between them, noise and utilisation by the hour, and what each AP actually carried beside the plan.</p>
+<div class="t-grid">
+<div>
+  <div class="t-panel g-card">
+    <h3>The site's story</h3>
+    <p class="t-hint">This page never talks to a controller. On the laptop, <code>central-pull.py --group &lt;group&gt; --story 48</code> writes a site.json with two days of what happened; open it here. The same file opens in the mesh planner's Verify fold. Kept in this browser until you open another.</p>
+    <input type="file" id="s-file" accept=".json,application/json" aria-label="site.json with a story block" style="font:12px var(--sans);color:var(--text-dim);max-width:100%">
+    <p class="t-hint" id="s-note">No site loaded. <button class="t-btn" id="s-demo" type="button" style="min-height:34px;padding:0 10px">Open the demo site</button></p>
+    <div class="t-stats" id="s-stats"></div>
+    <div class="t-row"><label for="s-bin">Bin</label><select id="s-bin"><option value="300">5 min</option><option value="600" selected>10 min</option><option value="1800">30 min</option><option value="3600">1 hour</option></select></div>
+    <p class="t-hint">What it is not: a live view. Central's monitoring is minutes old and a trail is what the AP reported, so this is the record of the last two days, read carefully.</p>
+  </div>
+</div>
+<div>
+  <div class="t-panel g-card">
+    <h3>Roams across the site</h3>
+    <p class="t-hint">Each bar is how many different clients moved in the bin; the marks below are what changed: <span style="color:#5ED2DA">channel moves</span>, <span style="color:#F5A524">reboots</span>, <span style="color:#4FBDEA">configuration</span>. Tap a bar to see who moved and what happened just before.</p>
+    <div class="t-elev"><svg id="s-time" viewBox="0 0 1000 200" width="100%" role="img" aria-label="Roams per bin across every client, with reboots, channel moves and configuration changes marked"></svg></div>
+    <div id="s-spikes"></div>
+    <p class="t-hint" id="s-binout"></p>
+  </div>
+  <div class="t-panel g-card" style="margin-top:20px">
+    <h3>Who hears whom</h3>
+    <p class="t-hint">Every radio, joined to the ones it can hear by the path loss AirMatch measured (thicker is louder). A pair that also shares a channel shares air, drawn <span style="color:#F5A524">orange</span>. Move one radio below and watch the pairs change; nothing is sent anywhere.</p>
+    <div class="t-elev"><svg id="s-graph" viewBox="0 0 1000 340" width="100%" role="img" aria-label="Radios as a graph joined by measured path loss, co-channel pairs in orange"></svg></div>
+    <div class="t-row"><label for="s-wradio">Move</label><select id="s-wradio"></select><label for="s-wch">to</label><select id="s-wch"></select></div>
+    <p class="t-hint" id="s-wout"></p>
+  </div>
+  <div class="t-panel g-card" style="margin-top:20px">
+    <h3>RF weather</h3>
+    <p class="t-hint">Utilisation by the hour, one row per day per radio; cells outlined <span style="color:#F5A524">orange</span> are hours the noise floor sat 6 dB or more above that radio's median, which is how a microwave, a camera or a neighbour's network shows up as a pattern rather than a complaint.</p>
+    <div id="s-weather"></div>
+  </div>
+  <div class="t-panel g-card" style="margin-top:20px">
+    <h3>Plan against actual</h3>
+    <p class="t-hint">What each AP carried over the last hours against what the mesh planner expected of it, when the planner holds the same APs.</p>
+    <div class="t-scroll"><table class="t-table"><thead><tr><th>AP</th><th>Clients now</th><th>Mean</th><th>Peak</th><th>Planned clients</th><th>Planned demand</th></tr></thead><tbody id="s-actual"></tbody></table></div>
+    <p class="t-hint" id="s-actualnote"></p>
+  </div>
+  <div class="t-panel g-card" style="margin-top:20px">
+    <h3>Clients worth a look</h3>
+    <p class="t-hint">Who roams most and who lands weakest. A restless wearable is normal; a laptop that roams every minute is a design problem. Landing is the median signal the AP heard at each roam; weak is landings under -75 dBm; slow is roams over half a second.</p>
+    <div class="t-scroll"><table class="t-table"><thead><tr><th>Client</th><th>Hops</th><th>Joins</th><th>Landing</th><th>Weak</th><th>Roam</th><th>Slow</th></tr></thead><tbody id="s-clients"></tbody></table></div>
+  </div>
+</div>
+</div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var root = document.getElementById("tool-story"); if (!root || !NFN.story) return;
+  var S = NFN.story, $ = function (id) { return document.getElementById(id); };
+  var st = NFN.State("story", { bin: NFN.f.int(600, 300, 3600), radio: { def: "", get: function (v) { return v; } }, ch: NFN.f.int(0, 0, 400) });
+  st.fromHash(location.hash);
+  var doc = null, G = null, selBin = null, booted = false;
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+  function when(ts, withDay) { var d = new Date(ts * 1000); return (withDay ? d.toLocaleDateString(undefined, { weekday: "short" }) + " " : "") + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }); }
+  function mbs(x) { return x === null || x === undefined ? "" : x >= 1000 ? (x / 1000).toFixed(1) + " Gb/s" : x >= 10 ? x.toFixed(0) + " Mb/s" : x >= 1 ? x.toFixed(1) + " Mb/s" : Math.round(x * 1000) + " kb/s"; }
+  var COL = { channel: "#5ED2DA", reboot: "#F5A524", config: "#4FBDEA" };
+  try { doc = JSON.parse(localStorage.getItem("nfn-story") || "null"); } catch (e) {}
+
+  function load(d, note) {
+    if (!d || !d.aps) throw new Error("no aps in it");
+    doc = d;
+    try { localStorage.setItem("nfn-story", JSON.stringify(d)); } catch (e) {}
+    $("s-note").textContent = note || ((d.story ? "Two days" : "A site") + " from " + (d.group || "?") + ", pulled " + String(d.pulled || "").replace("T", " at ") + (d.story ? "" : ". No story block: run central-pull.py with --story HOURS for the timeline, the weather and the traffic."));
+    run();
+  }
+  $("s-file").addEventListener("change", function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () { try { load(JSON.parse(String(rd.result))); } catch (e) { $("s-note").textContent = "Could not read it: " + e.message; } };
+    rd.readAsText(f); this.value = "";
+  });
+  $("s-demo").addEventListener("click", function () {
+    fetch("demo/mesh-story.json").then(function (r) { return r.json(); }).then(function (d) { load(d, "The demo site: three APs, two days, made up."); }).catch(function (e) { $("s-note").textContent = "Could not open the demo: " + e.message; });
+  });
+  $("s-bin").value = String(st.get("bin"));
+  $("s-bin").addEventListener("change", function () { st.set("bin", +this.value); selBin = null; run(); });
+
+  function run() {
+    if (!doc) return;
+    var story = doc.story || {}, hops = S.hops(story), binS = st.get("bin"), bins = S.bins(hops, binS, story.from, story.to), spikes = S.spikes(bins), events = story.events || [];
+    /* the numbers */
+    var cl = S.clients(story), weakLand = hops.filter(function (h) { return h.rssi_dbm !== null && h.rssi_dbm < -75; }).length, withR = hops.filter(function (h) { return h.rssi_dbm !== null; }).length;
+    $("s-stats").innerHTML = [["clients", cl.length], ["hops", hops.length], ["spikes", spikes.length], ["weak landings", withR ? Math.round(100 * weakLand / withR) + "%" : "-"], ["events", events.length]].map(function (p) { return '<div class="t-stat"><b>' + p[1] + "</b><span>" + p[0] + "</span></div>"; }).join("");
+    /* the clients */
+    $("s-clients").innerHTML = cl.slice(0, 10).map(function (c) {
+      return "<tr><td>" + esc(c.name) + (c.os ? " <span style='color:var(--text-muted)'>" + esc(c.os) + "</span>" : "") + "</td><td>" + c.hops + "</td><td>" + c.joins + "</td><td>" + (c.medianRssi === null ? "" : c.medianRssi + " dBm") + "</td><td>" + (c.weak ? "<span style='color:#F5A524'>" + c.weak + "</span>" : "0") + "</td><td>" + (c.medianLatency === null ? "" : c.medianLatency + " ms") + "</td><td>" + (c.slow ? "<span style='color:#F5A524'>" + c.slow + "</span>" : "0") + "</td></tr>";
+    }).join("") || "<tr><td colspan='7'>No trails in this file.</td></tr>";
+    drawTime(bins, spikes, events, binS, hops);
+    /* the spikes explained */
+    $("s-spikes").innerHTML = spikes.length ? spikes.slice(0, 6).map(function (sp) {
+      var ex = S.explain(sp, events, binS);
+      return '<p class="t-hint" style="margin-top:8px"><b style="color:' + (ex.kind === "unexplained" ? "var(--text)" : COL[ex.kind]) + '">' + when(sp.ts, true) + "</b>: " + esc(ex.text) + (ex.events.length ? "<br>" + ex.events.map(function (e) { return "<span style='color:" + COL[e.kind] + "'>" + when(e.ts) + "</span> " + esc(e.text); }).join("<br>") : "") + "</p>";
+    }).join("") : (hops.length ? '<p class="t-hint" style="margin-top:8px">No spike: nobody moved in numbers. The roams here are people walking.</p>' : "");
+    /* who hears whom */
+    G = S.graph(doc.aps, doc.pathloss);
+    var wr = $("s-wradio"), cur = st.get("radio"); wr.innerHTML = "";
+    G.nodes.forEach(function (n) { wr.add(new Option(n.ap + " " + n.band + " GHz (ch " + (n.channel === null ? "?" : n.channel) + ")", n.id)); });
+    if (cur && G.nodes.some(function (n) { return n.id === cur; })) wr.value = cur; else st.set("radio", wr.value || "");
+    fillChannels();
+    whatIf();
+    /* the weather */
+    var rf = story.rf || {}, keys = Object.keys(rf).sort(function (a, b) { return (rf[a].ap + rf[a].band).localeCompare(rf[b].ap + rf[b].band); });
+    $("s-weather").innerHTML = keys.length ? keys.map(function (k) { return weatherBlock(rf[k]); }).join("") : '<p class="t-hint">No radio samples in this file.</p>';
+    /* plan against actual */
+    var act = S.actual(story, doc.aps), plan = null;
+    try { var tools = document.getElementById("tools"); if (tools && tools._mesh) plan = tools._mesh(); } catch (e) {}
+    var names = (function () { try { return (document.getElementById("tools")._meshState.get("ap") || []).map(function (a) { return a.name; }); } catch (e) { return []; } })();
+    $("s-actual").innerHTML = act.aps.map(function (a) {
+      var k = names.indexOf(a.ap), pr = plan && k >= 0 ? plan.aps[k] : null;
+      return "<tr><td>" + esc(a.ap) + "</td><td>" + (a.clients === null || a.clients === undefined ? "" : a.clients) + "</td><td>" + mbs(a.meanMbps) + "</td><td>" + mbs(a.peakMbps) + "</td><td>" + (pr ? Math.round(pr.clients) : "") + "</td><td>" + (pr ? mbs(pr.demand) : "") + "</td></tr>";
+    }).join("");
+    $("s-actualnote").textContent = (act.siteClients ? "Site: " + act.siteClients.now + " clients now, " + act.siteClients.peak + " at the peak, " + act.siteClients.mean.toFixed(0) + " on average over the samples. " : "") + (plan && names.some(function (n) { return n; }) ? "Planned figures come from the mesh planner's current site, matched by AP name." : "Open the same site.json in the mesh planner's Verify fold to see the planned figures beside these.") + " Traffic is bytes per five minutes turned into Mb/s, so a burst inside a sample is averaged down.";
+    if (booted) st.push();
+  }
+
+  function drawTime(bins, spikes, events, binS, hops) {
+    var W = 1000, H = 200, x0 = 30, x1 = W - 10, y0 = 14, y1 = 130, out = [];
+    if (!bins.length) { $("s-time").innerHTML = '<text x="500" y="100" text-anchor="middle" fill="#8BA2AE" font-size="13" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif">No hops in this file.</text>'; return; }
+    var t0 = bins[0].ts, t1 = bins[bins.length - 1].ts + binS, X = function (t) { return x0 + (t - t0) / (t1 - t0) * (x1 - x0); }, max = Math.max(3, Math.max.apply(null, bins.map(function (b) { return b.clients; }))), bw = Math.max(1, (x1 - x0) / bins.length - 1);
+    [0, Math.round(max / 2), max].forEach(function (v) { var y = y1 - (y1 - y0) * v / max; out.push('<line x1="' + x0 + '" y1="' + y.toFixed(1) + '" x2="' + x1 + '" y2="' + y.toFixed(1) + '" stroke="rgba(255,255,255,0.08)"/><text x="' + (x0 - 4) + '" y="' + (y + 3).toFixed(1) + '" text-anchor="end" font-size="9" fill="#8BA2AE" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">' + v + "</text>"); });
+    var spikeTs = {}; spikes.forEach(function (s) { spikeTs[s.ts] = 1; });
+    bins.forEach(function (b, k) {
+      if (!b.n) return;
+      var h = (y1 - y0) * b.clients / max, x = X(b.ts), on = selBin === b.ts;
+      out.push('<rect data-bin="' + b.ts + '" x="' + x.toFixed(1) + '" y="' + (y1 - h).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="1.5" fill="' + (spikeTs[b.ts] ? "#F5A524" : "#5ED2DA") + '" opacity="' + (on ? 1 : 0.8) + '"' + (on ? ' stroke="#fff" stroke-width="1"' : "") + ' style="cursor:pointer"><title>' + when(b.ts, true) + ": " + b.clients + " client" + (b.clients === 1 ? "" : "s") + ", " + b.n + " hop" + (b.n === 1 ? "" : "s") + "</title></rect>");
+    });
+    /* the events, as marks under the axis, each its own colour */
+    events.forEach(function (e) { if (e.ts < t0 || e.ts > t1) return; var x = X(e.ts); out.push('<line x1="' + x.toFixed(1) + '" y1="' + (y1 + 4) + '" x2="' + x.toFixed(1) + '" y2="' + (y1 + 22) + '" stroke="' + (COL[e.kind] || "#B0C4CF") + '" stroke-width="2"><title>' + when(e.ts, true) + " " + esc(e.text) + "</title></line>"); });
+    /* day boundaries and labels */
+    var d0 = new Date(t0 * 1000); d0.setHours(0, 0, 0, 0); var day = Math.floor(d0.getTime() / 1000) + 86400;
+    for (; day < t1; day += 86400) { var xd = X(day); out.push('<line x1="' + xd.toFixed(1) + '" y1="' + y0 + '" x2="' + xd.toFixed(1) + '" y2="' + (y1 + 26) + '" stroke="rgba(255,255,255,0.14)" stroke-dasharray="2 4"/><text x="' + (xd + 3).toFixed(1) + '" y="' + (y1 + 40) + '" font-size="9" fill="#8BA2AE" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">' + new Date(day * 1000).toLocaleDateString(undefined, { weekday: "short" }) + " 00:00</text>"); }
+    out.push('<text x="' + x0 + '" y="' + (y1 + 40) + '" font-size="9" fill="#8BA2AE" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">' + when(t0, true) + '</text><text x="' + x1 + '" y="' + (y1 + 40) + '" text-anchor="end" font-size="9" fill="#8BA2AE" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">' + when(t1, true) + "</text>");
+    out.push('<text x="' + x0 + '" y="' + (H - 6) + '" font-size="10" fill="#8BA2AE" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif">clients that moved per ' + (binS >= 3600 ? binS / 3600 + " h" : binS / 60 + " min") + " bin; orange bars are spikes</text>");
+    $("s-time").innerHTML = out.join("");
+    Array.prototype.forEach.call($("s-time").querySelectorAll("rect[data-bin]"), function (r) {
+      r.addEventListener("click", function () {
+        selBin = +r.getAttribute("data-bin");
+        var inBin = hops.filter(function (h) { return h.ts >= selBin && h.ts < selBin + binS; }), near = S.nearEvents(selBin + binS, events, binS + 600, 120), byC = {};
+        inBin.forEach(function (h) { byC[h.client] = (byC[h.client] || 0) + 1; });
+        $("s-binout").innerHTML = "<b>" + when(selBin, true) + "</b>: " + Object.keys(byC).map(function (c) { return esc(c) + (byC[c] > 1 ? " x" + byC[c] : ""); }).join(", ") + (near.length ? ". Just before or during: " + near.map(function (e) { return "<span style='color:" + COL[e.kind] + "'>" + when(e.ts) + "</span> " + esc(e.text); }).join("; ") + "." : ". Nothing changed in the record around then.");
+        drawTime(bins, spikes, events, binS, hops);
+      });
+    });
+  }
+
+  function fillChannels() {
+    var wc = $("s-wch"), n = G.nodes.filter(function (x) { return x.id === $("s-wradio").value; })[0]; wc.innerHTML = "";
+    if (!n) return;
+    var list = n.band === "2.4" ? [1, 6, 11] : (NFN.channels && NFN.channels.list ? NFN.channels.list(n.band, n.bw || 20, true, (doc.site && doc.site.country === "EU") ? "eu" : "us") : []);
+    if (n.channel !== null && list.indexOf(n.channel) < 0) list = [n.channel].concat(list);
+    list.forEach(function (c) { wc.add(new Option(String(c) + (c === n.channel ? " (now)" : ""), String(c))); });
+    var want = st.get("ch"); wc.value = want && list.indexOf(want) >= 0 ? String(want) : String(n.channel === null ? list[0] : n.channel);
+  }
+  $("s-wradio").addEventListener("change", function () { st.set("radio", this.value).set("ch", 0); fillChannels(); whatIf(); if (booted) st.push(); });
+  $("s-wch").addEventListener("change", function () { st.set("ch", +this.value); whatIf(); if (booted) st.push(); });
+
+  function whatIf() {
+    if (!G) return;
+    var id = $("s-wradio").value, ch = +$("s-wch").value, n = G.nodes.filter(function (x) { return x.id === id; })[0];
+    var g2 = n && isFinite(ch) && ch !== n.channel ? S.whatIf(G, id, ch) : G;
+    drawGraph(g2, id);
+    if (!n) { $("s-wout").textContent = ""; return; }
+    if (g2 === G) { $("s-wout").textContent = G.cochannel + " pair" + (G.cochannel === 1 ? "" : "s") + " share air today" + (G.cochannel ? ": " + G.edges.filter(function (e) { return e.coch; }).map(function (e) { return nm(e.a) + " and " + nm(e.b) + " at " + e.loss.toFixed(0) + " dB"; }).join("; ") : "") + ". Pick another channel for a radio to see what changes."; return; }
+    var was = G.cochannel, now = g2.cochannel, mine = g2.edges.filter(function (e) { return e.coch && (e.a === id || e.b === id); });
+    $("s-wout").textContent = n.ap + " " + n.band + " GHz on channel " + ch + ": " + was + " co-channel pair" + (was === 1 ? "" : "s") + " becomes " + now + (mine.length ? "; it would share air with " + mine.map(function (e) { return nm(e.a === id ? e.b : e.a) + " at " + e.loss.toFixed(0) + " dB"; }).join(" and ") : "; nothing it can hear would share its channel") + ". Measured loss only; a radio it cannot hear is not on this graph.";
+    function nm(i) { var x = G.nodes.filter(function (q) { return q.id === i; })[0]; return x ? x.ap : i; }
+  }
+
+  function drawGraph(g, hi) {
+    var W = 1000, H = 340, out = [], bands = ["2.4", "5", "6"].filter(function (b) { return g.nodes.some(function (n) { return n.band === b; }); }), cols = bands.length || 1, cw = W / cols;
+    bands.forEach(function (b, bi) {
+      var ns = g.nodes.filter(function (n) { return n.band === b; }), cx = cw * bi + cw / 2, cy = 168, R = Math.min(cw * 0.32, 110), pos = {};
+      ns.forEach(function (n, k) { var a = -Math.PI / 2 + k / ns.length * 2 * Math.PI; pos[n.id] = { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) }; });
+      out.push('<text x="' + cx + '" y="22" text-anchor="middle" font-size="12" fill="#B0C4CF" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif">' + b + " GHz</text>");
+      g.edges.filter(function (e) { return e.band === b; }).forEach(function (e) {
+        var p = pos[e.a], q = pos[e.b]; if (!p || !q) return;
+        var w = Math.max(1, (g.hearDb + 10 - e.loss) / 8), col = e.coch ? "#F5A524" : e.hears ? "rgba(94,210,218,0.7)" : "rgba(176,196,207,0.25)";
+        out.push('<line x1="' + p.x.toFixed(1) + '" y1="' + p.y.toFixed(1) + '" x2="' + q.x.toFixed(1) + '" y2="' + q.y.toFixed(1) + '" stroke="' + col + '" stroke-width="' + w.toFixed(1) + '"' + (e.hears ? "" : ' stroke-dasharray="3 5"') + "/>");
+        out.push('<text x="' + ((p.x + q.x) / 2).toFixed(1) + '" y="' + ((p.y + q.y) / 2 - 4).toFixed(1) + '" text-anchor="middle" font-size="10" fill="' + (e.coch ? "#F5A524" : "#8BA2AE") + '" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">' + e.loss.toFixed(0) + " dB</text>");
+      });
+      ns.forEach(function (n) {
+        var p = pos[n.id], on = n.id === hi;
+        out.push('<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + (on ? 15 : 12) + '" fill="' + (n.coch ? "#F5A524" : "#8CE05E") + '" stroke="' + (on ? "#fff" : "#06202A") + '" stroke-width="' + (on ? 2 : 1) + '"/>');
+        out.push('<text x="' + p.x.toFixed(1) + '" y="' + (p.y + 4).toFixed(1) + '" text-anchor="middle" font-size="10" font-weight="700" fill="#06202A" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">' + (n.channel === null ? "?" : n.channel) + "</text>");
+        out.push('<text x="' + p.x.toFixed(1) + '" y="' + (p.y + (p.y > cy ? 30 : -20)).toFixed(1) + '" text-anchor="middle" font-size="10" fill="#EAF2F6" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif">' + esc(n.ap) + '</text><text x="' + p.x.toFixed(1) + '" y="' + (p.y + (p.y > cy ? 42 : -8)).toFixed(1) + '" text-anchor="middle" font-size="9" fill="#8BA2AE" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">' + (n.bw || "") + " MHz" + (n.eirp !== undefined && n.eirp !== null ? ", " + n.eirp + " dBm" : "") + "</text>");
+      });
+      if (!ns.length) out.push('<text x="' + cx + '" y="' + cy + '" text-anchor="middle" font-size="11" fill="#8BA2AE">no radios</text>');
+    });
+    out.push('<text x="10" y="' + (H - 8) + '" font-size="10" fill="#8BA2AE" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif">number in the circle is the channel; a dashed line is a pair AirMatch reported but too faint to matter (over ' + g.hearDb + " dB)</text>");
+    $("s-graph").innerHTML = out.join("");
+  }
+
+  function weatherBlock(r) {
+    var w = S.weather(r.samples), rows = w.rows, cellW = 1000 / 26, cellH = 16, H = 20 + rows.length * (cellH + 2) + 4, out = [];
+    for (var h = 0; h < 24; h += 3) out.push('<text x="' + (cellW * (h + 1) + cellW / 2).toFixed(1) + '" y="12" text-anchor="middle" font-size="9" fill="#8BA2AE" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">' + (h < 10 ? "0" : "") + h + "</text>");
+    rows.forEach(function (row, ri) {
+      var y = 18 + ri * (cellH + 2);
+      out.push('<text x="' + (cellW - 4).toFixed(1) + '" y="' + (y + 12) + '" text-anchor="end" font-size="9" fill="#8BA2AE" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">' + row.date.toLocaleDateString(undefined, { weekday: "short" }) + "</text>");
+      row.cells.forEach(function (c, hi) {
+        var x = cellW * (hi + 1);
+        if (!c) { out.push('<rect x="' + x.toFixed(1) + '" y="' + y + '" width="' + (cellW - 2).toFixed(1) + '" height="' + cellH + '" rx="2" fill="rgba(255,255,255,0.03)"/>'); return; }
+        var u = Math.min(1, c.util / 60), col = "rgba(94,210,218," + (0.12 + 0.85 * u).toFixed(2) + ")";
+        if (c.util >= 40) col = "rgba(140,224,94," + (0.6 + 0.4 * Math.min(1, (c.util - 40) / 40)).toFixed(2) + ")";
+        out.push('<rect x="' + x.toFixed(1) + '" y="' + y + '" width="' + (cellW - 2).toFixed(1) + '" height="' + cellH + '" rx="2" fill="' + col + '"' + (c.loud ? ' stroke="#F5A524" stroke-width="1.5"' : "") + "><title>" + row.date.toLocaleDateString() + " " + (hi < 10 ? "0" : "") + hi + ":00: " + c.util.toFixed(0) + "% busy, floor " + c.noise.toFixed(0) + " dBm" + (c.loud ? ", loud" : "") + "</title></rect>");
+      });
+    });
+    return '<div style="margin-top:12px"><div class="t-row" style="margin-bottom:4px"><b style="font:600 12px var(--mono);color:var(--text)">' + esc(r.ap) + " " + esc(r.band) + ' GHz</b><span style="font:11px var(--mono);color:var(--text-muted)">floor ' + (w.median === null ? "?" : w.median + " dBm") + (w.busiest.hour !== null ? ", busiest " + (w.busiest.hour < 10 ? "0" : "") + w.busiest.hour + ":00 at " + w.busiest.util.toFixed(0) + "%" : "") + (w.loudHours ? ', <span style="color:#F5A524">' + w.loudHours + " loud hour" + (w.loudHours === 1 ? "" : "s") + "</span>" : ", floor steady") + '</span></div><svg viewBox="0 0 1000 ' + H + '" width="100%" role="img" aria-label="Utilisation by hour for ' + esc(r.ap) + " " + esc(r.band) + ' GHz">' + out.join("") + "</svg></div>";
+  }
+
+  if (doc) { $("s-note").textContent = (doc.story ? "Two days" : "A site") + " from " + (doc.group || "?") + ", pulled " + String(doc.pulled || "").replace("T", " at ") + ", kept in this browser."; run(); }
+  booted = true;
+  root._story = function () { return doc ? { hops: S.hops(doc.story || {}).length, spikes: S.spikes(S.bins(S.hops(doc.story || {}), st.get("bin"))).length, graph: G, bins: st.get("bin") } : null; };
+  root._storyLoad = load;
+})();
+</script>
+
+
 <script>
 /* the switcher. Each tool refuses the other's hash, so the address bar decides
    which one opens and a shared link lands on the right one. */
@@ -2698,7 +2925,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
   var bar = document.querySelector("#tools .t-switch");
   if (!bar) return;
   function show(name) {
-    ["capacity", "venue", "mesh"].forEach(function (t) {
+    ["capacity", "venue", "mesh", "story"].forEach(function (t) {
       var el = document.getElementById("tool-" + t);
       if (el) el.hidden = t !== name;
     });
@@ -2714,7 +2941,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     var b = e.target.closest("button[data-tool]");
     if (b) show(b.getAttribute("data-tool"));
   });
-  var m = /^#(capacity|venue|mesh)\//.exec(location.hash || "");
+  var m = /^#(capacity|venue|mesh|story)\//.exec(location.hash || "");
   show(m ? m[1] : "capacity");
 })();
 </script>

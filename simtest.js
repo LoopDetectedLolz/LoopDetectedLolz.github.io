@@ -5,7 +5,7 @@
    Run: node simtest.js */
 var fs = require("fs"), path = require("path");
 var dir = path.join(__dirname, "theme", "sim");
-["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js", "aps.js", "esx.js", "kml.js", "emit.js"].forEach(function (f) {
+["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js", "aps.js", "esx.js", "kml.js", "emit.js", "story.js"].forEach(function (f) {
   new Function(fs.readFileSync(path.join(dir, f), "utf8")).call(globalThis);
 });
 var NFN = globalThis.NFN, fails = 0, n = 0;
@@ -424,6 +424,43 @@ n++;
 /* two hops on a Mist plan is a warning, because Mist relays are one hop */
 var CH_ST = Object.assign({}, IT_ST, { aps: [{ x: 50, y: 100, h: 5, gw: true }, { x: 250, y: 100, h: 5 }, { x: 450, y: 100, h: 5 }, { x: 650, y: 100, h: 5 }], tx: 8, profile: "aruba" }), CH_P = NFN.mesh.plan(CH_ST);
 if (CH_P.maxDepth > 1) eq("Mist warns about a plan deeper than one hop", NFN.emit.mist(NFN.emit.intent(CH_P, CH_ST)).warnings.length, 1);
+
+/* what happened: the story block, read four ways */
+var STORY = JSON.parse(fs.readFileSync(path.join(__dirname, "demo", "mesh-story.json"), "utf8")), SS = NFN.story, S_st = STORY.story,
+    S_h = SS.hops(S_st), S_b = SS.bins(S_h, 600, S_st.from, S_st.to), S_sp = SS.spikes(S_b);
+eq("every hop of every client is read", S_h.length, S_st.trails.reduce(function (t, c) { return t + c.hops.length; }, 0));
+if (!(S_h.every(function (h, i) { return i === 0 || h.ts >= S_h[i - 1].ts; }))) { fails++; console.log("  FAIL hops should come out in time order"); }
+n++;
+eq("two days in ten minute bins, plus the bin the window ends in", S_b.length, 289);
+eq("the bins cover every hop", S_b.reduce(function (t, b) { return t + b.n; }, 0), S_h.length);
+eq("two spikes: the channel move and the reboot", S_sp.length, 2);
+var S_ex = S_sp.map(function (sp) { return SS.explain(sp, S_st.events, 600); });
+if (!S_ex.some(function (e) { return e.kind === "channel"; }) || !S_ex.some(function (e) { return e.kind === "reboot"; })) { fails++; console.log("  FAIL each spike should be pinned on its cause: " + S_ex.map(function (e) { return e.kind; })); }
+n++;
+eq("a quiet bin has nothing to explain", SS.explain({ ts: S_st.from + 40 * 3600, clients: 1, n: 1, joins: 0, slow: 0 }, S_st.events, 600).kind, "unexplained");
+var S_g = SS.graph(STORY.aps, STORY.pathloss);
+eq("one node per live radio", S_g.nodes.length, STORY.aps.reduce(function (t, a) { return t + a.radios.filter(function (r) { return r.status !== "Down"; }).length; }, 0));
+eq("edges only where a loss was measured on that band: two on 5 GHz, one on 2.4", S_g.edges.length, 3);
+if (!S_g.edges.every(function (e) { return e.a < e.b && e.loss > 0; })) { fails++; console.log("  FAIL edges should be ordered pairs with a positive loss"); }
+n++;
+eq("the demo's three 5 GHz radios all sit on 149: the two pairs that hear each other share air", S_g.cochannel, 2);
+var S_n5 = S_g.nodes.filter(function (x) { return x.band === "5"; }), S_w = SS.whatIf(S_g, S_n5[1].id, 36, 80);
+eq("moving the middle radio to 36 clears both pairs", S_w.cochannel, 0);
+eq("what-if leaves the original alone", S_g.cochannel, 2);
+eq("2.4 GHz channels 1 and 3 overlap, 1 and 6 do not", SS.overlap({ band: "2.4", channel: 1 }, { band: "2.4", channel: 3 }) + "/" + SS.overlap({ band: "2.4", channel: 1 }, { band: "2.4", channel: 6 }), "true/false");
+eq("an 80 MHz block on 149 covers 157", SS.overlap({ band: "5", channel: 149, bw: 80 }, { band: "5", channel: 157, bw: 20 }), true);
+eq("36 at 20 MHz and 44 at 20 MHz are apart", SS.overlap({ band: "5", channel: 36, bw: 20 }, { band: "5", channel: 44, bw: 20 }), false);
+var S_rf = Object.keys(S_st.rf).map(function (k) { return S_st.rf[k]; }), S_micro = S_rf.filter(function (r) { return r.ap === STORY.aps[0].name && r.band === "2.4"; })[0], S_wx = SS.weather(S_micro.samples, 0);
+eq("48 hours straddle three UTC days", S_wx.rows.length, 3);
+eq("the median floor is the quiet one", S_wx.median, -97);
+eq("the microwave hour is the one loud hour", S_wx.loudHours, 1);
+eq("the busiest hour is the evening", S_wx.busiest.hour >= 18 && S_wx.busiest.hour < 20, true);
+var S_act = SS.actual(S_st, STORY.aps);
+eq("one actual row per AP", S_act.aps.length, 3);
+if (!S_act.aps.every(function (a) { return a.meanMbps > 0 && a.peakMbps >= a.meanMbps; })) { fails++; console.log("  FAIL mean traffic should be positive and under the peak"); }
+n++;
+near("bytes per five minutes become megabits per second", S_act.aps[0].meanMbps, (function () { var smp = S_st.usage[STORY.aps[0].serial].samples, t = 0, c = 0; for (var i = 1; i < smp.length; i++) { t += (smp[i].tx_bytes + smp[i].rx_bytes) * 8 / 300 / 1e6; c++; } return t / c; })(), 1e-9);
+eq("the restless watch tops the client list", SS.clients(S_st)[0].name, "Demo-Watch");
 
 /* a measured path loss, the number AirMatch reports, replaces the model too */
 var LP0 = NFN.mesh.link(A0, B0, { tworay: false }, [], []), LP = NFN.mesh.link(A0, B0, { tworay: false }, [], [], { pl: LP0.plModel + 10 });

@@ -182,7 +182,28 @@ real device and daylight. Asked for on 2026-09-12 and not yet built, in the orde
    are written up; none of it needs an app. The Watch cannot read Wi-Fi signal and nothing
    here pretends it can: the AP is the meter, the Watch is the client. Not yet tried on the
    real Watch; the relay's LAN mode and the Shortcuts are the parts to try first.
-7. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
+7. **What happened**: built 2026-09-12, a fourth tool in the switcher (`#story/v1`), fed by
+   `central-pull.py --group G --story 48`, which adds a `story` block to the same site.json:
+   every client's trail, every live radio's five minute noise floor and utilisation
+   (`rf_summary`, walked in three hour steps), events (reboots from AP uptime with the last
+   reboot reason, AirMatch channel moves from `rf_events` with old and new channel, people from
+   `/auditlogs/v1/events`), the group's client count and each AP's bytes per five minutes.
+   `theme/sim/story.js` reads it four ways with no drawing: `bins`/`spikes`/`explain` (clients
+   that moved per bin, a spike is three or more and two deviations above the busy mean, the
+   sentence names what changed in the ten minutes before and says whether it was the network
+   or the people), `graph`/`whatIf`/`overlap` (radios joined by AirMatch's measured loss, a pair
+   shares air when it hears the other under 105 dB and the channels overlap, 2.4 GHz closer
+   than five apart, 5 and 6 GHz by the width's span; a what-if is a copy), `weather` (hour by
+   day, the loud hours 6 dB over the radio's median), `actual` (bytes to Mb/s, site client
+   count), `clients` (who roams most, lands weakest). The page draws the timeline with events
+   as marks and a tap per bar, the graph per band with a move-this-radio what-if, a heat strip
+   per radio, plan against actual (planned columns fill from the mesh planner by AP name), and
+   the client list. On the home tenant it found the story straight away: the two biggest roam
+   spikes in 48 hours, 12 and 11 clients, sit within a minute of AirMatch's nightly 01:00
+   channel moves on two 2.4 GHz radios. Evening 2.4 GHz utilisation 21 to 35 percent, 5 GHz at
+   3, floors steady. `demo/mesh-story.json` is the synthetic fixture the tests and the demo
+   button use. Not drawn yet: hops on the map (no AP positions on this site).
+8. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
    if a newer app refuses the import, the icons and the key table are there to build by hand.
 
 Ideas parked, none of them decided:
