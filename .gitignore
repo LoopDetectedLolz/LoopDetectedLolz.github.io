@@ -23,3 +23,5 @@ graphics/.pre-glass/
 theme/style.v1.css
 build-blog.py.preglass
 __pycache__/
+.qa/
+lab-qa-*.html
