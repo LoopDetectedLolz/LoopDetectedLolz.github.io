@@ -23,6 +23,14 @@ The answer that held up was 10.12.0001, and the reason it held up is where it ca
 
 Same trip taught me a second thing, and I'll own that I had it backwards the first time I wrote it up. The 10.13 release notes for the 8100 and 8360 do set a floor on where you can come from: to upgrade to 10.13 your switch has to be on 10.10.0002 or later, and there's a separate line saying don't do it through the REST API or the web UI unless you're on 10.09.1060 or 10.10.1020 or later. 10.12.0006 clears both, so going straight to 10.13 is inside the documented envelope. That's the actual point: read the real constraint instead of inventing a four-step ladder out of superstition. And note where it lives. It's under Important information, not under the section titled Upgrade information.
 
+## The restriction that only applies to how you are doing it
+
+A newer one, from the 8360 notes. Going to 10.16.1060 looks like it has a floor on where you can come from: 10.09.1060 or 10.10.1020 and later. Read the sentence properly and that floor only applies when the upgrade is kicked off from the REST API or the WebUI. The page puts no source-version restriction on the CLI path at all.
+
+Two engineers read the same Upgrade information section. One plans a staging hop that costs an extra window. Both of them think they read it carefully. The version floor was not the answer on its own. The version floor plus the method was.
+
+So I read upgrade sections looking for the qualifier before I read the numbers. Which platforms, which method, which direction. Most version advice that turns out to be wrong was correct for a case that was not yours.
+
 ## Sometimes the source just leaves
 
 While I was working that same question I went looking for the 10.12.0006 release notes and hit a wall, and the shape of that wall is worth describing precisely because I got it slightly wrong the first time I wrote it up. The support portal's own software entry for 10.12.0006 on the 8100 and 8360 links to a release notes PDF on the public doc site. That link is a real 404 in a real browser. The notes for that specific build are gone. But the 10.12 train isn't: the later 10.12.1000 through 10.12.1050 notes for the same platforms are sitting on the support portal as downloads, behind a login, and they never were on the public site as far as I can tell.

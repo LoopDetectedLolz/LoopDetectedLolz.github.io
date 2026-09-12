@@ -87,7 +87,7 @@ def build():
 .lab-frames[hidden]{{display:none}}  /* display:flex beats the hidden attribute otherwise */
 .lab-frames figure{{margin:0}} .lab-frames figcaption{{font:11px var(--mono);color:var(--text-muted);margin:0 0 6px}}
 .lab-frames iframe{{border:1px solid var(--line);border-radius:14px;background:var(--navy)}}
-</style></head><body><div class="page"><div class="lab-w">
+</style></head><body><div class="ground"></div><div class="page"><div class="lab-w">
 <div class="lab-bar"><b>LAB</b><span>theme/widgets/{WIDGET}-lab.html &mdash; {state}</span>
   <span>saves reload this page; nothing here is on the site until <b>python3 lab.py --promote</b></span></div>
 {sim}

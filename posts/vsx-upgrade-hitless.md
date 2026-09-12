@@ -69,6 +69,14 @@ Two management modules is also the prerequisite for ISSU on the 6400, which is a
 
 Run `show images` on both members first so you actually know which bank is live before you start. Takes ten seconds and saves an argument later.
 
+## Doing it from Central is a different set of rules
+
+One of the three people asking was working through the whole thing from Central rather than the CLI, and that matters more than it should.
+
+On the 8360, the upgrade information for 10.16.1060 carries a source-version restriction of 10.09.1060 or 10.10.1020 and later. Read it closely and that restriction is written for upgrades initiated from the REST API or the WebUI. The page puts no such floor on the CLI path.
+
+I am not going to tell you the CLI is therefore blessed on every platform, because that is the kind of claim these release notes exist to punish. What I will tell you is that the upgrade path you are allowed to take can depend on the tool you use to take it. Check your platform's upgrade section for the method you are actually using, not the method whoever wrote the runbook was using.
+
 ## Check these before you push it
 
 Three commands, and they're not optional.
