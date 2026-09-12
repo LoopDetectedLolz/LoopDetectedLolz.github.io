@@ -32,7 +32,7 @@
     <rect x="470" y="120" width="200" height="42" rx="8" fill="none" stroke="#F5A524" stroke-width="1.5" stroke-dasharray="6 5"/>
     <text x="570" y="146" class="box" fill="#F5A524" text-anchor="middle">Local profile</text>
     <path d="M670 141 L722 141" stroke="#F5A524" stroke-width="1.6" fill="none" stroke-dasharray="5 4"/>
-    <path d="M726 133 L742 149 M742 133 L726 149" stroke="#F0705F" stroke-width="2"/>
+    <path d="M726 133 L742 149 M742 133 L726 149" stroke="#F5A524" stroke-width="2"/>
     <text x="760" y="145" class="t note" fill="#F5A524">no path to the certificate</text>
     <text x="470" y="190" class="t note">The class decides, not the fields.</text>
   </g>
