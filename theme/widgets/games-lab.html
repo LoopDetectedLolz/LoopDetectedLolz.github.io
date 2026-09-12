@@ -1,0 +1,200 @@
+<style>
+.games{--ga:#F5A524;--ga2:#ffd28a;--gline:rgba(255,255,255,0.12);padding:0}
+.games .gm-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.games h2{margin:0;font-size:clamp(24px,3.4vw,34px)}
+.games .gm-lede{color:var(--text-dim);max-width:70ch;margin:0 0 18px;line-height:1.55}
+.games .gm-pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px}
+.games .gm-tile{text-align:left;padding:16px;border-radius:16px;border:1px solid var(--gline);background:rgba(255,255,255,0.04);color:var(--text);cursor:pointer;font:inherit;transition:transform 260ms var(--ease),border-color 260ms var(--ease)}
+.games .gm-tile:hover{transform:translateY(-2px);border-color:rgba(245,165,36,0.5)}
+.games .gm-tile.on{border-color:var(--ga);box-shadow:0 12px 30px -16px rgba(245,165,36,0.8)}
+.games .gm-tile b{display:block;font-size:16px;margin:4px 0 6px}
+.games .gm-tile span{display:block;font-size:13px;color:var(--text-dim);line-height:1.45}
+.games .gm-tile i{font:600 11px var(--mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--ga2)}
+.games .gm-panel{padding:18px;border-radius:18px;border:1px solid var(--gline);background:rgba(0,0,0,0.35)}
+.games .gm-panel[hidden]{display:none}
+.games .gm-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0}
+.games .gm-row label{font-size:13px;color:var(--text-dim)}
+.games input[type=number],.games select{font:14px var(--mono);color:var(--text);background:rgba(3,10,16,0.55);border:1px solid var(--gline);border-radius:10px;padding:8px 10px;min-height:38px}
+.games input[type=number]{width:110px}
+.games .gm-scene{display:block;width:100%;border-radius:12px;background:rgba(3,10,16,0.45)}
+.games .gm-big{font:700 clamp(28px,5vw,44px) var(--mono);color:var(--ga2);letter-spacing:-0.02em}
+.games .gm-stat{display:inline-flex;flex-direction:column;gap:2px;padding:8px 12px;border-radius:12px;border:1px solid var(--gline);background:rgba(255,255,255,0.03);min-width:88px}
+.games .gm-stat b{font:600 16px var(--mono);color:var(--text)}
+.games .gm-stat span{font:11px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+.games .gm-say{font-size:14px;color:var(--text-dim);line-height:1.55;margin:10px 0 0;min-height:1.5em}
+.games .gm-say b{color:var(--text)}
+.games .gm-say .good{color:#8CE05E}.games .gm-say .warn{color:var(--ga2)}
+.games .chip.gm-move{min-height:42px}
+.games .chip.gm-move[disabled]{opacity:0.4;cursor:default}
+.games .gm-key{font:11px var(--mono);color:var(--text-muted);margin-top:12px;line-height:1.6}
+.games .gm-key code{color:#D3E3EC}
+.games .gm-note{font-size:12px;color:var(--text-muted);margin-top:14px;line-height:1.5}
+</style>
+<section class="games g-card" id="games" aria-label="Academy games">
+<div class="gm-head"><span class="eyebrow">Wireless Academy</span><h2>Games</h2></div>
+<p class="gm-lede">Three drills on the same physics the Academy teaches. Every level comes from a seed, so a link is a challenge; every score is the model's own number, not a measurement. The levels are made up: no real site is in here.</p>
+<div class="gm-pick" role="tablist">
+  <button class="gm-tile on" data-g="guess" role="tab" type="button"><i>Lesson 1</i><b>Guess the signal</b><span>Two points, a distance, maybe a wall. Say the dBm. Within 1 dB scores 3, streaks multiply.</span></button>
+  <button class="gm-tile" data-g="fix" role="tab" type="button"><i>Rates and retries</i><b>Fix the link</b><span>A frame is failing. Three moves to get it through with the least time on air.</span></button>
+  <button class="gm-tile" data-g="chan" role="tab" type="button"><i>Reuse</i><b>Channel puzzle</b><span>Radios that hear each other must not share a channel. Use as few as you can. DFS off shrinks the deck.</span></button>
+</div>
+
+<div class="gm-panel" id="gm-guess">
+  <div class="gm-row"><span class="gm-stat"><b id="gu-round">1</b><span>round</span></span><span class="gm-stat"><b id="gu-score">0</b><span>score</span></span><span class="gm-stat"><b id="gu-streak">0</b><span>streak</span></span><span style="flex:1"></span><label>Seed <input type="number" id="gu-seed" min="1" max="99999" step="1" value="7"></label><button class="chip" id="gu-new" type="button">New game</button></div>
+  <svg class="gm-scene" id="gu-scene" viewBox="0 0 800 150" role="img" aria-label="The scene: a transmitter, a receiver, the distance between them and any wall"></svg>
+  <div class="gm-row"><label for="gu-in">Received signal at the phone</label><input type="number" id="gu-in" min="-120" max="0" step="1" placeholder="-52"><span style="font:12px var(--mono);color:var(--text-muted)">dBm</span><button class="chip" id="gu-go" type="button">Check</button><button class="chip" id="gu-next" type="button" hidden>Next</button></div>
+  <p class="gm-say" id="gu-say"></p>
+  <p class="gm-key">Budget: <code id="gu-budget"></code>. Free space at 1 m and 5.2 GHz is 46.8 dB; each doubling of distance costs 6 dB; a wall is a flat charge.</p>
+</div>
+
+<div class="gm-panel" id="gm-fix" hidden>
+  <div class="gm-row"><span class="gm-stat"><b id="fx-moves">3</b><span>moves left</span></span><span class="gm-stat"><b id="fx-snr">?</b><span>SNR dB</span></span><span class="gm-stat"><b id="fx-need">?</b><span>needs</span></span><span class="gm-stat"><b id="fx-air">?</b><span>µs on air</span></span><span style="flex:1"></span><label>Seed <input type="number" id="fx-seed" min="1" max="99999" step="1" value="3"></label><button class="chip" id="fx-new" type="button">New level</button></div>
+  <svg class="gm-scene" id="fx-scene" viewBox="0 0 800 170" role="img" aria-label="The link: antenna, walls, client, and the rate it is trying to hold"></svg>
+  <div class="gm-row" id="fx-moveset"></div>
+  <p class="gm-say" id="fx-say"></p>
+  <p class="gm-key">Rate wants the SNR in the table (MCS 0 needs 3 dB, MCS 7 needs 25, MCS 11 needs 37). Path loss is log distance with exponent 3 indoors plus the walls; noise is -174 + 10 log(width) + 7 dB. A frame at the edge retries, and every retry costs the whole frame again.</p>
+</div>
+
+<div class="gm-panel" id="gm-chan" hidden>
+  <div class="gm-row"><span class="gm-stat"><b id="ch-used">0</b><span>channels used</span></span><span class="gm-stat"><b id="ch-conf">?</b><span>conflicts</span></span><span class="gm-stat"><b id="ch-few">?</b><span>fewest</span></span><span style="flex:1"></span><label>Radios <select id="ch-n"><option>4</option><option selected>5</option><option>6</option><option>7</option></select></label><label>Width <select id="ch-bw"><option>20</option><option selected>40</option><option>80</option></select></label><label><input type="checkbox" id="ch-dfs"> DFS</label><label>Seed <input type="number" id="ch-seed" min="1" max="99999" step="1" value="11"></label><button class="chip" id="ch-new" type="button">New puzzle</button></div>
+  <svg class="gm-scene" id="ch-scene" viewBox="0 0 800 300" role="img" aria-label="Radios joined by the loss between them; pairs that hear each other must not share a channel"></svg>
+  <div class="gm-row" id="ch-picks"></div>
+  <div class="gm-row"><button class="chip" id="ch-check" type="button">Check</button><button class="chip" id="ch-show" type="button">Show one answer</button></div>
+  <p class="gm-say" id="ch-say"></p>
+  <p class="gm-key">A pair hears each other when the loss between them is under 95 dB (solid line). Same channel on a hearing pair is a conflict. The channel list is the US list for the width, DFS channels only when the box is ticked. Fewest is what a greedy colouring finds; beat it if you can.</p>
+</div>
+<p class="gm-note">Scores stay in this browser. Copy the address to send a seed to somebody.</p>
+</section>
+<script>
+(function () {
+  "use strict";
+  var root = document.getElementById("games"); if (!root || !window.NFN || !NFN.games) return;
+  var G = NFN.games, $ = function (id) { return document.getElementById(id); };
+  document.body.classList.add("acad");
+  var st = NFN.State("games", { g: NFN.f.pick("guess", ["guess", "fix", "chan"]), seed: NFN.f.int(7, 1, 99999), i: NFN.f.int(0, 0, 99), fseed: NFN.f.int(3, 1, 99999), cseed: NFN.f.int(11, 1, 99999), n: NFN.f.int(5, 4, 7), bw: NFN.f.int(40, 20, 80), dfs: NFN.f.bool(false) });
+  st.fromHash(location.hash);
+  var booted = false;
+  function push() { if (booted) st.push(); }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+  function T(x, y, t, col, anchor, size) { return '<text x="' + x + '" y="' + y + '" fill="' + (col || "#B0C4CF") + '" text-anchor="' + (anchor || "start") + '" font-size="' + (size || 11) + '" font-family="JetBrains Mono,ui-monospace,Menlo,monospace">' + esc(t) + "</text>"; }
+  var store = {}; try { store = JSON.parse(localStorage.getItem("nfn-games") || "{}"); } catch (e) {}
+  function save() { try { localStorage.setItem("nfn-games", JSON.stringify(store)); } catch (e) {} }
+
+  /* picking a game */
+  Array.prototype.forEach.call(root.querySelectorAll(".gm-tile"), function (b) {
+    b.addEventListener("click", function () { st.set("g", b.getAttribute("data-g")); show(); push(); });
+  });
+  function show() {
+    var g = st.get("g");
+    Array.prototype.forEach.call(root.querySelectorAll(".gm-tile"), function (b) { var on = b.getAttribute("data-g") === g; b.classList.toggle("on", on); b.setAttribute("aria-selected", on ? "true" : "false"); });
+    ["guess", "fix", "chan"].forEach(function (k) { $("gm-" + k).hidden = k !== g; });
+  }
+
+  /* ── guess the signal ──────────────────────────────────────────────────── */
+  var gu = { score: 0, streak: 0, answered: false };
+  function guRound() { return G.guess.round(st.get("seed"), st.get("i")); }
+  function guDraw() {
+    var r = guRound(), W = 800, ax = 90, bx = 710, y = 80, out = [];
+    out.push('<line x1="' + ax + '" y1="' + y + '" x2="' + bx + '" y2="' + y + '" stroke="rgba(255,210,138,0.35)" stroke-width="2" stroke-dasharray="6 6"/>');
+    out.push('<rect x="' + (ax - 14) + '" y="' + (y - 30) + '" width="28" height="60" rx="6" fill="rgba(245,165,36,0.18)" stroke="#F5A524"/>' + T(ax, y - 40, "AP", "#ffd28a", "middle", 12) + T(ax, y + 46, r.tx + " dBm, " + r.gt + " dBi", "#8BA2AE", "middle", 10));
+    out.push('<rect x="' + (bx - 10) + '" y="' + (y - 22) + '" width="20" height="44" rx="5" fill="rgba(79,189,234,0.2)" stroke="#4FBDEA"/>' + T(bx, y - 32, "phone", "#4FBDEA", "middle", 12) + T(bx, y + 40, r.gr + " dBi", "#8BA2AE", "middle", 10));
+    out.push(T((ax + bx) / 2, y - 12, r.d + " m", "#EAF2F6", "middle", 16));
+    if (r.wall) { var wx = (ax + bx) / 2 + 60; out.push('<rect x="' + (wx - 5) + '" y="' + (y - 42) + '" width="10" height="84" fill="rgba(234,242,246,0.25)" stroke="#B0C4CF"/>' + T(wx, y + 60, r.wall + " wall", "#B0C4CF", "middle", 11)); }
+    out.push(T(16, 20, "round " + (r.i + 1) + " of " + G.guess.ROUNDS + ": " + r.f + " GHz, " + (r.wall ? "one wall" : "free space"), "#8BA2AE", "start", 11));
+    $("gu-scene").innerHTML = out.join("");
+    $("gu-round").textContent = r.i + 1; $("gu-score").textContent = gu.score; $("gu-streak").textContent = gu.streak;
+    $("gu-budget").textContent = r.tx + " + " + r.gt + " + " + r.gr + " - free space(" + r.d + " m) " + (r.wall ? "- " + r.wallDb + " (" + r.wall + ")" : "");
+    $("gu-in").value = ""; $("gu-in").disabled = false; $("gu-go").hidden = false; $("gu-next").hidden = true; gu.answered = false;
+    $("gu-say").innerHTML = r.hint;
+  }
+  function guCheck() {
+    if (gu.answered) return;
+    var r = guRound(), v = parseFloat($("gu-in").value); if (!isFinite(v)) { $("gu-say").textContent = "Type a number in dBm."; return; }
+    var s = G.guess.score(v, r.rssi, gu.streak); gu.score += s.points; gu.streak = s.streak; gu.answered = true;
+    $("gu-say").innerHTML = "<b class='" + (s.points ? "good" : "warn") + "'>" + esc(s.verdict) + "</b>: the phone hears <b>" + r.rssi.toFixed(1) + " dBm</b>. " + r.tx + " + " + r.gt + " + " + r.gr + " - " + r.fspl.toFixed(1) + " dB of free space at " + r.d + " m" + (r.wall ? " - " + r.wallDb + " dB for the " + r.wall : "") + ". " + (s.points ? "+" + s.points + (s.streak > 1 ? ", streak x" + Math.min(3, s.streak) : "") : "Streak over.");
+    $("gu-score").textContent = gu.score; $("gu-streak").textContent = gu.streak; $("gu-in").disabled = true; $("gu-go").hidden = true;
+    if (r.i + 1 < G.guess.ROUNDS) $("gu-next").hidden = false;
+    else { var best = store.guessBest || 0; if (gu.score > best) { store.guessBest = gu.score; save(); } $("gu-say").innerHTML += " <b>Game over: " + gu.score + " of " + (G.guess.ROUNDS * 9) + ".</b>" + (gu.score >= best ? " Your best in this browser." : " Best here: " + best + "."); }
+  }
+  $("gu-go").addEventListener("click", guCheck);
+  $("gu-in").addEventListener("keydown", function (e) { if (e.key === "Enter") { if (gu.answered && !$("gu-next").hidden) $("gu-next").click(); else guCheck(); } });
+  $("gu-next").addEventListener("click", function () { st.set("i", st.get("i") + 1); guDraw(); push(); });
+  $("gu-new").addEventListener("click", function () { st.set("seed", Math.max(1, +$("gu-seed").value || 7)).set("i", 0); gu.score = 0; gu.streak = 0; guDraw(); push(); });
+
+  /* ── fix the link ──────────────────────────────────────────────────────── */
+  var fx = { level: null, state: null, left: 3, path: [] };
+  function fxNew() { fx.level = G.fix.level(st.get("fseed")); fx.state = fx.level.start; fx.left = fx.level.moves; fx.path = []; fxDraw(); }
+  function fxDraw() {
+    var s = fx.state, j = G.fix.judge(s), W = 800, ax = 80, bx = 80 + (W - 160) * Math.min(1, s.d / 60), y = 80, out = [], k;
+    out.push('<line x1="' + ax + '" y1="' + y + '" x2="' + bx + '" y2="' + y + '" stroke="' + (j.ok ? "#8CE05E" : "#F5A524") + '" stroke-width="3" stroke-opacity="0.7"' + (j.ok ? "" : ' stroke-dasharray="4 6"') + '/>');
+    out.push('<rect x="' + (ax - 14) + '" y="' + (y - 30) + '" width="28" height="60" rx="6" fill="rgba(245,165,36,0.18)" stroke="#F5A524"/>' + T(ax, y - 40, G.fix.ANT[s.ant].label + " " + G.fix.ANT[s.ant].g + " dBi", "#ffd28a", "middle", 11));
+    out.push('<rect x="' + (bx - 10) + '" y="' + (y - 22) + '" width="20" height="44" rx="5" fill="rgba(79,189,234,0.2)" stroke="#4FBDEA"/>' + T(bx, y - 32, "client", "#4FBDEA", "middle", 11) + T(bx, y + 40, s.d + " m", "#EAF2F6", "middle", 13));
+    for (k = 0; k < s.walls.length; k++) { var wx = ax + (bx - ax) * (0.3 + 0.25 * k); out.push('<rect x="' + (wx - 5) + '" y="' + (y - 42) + '" width="10" height="84" fill="rgba(234,242,246,0.25)" stroke="#B0C4CF"/>' + T(wx, y + 60, s.walls[k], "#B0C4CF", "middle", 10)); }
+    out.push(T(16, 20, "802.11" + s.std + ", MCS " + s.mcs + " (" + NFN.phy.label(s.std, s.mcs) + "), " + s.ss + " stream" + (s.ss === 1 ? "" : "s") + ", " + s.bw + " MHz: " + j.rateMbps.toFixed(0) + " Mb/s", "#EAF2F6", "start", 12));
+    out.push(T(16, 150, j.ok ? "the frame gets through" + (j.retry > 0.01 ? ", retrying " + Math.round(j.retry * 100) + "% of the time at this margin" : " clean") : "the frame fails: " + j.snr.toFixed(0) + " dB SNR against the " + j.need + " dB this rate wants", j.ok ? "#8CE05E" : "#F5A524", "start", 12));
+    $("fx-scene").innerHTML = out.join("");
+    $("fx-moves").textContent = fx.left; $("fx-snr").textContent = j.snr.toFixed(0); $("fx-need").textContent = j.need + " dB"; $("fx-air").textContent = j.ok ? Math.round(j.airtimeUs) : "fail";
+    var ms = $("fx-moveset"); ms.innerHTML = "";
+    Object.keys(G.fix.MOVES).forEach(function (m) {
+      var b = document.createElement("button"); b.className = "chip gm-move"; b.type = "button"; b.textContent = G.fix.MOVES[m].label; b.title = G.fix.MOVES[m].text;
+      b.disabled = fx.left === 0 || !G.fix.apply(s, m);
+      b.addEventListener("click", function () { var s2 = G.fix.apply(fx.state, m); if (!s2 || !fx.left) return; fx.state = s2; fx.left--; fx.path.push(m); fxDraw(); $("fx-say").innerHTML = "<b>" + esc(G.fix.MOVES[m].label) + "</b>: " + esc(G.fix.MOVES[m].text) + "."; if (fx.left === 0 || G.fix.judge(fx.state).ok) fxScore(); });
+      ms.appendChild(b);
+    });
+    var done = document.createElement("button"); done.className = "chip"; done.type = "button"; done.textContent = "Done, score it"; done.addEventListener("click", fxScore); ms.appendChild(done);
+    if (!fx.path.length) $("fx-say").innerHTML = "Level " + fx.level.seed + ". The frame is failing. You have " + fx.left + " moves; the score is how little time you spend on air once it gets through.";
+  }
+  function fxScore() {
+    var sc = G.fix.score(fx.level, fx.state), j = G.fix.judge(fx.state);
+    $("fx-say").innerHTML = (sc.ok ? "<b class='good'>Through</b> in " + Math.round(sc.airtimeUs) + " µs on air with " + fx.path.length + " move" + (fx.path.length === 1 ? "" : "s") + ": <b>" + sc.points + " points</b>. " : "<b class='warn'>Still failing</b>: " + j.snr.toFixed(0) + " dB against " + j.need + ". 0 points. ") +
+      "The best this level allows is " + Math.round(sc.bestUs) + " µs via " + sc.bestPath.map(function (m) { return G.fix.MOVES[m].label.toLowerCase(); }).join(", then ") + (sc.bestPath.length ? "" : "nothing") + ".";
+    fx.left = 0; Array.prototype.forEach.call($("fx-moveset").querySelectorAll(".gm-move"), function (b) { b.disabled = true; });
+    if (sc.points > (store.fixBest || 0)) { store.fixBest = sc.points; save(); }
+  }
+  $("fx-new").addEventListener("click", function () { st.set("fseed", Math.max(1, +$("fx-seed").value || 3)); fxNew(); push(); });
+
+  /* ── the channel puzzle ────────────────────────────────────────────────── */
+  var ch = { level: null, assign: {} };
+  function chNew() { ch.level = G.chan.level(st.get("cseed"), st.get("n"), st.get("bw"), st.get("dfs")); ch.assign = {}; chDraw(); $("ch-say").textContent = "Give every radio a channel. Solid lines are pairs that hear each other; they must differ. " + ch.level.channels.length + " channel" + (ch.level.channels.length === 1 ? "" : "s") + " to choose from at " + ch.level.bw + " MHz" + (ch.level.dfs ? " with DFS" : " without DFS") + "."; }
+  function chDraw() {
+    var L = ch.level, out = [], W = 800, H = 300, X = function (x) { return 30 + x / 200 * (W - 60); }, Y = function (y) { return 30 + y / 140 * (H - 70); }, chk = G.chan.check(L, ch.assign), bad = {};
+    chk.conflicts.forEach(function (e) { bad[e.a + "|" + e.b] = 1; });
+    L.edges.forEach(function (e) {
+      var a = L.nodes.filter(function (n) { return n.id === e.a; })[0], b = L.nodes.filter(function (n) { return n.id === e.b; })[0], conflict = bad[e.a + "|" + e.b];
+      out.push('<line x1="' + X(a.x) + '" y1="' + Y(a.y) + '" x2="' + X(b.x) + '" y2="' + Y(b.y) + '" stroke="' + (conflict ? "#F5A524" : e.hears ? "rgba(94,210,218,0.7)" : "rgba(176,196,207,0.2)") + '" stroke-width="' + (conflict ? 4 : e.hears ? 2 : 1) + '"' + (e.hears ? "" : ' stroke-dasharray="3 6"') + "/>");
+      out.push(T((X(a.x) + X(b.x)) / 2, (Y(a.y) + Y(b.y)) / 2 - 4, e.loss.toFixed(0) + " dB", conflict ? "#F5A524" : "#8BA2AE", "middle", 10));
+    });
+    L.nodes.forEach(function (n) {
+      var c = ch.assign[n.id];
+      out.push('<circle cx="' + X(n.x) + '" cy="' + Y(n.y) + '" r="16" fill="' + (c === undefined || c === null ? "rgba(255,255,255,0.08)" : "#F5A524") + '" stroke="#ffd28a" stroke-width="1.5"/>');
+      out.push(T(X(n.x), Y(n.y) + 4, c === undefined || c === null ? "?" : String(c), c === undefined || c === null ? "#B0C4CF" : "#2a1600", "middle", 12));
+      out.push(T(X(n.x), Y(n.y) - 22, n.id, "#EAF2F6", "middle", 11));
+    });
+    out.push(T(16, H - 8, "solid: hears (under " + L.hearDb + " dB); dashed: too faint to matter; orange: same channel on a hearing pair", "#8BA2AE", "start", 10));
+    $("ch-scene").innerHTML = out.join("");
+    var picks = $("ch-picks"); picks.innerHTML = "";
+    L.nodes.forEach(function (n) {
+      var lab = document.createElement("label"); lab.textContent = n.id + " "; var sel = document.createElement("select");
+      sel.add(new Option("?", "")); L.channels.forEach(function (c) { sel.add(new Option(String(c), String(c))); });
+      sel.value = ch.assign[n.id] === undefined || ch.assign[n.id] === null ? "" : String(ch.assign[n.id]);
+      sel.addEventListener("change", function () { ch.assign[n.id] = sel.value === "" ? null : +sel.value; chDraw(); });
+      lab.appendChild(sel); picks.appendChild(lab);
+    });
+    $("ch-used").textContent = chk.used; $("ch-conf").textContent = chk.conflicts.length; $("ch-few").textContent = G.chan.fewest(L).used;
+  }
+  $("ch-check").addEventListener("click", function () {
+    var sc = G.chan.score(ch.level, ch.assign);
+    $("ch-say").innerHTML = sc.points ? "<b class='good'>Solved</b> with " + sc.used + " channel" + (sc.used === 1 ? "" : "s") + (sc.used <= sc.fewest ? ", as few as the greedy answer" : ", " + (sc.used - sc.fewest) + " more than needed") + ": <b>" + sc.points + " points</b>." : sc.conflicts ? "<b class='warn'>" + sc.conflicts + " conflict" + (sc.conflicts === 1 ? "" : "s") + "</b>: the orange pairs hear each other and share a channel." : (!sc.solvable ? "<b class='warn'>This deck cannot do it</b>: fewer channels than the graph needs. Tick DFS or narrow the width." : "Every radio needs a channel first.");
+    if (sc.points > (store.chanBest || 0)) { store.chanBest = sc.points; save(); }
+  });
+  $("ch-show").addEventListener("click", function () { var few = G.chan.fewest(ch.level); ch.assign = {}; Object.keys(few.assign).forEach(function (k) { ch.assign[k] = few.assign[k]; }); chDraw(); $("ch-say").textContent = few.solvable ? "One answer with " + few.used + " channels, found greedily: busiest radio first, lowest free channel. There may be a tighter one." : "The greedy colouring runs out of channels on this deck; it needs DFS or a narrower width."; });
+  ["ch-n", "ch-bw"].forEach(function (id) { $(id).addEventListener("change", function () { st.set(id === "ch-n" ? "n" : "bw", +this.value); chNew(); push(); }); });
+  $("ch-dfs").addEventListener("change", function () { st.set("dfs", this.checked); chNew(); push(); });
+  $("ch-new").addEventListener("click", function () { st.set("cseed", Math.max(1, +$("ch-seed").value || 11)); chNew(); push(); });
+
+  /* boot */
+  $("gu-seed").value = st.get("seed"); $("fx-seed").value = st.get("fseed"); $("ch-seed").value = st.get("cseed"); $("ch-n").value = String(st.get("n")); $("ch-bw").value = String(st.get("bw")); $("ch-dfs").checked = st.get("dfs");
+  show(); guDraw(); fxNew(); chNew(); booted = true;
+  root._games = { guess: function (v) { $("gu-in").value = v; guCheck(); return { score: gu.score, streak: gu.streak, round: st.get("i") }; }, fix: function (m) { var s2 = G.fix.apply(fx.state, m); if (s2 && fx.left) { fx.state = s2; fx.left--; fx.path.push(m); fxDraw(); } return { left: fx.left, judge: G.fix.judge(fx.state) }; }, fixScore: function () { fxScore(); return G.fix.score(fx.level, fx.state); }, chan: function (a) { ch.assign = a; chDraw(); return G.chan.check(ch.level, ch.assign); }, level: function () { return { fix: fx.level, chan: ch.level, guess: guRound() }; } };
+})();
+</script>

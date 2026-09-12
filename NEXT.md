@@ -211,7 +211,19 @@ real device and daylight. Asked for on 2026-09-12 and not yet built, in the orde
    says "switch not in Classic's view" rather than drawing one. The Classic monitoring API
    returned zero switches for the account; New Central's UI shows the port through its
    internal GraphQL, which is not a public contract.
-8. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
+8. **Academy games**: built 2026-09-12, `theme/widgets/games-lab.html` (`python3 lab.py games`)
+   on `theme/sim/games.js`. Every level comes from a seed (mixed and warmed, because
+   mulberry32's first draws from a small seed cluster), every score from the models, and the
+   page wears the Academy orange. Guess the signal: lesson 1's 2, 4, 8, 16 m first, then random
+   distances, then a wall; within a dB scores 3, streaks multiply to three. Fix the link: a
+   level is a link failing at its rate; five moves (drop MCS, halve width, walk the client in,
+   open a wall, better antenna), three of them; score is the model's best airtime over yours,
+   with the best path revealed. Channel puzzle: radios joined by log distance plus walls, hear
+   under 95 dB, US list for the width with DFS optional; solved with the greedy fewest is 100,
+   each extra channel costs 20. Scores stay in localStorage; the hash carries the game and
+   seeds so a link is a challenge. Not on the site yet: the Academy page needs a card row and
+   each lesson a link to its game; the widget mounts anywhere `theme/sim/` is loaded.
+9. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
    if a newer app refuses the import, the icons and the key table are there to build by hand.
 
 Ideas parked, none of them decided:

@@ -5,7 +5,7 @@
    Run: node simtest.js */
 var fs = require("fs"), path = require("path");
 var dir = path.join(__dirname, "theme", "sim");
-["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js", "aps.js", "esx.js", "kml.js", "emit.js", "story.js"].forEach(function (f) {
+["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js", "aps.js", "esx.js", "kml.js", "emit.js", "story.js", "games.js"].forEach(function (f) {
   new Function(fs.readFileSync(path.join(dir, f), "utf8")).call(globalThis);
 });
 var NFN = globalThis.NFN, fails = 0, n = 0;
@@ -467,10 +467,38 @@ eq("a same-AP hop is a band flip, not a transition", Object.keys(S_tr.flips).red
 if (!S_tr.pairs.every(function (p2, i) { return i === 0 || p2.n <= S_tr.pairs[i - 1].n; })) { fails++; console.log("  FAIL transitions should come busiest first"); }
 n++;
 
+/* the games: every level from a seed, every score from the models */
+var GM = NFN.games, g0 = GM.guess.round(7, 0), g3 = GM.guess.round(7, 3), g9 = GM.guess.round(7, 9);
+near("guess round 0 is 2 m in free space", g0.d, 2, 0);
+near("guess: 16 m is 18 dB under 2 m", g0.rssi - g3.rssi, 18.06, 0.05);
+eq("guess: from round 8 a wall is in the way", !!g9.wall && g9.wallDb === NFN.rf.WALLS[g9.wall], true);
+eq("guess: the same seed gives the same round", GM.guess.round(7, 9).d, g9.d);
+eq("guess: a guess within a dB scores 3, then the streak multiplies", GM.guess.score(g0.rssi + 0.9, g0.rssi, 0).points + "/" + GM.guess.score(g0.rssi, g0.rssi, 2).points, "3/9");
+eq("guess: 7 dB off scores nothing and ends the streak", GM.guess.score(g0.rssi + 7, g0.rssi, 4).points + "/" + GM.guess.score(g0.rssi + 7, g0.rssi, 4).streak, "0/0");
+var ok = 0, solvable = 0, tries = 40, sd;
+for (sd = 1; sd <= tries; sd++) { var lv = GM.fix.level(sd), j0 = GM.fix.judge(lv.start), b = GM.fix.best(lv); if (!j0.ok) ok++; if (b) solvable++; }
+eq("fix: every level starts failing", ok, tries);
+eq("fix: every level can be fixed in three moves", solvable, tries);
+var lv1 = GM.fix.level(3), s1 = GM.fix.apply(lv1.start, "bw-");
+near("fix: halving the width buys 3 dB of SNR", GM.fix.snr(s1) - GM.fix.snr(lv1.start), 3.01, 0.02);
+eq("fix: the best path scores 100", GM.fix.score(lv1, GM.fix.best(lv1).state).points, 100);
+eq("fix: a frame that never gets through scores 0", GM.fix.score(lv1, lv1.start).points, 0);
+near("fix: the rate shown is in megabits", GM.fix.judge({ std: "ax", ss: 2, bw: 160, d: 5, walls: [], ant: 2, mcs: 11 }).rateMbps, 2402, 1);
+eq("fix: an impossible move is refused", GM.fix.apply({ std: "ax", ss: 1, bw: 20, d: 10, walls: [], ant: 0, mcs: 0 }, "bw-"), null);
+var cl = GM.chan.level(11, 5, 40, false), few = GM.chan.fewest(cl);
+eq("chan: five radios, ten pairs", cl.nodes.length + "/" + cl.edges.length, "5/10");
+eq("chan: the channels are the US 40 MHz list without DFS", cl.channels.join(","), NFN.channels.list("5", 40, false, "us").join(","));
+eq("chan: the greedy answer is a proper colouring", few.solvable, true);
+eq("chan: the greedy answer scores 100", GM.chan.score(cl, few.assign).points, 100);
+var same = {}; cl.nodes.forEach(function (nd) { same[nd.id] = cl.channels[0]; });
+eq("chan: everyone on one channel has a conflict per hearing pair", GM.chan.check(cl, same).conflicts.length, cl.edges.filter(function (e) { return e.hears; }).length);
+eq("chan: an unfinished board is not solved", GM.chan.check(cl, {}).solved, false);
+
 /* a measured path loss, the number AirMatch reports, replaces the model too */
 var LP0 = NFN.mesh.link(A0, B0, { tworay: false }, [], []), LP = NFN.mesh.link(A0, B0, { tworay: false }, [], [], { pl: LP0.plModel + 10 });
 eq("a measured loss counts as a measurement", LP.measured, true);
-near("the modelled loss is the budget's loss", LP0.plModel, LP0.fspl + LP0.diffraction, 0.001);
+near("the modelled loss is the budget's loss in AirMatch's terms, EIRP to RSSI", LP0.plModel, LP0.fspl + LP0.diffraction - LP0.gb, 0.001);
+near("a measured loss equal to the model's gives the model's signal", NFN.mesh.link(A0, B0, { tworay: false }, [], [], { pl: LP0.plModel }).prx, LP0.prx, 0.001);
 near("10 dB more loss is 10 dB less signal", LP.prx, LP0.prx - 10, 0.001);
 near("the loss read is kept", LP.plMeas, LP0.plModel + 10, 0.001);
 eq("an RSSI measurement has no loss to show", LM.plMeas, null);
