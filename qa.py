@@ -3,7 +3,7 @@
 number it reads with formulas of its own, in Python, from the standards.
 
     python3 qa.py                 # everything: build both lab pages, serve them, drive them, report
-    python3 qa.py --only mesh     # one tool: capacity | venue | mesh | story | qam
+    python3 qa.py --only mesh     # one tool: capacity | venue | mesh | story | games | qam
     python3 qa.py --headed        # watch it
     python3 qa.py --keep          # leave the server up afterwards for a look
 
@@ -64,7 +64,7 @@ DASHES = re.compile("[\u2014\u2013]")
 def build_pages():
     import lab
     out = {}
-    for w in ("tools", "qam"):
+    for w in ("tools", "games", "qam"):
         lab.WIDGET = w
         lab.build()
         # the pages sit beside lab.html because they reference theme/ and demo/ relatively
@@ -195,7 +195,7 @@ def qa_mesh(b, base, page_url):
     for key, v in ms.items():
         if isinstance(v, dict):
             i, j = map(int, key.split("-")); L = p3["tree"]["links"][i][j]
-            if L: near("math", f"measured loss {key}: received = tx + gains - loss - fade", L["prx"], L["tx"] + L["ga"] + L["gb"] - v["pl"] - p3["cfg"]["fade"], 0.05)
+            if L: near("math", f"measured loss {key}: received = tx + own gain - loss - fade (AirMatch's loss already has the far antenna in it)", L["prx"], L["tx"] + L["ga"] - v["pl"] - p3["cfg"]["fade"], 0.05)
     vrows = pg.locator("#m-verify tr").count()
     check("use", "planned against measured lists every measured pair", vrows == len(ms), vrows, len(ms))
     for r in pg.locator("#m-verify tr").all():
@@ -400,9 +400,59 @@ def qa_story(b, base, page_url):
     check("use", "phone: no sideways scroll with a story loaded", pg.evaluate("document.documentElement.scrollWidth") <= 390, pg.evaluate("document.documentElement.scrollWidth"), "<= 390")
     pg.close()
 
+# ── the games ──────────────────────────────────────────────────────────────
+def qa_games(b, base, page_url):
+    section("Academy games")
+    pg, errs = open_lab(b, base + page_url, hash_="#games/v1?g=guess&seed=7&i=0")
+    check("use", "the page wears the Academy theme", pg.evaluate("document.body.classList.contains('acad')"), None, True)
+    lv = pg.evaluate("document.getElementById('games')._games.level()")
+    g = lv["guess"]
+    near("math", "guess round 1 is 2 m in free space at 5.2 GHz: the truth is the budget", g["rssi"], 20 + 5 + 2 - fspl_db(2, 5.2), 0.05)
+    r = pg.evaluate("document.getElementById('games')._games.guess(" + str(round(g["rssi"])) + ")")
+    check("math", "a guess within a dB scores 3", r["score"] == 3 and r["streak"] == 1, r, "score 3, streak 1")
+    say = pg.inner_text("#gu-say")
+    check("use", "the reveal shows the working", "free space" in say and "dBm" in say, say[:100], "the budget spelled out")
+    pg.click("#gu-next"); pg.wait_for_timeout(200)
+    g2 = pg.evaluate("document.getElementById('games')._games.level().guess")
+    near("math", "round 2 is 4 m: 6 dB under round 1", g["rssi"] - g2["rssi"], 6.02, 0.05)
+    r2 = pg.evaluate("document.getElementById('games')._games.guess(" + str(round(g2["rssi"]) + 9) + ")")
+    check("math", "9 dB off scores nothing and ends the streak", r2["score"] == 3 and r2["streak"] == 0, r2, "score still 3, streak 0")
+    # fix the link: the level starts failing; the best path found by the model gets 100
+    pg.click(".gm-tile[data-g='fix']"); pg.wait_for_timeout(200)
+    f = pg.evaluate("document.getElementById('games')._games.level().fix")
+    j0 = pg.evaluate("NFN.games.fix.judge(" + json.dumps(f["start"]) + ")")
+    check("math", "fix: the level starts with SNR under what the rate needs", not j0["ok"] and j0["snr"] < j0["need"], (round(j0["snr"]), j0["need"]), "snr < need")
+    near("math", "fix: SNR = tx + gain + 2 - log distance(n=3) - walls - noise floor", j0["snr"], 20 + 2 + 2 - (fspl_db(1, 5.2) + 30 * math.log10(f["start"]["d"])) - sum({"drywall": 3, "wood": 5, "cinder": 6, "brick": 12}[w] for w in f["start"]["walls"]) - noise_dbm(f["start"]["bw"], 7), 0.1)
+    best = pg.evaluate("NFN.games.fix.best(" + json.dumps(f) + ")")
+    for m in best["path"]: pg.evaluate("document.getElementById('games')._games.fix(" + json.dumps(m) + ")")
+    sc = pg.evaluate("document.getElementById('games')._games.fixScore()")
+    check("math", "fix: the model's best path scores 100", sc["points"] == 100, sc["points"], 100)
+    air = pg.inner_text("#fx-air")
+    check("use", "fix: the airtime tile shows the microseconds", air.strip() == str(round(sc["airtimeUs"])), air, round(sc["airtimeUs"]))
+    check("use", "fix: moves are spent", all(pg.evaluate("[...document.querySelectorAll('#fx-moveset .gm-move')].map(b=>b.disabled)")), None, "all disabled after scoring")
+    # the channel puzzle
+    pg.click(".gm-tile[data-g='chan']"); pg.wait_for_timeout(200)
+    cl = pg.evaluate("document.getElementById('games')._games.level().chan")
+    check("math", "chan: the deck is the US 5 GHz list for the width", cl["channels"] == us_channels_5(cl["bw"], cl["dfs"]), cl["channels"], us_channels_5(cl["bw"], cl["dfs"]))
+    for e in cl["edges"][:4]:
+        check("math", f"chan: {e['a']}~{e['b']} hears iff loss under 95", e["hears"] == (e["loss"] <= 95), (round(e["loss"]), e["hears"]), "consistent")
+    same = {n["id"]: cl["channels"][0] for n in cl["nodes"]}
+    chk = pg.evaluate("document.getElementById('games')._games.chan(" + json.dumps(same) + ")")
+    check("math", "chan: everyone on one channel conflicts on every hearing pair", len(chk["conflicts"]) == sum(1 for e in cl["edges"] if e["hears"]), len(chk["conflicts"]), sum(1 for e in cl["edges"] if e["hears"]))
+    check("use", "chan: conflicts are drawn orange", pg.evaluate("document.querySelectorAll('#ch-scene line[stroke=\"#F5A524\"]').length") == len(chk["conflicts"]), None, len(chk["conflicts"]))
+    pg.click("#ch-show"); pg.click("#ch-check"); pg.wait_for_timeout(200)
+    check("use", "chan: the shown answer scores 100", "100 points" in pg.inner_text("#ch-say"), pg.inner_text("#ch-say")[:80], "100 points")
+    check("use", "the game and seeds live in the link", "g=chan" in pg.evaluate("location.hash") and "cseed=" in pg.evaluate("location.hash"), pg.evaluate("location.hash")[:60], "g=chan and cseed=")
+    text_hygiene(pg, "#games", "games"); tap_targets(pg, "#games", "games")
+    check("use", "no page errors", not errs, errs[:3], [])
+    pg.close()
+    pg, errs = open_lab(b, base + page_url, width=390)
+    check("use", "phone: no sideways scroll", pg.evaluate("document.documentElement.scrollWidth") <= 390, pg.evaluate("document.documentElement.scrollWidth"), "<= 390")
+    pg.close()
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--only", choices=["capacity", "venue", "mesh", "qam", "story"])
+    ap.add_argument("--only", choices=["capacity", "venue", "mesh", "qam", "story", "games"])
     ap.add_argument("--headed", action="store_true"); ap.add_argument("--keep", action="store_true")
     a = ap.parse_args()
     pages = build_pages(); httpd, base = serve()
@@ -421,6 +471,7 @@ def main():
             if a.only in (None, "capacity"): qa_capacity(b, base, pages["tools"])
             if a.only in (None, "venue"): qa_venue(b, base, pages["tools"])
             if a.only in (None, "story"): qa_story(b, base, pages["tools"])
+            if a.only in (None, "games"): qa_games(b, base, pages["games"])
             if a.only in (None, "qam"): qa_qam(b, base, pages["qam"])
         except Exception as e:
             check("use", "the bot itself ran to the end", False, repr(e)[:300], "no exception")
