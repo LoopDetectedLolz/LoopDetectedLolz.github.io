@@ -1007,6 +1007,11 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <input type="file" id="m-kml" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" aria-label="Google Earth file" style="font:12px var(--sans);color:var(--text-dim);max-width:100%">
         <p class="t-hint" id="m-kmlnote"></p>
       </details>
+      <details class="m-more"><summary>Verify against Central</summary>
+        <p class="t-hint">This page never talks to Central. On the laptop, <code>central-pull.py --group &lt;group&gt;</code> pulls the group's APs, their radios and the loss AirMatch measured between them into a site.json; open it here. Each measured pair replaces the model, and the table below the access points shows planned against measured loss with the gap in dB. Positions come across only where an AP sits on a floor plan; otherwise the APs land in a row for you to drag.</p>
+        <input type="file" id="m-central" accept=".json,application/json" aria-label="site.json from central-pull.py" style="font:12px var(--sans);color:var(--text-dim);max-width:100%">
+        <p class="t-hint" id="m-centralnote"></p>
+      </details>
       <details class="m-more"><summary>On site with a phone</summary>
         <p class="t-hint">At the mount point: the first fix sets the middle of the field, every fix after lands an AP where you are.</p>
         <div class="t-sight"><button class="t-btn" id="m-gps" type="button">Add an AP here</button><button class="t-btn" id="m-gpsreset" type="button">Forget the fix</button></div>
@@ -1027,6 +1032,10 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <div class="t-scroll"><table class="t-table m-table"><thead><tr>
           <th>AP</th><th>Role</th><th>Antenna</th><th>Ch</th><th>Parent</th><th>Hops</th><th>Link</th><th>Metric</th><th>Air lost</th><th>Backhaul</th><th>Delivers</th><th>Backup</th>
         </tr></thead><tbody id="m-rows"></tbody></table></div>
+      </details>
+      <details class="m-more" id="m-verifybox" open hidden><summary>Planned against measured</summary>
+        <p class="t-hint" id="m-verifynote"></p>
+        <div class="t-scroll"><table class="t-table m-table"><thead><tr><th>Pair</th><th>Band</th><th>Distance</th><th>Planned loss</th><th>Measured</th><th>Gap</th></tr></thead><tbody id="m-verify"></tbody></table></div>
       </details>
       <details class="m-more"><summary>What fails when something fails</summary>
         <p class="t-hint">Each AP failed in turn, everything else recalculated. Orphans are the APs that lose their way to a portal.</p>
@@ -1125,10 +1134,15 @@ Tap anything to change it. The big number is what gets off the site, and the not
       return out.slice(0, 40);
     };
   }
-  function serMeas(m) { return Object.keys(m).map(function (k) { return k + ":" + Math.round(m[k]); }).join(";"); }
+  /* a measurement is an RSSI (-70) or a path loss (L87, the number AirMatch gives) */
+  function serMeas(m) { return Object.keys(m).map(function (k) { var v = m[k]; return k + ":" + (v && typeof v === "object" ? "L" + Math.round(v.pl) : Math.round(v)); }).join(";"); }
   function deMeas(s) {
     if (s === "") return {};
-    var out = {}; (s || "").split(";").forEach(function (p) { var b = p.split(":"); if (/^\d+-\d+$/.test(b[0]) && num(b[1]) !== null) out[b[0]] = NFN.clamp(num(b[1]), -100, -20); });
+    var out = {}; (s || "").split(";").forEach(function (p) {
+      var b = p.split(":"); if (!/^\d+-\d+$/.test(b[0])) return;
+      if (/^L/.test(b[1] || "")) { var pl = num(b[1].slice(1)); if (pl !== null) out[b[0]] = { pl: NFN.clamp(pl, 40, 170) }; }
+      else if (num(b[1]) !== null) out[b[0]] = NFN.clamp(num(b[1]), -100, -20);
+    });
     return out;
   }
   function serCl(c) { return c ? Math.round(c.x) + "," + Math.round(c.y) : ""; }
@@ -1925,7 +1939,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
       aps.forEach(function (b, j) {
         if (j === sel.i) return;
         var key = Math.min(sel.i, j) + "-" + Math.max(sel.i, j), L2 = p.tree.links[sel.i] && p.tree.links[sel.i][j];
-        html += '<div class="t-row"><label>AP ' + (j + 1) + '</label><input type="number" data-meas="' + key + '" min="-100" max="-20" step="1" value="' + (ms[key] !== undefined ? ms[key] : "") + '" placeholder="' + (L2 && L2.ok ? Math.round(L2.model) : "model " + (L2 ? Math.round(L2.model) : "?")) + '" aria-label="measured RSSI from AP ' + (j + 1) + '"><span style="font:11px var(--mono);color:var(--text-muted)">dBm</span></div>';
+        var isPl = ms[key] && typeof ms[key] === "object";
+        html += '<div class="t-row"><label>AP ' + (j + 1) + '</label><input type="number" data-meas="' + key + '" min="-100" max="-20" step="1" value="' + (ms[key] !== undefined && !isPl ? ms[key] : "") + '" placeholder="' + (isPl ? "Central: " + Math.round(ms[key].pl) + " dB loss" : (L2 && L2.ok ? Math.round(L2.model) : "model " + (L2 ? Math.round(L2.model) : "?"))) + '" aria-label="measured RSSI from AP ' + (j + 1) + '"><span style="font:11px var(--mono);color:var(--text-muted)">dBm</span></div>';
       });
       $("m-meas").innerHTML = html;
       Array.prototype.forEach.call($("m-meas").querySelectorAll("input"), function (inp) {
@@ -2141,6 +2156,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     } else $("m-walk").innerHTML = "";
 
     $("m-assume").innerHTML = p.assumptions.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("");
+    verifyTable(p);
     $("m-sheet").value = installSheet(p, R, cl, walk);
 
     st.set("ap", st.get("ap")).set("ob", st.get("ob"));
@@ -2341,6 +2357,76 @@ Tap anything to change it. The big number is what gets off the site, and the not
     };
     rd.readAsDataURL(new Blob([bytes], { type: type }));
   }
+
+  /* ── what Central measured ───────────────────────────────────────────── */
+  var central = null;
+  try { central = JSON.parse(localStorage.getItem("nfn-mesh-central") || "null"); } catch (e) {}
+  function apName(k) { var a = st.get("ap")[k]; return a && a.name ? a.name : (central && central.names && central.names[k]) || "AP " + (k + 1); }
+  function verifyTable(p) {
+    var rows = [], gaps = [], aps = st.get("ap"), ms = st.get("ms");
+    Object.keys(ms).forEach(function (key) {
+      var v = ms[key]; if (!(v && typeof v === "object")) return;
+      var b = key.split("-").map(Number), L = p.tree.links[b[0]] && p.tree.links[b[0]][b[1]];
+      if (!L || !aps[b[0]] || !aps[b[1]]) return;
+      var gap = L.plMeas - L.plModel; gaps.push(gap);
+      rows.push({ key: key, band: L.band, d: L.d, plan: L.plModel, meas: L.plMeas, gap: gap });
+    });
+    $("m-verifybox").hidden = !rows.length;
+    if (!rows.length) return;
+    rows.sort(function (u, w) { return Math.abs(w.gap) - Math.abs(u.gap); });
+    var mean = gaps.reduce(function (t, g) { return t + g; }, 0) / gaps.length,
+        spread = Math.sqrt(gaps.reduce(function (t, g) { return t + (g - mean) * (g - mean); }, 0) / gaps.length);
+    $("m-verifynote").textContent = rows.length + " pair" + (rows.length === 1 ? "" : "s") + " measured. The air was " + (Math.abs(mean) < 1 ? "within a dB of" : Math.abs(mean).toFixed(0) + " dB " + (mean > 0 ? "harder than" : "kinder than")) + " the plan on average, spread " + spread.toFixed(0) + " dB. A steady offset is something the model does not see (a wall, a tree line, an antenna not where it was drawn); a wide spread is APs that are not where the map says." + (central && central.pulled ? " Pulled " + central.pulled.replace("T", " at ") + "." : "");
+    $("m-verify").innerHTML = rows.map(function (r) {
+      var b = r.key.split("-").map(Number), c = r.gap > 6 ? "var(--orange)" : r.gap < -6 ? "var(--teal)" : "inherit";
+      return "<tr><td>" + esc(apName(b[0])) + " to " + esc(apName(b[1])) + "</td><td>" + r.band + " GHz</td><td>" + r.d.toFixed(0) + " m</td><td>" + r.plan.toFixed(0) + " dB</td><td>" + r.meas.toFixed(0) + " dB</td><td style='color:" + c + "'>" + (r.gap > 0 ? "+" : "") + r.gap.toFixed(0) + " dB</td></tr>";
+    }).join("");
+  }
+  $("m-central").addEventListener("change", function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      try {
+        var doc = JSON.parse(String(rd.result));
+        if (!doc || !Array.isArray(doc.aps)) throw new Error("no aps in it");
+        var src = doc.aps.slice(0, 24), cur = st.get("ap"), n = src.length, placed = src.every(function (a) { return isFinite(a.lat) && isFinite(a.lon); }), fw = st.get("fw"), fd = st.get("fd");
+        /* where they go: the floor plan's positions, else the APs already drawn, else a row */
+        var pos;
+        if (placed && n) {
+          var lat0 = src.reduce(function (t, a) { return t + a.lat; }, 0) / n, lon0 = src.reduce(function (t, a) { return t + a.lon; }, 0) / n, kx = Math.cos(lat0 * Math.PI / 180) * 111320;
+          var pts = src.map(function (a) { return { x: (a.lon - lon0) * kx, y: -(a.lat - lat0) * 110574 }; }), span = pts.reduce(function (m2, q) { return Math.max(m2, Math.abs(q.x) * 2.6, Math.abs(q.y) * 2.6); }, 60);
+          fw = NFN.clamp(Math.round(span / 10) * 10, 60, 1200); fd = NFN.clamp(Math.round(span * 0.7 / 10) * 10, 40, 800);
+          st.set("fw", fw).set("fd", fd).set("north", 0); $("m-fw").value = fw; $("m-fd").value = fd;
+          pos = pts.map(function (q) { return { x: NFN.clamp(fw / 2 + q.x, 2, fw - 2), y: NFN.clamp(fd / 2 + q.y, 2, fd - 2) }; });
+        } else if (cur.length === n) pos = cur.map(function (a) { return { x: a.x, y: a.y }; });
+        else pos = src.map(function (a, k) { return { x: fw / 2 + (k - (n - 1) / 2) * Math.min(60, (fw - 40) / Math.max(1, n - 1)), y: fd / 2 }; });
+        var aps = src.map(function (a, k) {
+          var radios = a.radios || [], r5 = radios.filter(function (r) { return String(r.band) === "5"; })[0] || radios.filter(function (r) { return String(r.band) === "6"; })[0] || radios[0] || {};
+          var model = a.model && NFN.aps && NFN.aps.model(a.model) ? a.model : undefined, keep = cur[k] && cur.length === n ? cur[k] : {};
+          return { x: pos[k].x, y: pos[k].y, h: keep.h || 3, gw: !/point/i.test(a.mesh_role || ""), down: /down/i.test(a.status || ""),
+                   tx: isFinite(+r5.tx_dbm) ? +r5.tx_dbm : undefined, ant: model ? "auto" : (keep.ant || "auto"), aim: null, kind: model ? undefined : keep.kind, cant: keep.cant, caim: null, tilt: keep.tilt || 0,
+                   band: r5.band ? +r5.band : null, bw: isFinite(parseInt(r5.bw, 10)) ? parseInt(r5.bw, 10) : null, ch: isFinite(+r5.channel) ? +r5.channel : null, model: model, name: a.name };
+        });
+        /* the loss AirMatch heard, both directions averaged, on the band the pair runs */
+        var idx = {}, ms = {}, seen = {};
+        src.forEach(function (a, k) { idx[a.serial] = k; });
+        (doc.pathloss || []).forEach(function (q) {
+          var i = idx[q.from], j = idx[q.to]; if (i === undefined || j === undefined || i === j || !isFinite(+q.db)) return;
+          var key = Math.min(i, j) + "-" + Math.max(i, j), want = String(aps[i].band || 5);
+          if (String(q.band) !== want) return;
+          seen[key] = seen[key] || []; seen[key].push(+q.db);
+        });
+        Object.keys(seen).forEach(function (key) { ms[key] = { pl: seen[key].reduce(function (t, v) { return t + v; }, 0) / seen[key].length }; });
+        st.set("ap", aps).set("ms", ms);
+        central = { pulled: doc.pulled, group: doc.group, names: aps.map(function (a) { return a.name; }) };
+        try { localStorage.setItem("nfn-mesh-central", JSON.stringify(central)); } catch (e) {}
+        var pairs = Object.keys(ms).length;
+        $("m-centralnote").textContent = n + " AP" + (n === 1 ? "" : "s") + " from group " + (doc.group || "?") + (placed ? ", placed from the floor plan" : cur.length === n ? ", kept where you had them" : ", in a row to drag into place") + "; " + pairs + " pair" + (pairs === 1 ? "" : "s") + " with a measured loss" + (pairs ? "" : " (AirMatch reports neighbours it can hear; APs on different channels or too far apart never appear)") + ". Models, power, channel and width came from the radios.";
+        sel = null; writeUi(); run();
+      } catch (e) { $("m-centralnote").textContent = "Could not read it: " + e.message; }
+    };
+    rd.readAsText(f); this.value = "";
+  });
 
   /* ── a Google Earth drawing ──────────────────────────────────────────── */
   $("m-kml").addEventListener("change", function () {

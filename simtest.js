@@ -380,6 +380,15 @@ var PC = NFN.mesh.plan(cal), PC0 = NFN.mesh.plan(Object.assign({}, cal, { meas: 
 near("a link measured 8 dB under the model teaches its APs", PC.tree.links[1][2].calib, -4, 0.01);
 if (!(PC.tree.links[1][2].prx < PC0.tree.links[1][2].prx)) { fails++; console.log("  FAIL the correction should lower the unmeasured neighbour link"); }
 n++;
+/* a measured path loss, the number AirMatch reports, replaces the model too */
+var LP0 = NFN.mesh.link(A0, B0, { tworay: false }, [], []), LP = NFN.mesh.link(A0, B0, { tworay: false }, [], [], { pl: LP0.plModel + 10 });
+eq("a measured loss counts as a measurement", LP.measured, true);
+near("the modelled loss is the budget's loss", LP0.plModel, LP0.fspl + LP0.diffraction, 0.001);
+near("10 dB more loss is 10 dB less signal", LP.prx, LP0.prx - 10, 0.001);
+near("the loss read is kept", LP.plMeas, LP0.plModel + 10, 0.001);
+eq("an RSSI measurement has no loss to show", LM.plMeas, null);
+var calP = Object.assign({}, cal, { meas: { "0-1": { pl: NFN.mesh.link({ x: 0, y: 0, h: 3, aim: 0 }, { x: 150, y: 0, h: 3, aim: 180 }, { tworay: false, tx: 20 }).plModel + 8 } } });
+near("a loss 8 dB over the model teaches the same correction", NFN.mesh.plan(calP).tree.links[1][2].calib, -4, 0.01);
 
 /* ── the twenty: the site ──────────────────────────────────────────────── */
 var site = { aps: [{ x: 50, y: 100, h: 3, gw: true }, { x: 250, y: 100, h: 3 }, { x: 450, y: 100, h: 3, gw: true }, { x: 650, y: 100, h: 3 }],
