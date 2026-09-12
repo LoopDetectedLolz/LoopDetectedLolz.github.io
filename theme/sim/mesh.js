@@ -36,6 +36,7 @@
     dish:    { label: "Highly directional",  g: 18, h: 15,  v: 15, tilt: 0,  f2b: 30 }
   };
   M.antenna = function (id) { return M.ANTENNAS[id] || M.ANTENNAS.omni; };
+  M.isAuto = function (ap) { return !ap.ant || ap.ant === "auto" || !M.ANTENNAS[ap.ant]; };
 
   /* what kind of box is on the mast: whether the backhaul has its own radio, and
      whether anybody can associate to it at all */
@@ -451,6 +452,73 @@
         "no interference from anybody else's network, and no MU-MIMO or OFDMA gain"
       ]
     };
+  };
+
+  /* ── picking the antennas ──────────────────────────────────────────────
+     The customer knows where a mast can go and how tall it is. What goes on top
+     is the question, and it has a search-shaped answer: start everyone on an
+     omni, then for each undecided AP try every antenna and keep whichever makes
+     the whole site score best, until a pass changes nothing. The score is in
+     megabits: what the clients get, headroom on the links, coverage of the
+     field, a penalty for orphans, Fresnel trouble and single points of failure,
+     and a small tax on directional antennas so an omni wins whenever the gain
+     is not needed. Aims stay automatic unless the user pinned one. */
+  M.score = function (p) {
+    var s = 0, worst = 1;
+    p.aps.forEach(function (r) {
+      if (r.status === "unreachable") { s -= 1000; return; }
+      if (r.status === "down") return;
+      if (!r.gw) {
+        s += Math.min(r.backhaul, 2 * Math.max(r.demand, 1));
+        if (r.link && r.link.fresnelBad) s -= 30;
+        if (r.backup < 0) s -= 20;
+      }
+      if (r.serves) {
+        s += Math.min(r.delivered, r.demand);
+        if (r.demand > 0) worst = Math.min(worst, r.delivered / r.demand);
+      }
+      s -= r.antenna.h >= 360 ? 0 : r.antenna.h <= 15 ? 8 : 3;
+    });
+    return s + 150 * p.coverage + 50 * worst;
+  };
+
+  M.suggest = function (st) {
+    var aps = st.aps || [], idx = [], i, j;
+    for (i = 0; i < aps.length; i++) if (M.isAuto(aps[i]) && !aps[i].down) idx.push(i);
+    var cur = aps.map(function (a) { return M.isAuto(a) ? "omni" : a.ant; });
+    function withAnts(ants) {
+      var st2 = {}, k;
+      for (k in st) st2[k] = st[k];
+      st2.aps = aps.map(function (a, q) { var o = {}, z; for (z in a) o[z] = a[z]; o.ant = ants[q]; return o; });
+      return st2;
+    }
+    function tryAnts(ants) { var p = M.plan(withAnts(ants)); return { s: M.score(p), p: p, ants: ants }; }
+    var best = tryAnts(cur), ids = Object.keys(M.ANTENNAS), pass, changed;
+    if (idx.length) for (pass = 0; pass < 3; pass++) {
+      changed = false;
+      for (i = 0; i < idx.length; i++) for (j = 0; j < ids.length; j++) {
+        if (ids[j] === best.ants[idx[i]]) continue;
+        var trial = best.ants.slice(); trial[idx[i]] = ids[j];
+        var r = tryAnts(trial);
+        if (r.s > best.s + 1e-6) { best = r; changed = true; }
+      }
+      if (!changed) break;
+    }
+    /* one line per decided AP on why, against the omni it would otherwise wear */
+    var reasons = idx.map(function (k) {
+      var a = M.antenna(best.ants[k]), row = best.p.aps[k], kids = best.p.tree.children[k].length, why;
+      if (row.status === "unreachable") why = "nothing on the catalogue reaches the mesh from here; move the mast or raise it";
+      else if (a.h >= 360) why = a.label.toLowerCase() + (kids ? ": it feeds " + kids + " point" + (kids === 1 ? "" : "s") + " and its footprint matters more than gain" : row.gw ? ": the portal, and nothing directional beat it" : ": the link holds without gain and the footprint stays round");
+      else {
+        var alt = best.ants.slice(); alt[k] = "omni";
+        var po = M.plan(withAnts(alt)), ro = po.aps[k];
+        why = a.label.toLowerCase() + (row.link ? " toward AP " + (row.parent + 1) + ": " + row.link.goodput.toFixed(0) + " Mb/s on the link against " +
+              (ro.link ? ro.link.goodput.toFixed(0) + " Mb/s" : "no link at all") + " with an omni over " + row.link.d.toFixed(0) + " m" : " toward its " + kids + " point" + (kids === 1 ? "" : "s"));
+        if (row.serves && po.coverage > best.p.coverage + 0.02) why += "; it costs " + Math.round((po.coverage - best.p.coverage) * 100) + " points of field coverage, which the link is worth";
+      }
+      return { i: k, ant: best.ants[k], why: why };
+    });
+    return { ants: best.ants, plan: best.p, score: best.s, reasons: reasons, decided: idx };
   };
 
   /* ── N-1: fail each AP in turn ─────────────────────────────────────────── */

@@ -295,6 +295,18 @@ near("an omni's footprint is a circle", CT[0].r, CT[3].r, 0.001);
 var CTp = NFN.mesh.contour({ x: 0, y: 0, h: 3, ant: "pnarrow", aim: 0 }, {}, "open", 8);
 if (!(CTp[0].r > CTp[4].r * 3)) { fails++; console.log("  FAIL a patch should reach much further forward than back"); }
 n++;
+/* the antenna picker: a far point gets gain, a close one stays on an omni */
+var pick = { aps: [{ x: 0, y: 0, h: 3, gw: true, ant: "omni" }, { x: 120, y: 0, h: 3, ant: "auto" }, { x: 520, y: 0, h: 3, ant: "auto" }],
+             w: 560, d: 120, tx: 8, tworay: false, uplink: 100, clients: 90, app: "web" };
+var SG = NFN.mesh.suggest(pick);
+eq("the picker decides the undecided", SG.decided.length, 2);
+eq("and leaves a chosen antenna alone", SG.ants[0], "omni");
+if (!(NFN.mesh.antenna(SG.ants[2]).g > NFN.mesh.antenna(SG.ants[1]).g)) { fails++; console.log("  FAIL the far point should get the bigger antenna: " + SG.ants); }
+n++;
+if (!(SG.score >= NFN.mesh.score(NFN.mesh.plan(Object.assign({}, pick, { aps: pick.aps.map(function (a) { return Object.assign({}, a, { ant: "omni" }); }) }))))) { fails++; console.log("  FAIL the picked set should score at least the all omni set"); }
+n++;
+eq("with a reason per decision", SG.reasons.length, 2);
+
 /* a patch on a point ends up looking at its parent, not at whoever was nearest */
 var look = { aps: [{ x: 0, y: 0, h: 3, gw: true }, { x: 300, y: 0, h: 3, ant: "pnarrow", aim: null }, { x: 340, y: 120, h: 3, ant: "omni" }],
              w: 400, d: 200, tx: 20, tworay: false, uplink: 100, clients: 50 };
