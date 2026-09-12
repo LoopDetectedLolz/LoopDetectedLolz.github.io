@@ -1012,6 +1012,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <p class="t-hint">This page never talks to a controller. On the laptop, <code>central-pull.py --group &lt;group&gt;</code> pulls an Aruba Central group's APs, their radios and the loss AirMatch measured between them, and <code>mist-pull.py --site &lt;site&gt;</code> does the same for a Juniper Mist site from its RRM neighbours; both write the same site.json. Open it here. Each measured pair replaces the model, and the table below the access points shows planned against measured loss with the gap in dB. Positions come across only where an AP sits on a floor plan; otherwise the APs land in a row for you to drag.</p>
         <input type="file" id="m-central" accept=".json,application/json" aria-label="site.json from central-pull.py" style="font:12px var(--sans);color:var(--text-dim);max-width:100%">
         <p class="t-hint" id="m-centralnote"></p>
+        <label class="t-row" style="cursor:pointer"><input type="checkbox" id="m-roams"> Draw the roams from What happened on this map: an arrow per AP pair with the count, orange where clients landed under -75 dBm. The arrow joins the APs; where the client stood is not known.</label>
       </details>
       <details class="m-more"><summary>On site with a phone</summary>
         <p class="t-hint">At the mount point: the first fix sets the middle of the field, every fix after lands an AP where you are.</p>
@@ -1197,6 +1198,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     tr: NFN.f.json([], function (l) { return serXYs(l, ["x", "y", "r", "h"]); }, deXYs(["x", "y", "r", "h"], [null, null, [10, 300], [-10, 30]])),
     cr: NFN.f.json(DEF_CR, function (l) { return serXYs(l, ["x", "y", "r", "n"]); }, deXYs(["x", "y", "r", "n"], [null, null, [5, 150], [0, 20000]])),
     ms: NFN.f.json({}, serMeas, deMeas),
+    rm: NFN.f.bool(false),
     pt: NFN.f.json([], function (l) { return serXYs(l, ["x", "y"]); }, deXYs(["x", "y"], [])),
     c: NFN.f.json(DEF_CL, serCl, deCl)
   };
@@ -1428,6 +1430,26 @@ Tap anything to change it. The big number is what gets off the site, and the not
     if (c && cl && cl.ap >= 0) {
       var ca = aps[cl.ap];
       parts.push('<line x1="' + X(c.x) + '" y1="' + Y(c.y) + '" x2="' + X(ca.x) + '" y2="' + Y(ca.y) + '" stroke="#fff" stroke-opacity="0.45" stroke-width="1" stroke-dasharray="3 3"/>');
+    }
+    /* the roams a story recorded, as arcs between the APs they name: how many went
+       from here to there, orange where they landed weak. Only when the APs on this
+       map carry the names the story uses, and only when asked. */
+    if (st.get("rm") && NFN.story) {
+      var storyDoc = null; try { storyDoc = JSON.parse(localStorage.getItem("nfn-story") || "null"); } catch (e) {}
+      var byName = {}; aps.forEach(function (a, k) { var nm = a.name || (central && central.names && central.names[k]); if (nm) byName[nm] = k; });
+      if (storyDoc && storyDoc.story) {
+        var tr = NFN.story.transitions(storyDoc.story), maxN = tr.pairs.length ? tr.pairs[0].n : 1, drawn = 0;
+        tr.pairs.forEach(function (t) {
+          var i1 = byName[t.from], j1 = byName[t.to]; if (i1 === undefined || j1 === undefined) return;
+          var ax = X(aps[i1].x), ay = Y(aps[i1].y), bx = X(aps[j1].x), by = Y(aps[j1].y), mx = (ax + bx) / 2, my = (ay + by) / 2, dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy) || 1,
+              off = 0.18 * len, cxp = mx - dy / len * off, cyp = my + dx / len * off, w = 1 + 5 * t.n / maxN, weak = t.median !== null && t.median < -75, col = weak ? "#F5A524" : "#5ED2DA";
+          parts.push('<path d="M' + ax.toFixed(1) + ' ' + ay.toFixed(1) + ' Q' + cxp.toFixed(1) + ' ' + cyp.toFixed(1) + ' ' + bx.toFixed(1) + ' ' + by.toFixed(1) + '" fill="none" stroke="' + col + '" stroke-width="' + w.toFixed(1) + '" stroke-opacity="0.75" marker-end="url(#m-roam-arrow)"/>');
+          parts.push(T(0.25 * ax + 0.5 * cxp + 0.25 * bx, 0.25 * ay + 0.5 * cyp + 0.25 * by - 4, t.n + (t.median !== null ? " at " + t.median + " dBm" : ""), col, "middle", 10, 'pointer-events="none"'));
+          drawn++;
+        });
+        if (drawn) parts.push('<defs><marker id="m-roam-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#B0C4CF"/></marker></defs>');
+        else parts.push(T(X(0) + 8, Y(0) + 30, "roams: the story's AP names do not match the APs on this map; open the same site.json in Verify first", "#F5A524", "start", 10));
+      } else parts.push(T(X(0) + 8, Y(0) + 30, "roams: no story in this browser; open one in What happened", "#F5A524", "start", 10));
     }
     /* the APs */
     aps.forEach(function (a, k) {
@@ -2403,6 +2425,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
       return "<tr><td>" + esc(apName(b[0])) + " to " + esc(apName(b[1])) + "</td><td>" + r.band + " GHz</td><td>" + r.d.toFixed(0) + " m</td><td>" + r.plan.toFixed(0) + " " + r.unit + "</td><td>" + r.meas.toFixed(0) + " " + r.unit + "</td><td style='color:" + c + "'>" + (r.gap > 0 ? "+" : "") + r.gap.toFixed(0) + " dB</td></tr>";
     }).join("");
   }
+  $("m-roams").checked = st.get("rm");
+  $("m-roams").addEventListener("change", function () { st.set("rm", this.checked); run(); });
   $("m-central").addEventListener("change", function () {
     var f = this.files && this.files[0]; if (!f) return;
     var rd = new FileReader();
@@ -2737,6 +2761,11 @@ Tap anything to change it. The big number is what gets off the site, and the not
     <p class="t-hint" id="s-actualnote"></p>
   </div>
   <div class="t-panel g-card" style="margin-top:20px">
+    <h3>Follow the cable</h3>
+    <p class="t-hint">From the air to the wire: each AP's radios, its clients now, and the port it leaves by. Classic Central sees the AP's side of the cable; the switch, its port and the PoE budget belong to whichever Central manages the switch, and on a site where that is New Central they are not in this file, so the row ends at the AP's port and says so.</p>
+    <div class="t-scroll"><table class="t-table"><thead><tr><th>AP</th><th>Radios</th><th>Clients</th><th>Uplink</th><th>Port</th><th>Beyond</th></tr></thead><tbody id="s-cable"></tbody></table></div>
+  </div>
+  <div class="t-panel g-card" style="margin-top:20px">
     <h3>Clients worth a look</h3>
     <p class="t-hint">Who roams most and who lands weakest. A restless wearable is normal; a laptop that roams every minute is a design problem. Landing is the median signal the AP heard at each roam; weak is landings under -75 dBm; slow is roams over half a second.</p>
     <div class="t-scroll"><table class="t-table"><thead><tr><th>Client</th><th>Hops</th><th>Joins</th><th>Landing</th><th>Weak</th><th>Roam</th><th>Slow</th></tr></thead><tbody id="s-clients"></tbody></table></div>
@@ -2811,6 +2840,11 @@ Tap anything to change it. The big number is what gets off the site, and the not
     $("s-actual").innerHTML = act.aps.map(function (a) {
       var k = names.indexOf(a.ap), pr = plan && k >= 0 ? plan.aps[k] : null;
       return "<tr><td>" + esc(a.ap) + "</td><td>" + (a.clients === null || a.clients === undefined ? "" : a.clients) + "</td><td>" + mbs(a.meanMbps) + "</td><td>" + mbs(a.peakMbps) + "</td><td>" + (pr ? Math.round(pr.clients) : "") + "</td><td>" + (pr ? mbs(pr.demand) : "") + "</td></tr>";
+    }).join("");
+    $("s-cable").innerHTML = (doc.aps || []).map(function (a) {
+      var live = (a.radios || []).filter(function (r) { return r.status !== "Down"; }).map(function (r) { return r.band + " GHz ch " + (r.channel === null || r.channel === undefined ? "?" : r.channel) + (r.bw ? "/" + r.bw : ""); }).join(", "),
+          up = (a.ethernets || []).filter(function (e) { return e.up; })[0], down = (a.ethernets || []).filter(function (e) { return !e.up; }).length;
+      return "<tr><td>" + esc(a.name) + (a.model ? " <span style='color:var(--text-muted)'>" + esc(a.model) + "</span>" : "") + "</td><td>" + esc(live || "none") + "</td><td>" + (a.client_count === null || a.client_count === undefined ? "" : a.client_count) + "</td><td>" + esc(a.uplink || "?") + "</td><td>" + (up ? esc(up.name) + " " + (up.speed_mbps ? (up.speed_mbps >= 1000 ? up.speed_mbps / 1000 + " Gb/s" : up.speed_mbps + " Mb/s") : "") + (up.duplex ? " " + esc(String(up.duplex).toLowerCase()) : "") + (up.speed_mbps && up.speed_mbps < 1000 ? " <span style='color:#F5A524'>(slow port)</span>" : "") : "<span style='color:#F5A524'>no port up</span>") + (down ? " <span style='color:var(--text-muted)'>+" + down + " down</span>" : "") + "</td><td style='color:var(--text-muted)'>" + (a.switch ? esc(a.switch) : "switch not in Classic's view") + "</td></tr>";
     }).join("");
     $("s-actualnote").textContent = (act.siteClients ? "Site: " + act.siteClients.now + " clients now, " + act.siteClients.peak + " at the peak, " + act.siteClients.mean.toFixed(0) + " on average over the samples. " : "") + (plan && names.some(function (n) { return n; }) ? "Planned figures come from the mesh planner's current site, matched by AP name." : "Open the same site.json in the mesh planner's Verify fold to see the planned figures beside these.") + " Traffic is bytes per five minutes turned into Mb/s, so a burst inside a sample is averaged down.";
     if (booted) st.push();

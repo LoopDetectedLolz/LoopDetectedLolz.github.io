@@ -318,6 +318,10 @@ def main():
             "status": a.get("status"), "mesh_role": a.get("mesh_role"), "ip": a.get("ip_address"), "site": a.get("site"),
             "firmware": a.get("firmware_version"), "radios": radios,
             "uptime_s": a.get("uptime"), "client_count": a.get("client_count"), "reboot_reason": d.get("last_reboot_reason"),
+            # the wired side, as far as Classic sees it: the AP's own ports. The switch and its
+            # PoE budget live in New Central on a tenant like this one and are not here.
+            "uplink": d.get("current_uplink_inuse"),
+            "ethernets": [{"name": e.get("name"), "speed_mbps": int(e["link_speed"]) if str(e.get("link_speed", "")).isdigit() else None, "duplex": e.get("duplex_mode"), "up": e.get("operational_state") == "Up"} for e in (d.get("ethernets") or [])],
         }
         out_aps.append(row)
         by_eth[row["mac"]] = row
