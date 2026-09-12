@@ -1007,8 +1007,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <input type="file" id="m-kml" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" aria-label="Google Earth file" style="font:12px var(--sans);color:var(--text-dim);max-width:100%">
         <p class="t-hint" id="m-kmlnote"></p>
       </details>
-      <details class="m-more"><summary>Verify against Central</summary>
-        <p class="t-hint">This page never talks to Central. On the laptop, <code>central-pull.py --group &lt;group&gt;</code> pulls the group's APs, their radios and the loss AirMatch measured between them into a site.json; open it here. Each measured pair replaces the model, and the table below the access points shows planned against measured loss with the gap in dB. Positions come across only where an AP sits on a floor plan; otherwise the APs land in a row for you to drag.</p>
+      <details class="m-more"><summary>Verify against Central or Mist</summary>
+        <p class="t-hint">This page never talks to a controller. On the laptop, <code>central-pull.py --group &lt;group&gt;</code> pulls an Aruba Central group's APs, their radios and the loss AirMatch measured between them, and <code>mist-pull.py --site &lt;site&gt;</code> does the same for a Juniper Mist site from its RRM neighbours; both write the same site.json. Open it here. Each measured pair replaces the model, and the table below the access points shows planned against measured loss with the gap in dB. Positions come across only where an AP sits on a floor plan; otherwise the APs land in a row for you to drag.</p>
         <input type="file" id="m-central" accept=".json,application/json" aria-label="site.json from central-pull.py" style="font:12px var(--sans);color:var(--text-dim);max-width:100%">
         <p class="t-hint" id="m-centralnote"></p>
       </details>
@@ -1048,6 +1048,16 @@ Tap anything to change it. The big number is what gets off the site, and the not
         </tr></thead><tbody id="m-n2"></tbody></table></div>
       </details>
       <div id="m-walk"></div>
+      <details class="m-more" id="m-configbox"><summary>What to configure</summary>
+        <p class="t-hint">The plan as RF intent: band, width, channel list, power window, mesh roles and each AP's radio. The same intent written for Aruba Central (ARM, a radio profile and per-AP settings from the tenant's Configuration API, mesh as group CLI) and for Juniper Mist (an RF template, the site, and each device with its mesh role). Both are JSON of bodies to send, not a script that sends them; the group, site and device ids are left as placeholders and every Mist field is marked to verify. Security, VLANs and RADIUS are not here: nothing in them has a picture to draw.</p>
+        <pre class="t-sheet" id="m-intent" style="white-space:pre-wrap;font:12px var(--mono);color:var(--text-dim);max-height:260px;overflow:auto"></pre>
+        <div class="t-acts" style="margin-top:6px">
+          <button class="t-btn" id="m-intentcopy" type="button">Copy the intent</button>
+          <button class="t-btn" id="m-central-dl" type="button">Download for Central</button>
+          <button class="t-btn" id="m-mist-dl" type="button">Download for Mist</button>
+        </div>
+        <p class="t-hint" id="m-confignote"></p>
+      </details>
       <details class="m-more"><summary>Assumptions</summary><ul class="t-assume" id="m-assume" style="margin-top:6px"></ul></details>
       <details class="m-more"><summary>Share, export, compare</summary>
         <div class="t-acts" style="margin-top:6px">
@@ -2158,6 +2168,12 @@ Tap anything to change it. The big number is what gets off the site, and the not
 
     $("m-assume").innerHTML = p.assumptions.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("");
     verifyTable(p);
+    if (NFN.emit) {
+      lastIntent = NFN.emit.intent(p, m);
+      $("m-intent").textContent = NFN.emit.text(lastIntent);
+      var mw = NFN.emit.mist(lastIntent).warnings;
+      $("m-confignote").textContent = (mw.length ? "Mist: " + mw.join(" ") + " " : "") + (lastIntent.channels.used.length > 1 ? "Portals sit on different channels; each Central per-AP body pins its own. " : "");
+    }
     $("m-sheet").value = installSheet(p, R, cl, walk);
 
     st.set("ap", st.get("ap")).set("ob", st.get("ob"));
@@ -2231,6 +2247,10 @@ Tap anything to change it. The big number is what gets off the site, and the not
     else { $("m-sheet").select(); try { document.execCommand("copy"); } catch (e) {} done(); }
   }
   $("m-copy").addEventListener("click", function () { copy($("m-sheet").value, this); });
+  var lastIntent = null;
+  $("m-intentcopy").addEventListener("click", function () { if (lastIntent) copy(NFN.emit.text(lastIntent), this); });
+  $("m-central-dl").addEventListener("click", function () { if (lastIntent) download("mesh-central-config.json", JSON.stringify(NFN.emit.central(lastIntent), null, 1), "application/json"); });
+  $("m-mist-dl").addEventListener("click", function () { if (lastIntent) download("mesh-mist-config.json", JSON.stringify(NFN.emit.mist(lastIntent), null, 1), "application/json"); });
   $("m-link").addEventListener("click", function () { copy(location.href, this); });
   $("m-reset").addEventListener("click", function () {
     st.set("ap", clone(DEF_APS)).set("ob", clone(DEF_OBS)).set("cr", clone(DEF_CR)).set("tr", []).set("ms", {}).set("pt", []).set("c", clone(DEF_CL));
@@ -2366,11 +2386,10 @@ Tap anything to change it. The big number is what gets off the site, and the not
   function verifyTable(p) {
     var rows = [], gaps = [], aps = st.get("ap"), ms = st.get("ms");
     Object.keys(ms).forEach(function (key) {
-      var v = ms[key]; if (!(v && typeof v === "object")) return;
-      var b = key.split("-").map(Number), L = p.tree.links[b[0]] && p.tree.links[b[0]][b[1]];
-      if (!L || !aps[b[0]] || !aps[b[1]]) return;
-      var gap = L.plMeas - L.plModel; gaps.push(gap);
-      rows.push({ key: key, band: L.band, d: L.d, plan: L.plModel, meas: L.plMeas, gap: gap });
+      var v = ms[key], b = key.split("-").map(Number), L = p.tree.links[b[0]] && p.tree.links[b[0]][b[1]];
+      if (v === undefined || v === null || !L || !aps[b[0]] || !aps[b[1]]) return;
+      if (v && typeof v === "object") { var gap = L.plMeas - L.plModel; gaps.push(gap); rows.push({ key: key, band: L.band, d: L.d, plan: L.plModel, meas: L.plMeas, gap: gap, unit: "dB" }); }
+      else { var gapR = L.model - v; gaps.push(gapR); rows.push({ key: key, band: L.band, d: L.d, plan: L.model, meas: v, gap: gapR, unit: "dBm" }); }
     });
     $("m-verifybox").hidden = !rows.length;
     if (!rows.length) return;
@@ -2380,7 +2399,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     $("m-verifynote").textContent = rows.length + " pair" + (rows.length === 1 ? "" : "s") + " measured. The air was " + (Math.abs(mean) < 1 ? "within a dB of" : Math.abs(mean).toFixed(0) + " dB " + (mean > 0 ? "harder than" : "kinder than")) + " the plan on average, spread " + spread.toFixed(0) + " dB. A steady offset is something the model does not see (a wall, a tree line, an antenna not where it was drawn); a wide spread is APs that are not where the map says." + (central && central.pulled ? " Pulled " + central.pulled.replace("T", " at ") + "." : "");
     $("m-verify").innerHTML = rows.map(function (r) {
       var b = r.key.split("-").map(Number), c = r.gap > 6 ? "var(--orange)" : r.gap < -6 ? "var(--teal)" : "inherit";
-      return "<tr><td>" + esc(apName(b[0])) + " to " + esc(apName(b[1])) + "</td><td>" + r.band + " GHz</td><td>" + r.d.toFixed(0) + " m</td><td>" + r.plan.toFixed(0) + " dB</td><td>" + r.meas.toFixed(0) + " dB</td><td style='color:" + c + "'>" + (r.gap > 0 ? "+" : "") + r.gap.toFixed(0) + " dB</td></tr>";
+      return "<tr><td>" + esc(apName(b[0])) + " to " + esc(apName(b[1])) + "</td><td>" + r.band + " GHz</td><td>" + r.d.toFixed(0) + " m</td><td>" + r.plan.toFixed(0) + " " + r.unit + "</td><td>" + r.meas.toFixed(0) + " " + r.unit + "</td><td style='color:" + c + "'>" + (r.gap > 0 ? "+" : "") + r.gap.toFixed(0) + " dB</td></tr>";
     }).join("");
   }
   $("m-central").addEventListener("change", function () {
@@ -2408,21 +2427,25 @@ Tap anything to change it. The big number is what gets off the site, and the not
                    tx: isFinite(+r5.tx_dbm) ? +r5.tx_dbm : undefined, ant: model ? "auto" : (keep.ant || "auto"), aim: null, kind: model ? undefined : keep.kind, cant: keep.cant, caim: null, tilt: keep.tilt || 0,
                    band: r5.band ? +r5.band : null, bw: /\d+/.test(String(r5.bw || "")) ? +String(r5.bw).match(/\d+/)[0] : null, ch: /^\d+/.test(String(r5.channel || "")) ? parseInt(r5.channel, 10) : null, model: model, name: a.name };
         });
-        /* the loss AirMatch heard, both directions averaged, on the band the pair runs */
-        var idx = {}, ms = {}, seen = {};
+        /* what the controller heard between each pair, both directions averaged, on the
+           band the pair runs: Central gives a path loss (db), Mist an RSSI (rssi) */
+        var idx = {}, ms = {}, seen = {}, seenR = {};
         src.forEach(function (a, k) { idx[a.serial] = k; });
         (doc.pathloss || []).forEach(function (q) {
-          var i = idx[q.from], j = idx[q.to]; if (i === undefined || j === undefined || i === j || !isFinite(+q.db)) return;
+          var i = idx[q.from], j = idx[q.to]; if (i === undefined || j === undefined || i === j) return;
           var key = Math.min(i, j) + "-" + Math.max(i, j), want = String(aps[i].band || 5);
           if (String(q.band) !== want) return;
-          seen[key] = seen[key] || []; seen[key].push(+q.db);
+          if (isFinite(+q.db)) { seen[key] = seen[key] || []; seen[key].push(+q.db); }
+          else if (isFinite(+q.rssi)) { seenR[key] = seenR[key] || []; seenR[key].push(+q.rssi); }
         });
-        Object.keys(seen).forEach(function (key) { ms[key] = { pl: seen[key].reduce(function (t, v) { return t + v; }, 0) / seen[key].length }; });
+        var avg = function (l) { return l.reduce(function (t, v) { return t + v; }, 0) / l.length; };
+        Object.keys(seenR).forEach(function (key) { ms[key] = NFN.clamp(avg(seenR[key]), -100, -20); });
+        Object.keys(seen).forEach(function (key) { ms[key] = { pl: avg(seen[key]) }; });
         st.set("ap", aps).set("ms", ms);
         central = { pulled: doc.pulled, group: doc.group, names: aps.map(function (a) { return a.name; }) };
         try { localStorage.setItem("nfn-mesh-central", JSON.stringify(central)); } catch (e) {}
         var pairs = Object.keys(ms).length;
-        $("m-centralnote").textContent = n + " AP" + (n === 1 ? "" : "s") + " from group " + (doc.group || "?") + (placed ? ", placed from the floor plan" : cur.length === n ? ", kept where you had them" : ", in a row to drag into place") + "; " + pairs + " pair" + (pairs === 1 ? "" : "s") + " with a measured loss" + (pairs ? "" : " (AirMatch reports neighbours it can hear; APs on different channels or too far apart never appear)") + ". Models, power, channel and width came from the radios.";
+        $("m-centralnote").textContent = n + " AP" + (n === 1 ? "" : "s") + " from " + (doc.source === "juniper-mist" ? "Mist site " : "group ") + (doc.group || "?") + (placed ? ", placed from the floor plan" : cur.length === n ? ", kept where you had them" : ", in a row to drag into place") + "; " + pairs + " pair" + (pairs === 1 ? "" : "s") + " with a measure" + (Object.keys(seenR).length && !Object.keys(seen).length ? "d RSSI" : "d loss") + (pairs ? "" : " (a controller reports neighbours it can hear; APs on different channels or too far apart never appear)") + ". Models, power, channel and width came from the radios.";
         sel = null; writeUi(); run();
       } catch (e) { $("m-centralnote").textContent = "Could not read it: " + e.message; }
     };

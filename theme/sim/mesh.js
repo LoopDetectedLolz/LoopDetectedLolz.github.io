@@ -869,7 +869,7 @@
       meshMbps: meshCap, uplink: uplink, ceiling: ceiling, binds: binds,
       perClientKbps: perClient, askKbps: A.kbps,
       unreachable: unreached, fresnel: fres, starved: starved, maxDepth: T.maxDepth, cciHit: cciHit, measured: measured,
-      flags: flags,
+      flags: flags, cfg: C, dfs: !!st.dfs,
       assumptions: [
         "backhaul " + C.fGHz + " GHz, " + C.bw + " MHz, " + C.ss + " stream" + (C.ss === 1 ? "" : "s") + ", " + C.tx + " dBm unless an AP says otherwise, each end's gain taken toward the other from a cos^n fit to its antenna's beamwidths",
         M.domain(C.domain).label + ": EIRP capped at " + M.domain(C.domain).eirp[M.bandOf(C.fGHz)] + " dBm on the backhaul band, " + CH.list.length + " channel" + (CH.list.length === 1 ? "" : "s") + " at " + C.bw + " MHz" + (st.dfs ? " with DFS" : " without DFS") + " (typical figures, 2026-09; verify)",

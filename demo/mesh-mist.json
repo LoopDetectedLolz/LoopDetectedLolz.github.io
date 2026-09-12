@@ -1,0 +1,20 @@
+{
+ "source": "juniper-mist",
+ "group": "Demo-Yard",
+ "pulled": "2026-09-12T09:30:00",
+ "site": {"name": "Demo-Yard"},
+ "aps": [
+  {"name": "Yard-Base", "serial": "DEMOMIST01", "mac": "00:00:5e:00:53:a1", "model": "AP45", "status": "Up", "mesh_role": "portal",
+   "radios": [{"band": "5", "channel": 44, "bw": 40, "tx_dbm": 17, "ss": 4, "status": "Up", "noise_dbm": -93}]},
+  {"name": "Yard-Relay-1", "serial": "DEMOMIST02", "mac": "00:00:5e:00:53:a2", "model": "AP45", "status": "Up", "mesh_role": "point",
+   "radios": [{"band": "5", "channel": 44, "bw": 40, "tx_dbm": 17, "ss": 4, "status": "Up", "noise_dbm": -94}]},
+  {"name": "Yard-Relay-2", "serial": "DEMOMIST03", "mac": "00:00:5e:00:53:a3", "model": "AP45", "status": "Up", "mesh_role": "point",
+   "radios": [{"band": "5", "channel": 44, "bw": 40, "tx_dbm": 17, "ss": 4, "status": "Up", "noise_dbm": -95}]}
+ ],
+ "pathloss": [
+  {"from": "DEMOMIST01", "to": "DEMOMIST02", "band": "5", "rssi": -62},
+  {"from": "DEMOMIST02", "to": "DEMOMIST01", "band": "5", "rssi": -64},
+  {"from": "DEMOMIST02", "to": "DEMOMIST03", "band": "5", "rssi": -71}
+ ],
+ "note": "Synthetic. Shaped like mist-pull.py writes it: RRM neighbour RSSI rather than a loss."
+}
