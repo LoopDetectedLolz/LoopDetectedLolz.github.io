@@ -868,7 +868,8 @@
       }
       s -= r.antenna.h >= 360 ? 0 : r.antenna.h <= 15 ? 8 : 3;
     });
-    return s + 150 * p.coverage + 50 * worst;
+    /* a crowd nobody reaches is demand nobody delivered */
+    return s + 150 * p.coverage + 50 * worst - p.who.unserved * p.askKbps / 1000;
   };
 
   M.suggest = function (st) {
