@@ -86,7 +86,11 @@
 .m-map svg{border-radius:10px}
 .m-on{color:#06202A!important;background:var(--teal)!important;border-color:var(--teal)!important}
 #m-fail.m-on{background:var(--orange)!important;border-color:var(--orange)!important}
-.m-table{min-width:860px}.m-table td{white-space:nowrap}
+.m-clock{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-8px 0 16px;padding:8px 12px;border:1px solid var(--t-line);border-radius:12px;background:rgba(3,10,16,0.45)}
+.m-clock select{min-height:38px}
+.m-todnote{font:11px var(--mono);color:var(--text-muted)}
+#m-meas .t-row input[type=number]{width:84px}
+.m-table{min-width:980px}.m-table td{white-space:nowrap}
 .m-ceiling{display:grid;gap:7px;margin:14px 0 4px}
 .m-cb{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:10px;align-items:center;font:11px var(--mono);color:var(--text-muted)}
 .m-cbar{height:16px;border-radius:6px;background:rgba(255,255,255,0.05);border:1px solid var(--t-line);overflow:hidden}
@@ -691,8 +695,8 @@ should be carved up. The half power contour is the useful cell, not the last row
 </div>
 <p class="t-lede">Drop access points on the ground, pick which ones have the uplink, and watch the mesh build itself from the
 portals outward. Every link is a real budget over real geometry, every hop is paid for, and the whole thing runs into the
-same wall at the end: the uplink. Drag anything. Fail an AP and see who goes dark. Put a client somewhere and read what
-it would get.</p>
+same wall at the end: the uplink. Drag anything. Fail an AP and see who goes dark. Put a crowd where the people will be
+and a client where you are standing, and read what they would get.</p>
 
 <div class="m-bar">
   <div class="m-modes" role="group" aria-label="Plan or three dimensional view">
@@ -704,7 +708,10 @@ it would get.</p>
     <button type="button" class="m-mode" data-mode="ap">Add AP</button>
     <button type="button" class="m-mode" data-mode="ob">Add obstacle</button>
     <select id="m-obtype" aria-label="obstacle type"></select>
+    <button type="button" class="m-mode" data-mode="hill">Add hill</button>
+    <button type="button" class="m-mode" data-mode="crowd">Add crowd</button>
     <button type="button" class="m-mode" data-mode="client">Place client</button>
+    <button type="button" class="m-mode" data-mode="path">Draw a walk</button>
   </div>
   <div class="m-modes" id="m-modes3d" role="group" aria-label="Layers in the 3D view" hidden>
     <button type="button" class="m-layer" data-layer="f">Fresnel tubes</button>
@@ -716,26 +723,51 @@ it would get.</p>
   <div class="m-legend" id="m-legend"></div>
 </div>
 <div class="m-map t-panel" id="m-map"></div>
+<div class="m-clock" id="m-clock">
+  <button type="button" class="t-btn" id="m-play" aria-label="play the day">&#9654;</button>
+  <select id="m-curve" aria-label="shape of the day"></select>
+  <label class="m-zx" style="flex:1 1 200px">clock<input type="range" id="m-tod" min="0" max="24" step="0.5" value="24" style="width:auto;flex:1"><output id="m-tod-v">peak</output></label>
+  <span class="m-todnote" id="m-todnote"></span>
+</div>
 
 <div class="t-grid">
   <div>
     <div class="t-panel" id="m-selpanel">
       <h3 id="m-seltitle">Nothing selected</h3>
-      <p class="t-hint" id="m-selhint">Tap an AP, an obstacle or the client on the map.</p>
+      <p class="t-hint" id="m-selhint">Tap an AP, an obstacle, a hill, a crowd or the client on the map.</p>
       <div id="m-selap" hidden>
         <div class="t-row"><label>Role</label>
           <div class="t-sight" style="flex:1;margin:0"><button class="t-btn" id="m-portal" type="button">Portal</button><button class="t-btn" id="m-point" type="button">Point</button></div></div>
         <div class="t-row"><label for="m-apkind">The box</label><select id="m-apkind"></select></div>
-        <div class="t-row"><label for="m-apant">Antenna</label><select id="m-apant"></select></div>
+        <div class="t-row"><label for="m-apant" id="m-apantlbl">Antenna</label><select id="m-apant"></select></div>
         <div class="t-row"><label for="m-apaim">Aimed</label>
           <input type="range" id="m-apaim" min="-180" max="180" step="5" value="0"><output id="m-apaim-v">auto</output></div>
-        <button class="t-btn" id="m-apauto" type="button" style="width:100%;margin-bottom:10px">Aim it automatically</button>
+        <div class="t-sight"><button class="t-btn" id="m-apauto" type="button">Aim it automatically</button><button class="t-btn" id="m-apcompass" type="button">Aim with the compass</button></div>
+        <div class="t-row" style="margin-top:8px"><label for="m-aptilt">Down-tilt</label>
+          <input type="range" id="m-aptilt" min="-10" max="45" step="1" value="0"><output id="m-aptilt-v">0°</output></div>
+        <div id="m-clientant">
+          <div class="t-row"><label for="m-apcant">Client antenna</label><select id="m-apcant"></select></div>
+          <div class="t-row"><label for="m-apcaim">Clients aimed</label>
+            <input type="range" id="m-apcaim" min="-180" max="180" step="5" value="0"><output id="m-apcaim-v">auto</output></div>
+          <button class="t-btn" id="m-apcauto" type="button" style="width:100%;margin-bottom:8px">Aim the client antenna at the crowd</button>
+        </div>
         <div class="t-row"><label for="m-aph">Mast height</label>
           <input type="range" id="m-aph" min="0.5" max="15" step="0.5" value="3"><output id="m-aph-v">3.0 m</output></div>
         <div class="t-row"><label for="m-aptx">Transmit power</label>
           <input type="range" id="m-aptx" min="0" max="30" step="1" value="20"><output id="m-aptx-v">20 dBm</output></div>
+        <div class="t-row"><label for="m-apband">Backhaul band</label>
+          <select id="m-apband"><option value="">Site default</option><option value="5.2">5 GHz</option><option value="6.0">6 GHz</option></select></div>
+        <div class="t-row"><label for="m-apbw">Backhaul width</label>
+          <select id="m-apbw"><option value="">Site default</option><option>20</option><option>40</option><option>80</option><option>160</option></select></div>
+        <div class="t-row" id="m-chrow"><label for="m-apch">Channel</label><select id="m-apch"></select></div>
         <div class="t-sight"><button class="t-btn" id="m-fail" type="button">Fail this AP</button><button class="t-btn" id="m-rmap" type="button">Remove</button></div>
         <p class="t-hint" id="m-apnote"></p>
+        <h3 style="margin-top:14px">A link from here</h3>
+        <div class="t-row"><label for="m-explain">To</label><select id="m-explain"></select></div>
+        <p class="t-hint" id="m-explainout"></p>
+        <h3 style="margin-top:14px">Measured on site</h3>
+        <p class="t-hint">Stand at this mast, read the RSSI from a neighbour off the AP, and type it. The model steps aside for that link and learns from the gap.</p>
+        <div id="m-meas"></div>
       </div>
       <div id="m-selob" hidden>
         <div class="t-row"><label for="m-obh">Height</label>
@@ -744,9 +776,29 @@ it would get.</p>
           <input type="range" id="m-obr" min="2" max="60" step="1" value="6"><output id="m-obr-v">6 m</output></div>
         <button class="t-btn" id="m-rmob" type="button" style="width:100%">Remove</button>
       </div>
+      <div id="m-selhill" hidden>
+        <div class="t-row"><label for="m-hlh">Height</label>
+          <input type="range" id="m-hlh" min="-10" max="30" step="0.5" value="6"><output id="m-hlh-v">6.0 m</output></div>
+        <div class="t-row"><label for="m-hlr">Width</label>
+          <input type="range" id="m-hlr" min="10" max="300" step="5" value="60"><output id="m-hlr-v">60 m</output></div>
+        <p class="t-hint">A gaussian hill: the height is the top, the width is where it is about a tenth as high. Negative digs a hollow.</p>
+        <button class="t-btn" id="m-rmhill" type="button" style="width:100%">Remove</button>
+      </div>
+      <div id="m-selcrowd" hidden>
+        <div class="t-row"><label for="m-crn">People</label>
+          <input type="number" id="m-crn" min="0" max="20000" step="10" value="200"></div>
+        <div class="t-row"><label for="m-crr">Radius</label>
+          <input type="range" id="m-crr" min="5" max="150" step="5" value="30"><output id="m-crr-v">30 m</output></div>
+        <p class="t-hint" id="m-crnote"></p>
+        <button class="t-btn" id="m-rmcrowd" type="button" style="width:100%">Remove</button>
+      </div>
       <div id="m-selcl" hidden>
         <div id="m-clout"></div>
         <button class="t-btn" id="m-rmcl" type="button" style="width:100%;margin-top:8px">Take the client away</button>
+      </div>
+      <div id="m-selpath" hidden>
+        <p class="t-hint">Tap the map to add waypoints; the plot below the answer reads the walk. Drag a waypoint to move it.</p>
+        <div class="t-sight"><button class="t-btn" id="m-pathundo" type="button">Drop the last point</button><button class="t-btn" id="m-rmpath" type="button">Clear the walk</button></div>
       </div>
     </div>
 
@@ -756,9 +808,23 @@ it would get.</p>
         <input type="range" id="m-fw" min="60" max="1200" step="10" value="700"><output id="m-fw-v">700 m</output></div>
       <div class="t-row"><label for="m-fd">Field, deep</label>
         <input type="range" id="m-fd" min="40" max="800" step="10" value="360"><output id="m-fd-v">360 m</output></div>
+      <div class="t-row"><label for="m-north">Compass</label>
+        <input type="range" id="m-north" min="0" max="359" step="1" value="0"><output id="m-north-v">up is N</output></div>
       <div class="t-row"><label for="m-land">Ground</label><select id="m-land"></select></div>
+      <div class="t-row"><label for="m-dom">Regulatory domain</label><select id="m-dom"></select></div>
       <div class="t-row"><label for="m-up">Uplink off site</label>
         <input type="number" id="m-up" min="1" max="10000" step="1" value="100"><span style="font:11px var(--mono);color:var(--text-muted)">Mb/s</span></div>
+      <h3 style="margin-top:22px">Under the map</h3>
+      <p class="t-hint">A site plan or a satellite screenshot. It stays in this browser, not in the link. Then tap two points you know the distance between.</p>
+      <input type="file" id="m-img" accept="image/*" aria-label="site image" style="font:12px var(--sans);color:var(--text-dim);max-width:100%">
+      <div class="t-sight" style="margin-top:8px"><button class="t-btn" id="m-scale" type="button">Set the scale</button><button class="t-btn" id="m-rmimg" type="button">Remove image</button></div>
+      <div class="t-row" style="margin-top:8px"><label for="m-imgop">Image opacity</label>
+        <input type="range" id="m-imgop" min="0" max="100" step="5" value="55"><output id="m-imgop-v">55%</output></div>
+      <p class="t-hint" id="m-scalenote"></p>
+      <h3 style="margin-top:22px">From where you stand</h3>
+      <p class="t-hint">On a phone at the mount point: the first fix sets the corner of the field, every fix after lands an AP where you are.</p>
+      <div class="t-sight"><button class="t-btn" id="m-gps" type="button">Add an AP here</button><button class="t-btn" id="m-gpsreset" type="button">Forget the fix</button></div>
+      <p class="t-hint" id="m-gpsnote"></p>
 
       <h3 style="margin-top:22px">The backhaul</h3>
       <div class="t-row"><label for="m-prof">Picks parents like</label><select id="m-prof"></select></div>
@@ -769,8 +835,12 @@ it would get.</p>
         <select id="m-band"><option value="5.2" selected>5 GHz</option><option value="6.0">6 GHz</option></select></div>
       <div class="t-row"><label for="m-bw">Channel width</label>
         <select id="m-bw"><option>20</option><option selected>40</option><option>80</option><option>160</option></select></div>
+      <div class="t-row"><label for="m-dfs">DFS channels</label>
+        <select id="m-dfs"><option value="0" selected>Left out</option><option value="1">In the plan</option></select></div>
       <div class="t-row"><label for="m-tx">Default power</label>
         <input type="range" id="m-tx" min="0" max="30" step="1" value="17"><output id="m-tx-v">17 dBm</output></div>
+      <div class="t-row"><label for="m-fade">Fade margin</label>
+        <input type="range" id="m-fade" min="0" max="15" step="1" value="0"><output id="m-fade-v">0 dB</output></div>
       <div class="t-row"><label for="m-ss">Streams</label>
         <select id="m-ss"><option>1</option><option selected>2</option><option>4</option></select></div>
       <div class="t-row"><label for="m-kind">New APs are</label><select id="m-kind"></select></div>
@@ -779,8 +849,9 @@ it would get.</p>
         <select id="m-ray"><option value="0" selected>Off, plan without it</option><option value="1">Two ray, in every budget</option></select></div>
 
       <h3 style="margin-top:22px">The crowd</h3>
-      <div class="t-row"><label for="m-cl">Clients on site</label>
+      <div class="t-row"><label for="m-cl">Loose clients</label>
         <input type="number" id="m-cl" min="0" max="20000" step="10" value="300"></div>
+      <p class="t-hint">Spread evenly across the APs. Crowds on the map add to this and go where they stand.</p>
       <div class="t-row"><label for="m-dev">Typical device</label><select id="m-dev"></select></div>
       <div class="t-row"><label for="m-app">Doing</label><select id="m-app"></select></div>
       <div class="t-row"><label for="m-edge">Cell edge</label>
@@ -797,22 +868,41 @@ it would get.</p>
       <div class="m-ceiling" id="m-ceiling"></div>
       <div id="m-flags"></div>
       <div id="m-reasons"></div>
+      <div id="m-advice"></div>
       <h3 style="margin-top:20px">Every access point</h3>
       <div class="t-scroll"><table class="t-table m-table"><thead><tr>
-        <th>AP</th><th>Role</th><th>Antenna</th><th>Parent</th><th>Hops</th><th>Link</th><th>Metric</th><th>Backhaul</th><th>Delivers</th><th>Backup</th>
+        <th>AP</th><th>Role</th><th>Antenna</th><th>Ch</th><th>Parent</th><th>Hops</th><th>Link</th><th>Metric</th><th>Air lost</th><th>Backhaul</th><th>Delivers</th><th>Backup</th>
       </tr></thead><tbody id="m-rows"></tbody></table></div>
       <h3 style="margin-top:20px">Lose one</h3>
       <p class="t-hint">Each AP failed in turn, everything else recalculated. Orphans are the APs that lose their way to a portal.</p>
       <div class="t-scroll"><table class="t-table m-table"><thead><tr>
         <th>If this fails</th><th>Orphans</th><th>Portals left</th><th>Mesh carries</th><th>Lost</th><th>Coverage</th>
       </tr></thead><tbody id="m-n1"></tbody></table></div>
+      <h3 style="margin-top:20px">Lose two</h3>
+      <p class="t-hint" id="m-n2note">Every pair failed together, the worst shown first.</p>
+      <div class="t-scroll"><table class="t-table m-table"><thead><tr>
+        <th>If these fail</th><th>Orphans</th><th>Portals left</th><th>Mesh carries</th><th>Lost</th>
+      </tr></thead><tbody id="m-n2"></tbody></table></div>
+      <div id="m-walk"></div>
       <ul class="t-assume" id="m-assume"></ul>
       <div class="t-acts">
-        <button class="t-btn" id="m-copy" type="button">Copy the plan</button>
+        <button class="t-btn" id="m-copy" type="button">Copy the install sheet</button>
         <button class="t-btn" id="m-link" type="button">Copy the link</button>
+        <button class="t-btn" id="m-json" type="button">Download JSON</button>
+        <button class="t-btn" id="m-csv" type="button">Download CSV</button>
+        <label class="t-btn" style="display:inline-flex;align-items:center;cursor:pointer">Import<input type="file" id="m-import" accept=".json,.csv,application/json,text/csv" hidden></label>
         <button class="t-btn" id="m-reset" type="button">Start again</button>
       </div>
-      <textarea class="t-out" id="m-sheet" readonly aria-label="Plain text mesh plan"></textarea>
+      <h3 style="margin-top:20px">Scenarios</h3>
+      <div class="t-acts" style="margin-top:6px">
+        <button class="t-btn" id="m-saveA" type="button">Save as A</button>
+        <button class="t-btn" id="m-saveB" type="button">Save as B</button>
+        <button class="t-btn" id="m-loadA" type="button">Open A</button>
+        <button class="t-btn" id="m-loadB" type="button">Open B</button>
+        <button class="t-btn" id="m-cmp" type="button">Compare A, B and this</button>
+      </div>
+      <div id="m-compare"></div>
+      <textarea class="t-out" id="m-sheet" readonly aria-label="Install sheet"></textarea>
     </div>
   </div>
 </div>
@@ -822,28 +912,34 @@ it would get.</p>
 (function () {
   var root = document.getElementById("tools");
   if (!root || !window.NFN || !NFN.mesh) return;
-  var M = NFN.mesh, CAP = NFN.capacity, $ = function (id) { return document.getElementById(id); };
+  var M = NFN.mesh, CAP = NFN.capacity, CH = NFN.channels, $ = function (id) { return document.getElementById(id); };
   var HOPC = ["#8CE05E", "#8CE05E", "#5ED2DA", "#4FBDEA", "#c9a0ff", "#c9a0ff", "#c9a0ff", "#c9a0ff", "#c9a0ff"],
-      WARN = "#F5A524";
+      WARN = "#F5A524", CRC = ["#EAF2F6", "#5ED2DA", "#4FBDEA", "#c9a0ff", "#8CE05E"];
 
-  /* APs ride in the hash as x,y,h,tx,flags with p for portal and d for down;
-     obstacles as x,y,type,h,r; the client as x,y */
-  /* x,y,h,tx,flags,antenna,aim,kind: an empty aim means point at the nearest AP */
+  /* ── the hash ─────────────────────────────────────────────────────────────
+     APs ride as x,y,h,tx,flags,antenna,aim,kind,clientAntenna,clientAim,tilt,band,bw,channel
+     with p for portal and d for down; an empty aim means automatic, an empty
+     antenna means picked for the site. Everything else is x,y and a few numbers. */
+  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : null; }
   function serAps(a) {
     return a.map(function (p) {
       return [Math.round(p.x), Math.round(p.y), p.h, p.tx === undefined ? "" : p.tx, (p.gw ? "p" : "") + (p.down ? "d" : ""),
-              M.isAuto(p) ? "" : p.ant, p.aim === undefined || p.aim === null ? "" : Math.round(p.aim), p.kind || ""].join(",");
+              M.isAuto(p) ? "" : p.ant, p.aim === undefined || p.aim === null ? "" : Math.round(p.aim), p.kind || "",
+              p.cant || "", p.caim === undefined || p.caim === null ? "" : Math.round(p.caim), p.tilt || "",
+              p.band === undefined || p.band === null ? "" : p.band, p.bw === undefined || p.bw === null ? "" : p.bw,
+              p.ch === undefined || p.ch === null ? "" : p.ch].join(",");
     }).join(";");
   }
   function deAps(s) {
     var out = (s || "").split(";").map(function (p) {
       var b = p.split(","); if (b.length < 3) return null;
-      var x = parseFloat(b[0]), y = parseFloat(b[1]), h = parseFloat(b[2]), tx = b[3] === "" || b[3] === undefined ? undefined : parseFloat(b[3]),
-          aim = b[6] === "" || b[6] === undefined ? null : parseFloat(b[6]);
-      if (!isFinite(x) || !isFinite(y) || !isFinite(h)) return null;
-      return { x: x, y: y, h: NFN.clamp(h, 0.5, 15), tx: isFinite(tx) ? NFN.clamp(tx, 0, 30) : undefined,
+      var x = num(b[0]), y = num(b[1]), h = num(b[2]), tx = num(b[3]), aim = num(b[6]), caim = num(b[9]), tilt = num(b[10]), band = num(b[11]), bw = num(b[12]), ch = num(b[13]);
+      if (x === null || y === null || h === null) return null;
+      return { x: x, y: y, h: NFN.clamp(h, 0.5, 15), tx: tx === null ? undefined : NFN.clamp(tx, 0, 30),
                gw: /p/.test(b[4] || ""), down: /d/.test(b[4] || ""),
-               ant: M.ANTENNAS[b[5]] ? b[5] : "auto", aim: isFinite(aim) ? aim : null, kind: M.KINDS[b[7]] ? b[7] : undefined };
+               ant: M.ANTENNAS[b[5]] ? b[5] : "auto", aim: aim, kind: M.KINDS[b[7]] ? b[7] : undefined,
+               cant: M.ANTENNAS[b[8]] ? b[8] : undefined, caim: caim, tilt: tilt === null ? 0 : NFN.clamp(tilt, -10, 45),
+               band: band === null ? null : band, bw: bw === null ? null : bw, ch: ch === null ? null : ch };
     }).filter(Boolean);
     return out.length ? out.slice(0, 24) : undefined;
   }
@@ -852,106 +948,154 @@ it would get.</p>
     if (s === "") return [];
     var out = (s || "").split(";").map(function (p) {
       var b = p.split(","); if (b.length < 5 || !M.OBSTACLES[b[2]]) return null;
-      var x = parseFloat(b[0]), y = parseFloat(b[1]), h = parseFloat(b[3]), r = parseFloat(b[4]);
-      if (!isFinite(x) || !isFinite(y) || !isFinite(h) || !isFinite(r)) return null;
+      var x = num(b[0]), y = num(b[1]), h = num(b[3]), r = num(b[4]);
+      if (x === null || y === null || h === null || r === null) return null;
       return { x: x, y: y, type: b[2], h: NFN.clamp(h, 1, 30), r: NFN.clamp(r, 2, 60) };
     }).filter(Boolean);
     return out.slice(0, 24);
   }
+  function serXYs(list, keys) { return list.map(function (p) { return keys.map(function (k) { return Math.round(p[k] * 10) / 10; }).join(","); }).join(";"); }
+  function deXYs(keys, lims) {
+    return function (s) {
+      if (s === "") return [];
+      var out = (s || "").split(";").map(function (p) {
+        var b = p.split(","), o = {}, i;
+        if (b.length < keys.length) return null;
+        for (i = 0; i < keys.length; i++) { var v = num(b[i]); if (v === null) return null; o[keys[i]] = lims[i] ? NFN.clamp(v, lims[i][0], lims[i][1]) : v; }
+        return o;
+      }).filter(Boolean);
+      return out.slice(0, 40);
+    };
+  }
+  function serMeas(m) { return Object.keys(m).map(function (k) { return k + ":" + Math.round(m[k]); }).join(";"); }
+  function deMeas(s) {
+    if (s === "") return {};
+    var out = {}; (s || "").split(";").forEach(function (p) { var b = p.split(":"); if (/^\d+-\d+$/.test(b[0]) && num(b[1]) !== null) out[b[0]] = NFN.clamp(num(b[1]), -100, -20); });
+    return out;
+  }
   function serCl(c) { return c ? Math.round(c.x) + "," + Math.round(c.y) : ""; }
-  function deCl(s) { if (!s) return null; var b = s.split(","), x = parseFloat(b[0]), y = parseFloat(b[1]); return isFinite(x) && isFinite(y) ? { x: x, y: y } : null; }
+  function deCl(s) { if (!s) return null; var b = s.split(","), x = num(b[0]), y = num(b[1]); return x !== null && y !== null ? { x: x, y: y } : null; }
 
   var DEF_APS = [{ x: 60, y: 180, h: 4, gw: true, kind: "tri", ant: "auto", aim: null }, { x: 260, y: 110, h: 3, kind: "dual", ant: "auto", aim: null },
                  { x: 260, y: 270, h: 3, kind: "dual", ant: "auto", aim: null }, { x: 470, y: 180, h: 3, kind: "dual", ant: "auto", aim: null },
                  { x: 650, y: 90, h: 3, kind: "dual", ant: "auto", aim: null }],
       DEF_OBS = [{ x: 370, y: 180, type: "building", h: 12, r: 12 }],
+      DEF_CR = [{ x: 520, y: 230, r: 40, n: 250 }],
       DEF_CL = { x: 420, y: 300 };
-  var booted = false, mode = "move", sel = null;   /* sel: {kind:'ap'|'ob'|'cl', i} */
-  var st = NFN.State("mesh", {
-    fw: NFN.f.int(700, 60, 1200), fd: NFN.f.int(360, 40, 800),
-    land: NFN.f.pick("open", Object.keys(M.LAND)),
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  var booted = false, mode = "move", sel = null;   /* sel: {kind:'ap'|'ob'|'hill'|'crowd'|'cl'|'pt', i} */
+  var SCHEMA = {
+    fw: NFN.f.int(700, 60, 1200), fd: NFN.f.int(360, 40, 800), north: NFN.f.int(0, 0, 359),
+    land: NFN.f.pick("open", Object.keys(M.LAND)), dom: NFN.f.pick("us", Object.keys(M.DOMAINS)),
     up: NFN.f.num(100, 1, 10000),
     prof: NFN.f.pick("aruba", Object.keys(M.PROFILES)), hops: NFN.f.int(4, 1, 8),
-    f: NFN.f.num(5.2, 5.2, 6.0), bw: NFN.f.int(40, 20, 160),
-    tx: NFN.f.num(17, 0, 30), ss: NFN.f.int(2, 1, 4),
+    f: NFN.f.num(5.2, 5.2, 6.0), bw: NFN.f.int(40, 20, 160), dfs: NFN.f.bool(false),
+    tx: NFN.f.num(17, 0, 30), fade: NFN.f.num(0, 0, 15), ss: NFN.f.int(2, 1, 4),
     ant: NFN.f.pick("auto", ["auto"].concat(Object.keys(M.ANTENNAS))), kind: NFN.f.pick("dual", Object.keys(M.KINDS)),
     ray: NFN.f.bool(false),
-    cl: NFN.f.int(300, 0, 20000),
+    cl: NFN.f.int(100, 0, 20000),
     dev: NFN.f.pick("ax2", CAP.DEVICES.map(function (d) { return d.id; })),
     app: NFN.f.pick("web", CAP.APPS.map(function (a) { return a.id; })),
     edge: NFN.f.num(-67, -80, -55), cbw: NFN.f.int(20, 20, 80),
+    tod: NFN.f.num(24, 0, 24), curve: NFN.f.pick("flat", Object.keys(M.CURVES)),
     view: NFN.f.pick("plan", ["plan", "3d"]),
     l3: { def: "fltc", get: function (v) { return /^[fltc]{0,4}$/.test(v) ? v : undefined; } },
     zx: NFN.f.int(5, 1, 10),
     cam: NFN.f.json({ yaw: -125, pitch: 38, zoom: 1.85 },
       function (c) { return Math.round(c.yaw) + "," + Math.round(c.pitch) + "," + c.zoom.toFixed(2); },
-      function (v) { var b = v.split(","), y = parseFloat(b[0]), pch = parseFloat(b[1]), z = parseFloat(b[2]);
-        return isFinite(y) && isFinite(pch) && isFinite(z) ? { yaw: y, pitch: NFN.clamp(pch, 8, 85), zoom: NFN.clamp(z, 0.9, 4) } : undefined; }),
+      function (v) { var b = v.split(","), y = num(b[0]), pch = num(b[1]), z = num(b[2]);
+        return y !== null && pch !== null && z !== null ? { yaw: y, pitch: NFN.clamp(pch, 8, 85), zoom: NFN.clamp(z, 0.9, 4) } : undefined; }),
     ap: NFN.f.json(DEF_APS, serAps, deAps),
     ob: NFN.f.json(DEF_OBS, serObs, deObs),
+    tr: NFN.f.json([], function (l) { return serXYs(l, ["x", "y", "r", "h"]); }, deXYs(["x", "y", "r", "h"], [null, null, [10, 300], [-10, 30]])),
+    cr: NFN.f.json(DEF_CR, function (l) { return serXYs(l, ["x", "y", "r", "n"]); }, deXYs(["x", "y", "r", "n"], [null, null, [5, 150], [0, 20000]])),
+    ms: NFN.f.json({}, serMeas, deMeas),
+    pt: NFN.f.json([], function (l) { return serXYs(l, ["x", "y"]); }, deXYs(["x", "y"], [])),
     c: NFN.f.json(DEF_CL, serCl, deCl)
-  });
+  };
+  var st = NFN.State("mesh", SCHEMA);
   st.fromHash(location.hash);
 
+  /* ── option lists ─────────────────────────────────────────────────────── */
   Object.keys(M.LAND).forEach(function (k) { $("m-land").add(new Option(M.LAND[k].label, k)); });
+  Object.keys(M.DOMAINS).forEach(function (k) { $("m-dom").add(new Option(M.DOMAINS[k].label, k)); });
   Object.keys(M.PROFILES).forEach(function (k) { $("m-prof").add(new Option(M.PROFILES[k].label, k)); });
   Object.keys(M.OBSTACLES).forEach(function (k) { $("m-obtype").add(new Option(M.OBSTACLES[k].label, k)); });
+  Object.keys(M.CURVES).forEach(function (k) { $("m-curve").add(new Option(M.CURVES[k].label, k)); });
   CAP.DEVICES.forEach(function (d) { $("m-dev").add(new Option(d.label, d.id)); });
+  CAP.APPS.forEach(function (a) { $("m-app").add(new Option(a.label, a.id)); });
   Object.keys(M.KINDS).forEach(function (k) { $("m-kind").add(new Option(M.KINDS[k].label, k)); $("m-apkind").add(new Option(M.KINDS[k].label, k)); });
   $("m-ant").add(new Option("Automatic, picked for the site", "auto")); $("m-apant").add(new Option("Automatic", "auto"));
   Object.keys(M.ANTENNAS).forEach(function (k) {
     var a = M.ANTENNAS[k], lbl = a.label + ", " + a.g + " dBi" + (a.h >= 360 ? "" : ", " + a.h + " by " + a.v + " deg") + (a.tilt ? ", " + a.tilt + " deg down" : "");
-    $("m-ant").add(new Option(lbl, k)); $("m-apant").add(new Option(lbl, k));
+    $("m-ant").add(new Option(lbl, k)); $("m-apant").add(new Option(lbl, k)); $("m-apcant").add(new Option(lbl, k));
   });
-  CAP.APPS.forEach(function (a) { $("m-app").add(new Option(a.label, a.id)); });
+  function channelOptions() {
+    var sel2 = $("m-apch"), cur = sel2.value, list = CH.list(M.bandOf(st.get("f")), st.get("bw"), st.get("dfs"), st.get("dom"));
+    sel2.innerHTML = ""; sel2.add(new Option("Automatic", ""));
+    list.forEach(function (c) { sel2.add(new Option("Channel " + c, String(c))); });
+    sel2.value = cur;
+  }
 
   function writeUi() {
-    $("m-fw").value = st.get("fw"); $("m-fd").value = st.get("fd"); $("m-land").value = st.get("land");
+    $("m-fw").value = st.get("fw"); $("m-fd").value = st.get("fd"); $("m-north").value = st.get("north");
+    $("m-land").value = st.get("land"); $("m-dom").value = st.get("dom");
     $("m-up").value = st.get("up"); $("m-prof").value = st.get("prof"); $("m-hops").value = st.get("hops");
-    $("m-band").value = st.get("f").toFixed(1); $("m-bw").value = st.get("bw");
-    $("m-tx").value = st.get("tx"); $("m-ant").value = st.get("ant"); $("m-kind").value = st.get("kind"); $("m-ss").value = st.get("ss");
+    $("m-band").value = st.get("f").toFixed(1); $("m-bw").value = st.get("bw"); $("m-dfs").value = st.get("dfs") ? "1" : "0";
+    $("m-tx").value = st.get("tx"); $("m-fade").value = st.get("fade"); $("m-ant").value = st.get("ant"); $("m-kind").value = st.get("kind"); $("m-ss").value = st.get("ss");
     $("m-ray").value = st.get("ray") ? "1" : "0";
     $("m-cl").value = st.get("cl"); $("m-dev").value = st.get("dev"); $("m-app").value = st.get("app");
     $("m-edge").value = st.get("edge"); $("m-cbw").value = st.get("cbw");
+    $("m-tod").value = st.get("tod"); $("m-curve").value = st.get("curve");
+    channelOptions();
   }
   function readUi() {
-    st.set("fw", +$("m-fw").value).set("fd", +$("m-fd").value).set("land", $("m-land").value)
+    st.set("fw", +$("m-fw").value).set("fd", +$("m-fd").value).set("north", +$("m-north").value)
+      .set("land", $("m-land").value).set("dom", $("m-dom").value)
       .set("up", Math.max(1, +$("m-up").value || 1)).set("prof", $("m-prof").value).set("hops", +$("m-hops").value)
-      .set("f", +$("m-band").value).set("bw", +$("m-bw").value)
-      .set("tx", +$("m-tx").value).set("ant", $("m-ant").value).set("kind", $("m-kind").value).set("ss", +$("m-ss").value)
+      .set("f", +$("m-band").value).set("bw", +$("m-bw").value).set("dfs", $("m-dfs").value === "1")
+      .set("tx", +$("m-tx").value).set("fade", +$("m-fade").value).set("ant", $("m-ant").value).set("kind", $("m-kind").value).set("ss", +$("m-ss").value)
       .set("ray", $("m-ray").value === "1")
       .set("cl", Math.max(0, +$("m-cl").value || 0)).set("dev", $("m-dev").value).set("app", $("m-app").value)
-      .set("edge", +$("m-edge").value).set("cbw", +$("m-cbw").value);
+      .set("edge", +$("m-edge").value).set("cbw", +$("m-cbw").value)
+      .set("tod", +$("m-tod").value).set("curve", $("m-curve").value);
   }
+
   /* the plan sees the antenna each AP actually wears: the picked one where the
      choice is automatic. raw hands the picker the undecided list. */
   var lastSug = null;
-  function resolveAnts() {
-    var aps = st.get("ap");
-    if (!aps.some(function (a) { return M.isAuto(a) && !a.down; })) { lastSug = null; aps.forEach(function (a) { a._ant = a.ant; }); return; }
+  function modelOf(S, raw) {
+    var aps = raw ? S.get("ap") : S.get("ap").map(function (a) { var o = {}, k; for (k in a) o[k] = a[k]; o.ant = M.isAuto(a) ? (a._ant || "omni") : a.ant; return o; });
+    return { aps: aps, obstacles: S.get("ob"), terrain: S.get("tr"), crowds: S.get("cr"), meas: S.get("ms"),
+             w: S.get("fw"), d: S.get("fd"), land: S.get("land"), north: S.get("north"), domain: S.get("dom"), dfs: S.get("dfs"),
+             uplink: S.get("up"), profile: S.get("prof"), maxHops: S.get("hops"),
+             fGHz: S.get("f"), bw: S.get("bw"), tx: S.get("tx"), fade: S.get("fade"), ant: S.get("ant"), ss: S.get("ss"),
+             tworay: S.get("ray"),
+             clients: S.get("cl"), dev: S.get("dev"), app: S.get("app"),
+             tod: S.get("tod") >= 24 ? null : S.get("tod"), curve: S.get("curve"),
+             clientTarget: S.get("edge"), clientBw: S.get("cbw"), clientF: S.get("f") };
+  }
+  function model(raw) { return modelOf(st, raw); }
+  function resolveAnts(S) {
+    S = S || st;
+    var aps = S.get("ap");
+    if (!aps.some(function (a) { return M.isAuto(a) && !a.down; })) { if (S === st) lastSug = null; aps.forEach(function (a) { a._ant = a.ant; }); return null; }
     /* mid-drag the last answer stands; the search runs again when the finger lifts */
-    if (drag && drag.moved && aps.every(function (a) { return a._ant; })) return;
-    var S = M.suggest(model(true));
-    aps.forEach(function (a, i) { a._ant = S.ants[i]; });
-    lastSug = S;
+    if (S === st && drag && drag.moved && aps.every(function (a) { return a._ant; })) return lastSug;
+    var Sg = M.suggest(modelOf(S, true));
+    aps.forEach(function (a, i) { a._ant = Sg.ants[i]; });
+    if (S === st) lastSug = Sg;
+    return Sg;
   }
-  function model(raw) {
-    var aps = raw ? st.get("ap") : st.get("ap").map(function (a) { var o = {}, k; for (k in a) o[k] = a[k]; o.ant = M.isAuto(a) ? (a._ant || "omni") : a.ant; return o; });
-    return { aps: aps, obstacles: st.get("ob"), w: st.get("fw"), d: st.get("fd"), land: st.get("land"),
-             uplink: st.get("up"), profile: st.get("prof"), maxHops: st.get("hops"),
-             fGHz: st.get("f"), bw: st.get("bw"), tx: st.get("tx"), ant: st.get("ant"), ss: st.get("ss"),
-             tworay: st.get("ray"),
-             clients: st.get("cl"), dev: st.get("dev"), app: st.get("app"),
-             clientTarget: st.get("edge"), clientBw: st.get("cbw"), clientF: st.get("f") };
-  }
-
   /* ── the map ─────────────────────────────────────────────────────────── */
   /* the drawing width follows the box so a label is the same size on a phone as
      on a desk, instead of a 900 unit picture squeezed into 340 pixels */
   var W = 900, L = { s: 1, H: 500 };
   function layout() {
     W = Math.max(420, Math.min(900, ($("m-map").clientWidth || 900) - 12));
-    var fw = st.get("fw"), fd = st.get("fd"); L.s = W / fw; L.H = Math.max(240, Math.min(620, fd * L.s)); L.s = Math.min(L.s, L.H / fd); L.ox = (W - fw * L.s) / 2; L.oy = (L.H - fd * L.s) / 2; }
+    var fw = st.get("fw"), fd = st.get("fd"); L.s = W / fw; L.H = Math.max(240, Math.min(620, fd * L.s)); L.s = Math.min(L.s, L.H / fd); L.ox = (W - fw * L.s) / 2; L.oy = (L.H - fd * L.s) / 2;
+  }
   function X(x) { return L.ox + x * L.s; }
   function Y(y) { return L.oy + y * L.s; }
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
@@ -964,31 +1108,59 @@ it would get.</p>
     return pts.join(" ");
   }
   function mbs(x) { return x >= 1000 ? (x / 1000).toFixed(1) + " Gb/s" : x >= 10 ? x.toFixed(0) + " Mb/s" : x >= 1 ? x.toFixed(1) + " Mb/s" : Math.round(x * 1000) + " kb/s"; }
+  function compassTxt(az) { return Math.round(M.compass(az, st.get("north"))) + "°"; }
+  var img = { url: null, w: 0, h: 0, op: 0.55 };
+  try { var savedImg = localStorage.getItem("nfn-mesh-img"); if (savedImg) { img.url = savedImg; var im0 = new Image(); im0.onload = function () { img.w = im0.naturalWidth; img.h = im0.naturalHeight; run(); }; im0.src = savedImg; } } catch (e) {}
 
-  function drawMap(p, cl) {
+  function apColor(r) {
+    return r.status === "down" ? "rgba(139,162,174,0.55)" : r.status === "unreachable" ? WARN : r.gw ? "#8CE05E" : HOPC[Math.min(Math.max(r.depth, 1), HOPC.length - 1)];
+  }
+
+  function drawMap(p, cl, walk) {
     layout();
-    var aps = st.get("ap"), obs = st.get("ob"), c = st.get("c"), parts = [], i, fw = st.get("fw"), fd = st.get("fd");
+    var aps = st.get("ap"), obs = st.get("ob"), hills = st.get("tr"), crowds = st.get("cr"), pts = st.get("pt"), c = st.get("c"),
+        parts = [], i, fw = st.get("fw"), fd = st.get("fd"), m = model(), res = p.tree.aps;
     parts.push('<defs><filter id="m-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
                '<radialGradient id="m-cell" gradientUnits="objectBoundingBox"><stop offset="0" stop-color="#8CE05E" stop-opacity="0.14"/><stop offset="1" stop-color="#8CE05E" stop-opacity="0.04"/></radialGradient>' +
+               '<radialGradient id="m-crowd"><stop offset="0" stop-color="#EAF2F6" stop-opacity="0.22"/><stop offset="1" stop-color="#EAF2F6" stop-opacity="0.03"/></radialGradient>' +
                '<pattern id="m-grid" width="' + (20 * L.s) + '" height="' + (20 * L.s) + '" patternUnits="userSpaceOnUse" x="' + L.ox + '" y="' + L.oy + '">' +
                '<path d="M ' + (20 * L.s) + ' 0 L 0 0 0 ' + (20 * L.s) + '" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs>');
     parts.push('<rect x="' + L.ox + '" y="' + L.oy + '" width="' + (fw * L.s) + '" height="' + (fd * L.s) + '" fill="rgba(3,10,16,0.35)" stroke="rgba(255,255,255,0.14)" rx="6"/>');
+    if (img.url) parts.push('<image href="' + img.url + '" x="' + L.ox + '" y="' + L.oy + '" width="' + (fw * L.s) + '" height="' + (fd * L.s) + '" preserveAspectRatio="none" opacity="' + img.op + '" style="pointer-events:none"/>');
     parts.push('<rect x="' + L.ox + '" y="' + L.oy + '" width="' + (fw * L.s) + '" height="' + (fd * L.s) + '" fill="url(#m-grid)" rx="6"/>');
-    /* a scale bar that is a round number of metres */
-    var bar = [10, 20, 25, 50, 100, 200, 250, 500].filter(function (m) { return m * L.s >= 60 && m * L.s <= 200; })[0] || 50;
+    /* a scale bar that is a round number of metres, and the compass */
+    var bar = [10, 20, 25, 50, 100, 200, 250, 500].filter(function (mm) { return mm * L.s >= 60 && mm * L.s <= 200; })[0] || 50;
     parts.push('<line x1="' + (X(fw) - 12 - bar * L.s) + '" y1="' + (Y(fd) - 12) + '" x2="' + (X(fw) - 12) + '" y2="' + (Y(fd) - 12) + '" stroke="#B0C4CF" stroke-width="2"/>');
     parts.push(T(X(fw) - 12 - bar * L.s / 2, Y(fd) - 18, bar + " m", "#B0C4CF", "middle", 10));
-    parts.push(T(X(0) + 8, Y(0) + 14, fw + " x " + fd + " m, " + p.land.label.toLowerCase(), "rgba(139,162,174,0.8)", "start", 10));
+    parts.push(T(X(0) + 8, Y(0) + 14, fw + " x " + fd + " m, " + p.land.label.toLowerCase() + (hills.length ? ", " + hills.length + " hill" + (hills.length === 1 ? "" : "s") : ""), "rgba(139,162,174,0.8)", "start", 10));
+    var na = M.fromCompass(0, st.get("north")) * Math.PI / 180, ncx = X(fw) - 22, ncy = Y(0) + 24;
+    parts.push('<circle cx="' + ncx + '" cy="' + ncy + '" r="12" fill="rgba(6,16,25,0.7)" stroke="rgba(255,255,255,0.2)"/>' +
+               '<line x1="' + ncx + '" y1="' + ncy + '" x2="' + (ncx + 10 * Math.cos(na)) + '" y2="' + (ncy + 10 * Math.sin(na)) + '" stroke="#F5A524" stroke-width="2"/>' +
+               T(ncx + 14 * Math.cos(na), ncy + 14 * Math.sin(na) + 3, "N", "#F5A524", "middle", 8, 'pointer-events="none"'));
 
-    /* footprints at the target level: the antenna's real shape on the ground,
-       for the live APs that serve clients */
-    var m = model(), res = p.tree.aps;
+    /* hills: contour rings at half and a tenth of the height */
+    hills.forEach(function (hl, k) {
+      var on = sel && sel.kind === "hill" && sel.i === k, col = hl.h >= 0 ? "rgba(176,196,207," : "rgba(94,210,218,";
+      parts.push('<g data-kind="hill" data-i="' + k + '" style="cursor:move">' +
+        '<circle cx="' + X(hl.x) + '" cy="' + Y(hl.y) + '" r="' + (hl.r / 2 * 1.07 * L.s) + '" fill="' + col + '0.05)" stroke="' + col + (on ? "0.9)" : "0.35)") + '" stroke-dasharray="6 4"/>' +
+        '<circle cx="' + X(hl.x) + '" cy="' + Y(hl.y) + '" r="' + (hl.r / 2 * 0.59 * L.s) + '" fill="' + col + '0.06)" stroke="' + col + '0.3)"/>' +
+        '<circle cx="' + X(hl.x) + '" cy="' + Y(hl.y) + '" r="14" fill="transparent"/>' +
+        T(X(hl.x), Y(hl.y) + 4, (hl.h > 0 ? "+" : "") + hl.h + " m", "#B0C4CF", "middle", 9.5, 'pointer-events="none"') + "</g>");
+    });
+    /* footprints at the target level: the antenna's real shape on the ground */
     res.forEach(function (a, k) {
       var r = p.aps[k]; if (r.status === "down" || r.status === "unreachable" || !r.serves) return;
-      var pts = M.contour(a, m, st.get("land"), 72).map(function (q) {
+      var pp = M.contour(a, m, st.get("land"), 72).map(function (q) {
         return (X(a.x + q.r * Math.cos(q.az * Math.PI / 180))).toFixed(1) + "," + (Y(a.y + q.r * Math.sin(q.az * Math.PI / 180))).toFixed(1);
       }).join(" ");
-      parts.push('<polygon points="' + pts + '" fill="url(#m-cell)" stroke="rgba(140,224,94,0.28)" stroke-dasharray="3 5"/>');
+      parts.push('<polygon points="' + pp + '" fill="url(#m-cell)" stroke="rgba(140,224,94,0.28)" stroke-dasharray="3 5"/>');
+    });
+    /* crowds */
+    crowds.forEach(function (cr, k) {
+      var on = sel && sel.kind === "crowd" && sel.i === k, w2 = p.who.crowds[k], bad = w2 && w2.unserved > 0.5;
+      parts.push('<g data-kind="crowd" data-i="' + k + '" style="cursor:move">' +
+        '<circle cx="' + X(cr.x) + '" cy="' + Y(cr.y) + '" r="' + Math.max(10, cr.r * L.s) + '" fill="url(#m-crowd)" stroke="' + (on ? "#fff" : bad ? WARN : "rgba(234,242,246,0.5)") + '" stroke-width="' + (on ? 2 : 1) + '"' + (bad ? ' stroke-dasharray="4 3"' : "") + '/>' +
+        T(X(cr.x), Y(cr.y) + 4, Math.round(cr.n * p.who.factor) + " people" + (bad ? ", " + Math.round(w2.unserved) + " unserved" : ""), bad ? WARN : "#EAF2F6", "middle", 9.5, 'pointer-events="none"') + "</g>");
     });
     /* obstacles */
     obs.forEach(function (o, k) {
@@ -998,24 +1170,46 @@ it would get.</p>
         '<circle cx="' + X(o.x) + '" cy="' + Y(o.y) + '" r="' + Math.max(6, o.r * L.s) + '" fill="rgba(176,196,207,0.14)" stroke="' + (on ? "#fff" : blocks ? WARN : "rgba(176,196,207,0.55)") + '" stroke-width="' + (on ? 2 : 1.2) + '"/>' +
         T(X(o.x), Y(o.y) + 4, M.OBSTACLES[o.type].label + " " + o.h + " m", "#B0C4CF", "middle", 9.5, 'pointer-events="none"') + "</g>");
     });
-    /* backup links, faint, so a single point of failure reads as the absence of one */
+    /* backup links, faint */
     p.aps.forEach(function (r, k) {
       if (r.backup < 0 || r.depth <= 0) return;
       var a = aps[k], b = aps[r.backup];
       parts.push('<line x1="' + X(a.x) + '" y1="' + Y(a.y) + '" x2="' + X(b.x) + '" y2="' + Y(b.y) + '" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="2 6"/>');
     });
+    /* co-channel: links that hear each other on one channel */
+    p.aps.forEach(function (r, k) {
+      if (r.depth <= 0 || !r.cciWith.length) return;
+      var a = aps[k], b = aps[r.parent], mx = (X(a.x) + X(b.x)) / 2, my = (Y(a.y) + Y(b.y)) / 2;
+      r.cciWith.forEach(function (j) {
+        if (j < k) return;
+        var a2 = aps[j], b2 = aps[p.aps[j].parent], mx2 = (X(a2.x) + X(b2.x)) / 2, my2 = (Y(a2.y) + Y(b2.y)) / 2;
+        parts.push('<line x1="' + mx + '" y1="' + my + '" x2="' + mx2 + '" y2="' + my2 + '" stroke="' + WARN + '" stroke-opacity="0.45" stroke-width="1" stroke-dasharray="1 4"/>');
+      });
+    });
     /* the tree */
     p.aps.forEach(function (r, k) {
       if (r.depth <= 0 || r.parent < 0) return;
       var a = aps[k], b = aps[r.parent], Lk = r.link, col = Lk.fresnelBad ? WARN : HOPC[Math.min(r.depth, HOPC.length - 1)],
-          wdt = NFN.clamp(1.5 + Lk.goodput / 120, 1.5, 6),
-          mx = (X(a.x) + X(b.x)) / 2, my = (Y(a.y) + Y(b.y)) / 2;
+          wdt = NFN.clamp(1.5 + Lk.goodput / 120, 1.5, 6), mx = (X(a.x) + X(b.x)) / 2, my = (Y(a.y) + Y(b.y)) / 2;
       parts.push('<line x1="' + X(b.x) + '" y1="' + Y(b.y) + '" x2="' + X(a.x) + '" y2="' + Y(a.y) + '" stroke="' + col + '" stroke-width="' + wdt + '" stroke-opacity="0.85"' +
                  (Lk.fresnelBad ? ' stroke-dasharray="7 5"' : "") + ' filter="url(#m-glow)"/>');
-      var lbl = mbs(Lk.goodput) + (Lk.blockedBy ? " · " + Lk.diffraction.toFixed(0) + " dB in the way" : "") + (Lk.fresnelBad ? " · Fresnel" : "");
+      var lbl = mbs(Lk.goodput * (1 - r.cci)) + (r.cci > 0.05 ? " · " + Math.round(r.cci * 100) + "% air lost" : "") + (Lk.blockedBy && Lk.blockedBy !== "band" ? " · " + Lk.diffraction.toFixed(0) + " dB " + (Lk.blockedBy === "foliage" ? "trees" : "in the way") : "") + (Lk.fresnelBad ? " · Fresnel" : "") + (Lk.measured ? " · measured" : "");
       parts.push('<rect x="' + (mx - lbl.length * 3.1 - 5) + '" y="' + (my - 9) + '" width="' + (lbl.length * 6.2 + 10) + '" height="17" rx="5" fill="rgba(6,16,25,0.85)" stroke="' + col + '" stroke-opacity="0.5"/>');
       parts.push(T(mx, my + 4, lbl, col, "middle", 10, 'pointer-events="none"'));
     });
+    /* the walk */
+    if (pts.length) {
+      parts.push('<polyline points="' + pts.map(function (q) { return X(q.x) + "," + Y(q.y); }).join(" ") + '" fill="none" stroke="#4FBDEA" stroke-opacity="0.7" stroke-width="2" stroke-dasharray="6 4"/>');
+      pts.forEach(function (q, k) {
+        var on = sel && sel.kind === "pt" && sel.i === k;
+        parts.push('<g data-kind="pt" data-i="' + k + '" style="cursor:move"><circle cx="' + X(q.x) + '" cy="' + Y(q.y) + '" r="12" fill="transparent"/><circle cx="' + X(q.x) + '" cy="' + Y(q.y) + '" r="' + (on ? 6 : 4) + '" fill="#4FBDEA" stroke="#06202A"/></g>');
+      });
+      if (walk && walk.length) walk.forEach(function (w2, k) {
+        if (k % 2) return;
+        var col = w2.ok ? apColor(p.aps[w2.ap]) : WARN;
+        parts.push('<circle cx="' + X(w2.x) + '" cy="' + Y(w2.y) + '" r="2" fill="' + col + '"/>');
+      });
+    }
     /* the client's association */
     if (c && cl && cl.ap >= 0) {
       var ca = aps[cl.ap];
@@ -1023,16 +1217,21 @@ it would get.</p>
     }
     /* the APs */
     aps.forEach(function (a, k) {
-      var r = p.aps[k], on = sel && sel.kind === "ap" && sel.i === k, cx = X(a.x), cy = Y(a.y),
-          col = r.status === "down" ? "rgba(139,162,174,0.55)" : r.status === "unreachable" ? WARN : r.gw ? "#8CE05E" : HOPC[Math.min(Math.max(r.depth, 1), HOPC.length - 1)];
+      var r = p.aps[k], on = sel && sel.kind === "ap" && sel.i === k, cx = X(a.x), cy = Y(a.y), col = apColor(r);
       parts.push('<g class="m-ap" data-kind="ap" data-i="' + k + '" style="cursor:move">');
-      parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="22" fill="transparent"/>');   /* a finger sized hit area */
-      /* a directional antenna shows where it looks: a wedge as wide as its beam */
+      parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="22" fill="transparent"/>');
+      /* a directional antenna shows where it looks: a wedge as wide as its beam;
+         the client antenna of a tri radio box gets a second, fainter one */
       var ant = r.antenna;
       if (ant.h < 360 && r.status !== "down") {
         var aim = res[k].aim * Math.PI / 180, half = ant.h / 2 * Math.PI / 180, len = 34 + (30 - ant.h > 0 ? 8 : 0);
         parts.push('<path d="M' + cx + ' ' + cy + ' L' + (cx + len * Math.cos(aim - half)) + ' ' + (cy + len * Math.sin(aim - half)) +
                    ' A' + len + ' ' + len + ' 0 0 1 ' + (cx + len * Math.cos(aim + half)) + ' ' + (cy + len * Math.sin(aim + half)) + ' Z" fill="' + col + '" fill-opacity="0.18" stroke="' + col + '" stroke-opacity="0.6" stroke-width="1"/>');
+      }
+      if (r.kind.dedicated && r.serves && r.clientAntenna.h < 360 && r.status !== "down") {
+        var caim = res[k].caim * Math.PI / 180, chalf = r.clientAntenna.h / 2 * Math.PI / 180;
+        parts.push('<path d="M' + cx + ' ' + cy + ' L' + (cx + 28 * Math.cos(caim - chalf)) + ' ' + (cy + 28 * Math.sin(caim - chalf)) +
+                   ' A28 28 0 0 1 ' + (cx + 28 * Math.cos(caim + chalf)) + ' ' + (cy + 28 * Math.sin(caim + chalf)) + ' Z" fill="#EAF2F6" fill-opacity="0.10" stroke="#EAF2F6" stroke-opacity="0.4" stroke-width="1"/>');
       }
       if (on) parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="17" fill="none" stroke="#fff" stroke-opacity="0.8" stroke-width="1.5"/>');
       var fo = r.status === "down" ? 0.25 : r.status === "unreachable" ? 0.35 : 0.95;
@@ -1040,9 +1239,9 @@ it would get.</p>
       else if (!r.serves) parts.push('<polygon points="' + cx + ',' + (cy - 11) + ' ' + (cx + 11) + ',' + cy + ' ' + cx + ',' + (cy + 11) + ' ' + (cx - 11) + ',' + cy + '" fill="' + col + '" fill-opacity="' + fo + '" stroke="' + (r.status === "unreachable" ? WARN : "#06202A") + '" stroke-width="1.5" filter="url(#m-glow)"/>');
       else parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="10" fill="' + col + '" fill-opacity="' + fo + '" stroke="' + (r.status === "unreachable" ? WARN : "#06202A") + '" stroke-width="1.5"' + (r.status === "unreachable" ? ' stroke-dasharray="3 2"' : "") + ' filter="url(#m-glow)"/>');
       if (r.status === "down") parts.push('<path d="M' + (cx - 6) + ' ' + (cy - 6) + 'L' + (cx + 6) + ' ' + (cy + 6) + 'M' + (cx + 6) + ' ' + (cy - 6) + 'L' + (cx - 6) + ' ' + (cy + 6) + '" stroke="' + WARN + '" stroke-width="2"/>');
-      var tag = "AP " + (k + 1) + (r.gw ? " portal" : r.depth > 0 ? " · " + r.depth + (r.depth === 1 ? " hop" : " hops") : ""),
-          sub = r.status === "down" ? "down" : r.status === "unreachable" ? "no path" : r.gw ? "uplink" + (r.serves ? "" : ", no clients") : !r.serves ? "bridge, no clients" : mbs(r.delivered) + " to clients";
-      var lx = NFN.clamp(cx, 44, W - 44);            /* labels stay on the picture at the edges */
+      var tag = "AP " + (k + 1) + (r.gw ? " portal" : r.depth > 0 ? " · " + r.depth + (r.depth === 1 ? " hop" : " hops") : "") + (r.channel !== null && r.depth >= 0 ? " · ch " + r.channel : ""),
+          sub = r.status === "down" ? "down" : r.status === "unreachable" ? "no path" : r.gw ? "uplink" + (r.serves ? "" : ", no clients") : !r.serves ? "bridge, no clients" : mbs(r.delivered) + " to " + Math.round(r.clients) + " clients";
+      var lx = NFN.clamp(cx, 44, W - 44);
       parts.push(T(lx, cy - 18, tag, "#EAF2F6", "middle", 10.5, 'pointer-events="none" font-weight="600"'));
       parts.push(T(lx, cy + 27, sub, r.status === "unreachable" || r.status === "down" ? WARN : "#B0C4CF", "middle", 9.5, 'pointer-events="none"'));
       parts.push("</g>");
@@ -1059,23 +1258,278 @@ it would get.</p>
       parts.push(T(NFN.clamp(cx2, 90, W - 90), cy2 + 24, ctxt, cl && cl.ok ? "#4FBDEA" : WARN, "middle", 9.5, 'pointer-events="none"'));
       parts.push("</g>");
     }
+    if (scalePts.length) scalePts.forEach(function (q) { parts.push('<circle cx="' + X(q.x) + '" cy="' + Y(q.y) + '" r="6" fill="none" stroke="#F5A524" stroke-width="2"/>'); });
     $("m-map").innerHTML = '<svg viewBox="0 0 ' + W + " " + L.H + '" width="100%" role="img" aria-label="Site map with ' + aps.length + ' access points and the mesh links between them" id="m-svg" style="touch-action:none;display:block">' + parts.join("") + "</svg>";
     $("m-legend").innerHTML = '<span><i style="background:#8CE05E"></i>portal, one hop</span><span><i style="background:#5ED2DA"></i>two hops</span>' +
       '<span><i style="background:#4FBDEA"></i>three</span><span><i style="background:#c9a0ff"></i>deeper</span>' +
-      '<span><i style="background:' + WARN + '"></i>Fresnel or no path</span><span><i style="border:1px dashed rgba(255,255,255,0.5);background:none"></i>backup parent</span>' +
+      '<span><i style="background:' + WARN + '"></i>Fresnel, no path, co-channel</span><span><i style="border:1px dashed rgba(255,255,255,0.5);background:none"></i>backup parent</span>' +
       '<span><i style="border:1px dashed rgba(140,224,94,0.6);background:rgba(140,224,94,0.12);border-radius:50%"></i>footprint at ' + st.get("edge") + ' dBm</span>' +
-      '<span><i style="background:none;border-left:10px solid rgba(94,210,218,0.7);border-top:5px solid transparent;border-bottom:5px solid transparent;border-radius:0;width:0;height:0"></i>where a patch looks</span>';
+      '<span><i style="background:none;border-left:10px solid rgba(94,210,218,0.7);border-top:5px solid transparent;border-bottom:5px solid transparent;border-radius:0;width:0;height:0"></i>where a patch looks</span>' +
+      '<span><i style="border-radius:50%;background:rgba(234,242,246,0.2);border:1px solid rgba(234,242,246,0.5)"></i>crowd</span>' +
+      '<span><i style="border-radius:50%;background:rgba(176,196,207,0.08);border:1px dashed rgba(176,196,207,0.5)"></i>hill</span>';
+  }
+  /* ── the 3D view ─────────────────────────────────────────────────────────
+     A camera on an orbit around the middle of the field, a perspective
+     projection, and everything the plan already knows drawn in painter's
+     order. Heights are exaggerated by a factor the user sets, because a 3 m
+     mast on a 480 m field is a pixel, and the caption says so. Nothing here
+     computes physics; it reads M.plan and M.link output. */
+  var lastP = null, lastCl = null, lastWalk = null;
+  function cam() { return st.get("cam"); }
+  var CAMB = null;
+  function proj3() {
+    var fw = st.get("fw"), fd = st.get("fd"), c = cam(), k = st.get("zx"),
+        H = Math.round(W * 0.6), R = c.zoom * Math.max(fw, fd), F = W * 1.1,
+        py = c.pitch * Math.PI / 180, yw = c.yaw * Math.PI / 180,
+        cp = [R * Math.cos(py) * Math.cos(yw), R * Math.cos(py) * Math.sin(yw), R * Math.sin(py)],
+        fl = norm3([-cp[0], -cp[1], -cp[2]]), rt = norm3(cross3(fl, [0, 0, 1])), up = cross3(rt, fl);
+    CAMB = { cp: cp, fl: fl, rt: rt, up: up, F: F, W: W, H: H, k: k, fw: fw, fd: fd };
+    return {
+      W: W, H: H, k: k,
+      /* world metres in, screen units out; z is the real height in metres */
+      P: function (x, y, z) {
+        var d = [x - fw / 2 - cp[0], y - fd / 2 - cp[1], z * k - cp[2]],
+            xc = dot3(d, rt), yc = dot3(d, up), zc = Math.max(1, dot3(d, fl));
+        return { x: W / 2 + F * xc / zc, y: H * 0.46 - F * yc / zc, z: zc };
+      }
+    };
+  }
+  /* the ground point under a screen position, on the plane at height z0 */
+  function unproject3(sx, sy, z0) {
+    var B = CAMB; if (!B) return null;
+    var xs = sx - B.W / 2, ys = -(sy - B.H * 0.46),
+        dir = [B.fl[0] * B.F + B.rt[0] * xs + B.up[0] * ys, B.fl[1] * B.F + B.rt[1] * xs + B.up[1] * ys, B.fl[2] * B.F + B.rt[2] * xs + B.up[2] * ys],
+        zt = z0 * B.k - B.cp[2];
+    if (Math.abs(dir[2]) < 1e-6) return null;
+    var t = zt / dir[2]; if (t <= 0) return null;
+    return { x: B.fw / 2 + B.cp[0] + dir[0] * t, y: B.fd / 2 + B.cp[1] + dir[1] * t };
+  }
+  function cross3(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  function dot3(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+  function norm3(a) { var l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; }
+  function pts3(list) { return list.map(function (q) { return q.x.toFixed(1) + "," + q.y.toFixed(1); }).join(" "); }
+  function depthOf(list) { var s = 0; list.forEach(function (q) { s += q.z; }); return s / list.length; }
+
+  function draw3d(p, cl, walk) {
+    W = Math.max(420, Math.min(900, ($("m-map").clientWidth || 900) - 12));
+    var V = proj3(), P = V.P, items = [], ground = [], i, j,
+        aps = st.get("ap"), res = p.tree.aps, obs = st.get("ob"), hills = st.get("tr"), crowds = st.get("cr"), pts = st.get("pt"), c = st.get("c"), m = model(),
+        fw = st.get("fw"), fd = st.get("fd"), layers = st.get("l3"),
+        has = function (ch) { return layers.indexOf(ch) >= 0; },
+        gz = function (x, y) { return M.ground(x, y, hills); };
+    function add(z, svg) { items.push({ z: z, s: svg }); }
+
+    /* the ground: a 20 m grid that follows the hills, drawn first and never sorted */
+    var gs = Math.max(10, Math.round(Math.max(fw, fd) / 40 / 10) * 10);
+    for (i = 0; i <= fw + 0.01; i += gs) { var col1 = []; for (j = 0; j <= fd + 0.01; j += gs) col1.push(P(Math.min(i, fw), Math.min(j, fd), gz(i, j))); ground.push('<polyline points="' + pts3(col1) + '" fill="none" stroke="rgba(255,255,255,' + (i === 0 || i >= fw - 0.01 ? 0.16 : 0.06) + ')"/>'); }
+    for (j = 0; j <= fd + 0.01; j += gs) { var row1 = []; for (i = 0; i <= fw + 0.01; i += gs) row1.push(P(Math.min(i, fw), Math.min(j, fd), gz(i, j))); ground.push('<polyline points="' + pts3(row1) + '" fill="none" stroke="rgba(255,255,255,' + (j === 0 || j >= fd - 0.01 ? 0.16 : 0.06) + ')"/>'); }
+    /* hills as filled contour rings so the shape reads */
+    hills.forEach(function (hl) {
+      [0.9, 0.5, 0.15].forEach(function (frac) {
+        var rr = hl.r / 2 * Math.sqrt(-2 * Math.log(frac)), ring = [], q;
+        for (q = 0; q < 24; q++) { var an = q / 24 * Math.PI * 2, x = hl.x + rr * Math.cos(an), y = hl.y + rr * Math.sin(an); ring.push(P(x, y, gz(x, y))); }
+        ground.push('<polygon points="' + pts3(ring) + '" fill="rgba(176,196,207,0.05)" stroke="rgba(176,196,207,0.3)" stroke-width="0.8"/>');
+      });
+    });
+    /* footprints and crowds, painted on the ground */
+    if (has("c")) {
+      res.forEach(function (a, k) {
+        var r = p.aps[k]; if (r.status === "down" || r.status === "unreachable" || !r.serves) return;
+        var ring = M.contour(a, m, st.get("land"), 48).map(function (q) {
+          var x = NFN.clamp(a.x + q.r * Math.cos(q.az * Math.PI / 180), -fw * 0.3, fw * 1.3), y = NFN.clamp(a.y + q.r * Math.sin(q.az * Math.PI / 180), -fd * 0.3, fd * 1.3);
+          return P(x, y, gz(x, y) + 0.05);
+        });
+        ground.push('<polygon points="' + pts3(ring) + '" fill="rgba(140,224,94,0.07)" stroke="rgba(140,224,94,0.3)" stroke-dasharray="3 5"/>');
+      });
+      crowds.forEach(function (cr, k) {
+        var ring = [], q, w2 = p.who.crowds[k], bad = w2 && w2.unserved > 0.5;
+        for (q = 0; q < 24; q++) { var an = q / 24 * Math.PI * 2, x = cr.x + cr.r * Math.cos(an), y = cr.y + cr.r * Math.sin(an); ring.push(P(x, y, gz(x, y) + 0.1)); }
+        var cc = P(cr.x, cr.y, gz(cr.x, cr.y) + 1.2);
+        ground.push('<polygon points="' + pts3(ring) + '" fill="rgba(234,242,246,0.08)" stroke="' + (bad ? WARN : "rgba(234,242,246,0.5)") + '"/>' +
+                    T(cc.x, cc.y, Math.round(cr.n * p.who.factor) + " people", bad ? WARN : "#EAF2F6", "middle", 9.5, 'pointer-events="none"'));
+      });
+      if (pts.length) ground.push('<polyline points="' + pts3(pts.map(function (q) { return P(q.x, q.y, gz(q.x, q.y) + 0.2); })) + '" fill="none" stroke="#4FBDEA" stroke-opacity="0.7" stroke-width="1.5" stroke-dasharray="5 4"/>');
+    }
+
+    /* obstacles as twelve sided prisms, faces lit from the north west */
+    obs.forEach(function (o, k) {
+      var N = 12, top = [], base = [], q, blocks = false, g0 = gz(o.x, o.y);
+      p.aps.forEach(function (r) { if (r.link && r.link.obstacle === k) blocks = true; });
+      for (q = 0; q < N; q++) {
+        var an = q / N * Math.PI * 2, ox = o.x + o.r * Math.cos(an), oy = o.y + o.r * Math.sin(an);
+        top.push(P(ox, oy, g0 + o.h)); base.push(P(ox, oy, gz(ox, oy)));
+      }
+      for (q = 0; q < N; q++) {
+        var q2 = (q + 1) % N, face = [base[q], base[q2], top[q2], top[q]],
+            wind = (face[1].x - face[0].x) * (face[2].y - face[0].y) - (face[2].x - face[0].x) * (face[1].y - face[0].y);
+        if (wind >= 0) continue;
+        var an2 = (q + 0.5) / N * Math.PI * 2, lit = 0.5 + 0.5 * Math.max(0, Math.cos(an2 - Math.PI * 1.25)),
+            tint = (M.OBSTACLES[o.type] || {}).foliage ? "140,224,94," : "176,196,207,";
+        add(depthOf(face), '<polygon points="' + pts3(face) + '" fill="rgba(' + tint + (0.08 + 0.14 * lit).toFixed(3) + ')" stroke="rgba(' + tint + '0.35)" stroke-width="0.8"/>');
+      }
+      add(depthOf(top) - 0.01, '<polygon points="' + pts3(top) + '" fill="rgba(176,196,207,0.30)" stroke="' + (blocks ? WARN : "rgba(176,196,207,0.6)") + '" stroke-width="1"/>' +
+          T(P(o.x, o.y, g0 + o.h).x, P(o.x, o.y, g0 + o.h).y - 6, M.OBSTACLES[o.type].label + " " + o.h + " m", "#B0C4CF", "middle", 9.5, 'pointer-events="none"'));
+    });
+
+    /* links between mast tops, with the Fresnel tube and the ground bounce */
+    p.aps.forEach(function (r, k) {
+      if (r.depth <= 0 || r.parent < 0) return;
+      var a = res[k], b = res[r.parent], Lk = r.link, za = a.z + a.h, zb = b.z + b.h,
+          col = Lk.fresnelBad ? WARN : HOPC[Math.min(r.depth, HOPC.length - 1)],
+          A = P(a.x, a.y, za), B = P(b.x, b.y, zb), mid = P((a.x + b.x) / 2, (a.y + b.y) / 2, (za + zb) / 2);
+      add((A.z + B.z) / 2 - 0.5, '<line x1="' + A.x + '" y1="' + A.y + '" x2="' + B.x + '" y2="' + B.y + '" stroke="' + col + '" stroke-width="' + NFN.clamp(1.2 + Lk.goodput / 150, 1.2, 4) + '" stroke-opacity="0.9"' + (Lk.fresnelBad ? ' stroke-dasharray="6 4"' : "") + ' filter="url(#m-glow)"/>');
+      var lbl = mbs(Lk.goodput * (1 - r.cci)) + (Lk.fresnelBad ? " · Fresnel" : "") + (r.channel !== null ? " · ch " + r.channel : "");
+      add((A.z + B.z) / 2 - 0.6, '<rect x="' + (mid.x - lbl.length * 3.1 - 5) + '" y="' + (mid.y - 20) + '" width="' + (lbl.length * 6.2 + 10) + '" height="16" rx="5" fill="rgba(6,16,25,0.85)" stroke="' + col + '" stroke-opacity="0.5"/>' + T(mid.x, mid.y - 8, lbl, col, "middle", 9.5, 'pointer-events="none"'));
+
+      if (has("f")) {
+        var d = Lk.d, ax = [b.x - a.x, b.y - a.y, zb - za], u = norm3(ax),
+            n1 = norm3(cross3(u, [0, 0, 1])), n2 = cross3(u, n1), NR = 14, top = [], bot = [], q, s;
+        for (s = 0; s <= NR; s++) {
+          var t = s / NR, d1 = d * t, d2 = d - d1, f1 = 0.6 * NFN.rf.fresnel1(Math.max(1, d1), Math.max(1, d2), Lk.band),
+              cx3 = a.x + ax[0] * t, cy3 = a.y + ax[1] * t, cz3 = za + ax[2] * t, ring = [], bad = cz3 - f1 < gz(cx3, cy3);
+          obs.forEach(function (o) { var off = Math.hypot(o.x - cx3, o.y - cy3); if (off <= o.r && gz(o.x, o.y) + o.h > cz3 - f1) bad = true; });
+          for (q = 0; q < 16; q++) {
+            var th = q / 16 * Math.PI * 2, rx = f1 * (Math.cos(th) * n1[0] + Math.sin(th) * n2[0]), ry = f1 * (Math.cos(th) * n1[1] + Math.sin(th) * n2[1]), rz = f1 * (Math.cos(th) * n1[2] + Math.sin(th) * n2[2]);
+            ring.push(P(cx3 + rx, cy3 + ry, cz3 + rz));
+          }
+          top.push(P(cx3 + f1 * n2[0], cy3 + f1 * n2[1], cz3 + f1 * n2[2]));
+          bot.push(P(cx3 - f1 * n2[0], cy3 - f1 * n2[1], cz3 - f1 * n2[2]));
+          if (s % 2 === 0) add(depthOf(ring) - 0.2, '<polygon points="' + pts3(ring) + '" fill="' + (bad ? "rgba(245,165,36,0.10)" : "rgba(79,189,234,0.06)") + '" stroke="' + (bad ? WARN : "#4FBDEA") + '" stroke-opacity="' + (bad ? 0.7 : 0.35) + '" stroke-width="0.8"/>');
+        }
+        add((A.z + B.z) / 2 - 0.3, '<polyline points="' + pts3(top) + '" fill="none" stroke="#4FBDEA" stroke-opacity="0.35" stroke-width="0.8"/><polyline points="' + pts3(bot) + '" fill="none" stroke="' + (Lk.fresnelBad ? WARN : "#4FBDEA") + '" stroke-opacity="0.5" stroke-width="0.8"/>');
+      }
+      if (has("t") && st.get("ray")) {
+        var xb = Lk.d * a.h / Math.max(0.1, a.h + b.h), gx = a.x + (b.x - a.x) * xb / Lk.d, gy = a.y + (b.y - a.y) * xb / Lk.d, G = P(gx, gy, gz(gx, gy));
+        add((A.z + B.z + G.z) / 3 + 0.2, '<polyline points="' + pts3([A, G, B]) + '" fill="none" stroke="#5ED2DA" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="4 4"/>' +
+            '<circle cx="' + G.x + '" cy="' + G.y + '" r="2.5" fill="#5ED2DA"/>' + T(G.x, G.y + 13, (Lk.tworay >= 0 ? "+" : "") + Lk.tworay.toFixed(1) + " dB bounce", "#5ED2DA", "middle", 9, 'pointer-events="none"'));
+      }
+    });
+
+    /* masts and the boxes on top, with the antenna lobe around each */
+    var LR = 0.055 * Math.max(fw, fd);
+    res.forEach(function (a, k) {
+      var r = p.aps[k], on = sel && sel.kind === "ap" && sel.i === k, col = apColor(r),
+          base = P(a.x, a.y, a.z), top = P(a.x, a.y, a.z + a.h), out = "";
+      out += '<line x1="' + base.x + '" y1="' + base.y + '" x2="' + top.x + '" y2="' + top.y + '" stroke="rgba(176,196,207,0.6)" stroke-width="1.5"/>';
+      out += '<ellipse cx="' + base.x + '" cy="' + base.y + '" rx="5" ry="2" fill="rgba(176,196,207,0.35)"/>';
+      if (has("l") && r.status !== "down") {
+        var ant = r.antenna, NA = 16, NE = 7, e, aa, wires = [];
+        function lobe(azD, elD) {
+          var gdb = M.gainToward(a, azD, elD, m, "bh") - ant.g, rr = LR * Math.max(0, 1 + gdb / 30),
+              ce = Math.cos(elD * Math.PI / 180), az = azD * Math.PI / 180;
+          return P(a.x + rr * ce * Math.cos(az), a.y + rr * ce * Math.sin(az), a.z + a.h + rr * Math.sin(elD * Math.PI / 180) / V.k);
+        }
+        for (e = 1; e < NE; e++) { var elD = -90 + e * 180 / NE, ring = []; for (aa = 0; aa <= NA; aa++) ring.push(lobe(aa * 360 / NA, elD)); wires.push('<polyline points="' + pts3(ring) + '" fill="none" stroke="' + col + '" stroke-opacity="0.35" stroke-width="0.7"/>'); }
+        for (aa = 0; aa < NA; aa += 2) { var mer = []; for (e = 0; e <= 12; e++) mer.push(lobe(aa * 360 / NA, -90 + e * 15)); wires.push('<polyline points="' + pts3(mer) + '" fill="none" stroke="' + col + '" stroke-opacity="0.25" stroke-width="0.7"/>'); }
+        add(top.z + 0.1, wires.join(""));
+      }
+      var fo = r.status === "down" ? 0.3 : 0.95;
+      if (on) out += '<circle cx="' + top.x + '" cy="' + top.y + '" r="12" fill="none" stroke="#fff" stroke-opacity="0.8" stroke-width="1.5"/>';
+      if (r.gw) out += '<polygon points="' + hex(top.x, top.y, 8) + '" fill="' + col + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.2" filter="url(#m-glow)"/>';
+      else if (!r.serves) out += '<polygon points="' + top.x + ',' + (top.y - 8) + ' ' + (top.x + 8) + ',' + top.y + ' ' + top.x + ',' + (top.y + 8) + ' ' + (top.x - 8) + ',' + top.y + '" fill="' + col + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.2" filter="url(#m-glow)"/>';
+      else out += '<circle cx="' + top.x + '" cy="' + top.y + '" r="7" fill="' + col + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.2" filter="url(#m-glow)"/>';
+      if (r.status === "down") out += '<path d="M' + (top.x - 5) + ' ' + (top.y - 5) + 'L' + (top.x + 5) + ' ' + (top.y + 5) + 'M' + (top.x + 5) + ' ' + (top.y - 5) + 'L' + (top.x - 5) + ' ' + (top.y + 5) + '" stroke="' + WARN + '" stroke-width="2"/>';
+      out += T(NFN.clamp(top.x, 50, V.W - 50), top.y - 13, "AP " + (k + 1) + (r.gw ? " portal" : "") + " · " + a.h + " m" + (a.z ? " on " + a.z.toFixed(0) + " m" : ""), "#EAF2F6", "middle", 9.5, 'pointer-events="none" font-weight="600"');
+      add(top.z, '<g class="m-ap" data-kind="ap" data-i="' + k + '" style="cursor:move"><circle cx="' + top.x + '" cy="' + top.y + '" r="18" fill="transparent"/>' + out + "</g>");
+    });
+
+    /* the client, a person high */
+    if (c && has("c")) {
+      var cg = gz(c.x, c.y), cb = P(c.x, c.y, cg), ct = P(c.x, c.y, cg + 1.2),
+          cout = '<line x1="' + cb.x + '" y1="' + cb.y + '" x2="' + ct.x + '" y2="' + ct.y + '" stroke="#EAF2F6" stroke-opacity="0.6"/>' +
+          '<rect x="' + (ct.x - 4) + '" y="' + (ct.y - 7) + '" width="8" height="14" rx="2" fill="#EAF2F6" stroke="#06202A"/>' +
+          '<rect x="' + (ct.x - 2.5) + '" y="' + (ct.y - 5) + '" width="5" height="8" rx="1" fill="' + (cl && cl.ok ? "#4FBDEA" : WARN) + '"/>';
+      if (cl && cl.ap >= 0) { var ca = res[cl.ap], CA = P(ca.x, ca.y, ca.z + ca.h); cout += '<line x1="' + ct.x + '" y1="' + ct.y + '" x2="' + CA.x + '" y2="' + CA.y + '" stroke="#fff" stroke-opacity="0.4" stroke-dasharray="3 3"/>'; }
+      cout += T(ct.x, ct.y + 20, cl && cl.ok ? mbs(cl.alone) + " alone" : "no signal", cl && cl.ok ? "#4FBDEA" : WARN, "middle", 9, 'pointer-events="none"');
+      add(ct.z, '<g class="m-cl" data-kind="cl" data-i="0" style="cursor:move"><circle cx="' + ct.x + '" cy="' + ct.y + '" r="16" fill="transparent"/>' + cout + "</g>");
+    }
+
+    items.sort(function (u, v) { return v.z - u.z; });
+    var cap = "heights x" + V.k + " · drag the ground to orbit, drag a mast to move it, wheel or pinch to zoom" + (has("f") ? " · tube is 60% of F1" : "");
+    $("m-map").innerHTML = '<svg viewBox="0 0 ' + V.W + " " + V.H + '" width="100%" role="img" aria-label="Three dimensional view of the site with masts, links and obstacles" id="m-svg" style="touch-action:none;display:block">' +
+      '<defs><filter id="m-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
+      ground.join("") + items.map(function (it) { return it.s; }).join("") +
+      T(10, V.H - 8, cap, "rgba(139,162,174,0.8)", "start", 9) + "</svg>";
   }
 
-  /* ── pointer work: drag, tap, add ────────────────────────────────────── */
-  var drag = null;
+  /* orbit and zoom: a drag on empty ground turns the camera, a wheel or a
+     pinch moves it in and out, a drag on a mast top moves the AP, a tap selects */
+  var orb = null, pinch = null, drag3 = null;
+  function onDown3(e) {
+    var g = e.target.closest("[data-kind]");
+    if (g && g.getAttribute("data-kind") === "ap") {
+      var i = +g.getAttribute("data-i"), a = st.get("ap")[i];
+      drag3 = { i: i, x0: e.clientX, y0: e.clientY, moved: false, z0: M.ground(a.x, a.y, st.get("tr")) };
+      try { $("m-svg").setPointerCapture(e.pointerId); } catch (x) {}
+      e.preventDefault(); return;
+    }
+    if (g) { sel = { kind: g.getAttribute("data-kind"), i: +g.getAttribute("data-i") }; run(); return; }
+    if (pinch === null && orb === null) orb = { x: e.clientX, y: e.clientY, id: e.pointerId, c: { yaw: cam().yaw, pitch: cam().pitch, zoom: cam().zoom } };
+    else if (orb && orb.id !== e.pointerId) pinch = { id: e.pointerId, x: e.clientX, y: e.clientY, d0: Math.hypot(e.clientX - orb.x, e.clientY - orb.y), z0: cam().zoom };
+    try { $("m-svg").setPointerCapture(e.pointerId); } catch (x) {}
+    e.preventDefault();
+  }
+  function onMove3(e) {
+    if (drag3) {
+      if (!drag3.moved && Math.hypot(e.clientX - drag3.x0, e.clientY - drag3.y0) < 4) return;
+      drag3.moved = true;
+      var r = $("m-svg").getBoundingClientRect(), k = W / r.width, gpt = unproject3((e.clientX - r.left) * k, (e.clientY - r.top) * k, drag3.z0);
+      if (gpt) { var a = st.get("ap")[drag3.i]; a.x = NFN.clamp(gpt.x, 0, st.get("fw")); a.y = NFN.clamp(gpt.y, 0, st.get("fd")); drag = { kind: "ap", i: drag3.i, moved: true }; if (!raf) raf = requestAnimationFrame(function () { raf = 0; run(); }); }
+      return;
+    }
+    if (pinch && (e.pointerId === pinch.id || (orb && e.pointerId === orb.id))) {
+      if (e.pointerId === pinch.id) { pinch.x = e.clientX; pinch.y = e.clientY; } else { orb.x = e.clientX; orb.y = e.clientY; }
+      var d = Math.hypot(pinch.x - orb.x, pinch.y - orb.y);
+      setCam({ zoom: NFN.clamp(pinch.z0 * pinch.d0 / Math.max(10, d), 0.9, 4) }); return;
+    }
+    if (!orb || e.pointerId !== orb.id) return;
+    var r2 = $("m-svg").getBoundingClientRect(), k2 = 360 / r2.width;
+    setCam({ yaw: orb.c.yaw + (e.clientX - orb.x) * k2 * 0.8, pitch: NFN.clamp(orb.c.pitch - (e.clientY - orb.y) * k2 * 0.6, 8, 85) });
+  }
+  function onUp3(e) {
+    if (drag3) { var mv = drag3.moved, i = drag3.i; drag3 = null; drag = null; if (!mv) sel = { kind: "ap", i: i }; run(); return; }
+    if (pinch && e.pointerId === pinch.id) { pinch = null; if (orb) orb = { x: orb.x, y: orb.y, id: orb.id, c: { yaw: cam().yaw, pitch: cam().pitch, zoom: cam().zoom } }; return; }
+    if (orb && e.pointerId === orb.id) { orb = null; pinch = null; if (booted) st.push(); }
+  }
+  var raf3 = 0;
+  function setCam(patch) {
+    var c = cam(), o = { yaw: c.yaw, pitch: c.pitch, zoom: c.zoom }, k;
+    for (k in patch) o[k] = patch[k];
+    st.set("cam", o);
+    if (!raf3) raf3 = requestAnimationFrame(function () { raf3 = 0; if (lastP) draw3d(lastP, lastCl, lastWalk); });
+  }
+  $("m-map").addEventListener("wheel", function (e) {
+    if (st.get("view") !== "3d") return;
+    e.preventDefault();
+    setCam({ zoom: NFN.clamp(cam().zoom * Math.pow(1.1, e.deltaY / 100), 0.9, 4) });
+    clearTimeout(setCam._t); setCam._t = setTimeout(function () { if (booted) st.push(); }, 400);
+  }, { passive: false });
+  /* ── pointer work on the plan: drag, tap, add ─────────────────────────── */
+  var drag = null, raf = 0, scalePts = [];
   function toField(e) {
     var svg = $("m-svg"), r = svg.getBoundingClientRect(), k = W / r.width;
     return { x: NFN.clamp(((e.clientX - r.left) * k - L.ox) / L.s, 0, st.get("fw")), y: NFN.clamp(((e.clientY - r.top) * k - L.oy) / L.s, 0, st.get("fd")) };
   }
+  function listOf(kind) { return kind === "ap" ? st.get("ap") : kind === "ob" ? st.get("ob") : kind === "hill" ? st.get("tr") : kind === "crowd" ? st.get("cr") : kind === "pt" ? st.get("pt") : null; }
   $("m-map").addEventListener("pointerdown", function (e) {
     if (st.get("view") === "3d") return onDown3(e);
     var g = e.target.closest("[data-kind]"), f = toField(e);
+    if (mode === "scale") {
+      scalePts.push(f);
+      if (scalePts.length === 2) {
+        var dpx = Math.hypot(scalePts[1].x - scalePts[0].x, scalePts[1].y - scalePts[0].y),
+            ans = prompt("How far apart are those two points, in metres?");
+        var dm = parseFloat(ans);
+        if (isFinite(dm) && dm > 0 && dpx > 0) {
+          var fw = NFN.clamp(Math.round(st.get("fw") * dm / dpx / 10) * 10, 60, 1200),
+              fd = img.w && img.h ? NFN.clamp(Math.round(fw * img.h / img.w / 10) * 10, 40, 800) : st.get("fd");
+          st.set("fw", fw).set("fd", fd); $("m-fw").value = fw; $("m-fd").value = fd;
+          $("m-scalenote").textContent = "Scale set: the field is " + fw + " by " + fd + " m.";
+        }
+        scalePts = []; setMode("move");
+      }
+      run(); return;
+    }
     if (g) {
       drag = { kind: g.getAttribute("data-kind"), i: +g.getAttribute("data-i"), x0: f.x, y0: f.y, moved: false };
       try { $("m-svg").setPointerCapture(e.pointerId); } catch (x) {}
@@ -1083,26 +1537,33 @@ it would get.</p>
     }
     if (mode === "ap") {
       var aps = st.get("ap").slice(); if (aps.length >= 24) return;
-      aps.push({ x: f.x, y: f.y, h: 3, gw: !aps.some(function (a) { return a.gw; }), kind: st.get("kind"), ant: st.get("ant"), aim: null });
+      aps.push({ x: f.x, y: f.y, h: 3, gw: !aps.some(function (a) { return a.gw; }), kind: st.get("kind"), ant: st.get("ant"), aim: null, tilt: 0, band: null, bw: null, ch: null });
       st.set("ap", aps); sel = { kind: "ap", i: aps.length - 1 }; run();
     } else if (mode === "ob") {
       var obs = st.get("ob").slice(), tp = $("m-obtype").value, def = M.OBSTACLES[tp]; if (obs.length >= 24) return;
       obs.push({ x: f.x, y: f.y, type: tp, h: def.h, r: def.r });
       st.set("ob", obs); sel = { kind: "ob", i: obs.length - 1 }; run();
+    } else if (mode === "hill") {
+      var hl = st.get("tr").slice(); if (hl.length >= 24) return;
+      hl.push({ x: f.x, y: f.y, r: 60, h: 6 }); st.set("tr", hl); sel = { kind: "hill", i: hl.length - 1 }; run();
+    } else if (mode === "crowd") {
+      var cr = st.get("cr").slice(); if (cr.length >= 24) return;
+      cr.push({ x: f.x, y: f.y, r: 30, n: 200 }); st.set("cr", cr); sel = { kind: "crowd", i: cr.length - 1 }; run();
     } else if (mode === "client") {
       st.set("c", { x: f.x, y: f.y }); sel = { kind: "cl", i: 0 }; run();
+    } else if (mode === "path") {
+      var pt = st.get("pt").slice(); if (pt.length >= 40) return;
+      pt.push({ x: f.x, y: f.y }); st.set("pt", pt); sel = { kind: "pt", i: pt.length - 1 }; run();
     } else { sel = null; run(); }
   });
-  var raf = 0;
   $("m-map").addEventListener("pointermove", function (e) {
     if (st.get("view") === "3d") return onMove3(e);
     if (!drag) return;
     var f = toField(e);
     if (!drag.moved && Math.hypot(f.x - drag.x0, f.y - drag.y0) * L.s < 4) return;
     drag.moved = true;
-    if (drag.kind === "ap") { var a = st.get("ap")[drag.i]; a.x = f.x; a.y = f.y; }
-    else if (drag.kind === "ob") { var o = st.get("ob")[drag.i]; o.x = f.x; o.y = f.y; }
-    else st.set("c", { x: f.x, y: f.y });
+    if (drag.kind === "cl") st.set("c", { x: f.x, y: f.y });
+    else { var o = listOf(drag.kind)[drag.i]; if (o) { o.x = f.x; o.y = f.y; } }
     if (!raf) raf = requestAnimationFrame(function () { raf = 0; run(); });
   });
   function endDrag(e) {
@@ -1114,13 +1575,21 @@ it would get.</p>
   $("m-map").addEventListener("pointerup", endDrag);
   $("m-map").addEventListener("pointercancel", endDrag);
 
+  function setMode(mm) {
+    mode = mm;
+    Array.prototype.forEach.call(document.querySelectorAll("#tool-mesh .m-mode"), function (x) { var on = x.getAttribute("data-mode") === mode; x.classList.toggle("on", on); x.setAttribute("aria-pressed", on ? "true" : "false"); });
+    $("m-map").style.cursor = mode === "move" ? "" : "crosshair";
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("#tool-mesh .m-mode"), function (b) {
+    b.addEventListener("click", function () { setMode(b.getAttribute("data-mode")); if (mode === "path") { sel = { kind: "pt", i: -1 }; run(); } });
+  });
   function viewUi() {
     var v = st.get("view");
     Array.prototype.forEach.call(document.querySelectorAll("#tool-mesh .m-view"), function (x) { x.classList.toggle("on", x.getAttribute("data-view") === v); x.setAttribute("aria-pressed", x.getAttribute("data-view") === v ? "true" : "false"); });
     $("m-modes2d").hidden = v === "3d"; $("m-modes3d").hidden = v !== "3d";
     Array.prototype.forEach.call(document.querySelectorAll("#tool-mesh .m-layer"), function (x) { var on = st.get("l3").indexOf(x.getAttribute("data-layer")) >= 0; x.classList.toggle("on", on); x.setAttribute("aria-pressed", on ? "true" : "false"); });
     $("m-zx").value = st.get("zx"); $("m-zx-v").textContent = st.get("zx");
-    $("m-selhint").textContent = v === "3d" ? "Tap a mast top or the client. Drag the ground to orbit, wheel or pinch to zoom; switch to Plan to move things." : "Tap an AP, an obstacle or the client on the map.";
+    $("m-selhint").textContent = v === "3d" ? "Tap a mast top or the client. Drag the ground to orbit, drag a mast to move it, wheel or pinch to zoom." : "Tap an AP, an obstacle, a hill, a crowd or the client on the map.";
   }
   Array.prototype.forEach.call(document.querySelectorAll("#tool-mesh .m-view"), function (b) {
     b.addEventListener("click", function () { st.set("view", b.getAttribute("data-view")); drag = null; orb = null; run(); });
@@ -1133,276 +1602,101 @@ it would get.</p>
     });
   });
   $("m-zx").addEventListener("input", function () { st.set("zx", +this.value); run(); });
-  Array.prototype.forEach.call(document.querySelectorAll("#tool-mesh .m-mode"), function (b) {
-    b.addEventListener("click", function () {
-      mode = b.getAttribute("data-mode");
-      Array.prototype.forEach.call(document.querySelectorAll("#tool-mesh .m-mode"), function (x) { x.classList.toggle("on", x === b); x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
-      $("m-map").style.cursor = mode === "move" ? "" : "crosshair";
-    });
-  });
-
-  /* ── the 3D view ─────────────────────────────────────────────────────────
-     A camera on an orbit around the middle of the field, a perspective
-     projection, and everything the plan already knows drawn in painter's
-     order. Heights are exaggerated by a factor the user sets, because a 3 m
-     mast on a 480 m field is a pixel, and the caption says so. Nothing here
-     computes physics; it reads M.plan and M.link output. */
-  var lastP = null, lastCl = null;
-  function cam() { return st.get("cam"); }
-  function proj3() {
-    var fw = st.get("fw"), fd = st.get("fd"), c = cam(), k = st.get("zx"),
-        H = Math.round(W * 0.6), R = c.zoom * Math.max(fw, fd), F = W * 1.1,
-        py = c.pitch * Math.PI / 180, yw = c.yaw * Math.PI / 180,
-        cp = [R * Math.cos(py) * Math.cos(yw), R * Math.cos(py) * Math.sin(yw), R * Math.sin(py)],
-        fl = norm3([-cp[0], -cp[1], -cp[2]]), rt = norm3(cross3(fl, [0, 0, 1])), up = cross3(rt, fl);
-    return {
-      W: W, H: H, k: k, cx: fw / 2, cy: fd / 2,
-      /* world metres in, screen units out; z is the real height in metres */
-      P: function (x, y, z) {
-        var d = [x - fw / 2 - cp[0], y - fd / 2 - cp[1], z * k - cp[2]],
-            xc = dot3(d, rt), yc = dot3(d, up), zc = Math.max(1, dot3(d, fl));
-        return { x: W / 2 + F * xc / zc, y: H * 0.46 - F * yc / zc, z: zc };
-      }
-    };
-  }
-  function cross3(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
-  function dot3(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
-  function norm3(a) { var l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; }
-  function pts(list) { return list.map(function (q) { return q.x.toFixed(1) + "," + q.y.toFixed(1); }).join(" "); }
-  function depthOf(list) { var s = 0; list.forEach(function (q) { s += q.z; }); return s / list.length; }
-
-  function draw3d(p, cl) {
-    W = Math.max(420, Math.min(900, ($("m-map").clientWidth || 900) - 12));
-    var V = proj3(), P = V.P, items = [], ground = [], i, j,
-        aps = st.get("ap"), res = p.tree.aps, obs = st.get("ob"), c = st.get("c"), m = model(),
-        fw = st.get("fw"), fd = st.get("fd"), layers = st.get("l3"),
-        has = function (ch) { return layers.indexOf(ch) >= 0; },
-        lam = NFN.rf.lambda(st.get("f"));
-    function add(z, svg) { items.push({ z: z, s: svg }); }
-
-    /* the ground: border and a 20 m grid, drawn first and never sorted */
-    var corners = [P(0, 0, 0), P(fw, 0, 0), P(fw, fd, 0), P(0, fd, 0)];
-    ground.push('<polygon points="' + pts(corners) + '" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.16)"/>');
-    for (i = 20; i < fw; i += 20) { var g1 = P(i, 0, 0), g2 = P(i, fd, 0); ground.push('<line x1="' + g1.x + '" y1="' + g1.y + '" x2="' + g2.x + '" y2="' + g2.y + '" stroke="rgba(255,255,255,0.05)"/>'); }
-    for (j = 20; j < fd; j += 20) { var g3 = P(0, j, 0), g4 = P(fw, j, 0); ground.push('<line x1="' + g3.x + '" y1="' + g3.y + '" x2="' + g4.x + '" y2="' + g4.y + '" stroke="rgba(255,255,255,0.05)"/>'); }
-
-    /* footprints, painted on the ground */
-    if (has("c")) res.forEach(function (a, k) {
-      var r = p.aps[k]; if (r.status === "down" || r.status === "unreachable" || !r.serves) return;
-      var ring = M.contour(a, m, st.get("land"), 48).map(function (q) {
-        return P(NFN.clamp(a.x + q.r * Math.cos(q.az * Math.PI / 180), -fw * 0.3, fw * 1.3), NFN.clamp(a.y + q.r * Math.sin(q.az * Math.PI / 180), -fd * 0.3, fd * 1.3), 0.05);
-      });
-      ground.push('<polygon points="' + pts(ring) + '" fill="rgba(140,224,94,0.07)" stroke="rgba(140,224,94,0.3)" stroke-dasharray="3 5"/>');
-    });
-
-    /* obstacles as twelve sided prisms, faces lit from the north west */
-    obs.forEach(function (o, k) {
-      var N = 12, top = [], base = [], q, blocks = false;
-      p.aps.forEach(function (r) { if (r.link && r.link.obstacle === k) blocks = true; });
-      for (q = 0; q < N; q++) {
-        var an = q / N * Math.PI * 2, ox = o.x + o.r * Math.cos(an), oy = o.y + o.r * Math.sin(an);
-        top.push(P(ox, oy, o.h)); base.push(P(ox, oy, 0));
-      }
-      for (q = 0; q < N; q++) {
-        var q2 = (q + 1) % N, face = [base[q], base[q2], top[q2], top[q]],
-            /* screen winding tells us whether the face looks at the camera */
-            wind = (face[1].x - face[0].x) * (face[2].y - face[0].y) - (face[2].x - face[0].x) * (face[1].y - face[0].y);
-        if (wind >= 0) continue;
-        var an2 = (q + 0.5) / N * Math.PI * 2, lit = 0.5 + 0.5 * Math.max(0, Math.cos(an2 - Math.PI * 1.25));
-        add(depthOf(face), '<polygon points="' + pts(face) + '" fill="rgba(176,196,207,' + (0.10 + 0.14 * lit).toFixed(3) + ')" stroke="rgba(176,196,207,0.35)" stroke-width="0.8"/>');
-      }
-      add(depthOf(top) - 0.01, '<polygon points="' + pts(top) + '" fill="rgba(176,196,207,0.30)" stroke="' + (blocks ? WARN : "rgba(176,196,207,0.6)") + '" stroke-width="1"/>' +
-          T(P(o.x, o.y, o.h).x, P(o.x, o.y, o.h).y - 6, M.OBSTACLES[o.type].label + " " + o.h + " m", "#B0C4CF", "middle", 9.5, 'pointer-events="none"'));
-    });
-
-    /* links between mast tops, with the Fresnel tube and the ground bounce */
-    p.aps.forEach(function (r, k) {
-      if (r.depth <= 0 || r.parent < 0) return;
-      var a = res[k], b = res[r.parent], Lk = r.link,
-          col = Lk.fresnelBad ? WARN : HOPC[Math.min(r.depth, HOPC.length - 1)],
-          A = P(a.x, a.y, a.h), B = P(b.x, b.y, b.h), mid = P((a.x + b.x) / 2, (a.y + b.y) / 2, (a.h + b.h) / 2);
-      add((A.z + B.z) / 2 - 0.5, '<line x1="' + A.x + '" y1="' + A.y + '" x2="' + B.x + '" y2="' + B.y + '" stroke="' + col + '" stroke-width="' + NFN.clamp(1.2 + Lk.goodput / 150, 1.2, 4) + '" stroke-opacity="0.9"' + (Lk.fresnelBad ? ' stroke-dasharray="6 4"' : "") + ' filter="url(#m-glow)"/>');
-      var lbl = mbs(Lk.goodput) + (Lk.fresnelBad ? " · Fresnel" : "");
-      add((A.z + B.z) / 2 - 0.6, '<rect x="' + (mid.x - lbl.length * 3.1 - 5) + '" y="' + (mid.y - 20) + '" width="' + (lbl.length * 6.2 + 10) + '" height="16" rx="5" fill="rgba(6,16,25,0.85)" stroke="' + col + '" stroke-opacity="0.5"/>' + T(mid.x, mid.y - 8, lbl, col, "middle", 9.5, 'pointer-events="none"'));
-
-      if (has("f")) {
-        /* 60% of the first Fresnel zone as rings along the link: the tube has to
-           stay off the ground and out of the buildings or the label goes orange */
-        var d = Lk.d, ax = [b.x - a.x, b.y - a.y, b.h - a.h], u = norm3(ax),
-            n1 = norm3(cross3(u, [0, 0, 1])), n2 = cross3(u, n1), NR = 14, top = [], bot = [], q, s;
-        for (s = 0; s <= NR; s++) {
-          var t = s / NR, d1 = d * t, d2 = d - d1, f1 = 0.6 * NFN.rf.fresnel1(Math.max(1, d1), Math.max(1, d2), st.get("f")),
-              cx3 = a.x + ax[0] * t, cy3 = a.y + ax[1] * t, cz3 = a.h + ax[2] * t, ring = [], bad = cz3 - f1 < 0;
-          obs.forEach(function (o) {
-            var off = Math.hypot(o.x - cx3, o.y - cy3);
-            if (off <= o.r && o.h > cz3 - f1) bad = true;
-          });
-          for (q = 0; q < 16; q++) {
-            var th = q / 16 * Math.PI * 2, rx = f1 * (Math.cos(th) * n1[0] + Math.sin(th) * n2[0]), ry = f1 * (Math.cos(th) * n1[1] + Math.sin(th) * n2[1]),
-                rz = f1 * (Math.cos(th) * n1[2] + Math.sin(th) * n2[2]);
-            ring.push(P(cx3 + rx, cy3 + ry, cz3 + rz));
-          }
-          top.push(P(cx3 + f1 * n2[0], cy3 + f1 * n2[1], cz3 + f1 * n2[2]));
-          bot.push(P(cx3 - f1 * n2[0], cy3 - f1 * n2[1], cz3 - f1 * n2[2]));
-          if (s % 2 === 0) add(depthOf(ring) - 0.2, '<polygon points="' + pts(ring) + '" fill="' + (bad ? "rgba(245,165,36,0.10)" : "rgba(79,189,234,0.06)") + '" stroke="' + (bad ? WARN : "#4FBDEA") + '" stroke-opacity="' + (bad ? 0.7 : 0.35) + '" stroke-width="0.8"/>');
-        }
-        add((A.z + B.z) / 2 - 0.3, '<polyline points="' + pts(top) + '" fill="none" stroke="#4FBDEA" stroke-opacity="0.35" stroke-width="0.8"/><polyline points="' + pts(bot) + '" fill="none" stroke="' + (Lk.fresnelBad ? WARN : "#4FBDEA") + '" stroke-opacity="0.5" stroke-width="0.8"/>');
-      }
-      if (has("t") && st.get("ray")) {
-        /* the bounce lands where the two masts see the same angle down */
-        var xb = Lk.d * a.h / Math.max(0.1, a.h + b.h), gx = a.x + (b.x - a.x) * xb / Lk.d, gy = a.y + (b.y - a.y) * xb / Lk.d, G = P(gx, gy, 0);
-        add((A.z + B.z + G.z) / 3 + 0.2, '<polyline points="' + pts([A, G, B]) + '" fill="none" stroke="#5ED2DA" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="4 4"/>' +
-            '<circle cx="' + G.x + '" cy="' + G.y + '" r="2.5" fill="#5ED2DA"/>' +
-            T(G.x, G.y + 13, (Lk.tworay >= 0 ? "+" : "") + Lk.tworay.toFixed(1) + " dB bounce", "#5ED2DA", "middle", 9, 'pointer-events="none"'));
-      }
-    });
-
-    /* masts and the boxes on top, with the antenna lobe around each */
-    var LR = 0.055 * Math.max(fw, fd);
-    res.forEach(function (a, k) {
-      var r = p.aps[k], on = sel && sel.kind === "ap" && sel.i === k,
-          col = r.status === "down" ? "rgba(139,162,174,0.55)" : r.status === "unreachable" ? WARN : r.gw ? "#8CE05E" : HOPC[Math.min(Math.max(r.depth, 1), HOPC.length - 1)],
-          base = P(a.x, a.y, 0), top = P(a.x, a.y, a.h), out = "";
-      out += '<line x1="' + base.x + '" y1="' + base.y + '" x2="' + top.x + '" y2="' + top.y + '" stroke="rgba(176,196,207,0.6)" stroke-width="1.5"/>';
-      out += '<ellipse cx="' + base.x + '" cy="' + base.y + '" rx="5" ry="2" fill="rgba(176,196,207,0.35)"/>';
-      if (has("l") && r.status !== "down") {
-        /* the pattern as a wire surface: meridians and rings, radius from dB with
-           30 dB of range so a patch is a spike and an omni a doughnut. Lobe metres
-           are divided by the exaggeration so the shape stays a shape. */
-        var ant = r.antenna, NA = 16, NE = 7, e, aa, wires = [];
-        function lobe(azD, elD) {
-          var gdb = M.gainToward(a, azD, elD, m) - ant.g, rr = LR * Math.max(0, 1 + gdb / 30),
-              ce = Math.cos(elD * Math.PI / 180), az = azD * Math.PI / 180;
-          return P(a.x + rr * ce * Math.cos(az), a.y + rr * ce * Math.sin(az), a.h + rr * Math.sin(elD * Math.PI / 180) / V.k);
-        }
-        for (e = 1; e < NE; e++) {
-          var elD = -90 + e * 180 / NE, ring = [];
-          for (aa = 0; aa <= NA; aa++) ring.push(lobe(aa * 360 / NA, elD));
-          wires.push('<polyline points="' + pts(ring) + '" fill="none" stroke="' + col + '" stroke-opacity="0.35" stroke-width="0.7"/>');
-        }
-        for (aa = 0; aa < NA; aa += 2) {
-          var mer = [];
-          for (e = 0; e <= 12; e++) mer.push(lobe(aa * 360 / NA, -90 + e * 15));
-          wires.push('<polyline points="' + pts(mer) + '" fill="none" stroke="' + col + '" stroke-opacity="0.25" stroke-width="0.7"/>');
-        }
-        add(top.z + 0.1, wires.join(""));
-      }
-      var fo = r.status === "down" ? 0.3 : 0.95;
-      if (on) out += '<circle cx="' + top.x + '" cy="' + top.y + '" r="12" fill="none" stroke="#fff" stroke-opacity="0.8" stroke-width="1.5"/>';
-      if (r.gw) out += '<polygon points="' + hex(top.x, top.y, 8) + '" fill="' + col + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.2" filter="url(#m-glow)"/>';
-      else if (!r.serves) out += '<polygon points="' + top.x + ',' + (top.y - 8) + ' ' + (top.x + 8) + ',' + top.y + ' ' + top.x + ',' + (top.y + 8) + ' ' + (top.x - 8) + ',' + top.y + '" fill="' + col + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.2" filter="url(#m-glow)"/>';
-      else out += '<circle cx="' + top.x + '" cy="' + top.y + '" r="7" fill="' + col + '" fill-opacity="' + fo + '" stroke="#06202A" stroke-width="1.2" filter="url(#m-glow)"/>';
-      if (r.status === "down") out += '<path d="M' + (top.x - 5) + ' ' + (top.y - 5) + 'L' + (top.x + 5) + ' ' + (top.y + 5) + 'M' + (top.x + 5) + ' ' + (top.y - 5) + 'L' + (top.x - 5) + ' ' + (top.y + 5) + '" stroke="' + WARN + '" stroke-width="2"/>';
-      out += T(NFN.clamp(top.x, 50, V.W - 50), top.y - 13, "AP " + (k + 1) + (r.gw ? " portal" : "") + " · " + a.h + " m", "#EAF2F6", "middle", 9.5, 'pointer-events="none" font-weight="600"');
-      add(top.z, '<g class="m-ap" data-kind="ap" data-i="' + k + '" style="cursor:pointer"><circle cx="' + top.x + '" cy="' + top.y + '" r="18" fill="transparent"/>' + out + "</g>");
-    });
-
-    /* the client, a person high */
-    if (c && has("c")) {
-      var cb = P(c.x, c.y, 0), ct = P(c.x, c.y, 1.2), cout = '<line x1="' + cb.x + '" y1="' + cb.y + '" x2="' + ct.x + '" y2="' + ct.y + '" stroke="#EAF2F6" stroke-opacity="0.6"/>' +
-          '<rect x="' + (ct.x - 4) + '" y="' + (ct.y - 7) + '" width="8" height="14" rx="2" fill="#EAF2F6" stroke="#06202A"/>' +
-          '<rect x="' + (ct.x - 2.5) + '" y="' + (ct.y - 5) + '" width="5" height="8" rx="1" fill="' + (cl && cl.ok ? "#4FBDEA" : WARN) + '"/>';
-      if (cl && cl.ap >= 0) { var ca = res[cl.ap], CA = P(ca.x, ca.y, ca.h); cout += '<line x1="' + ct.x + '" y1="' + ct.y + '" x2="' + CA.x + '" y2="' + CA.y + '" stroke="#fff" stroke-opacity="0.4" stroke-dasharray="3 3"/>'; }
-      cout += T(ct.x, ct.y + 20, cl && cl.ok ? mbs(cl.alone) + " alone" : "no signal", cl && cl.ok ? "#4FBDEA" : WARN, "middle", 9, 'pointer-events="none"');
-      add(ct.z, '<g class="m-cl" data-kind="cl" data-i="0" style="cursor:pointer"><circle cx="' + ct.x + '" cy="' + ct.y + '" r="16" fill="transparent"/>' + cout + "</g>");
-    }
-
-    items.sort(function (u, v) { return v.z - u.z; });
-    var cap = "heights x" + V.k + " · drag to orbit, wheel or pinch to zoom · " + (has("f") ? "tube is 60% of F1" : "");
-    $("m-map").innerHTML = '<svg viewBox="0 0 ' + V.W + " " + V.H + '" width="100%" role="img" aria-label="Three dimensional view of the site with masts, links and obstacles" id="m-svg" style="touch-action:none;display:block">' +
-      '<defs><filter id="m-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
-      ground.join("") + items.map(function (it) { return it.s; }).join("") +
-      T(10, V.H - 8, cap, "rgba(139,162,174,0.8)", "start", 9) + "</svg>";
-  }
-
-  /* orbit and zoom: a drag on empty ground turns the camera, a wheel or a
-     pinch moves it in and out, a tap on a mast top selects the AP */
-  var orb = null, pinch = null;
-  function onDown3(e) {
-    var g = e.target.closest("[data-kind]");
-    if (g) { sel = { kind: g.getAttribute("data-kind"), i: +g.getAttribute("data-i") }; run(); return; }
-    if (pinch === null && orb === null) orb = { x: e.clientX, y: e.clientY, id: e.pointerId, c: { yaw: cam().yaw, pitch: cam().pitch, zoom: cam().zoom } };
-    else if (orb && orb.id !== e.pointerId) pinch = { id: e.pointerId, x: e.clientX, y: e.clientY, d0: Math.hypot(e.clientX - orb.x, e.clientY - orb.y), z0: cam().zoom };
-    try { $("m-svg").setPointerCapture(e.pointerId); } catch (x) {}
-    e.preventDefault();
-  }
-  function onMove3(e) {
-    if (pinch && (e.pointerId === pinch.id || (orb && e.pointerId === orb.id))) {
-      if (e.pointerId === pinch.id) { pinch.x = e.clientX; pinch.y = e.clientY; } else { orb.x = e.clientX; orb.y = e.clientY; }
-      var d = Math.hypot(pinch.x - orb.x, pinch.y - orb.y);
-      setCam({ zoom: NFN.clamp(pinch.z0 * pinch.d0 / Math.max(10, d), 0.9, 4) }); return;
-    }
-    if (!orb || e.pointerId !== orb.id) return;
-    var r = $("m-svg").getBoundingClientRect(), k = 360 / r.width;
-    setCam({ yaw: orb.c.yaw + (e.clientX - orb.x) * k * 0.8, pitch: NFN.clamp(orb.c.pitch - (e.clientY - orb.y) * k * 0.6, 8, 85) });
-  }
-  function onUp3(e) {
-    if (pinch && e.pointerId === pinch.id) { pinch = null; if (orb) orb = { x: orb.x, y: orb.y, id: orb.id, c: { yaw: cam().yaw, pitch: cam().pitch, zoom: cam().zoom } }; return; }
-    if (orb && e.pointerId === orb.id) { orb = null; pinch = null; if (booted) st.push(); }
-  }
-  var raf3 = 0;
-  function setCam(patch) {
-    var c = cam(), o = { yaw: c.yaw, pitch: c.pitch, zoom: c.zoom }, k;
-    for (k in patch) o[k] = patch[k];
-    st.set("cam", o);
-    if (!raf3) raf3 = requestAnimationFrame(function () { raf3 = 0; if (lastP) draw3d(lastP, lastCl); });
-  }
-  $("m-map").addEventListener("wheel", function (e) {
-    if (st.get("view") !== "3d") return;
-    e.preventDefault();
-    setCam({ zoom: NFN.clamp(cam().zoom * Math.pow(1.1, e.deltaY / 100), 0.9, 4) });
-    clearTimeout(setCam._t); setCam._t = setTimeout(function () { if (booted) st.push(); }, 400);
-  }, { passive: false });
 
   /* ── the selected thing ──────────────────────────────────────────────── */
   function selPanel(p, cl) {
-    var aps = st.get("ap"), obs = st.get("ob");
+    var aps = st.get("ap"), obs = st.get("ob"), hills = st.get("tr"), crowds = st.get("cr"), pts = st.get("pt");
     if (sel && sel.kind === "ap" && !aps[sel.i]) sel = null;
     if (sel && sel.kind === "ob" && !obs[sel.i]) sel = null;
+    if (sel && sel.kind === "hill" && !hills[sel.i]) sel = null;
+    if (sel && sel.kind === "crowd" && !crowds[sel.i]) sel = null;
     if (sel && sel.kind === "cl" && !st.get("c")) sel = null;
-    $("m-selap").hidden = !(sel && sel.kind === "ap");
-    $("m-selob").hidden = !(sel && sel.kind === "ob");
-    $("m-selcl").hidden = !(sel && sel.kind === "cl");
+    ["ap", "ob", "hill", "crowd", "cl", "path"].forEach(function (k) { $("m-sel" + k).hidden = !(sel && (sel.kind === k || (k === "path" && sel.kind === "pt"))); });
     $("m-selhint").hidden = !!sel;
     if (!sel) { $("m-seltitle").textContent = "Nothing selected"; return; }
     if (sel.kind === "ap") {
-      var a = aps[sel.i], r = p.aps[sel.i];
-      $("m-seltitle").textContent = "AP " + (sel.i + 1) + (a.gw ? ", portal" : ", point");
+      var a = aps[sel.i], r = p.aps[sel.i], res = p.tree.aps[sel.i];
+      $("m-seltitle").textContent = "AP " + (sel.i + 1) + (a.gw ? ", portal" : ", point") + (r.channel !== null && r.depth >= 0 ? ", channel " + r.channel : "");
       $("m-portal").classList.toggle("m-on", !!a.gw); $("m-point").classList.toggle("m-on", !a.gw);
-      $("m-aph").value = a.h; $("m-aph-v").textContent = a.h.toFixed(1) + " m";
       $("m-apkind").value = a.kind || (M.kind(a, {}) === M.KINDS.tri ? "tri" : "dual");
+      $("m-apantlbl").textContent = r.kind.dedicated ? "Backhaul antenna" : "Antenna";
       $("m-apant").value = M.isAuto(a) ? "auto" : a.ant;
       $("m-apant").options[0].textContent = M.isAuto(a) ? "Automatic: " + r.antenna.label.toLowerCase() : "Automatic";
-      var auto = a.aim === undefined || a.aim === null, aimNow = p.tree.aps[sel.i].aim;
-      $("m-apaim").value = Math.round(((aimNow + 180) % 360 + 360) % 360 - 180);
-      $("m-apaim-v").textContent = Math.round(aimNow) + "°" + (auto ? " auto" : "");
+      var auto = a.aim === undefined || a.aim === null;
+      $("m-apaim").value = Math.round(((res.aim + 180) % 360 + 360) % 360 - 180);
+      $("m-apaim-v").textContent = compassTxt(res.aim) + (auto ? " auto" : " pinned");
       $("m-apaim").disabled = r.antenna.h >= 360; $("m-apauto").disabled = r.antenna.h >= 360 || auto;
+      $("m-aptilt").value = a.tilt || 0; $("m-aptilt-v").textContent = (a.tilt || 0) + "°" + (r.antenna.tilt ? " + " + r.antenna.tilt + " built in" : "");
+      $("m-clientant").hidden = !(r.kind.dedicated && r.serves);
+      $("m-apcant").value = a.cant || "omni";
+      var cauto = a.caim === undefined || a.caim === null;
+      $("m-apcaim").value = Math.round(((res.caim + 180) % 360 + 360) % 360 - 180);
+      $("m-apcaim-v").textContent = compassTxt(res.caim) + (cauto ? " auto" : " pinned");
+      $("m-apcaim").disabled = r.clientAntenna.h >= 360; $("m-apcauto").disabled = r.clientAntenna.h >= 360 || cauto;
+      $("m-aph").value = a.h; $("m-aph-v").textContent = a.h.toFixed(1) + " m" + (res.z ? " on " + res.z.toFixed(1) + " m of ground" : "");
       var tx = a.tx === undefined ? st.get("tx") : a.tx;
-      $("m-aptx").value = tx; $("m-aptx-v").textContent = tx + " dBm" + (a.tx === undefined ? " (default)" : "");
+      $("m-aptx").value = tx; $("m-aptx-v").textContent = tx + " dBm" + (a.tx === undefined ? " (default)" : "") + (r.link && r.link.clamped ? ", capped" : "");
+      $("m-apband").value = a.band === null || a.band === undefined ? "" : a.band.toFixed(1);
+      $("m-apbw").value = a.bw === null || a.bw === undefined ? "" : String(a.bw);
+      $("m-chrow").hidden = !a.gw; $("m-apch").value = a.ch === null || a.ch === undefined ? "" : String(a.ch);
       $("m-fail").textContent = a.down ? "Bring it back" : "Fail this AP";
       $("m-fail").classList.toggle("m-on", !!a.down);
       var note = [];
       if (r.status === "down") note.push("Down. The tree has rebuilt without it.");
       else if (r.status === "unreachable") note.push(r.why + ".");
-      else if (a.gw) note.push("Has the uplink. " + (p.portals.filter(function (q) { return q.i === sel.i; })[0] || { points: 0 }).points + " points hang off it.");
+      else if (a.gw) note.push("Has the uplink. " + (p.portals.filter(function (q) { return q.i === sel.i; })[0] || { points: 0 }).points + " points hang off it on channel " + r.channel + ".");
       else {
-        var mine = r.link.ga, theirs = r.link.gb;
-        if (T_isA(r, sel.i)) { mine = r.link.ga; theirs = r.link.gb; } else { mine = r.link.gb; theirs = r.link.ga; }
-        note.push("Parent AP " + (r.parent + 1) + " over " + r.link.d.toFixed(0) + " m: " + r.link.prx.toFixed(0) + " dBm, SNR " + r.link.snr.toFixed(0) + " dB, " +
-                  NFN.phy.label("ax", r.link.mcs) + ", " + mbs(r.link.goodput) + " on the link. This end gives " + mine.toFixed(1) + " dBi toward the parent, the parent gives " + theirs.toFixed(1) + " back.");
+        var mine = sel.i < r.parent ? r.link.ga : r.link.gb, theirs = sel.i < r.parent ? r.link.gb : r.link.ga;
+        note.push("Parent AP " + (r.parent + 1) + " over " + r.link.d.toFixed(0) + " m on " + r.link.band + " GHz at " + r.link.bw + " MHz: " + r.link.prx.toFixed(0) + " dBm" + (r.link.measured ? " measured" : "") + ", SNR " + r.link.snr.toFixed(0) + " dB, " +
+                  NFN.phy.label("ax", r.link.mcs) + ", " + mbs(r.link.goodput) + " on the link" + (r.cci > 0.02 ? ", " + Math.round(r.cci * 100) + "% of its air lost to co-channel neighbours" : "") + ". This end gives " + mine.toFixed(1) + " dBi toward the parent, the parent gives " + theirs.toFixed(1) + " back.");
+        if (r.link.calib) note.push("Corrected " + (r.link.calib > 0 ? "+" : "") + r.link.calib.toFixed(1) + " dB from measurements nearby.");
         if (r.relays) note.push(r.relays + (r.relays === 1 ? " relay on the way shares" : " relays on the way share") + " one radio, so the backhaul is cut by " + Math.pow(2, r.relays) + ".");
-        if (r.link.diffraction > 0.5) note.push(r.link.diffraction.toFixed(0) + " dB of diffraction from " + (r.link.blockedBy === "ground" ? "the ground" : "an obstacle") + ".");
+        if (r.link.diffraction > 0.5) note.push(r.link.diffraction.toFixed(0) + " dB of " + (r.link.blockedBy === "foliage" ? "foliage" : "diffraction from " + (r.link.blockedBy === "ground" ? "the ground" : "an obstacle")) + ".");
         note.push("Fresnel clearance " + (r.link.clearance * 100).toFixed(0) + "% of F1 (" + r.link.f1.toFixed(1) + " m at the middle)" + (r.link.fresnelBad ? ", under the 60% rule." : "."));
         if (st.get("ray")) note.push("Ground reflection " + (r.link.tworay >= 0 ? "+" : "") + r.link.tworay.toFixed(1) + " dB at this height.");
         note.push(r.backup >= 0 ? "Falls back to AP " + (r.backup + 1) + " if the parent dies." : "No second parent: lose AP " + (r.parent + 1) + " and this one goes dark.");
+        if (r.link.bw > 20) {
+          var alt = M.link(Object.assign({}, res, { bw: 20 }), Object.assign({}, p.tree.aps[r.parent], { bw: 20 }), model(), st.get("ob"), st.get("tr"));
+          if (alt.mcs > r.link.mcs) note.push("At 20 MHz this link would hold " + NFN.phy.label("ax", alt.mcs) + " (" + mbs(alt.goodput) + ").");
+        }
       }
       $("m-apnote").textContent = note.join(" ");
+      /* a link from here to anyone */
+      var ex = $("m-explain"), cur = ex.value; ex.innerHTML = "";
+      aps.forEach(function (b, j) { if (j !== sel.i) ex.add(new Option("AP " + (j + 1) + (b.gw ? " (portal)" : ""), String(j))); });
+      if (cur !== "" && +cur !== sel.i && aps[+cur]) ex.value = cur;
+      explainOut(p);
+      /* measured RSSI from here */
+      var ms = st.get("ms"), html = "";
+      aps.forEach(function (b, j) {
+        if (j === sel.i) return;
+        var key = Math.min(sel.i, j) + "-" + Math.max(sel.i, j), L2 = p.tree.links[sel.i] && p.tree.links[sel.i][j];
+        html += '<div class="t-row"><label>AP ' + (j + 1) + '</label><input type="number" data-meas="' + key + '" min="-100" max="-20" step="1" value="' + (ms[key] !== undefined ? ms[key] : "") + '" placeholder="' + (L2 && L2.ok ? Math.round(L2.model) : "model " + (L2 ? Math.round(L2.model) : "?")) + '" aria-label="measured RSSI from AP ' + (j + 1) + '"><span style="font:11px var(--mono);color:var(--text-muted)">dBm</span></div>';
+      });
+      $("m-meas").innerHTML = html;
+      Array.prototype.forEach.call($("m-meas").querySelectorAll("input"), function (inp) {
+        inp.addEventListener("change", function () {
+          var m2 = Object.assign({}, st.get("ms")), v = parseFloat(inp.value);
+          if (isFinite(v)) m2[inp.getAttribute("data-meas")] = NFN.clamp(v, -100, -20); else delete m2[inp.getAttribute("data-meas")];
+          st.set("ms", m2); run();
+        });
+      });
     } else if (sel.kind === "ob") {
       var o = obs[sel.i];
       $("m-seltitle").textContent = M.OBSTACLES[o.type].label;
       $("m-obh").value = o.h; $("m-obh-v").textContent = o.h.toFixed(1) + " m";
       $("m-obr").value = o.r; $("m-obr-v").textContent = o.r + " m";
-    } else {
+    } else if (sel.kind === "hill") {
+      var hl = hills[sel.i];
+      $("m-seltitle").textContent = hl.h >= 0 ? "A hill" : "A hollow";
+      $("m-hlh").value = hl.h; $("m-hlh-v").textContent = hl.h.toFixed(1) + " m";
+      $("m-hlr").value = hl.r; $("m-hlr-v").textContent = hl.r + " m";
+    } else if (sel.kind === "crowd") {
+      var cr = crowds[sel.i], w2 = p.who.crowds[sel.i];
+      $("m-seltitle").textContent = "A crowd of " + cr.n;
+      $("m-crn").value = cr.n; $("m-crr").value = cr.r; $("m-crr-v").textContent = cr.r + " m";
+      $("m-crnote").textContent = w2 ? (Math.round(w2.n) + " people right now" + (p.who.factor < 1 ? " at this hour" : "") + ", " + Math.round(w2.served) + " with an AP above the target where they stand" + (w2.unserved > 0.5 ? ", " + Math.round(w2.unserved) + " without." : ".")) : "";
+    } else if (sel.kind === "cl") {
       $("m-seltitle").textContent = "A client standing here";
       $("m-clout").innerHTML = !cl || cl.ap < 0 ? '<p class="t-hint">' + esc(cl ? cl.why : "") + "</p>" :
         '<div class="t-stats" style="margin:0 0 8px">' + [
@@ -1411,43 +1705,79 @@ it would get.</p>
           ["Alone", mbs(cl.alone)], ["With the crowd", mbs(cl.crowd)], ["Hops to uplink", String(cl.hops)]
         ].map(function (s) { return '<div class="t-stat"><b>' + esc(s[1]) + "</b><span>" + s[0] + "</span></div>"; }).join("") + "</div>" +
         '<p class="t-hint">' + (cl.ok ? "Alone on the site the ceiling is " + esc(cl.binds) + ". Busy means everybody else is on too, at " + p.askKbps + " kb/s each." : esc(cl.why)) + "</p>";
+    } else if (sel.kind === "pt") {
+      $("m-seltitle").textContent = pts.length ? "A walk of " + pts.length + " points" : "A walk";
     }
   }
-  /* a link object is shared by both ends and was built from the lower index
-     first, so ga belongs to the lower index */
-  function T_isA(r, i) { return i < r.parent; }
-  $("m-apkind").addEventListener("change", function () { if (sel && sel.kind === "ap") { st.get("ap")[sel.i].kind = this.value; run(); } });
-  $("m-apant").addEventListener("change", function () { if (sel && sel.kind === "ap") { st.get("ap")[sel.i].ant = this.value; run(); } });
-  $("m-apaim").addEventListener("input", function () { if (sel && sel.kind === "ap") { st.get("ap")[sel.i].aim = +this.value; run(); } });
-  $("m-apauto").addEventListener("click", function () { if (sel && sel.kind === "ap") { st.get("ap")[sel.i].aim = null; run(); } });
-  $("m-portal").addEventListener("click", function () { if (sel && sel.kind === "ap") { st.get("ap")[sel.i].gw = true; run(); } });
-  $("m-point").addEventListener("click", function () { if (sel && sel.kind === "ap") { st.get("ap")[sel.i].gw = false; run(); } });
-  $("m-aph").addEventListener("input", function () { if (sel && sel.kind === "ap") { st.get("ap")[sel.i].h = +this.value; run(); } });
-  $("m-aptx").addEventListener("input", function () { if (sel && sel.kind === "ap") { st.get("ap")[sel.i].tx = +this.value; run(); } });
-  $("m-fail").addEventListener("click", function () { if (sel && sel.kind === "ap") { var a = st.get("ap")[sel.i]; a.down = !a.down; run(); } });
+  function explainOut(p) {
+    if (!(sel && sel.kind === "ap")) return;
+    var j = +$("m-explain").value; if (!isFinite(j)) { $("m-explainout").textContent = ""; return; }
+    var ex = M.explain(model(), p, sel.i, j), L2 = ex.link, out = "";
+    if (L2) out = L2.d.toFixed(0) + " m, " + (L2.blockedBy === "band" ? "different bands" : L2.prx.toFixed(0) + " dBm, SNR " + L2.snr.toFixed(0) + " dB, " + (L2.ok ? NFN.phy.label("ax", L2.mcs) + ", " + mbs(L2.goodput) : "no rate") + " (" + L2.ga.toFixed(1) + " + " + L2.gb.toFixed(1) + " dBi, " + L2.fspl.toFixed(0) + " dB free space" + (L2.diffraction > 0.5 ? ", " + L2.diffraction.toFixed(0) + " dB " + (L2.blockedBy || "loss") : "") + ")") + ". ";
+    $("m-explainout").textContent = out + "Why not: " + ex.why + ".";
+  }
+  $("m-explain").addEventListener("change", function () { if (lastP) explainOut(lastP); });
+
+  function apEdit(fn) { if (sel && sel.kind === "ap") { fn(st.get("ap")[sel.i]); run(); } }
+  $("m-apkind").addEventListener("change", function () { var v = this.value; apEdit(function (a) { a.kind = v; }); });
+  $("m-apant").addEventListener("change", function () { var v = this.value; apEdit(function (a) { a.ant = v; }); });
+  $("m-apaim").addEventListener("input", function () { var v = +this.value; apEdit(function (a) { a.aim = v; }); });
+  $("m-apauto").addEventListener("click", function () { apEdit(function (a) { a.aim = null; }); });
+  $("m-aptilt").addEventListener("input", function () { var v = +this.value; apEdit(function (a) { a.tilt = v; }); });
+  $("m-apcant").addEventListener("change", function () { var v = this.value; apEdit(function (a) { a.cant = v; }); });
+  $("m-apcaim").addEventListener("input", function () { var v = +this.value; apEdit(function (a) { a.caim = v; }); });
+  $("m-apcauto").addEventListener("click", function () { apEdit(function (a) { a.caim = null; }); });
+  $("m-portal").addEventListener("click", function () { apEdit(function (a) { a.gw = true; }); });
+  $("m-point").addEventListener("click", function () { apEdit(function (a) { a.gw = false; }); });
+  $("m-aph").addEventListener("input", function () { var v = +this.value; apEdit(function (a) { a.h = v; }); });
+  $("m-aptx").addEventListener("input", function () { var v = +this.value; apEdit(function (a) { a.tx = v; }); });
+  $("m-apband").addEventListener("change", function () { var v = this.value === "" ? null : +this.value; apEdit(function (a) { a.band = v; }); });
+  $("m-apbw").addEventListener("change", function () { var v = this.value === "" ? null : +this.value; apEdit(function (a) { a.bw = v; }); });
+  $("m-apch").addEventListener("change", function () { var v = this.value === "" ? null : +this.value; apEdit(function (a) { a.ch = v; }); });
+  $("m-fail").addEventListener("click", function () { apEdit(function (a) { a.down = !a.down; }); });
   $("m-rmap").addEventListener("click", function () {
     if (!(sel && sel.kind === "ap")) return;
-    var aps = st.get("ap").slice(); aps.splice(sel.i, 1); sel = null;
-    st.set("ap", aps.length ? aps : [{ x: st.get("fw") / 2, y: st.get("fd") / 2, h: 3, gw: true }]); run();
+    var aps = st.get("ap").slice(), gone = sel.i; aps.splice(gone, 1); sel = null;
+    /* measurements are keyed by index, so they move with the list */
+    var ms = st.get("ms"), ms2 = {};
+    Object.keys(ms).forEach(function (k) { var b = k.split("-").map(Number); if (b[0] === gone || b[1] === gone) return; var i2 = b[0] > gone ? b[0] - 1 : b[0], j2 = b[1] > gone ? b[1] - 1 : b[1]; ms2[Math.min(i2, j2) + "-" + Math.max(i2, j2)] = ms[k]; });
+    st.set("ms", ms2);
+    st.set("ap", aps.length ? aps : [{ x: st.get("fw") / 2, y: st.get("fd") / 2, h: 3, gw: true, ant: "auto", aim: null, kind: st.get("kind") }]); run();
   });
   $("m-obh").addEventListener("input", function () { if (sel && sel.kind === "ob") { st.get("ob")[sel.i].h = +this.value; run(); } });
   $("m-obr").addEventListener("input", function () { if (sel && sel.kind === "ob") { st.get("ob")[sel.i].r = +this.value; run(); } });
   $("m-rmob").addEventListener("click", function () { if (sel && sel.kind === "ob") { var o = st.get("ob").slice(); o.splice(sel.i, 1); st.set("ob", o); sel = null; run(); } });
+  $("m-hlh").addEventListener("input", function () { if (sel && sel.kind === "hill") { st.get("tr")[sel.i].h = +this.value; run(); } });
+  $("m-hlr").addEventListener("input", function () { if (sel && sel.kind === "hill") { st.get("tr")[sel.i].r = +this.value; run(); } });
+  $("m-rmhill").addEventListener("click", function () { if (sel && sel.kind === "hill") { var h2 = st.get("tr").slice(); h2.splice(sel.i, 1); st.set("tr", h2); sel = null; run(); } });
+  $("m-crn").addEventListener("input", function () { if (sel && sel.kind === "crowd") { st.get("cr")[sel.i].n = Math.max(0, +this.value || 0); run(); } });
+  $("m-crr").addEventListener("input", function () { if (sel && sel.kind === "crowd") { st.get("cr")[sel.i].r = +this.value; run(); } });
+  $("m-rmcrowd").addEventListener("click", function () { if (sel && sel.kind === "crowd") { var c2 = st.get("cr").slice(); c2.splice(sel.i, 1); st.set("cr", c2); sel = null; run(); } });
   $("m-rmcl").addEventListener("click", function () { st.set("c", null); sel = null; run(); });
-
+  $("m-pathundo").addEventListener("click", function () { var pt = st.get("pt").slice(); pt.pop(); st.set("pt", pt); run(); });
+  $("m-rmpath").addEventListener("click", function () { st.set("pt", []); sel = null; setMode("move"); run(); });
   /* ── the answer ──────────────────────────────────────────────────────── */
   function pc(x) { return Math.round(x * 100) + "%"; }
+  function kbs(k) { return k >= 1000 ? (k / 1000).toFixed(1) + " Mb/s" : k.toFixed(0) + " kb/s"; }
+  function hhmm(t) { var h = Math.floor(t), m = Math.round((t - h) * 60); return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m; }
+  var advice = null, adviceKey = "";
   function run() {
     readUi(); resolveAnts();
-    var m = model(), p = M.plan(m), c = st.get("c"), cl = c ? M.client(m, p, c) : null, R = M.resilience(m);
+    var m = model(), p = M.plan(m), c = st.get("c"), cl = c ? M.client(m, p, c) : null,
+        walk = st.get("pt").length >= 2 ? M.walk(m, p, st.get("pt"), Math.max(3, Math.round(Math.max(st.get("fw"), st.get("fd")) / 120))) : null,
+        R = drag ? { cases: [], pairs: [], pairsTried: 0 } : M.resilience(m, true);
     ["fw", "fd"].forEach(function (k) { $("m-" + k + "-v").textContent = st.get(k) + " m"; });
-    $("m-hops-v").textContent = st.get("hops"); $("m-tx-v").textContent = st.get("tx") + " dBm";
-    $("m-edge-v").textContent = st.get("edge") + " dBm";
+    $("m-north-v").textContent = st.get("north") === 0 ? "up is N" : "up is " + M.compass(-90, st.get("north")).toFixed(0) + "°";
+    $("m-hops-v").textContent = st.get("hops"); $("m-tx-v").textContent = st.get("tx") + " dBm"; $("m-fade-v").textContent = st.get("fade") + " dB";
+    $("m-edge-v").textContent = st.get("edge") + " dBm"; $("m-imgop-v").textContent = Math.round(img.op * 100) + "%";
     $("m-hops").disabled = M.profile(st.get("prof")).maxHops !== null;
     $("m-profnote").textContent = M.profile(st.get("prof")).note + ".";
+    $("m-tod-v").textContent = st.get("tod") >= 24 ? "peak" : hhmm(st.get("tod")) + ", " + Math.round(p.who.factor * 100) + "%";
+    $("m-todnote").textContent = st.get("tod") >= 24 ? "at the peak headcount" : Math.round(p.clients) + " people on site at " + hhmm(st.get("tod"));
+    channelOptions();
 
-    lastP = p; lastCl = cl; viewUi();
-    if (st.get("view") === "3d") draw3d(p, cl); else drawMap(p, cl);
+    lastP = p; lastCl = cl; lastWalk = walk; viewUi();
+    if (st.get("view") === "3d") draw3d(p, cl, walk); else drawMap(p, cl, walk);
     selPanel(p, cl);
 
     $("m-big").textContent = mbs(p.ceiling);
@@ -1460,35 +1790,62 @@ it would get.</p>
 
     var live = p.aps.filter(function (r) { return r.status !== "down" && r.status !== "unreachable"; }).length;
     $("m-stats").innerHTML = [
-      ["Per client", p.perClientKbps >= 1000 ? (p.perClientKbps / 1000).toFixed(1) + " Mb/s" : p.perClientKbps.toFixed(0) + " kb/s"],
-      ["Asked", p.askKbps + " kb/s"], ["APs live", live + " of " + p.aps.length],
-      ["Portals", String(p.tree.gateways)], ["Deepest", p.maxDepth + (p.maxDepth === 1 ? " hop" : " hops")],
-      ["Field covered", pc(p.coverage)], ["Antennas picked", st.get("ap").filter(function (a) { return M.isAuto(a); }).length + " of " + p.aps.length],
-      ["No backup", String(p.spof)]
+      ["Per client", kbs(p.perClientKbps)], ["Asked", p.askKbps + " kb/s"], ["People", String(Math.round(p.clients))],
+      ["APs live", live + " of " + p.aps.length], ["Portals", String(p.tree.gateways)], ["Channels", String(p.channels.distinct)],
+      ["Deepest", p.maxDepth + (p.maxDepth === 1 ? " hop" : " hops")],
+      ["Field covered", pc(p.coverage)], ["Unserved", String(Math.round(p.who.unserved))],
+      ["No backup", String(p.spof)], ["Antennas picked", st.get("ap").filter(function (a) { return M.isAuto(a); }).length + " of " + p.aps.length]
     ].map(function (s) { return '<div class="t-stat"><b>' + s[1] + "</b><span>" + s[0] + "</span></div>"; }).join("");
 
-    /* demand, mesh and uplink on one bar, so the ceiling is a picture */
     var top = Math.max(p.demand, p.meshMbps, p.uplink, 1) * 1.08;
     $("m-ceiling").innerHTML = [["Clients ask", p.demand, "#EAF2F6"], ["Mesh carries", p.meshMbps, "#5ED2DA"], ["Uplink", p.uplink, "#8CE05E"]].map(function (b) {
       var bind = (b[0] === "Uplink" && p.binds === "uplink") || (b[0] === "Mesh carries" && p.binds === "mesh");
       return '<div class="m-cb"><span>' + b[0] + '</span><div class="m-cbar"><i style="width:' + (b[1] / top * 100) + '%;background:' + (bind ? WARN : b[2]) + '"></i></div><b style="color:' + (bind ? "#ffd28a" : b[2]) + '">' + mbs(b[1]) + (bind ? " · the ceiling" : "") + "</b></div>";
     }).join("");
 
+    $("m-flags").innerHTML = p.flags.map(function (f) { return '<div class="t-note' + (/ceiling|no second|down|orphan|Fresnel|no usable|No portal|unserved|no AP|co-channel|caps/i.test(f) ? " t-bad" : "") + '">' + esc(f) + "</div>"; }).join("");
     $("m-reasons").innerHTML = lastSug && lastSug.reasons.length
       ? '<h3 style="margin-top:20px">What to put on the masts</h3><p class="t-hint">Picked for these mount points, heights and this crowd: what the clients get, headroom on every link, coverage of the field, nobody orphaned, and an omni whenever gain is not needed. A starting point, not a survey. Pick an antenna by hand on any AP to overrule it.</p><ul class="t-assume" style="margin-top:6px">' +
         lastSug.reasons.map(function (q) { return "<li>AP " + (q.i + 1) + ": " + esc(q.why) + "</li>"; }).join("") + "</ul>"
       : "";
-    $("m-flags").innerHTML = p.flags.map(function (f) { return '<div class="t-note' + (/ceiling|no second|down|orphan|Fresnel|no usable|No portal/i.test(f) ? " t-bad" : "") + '">' + esc(f) + "</div>"; }).join("");
+
+    /* the advisors are the expensive part: only when the picture is still */
+    var key = st.toHash().replace(/&(view|l3|zx|cam|c|pt)=[^&]*/g, "");
+    if (!drag && key !== adviceKey) {
+      adviceKey = key;
+      var sp = M.suggestPortal(m), hs = M.suggestHeights(m, p), sec = p.tree.gateways === 1 ? M.secondPortal(m) : null, lines = [];
+      if (sp.single && sp.single.score > sp.now + 5 && !(p.tree.gateways === 1 && st.get("ap")[sp.single.i].gw))
+        lines.push("The uplink would do more at AP " + (sp.single.i + 1) + " as the only portal: " + mbs(sp.single.ceiling) + " out, " + sp.single.spof + " without backup, " + sp.single.unreachable + " unreached, " + sp.single.maxDepth + " hops deep.");
+      if (sp.extra && sp.extra.score > sp.now + 5) lines.push("A second uplink at AP " + (sp.extra.i + 1) + " scores best: " + mbs(sp.extra.ceiling) + " out, " + sp.extra.spof + " without backup, " + sp.extra.maxDepth + " hops deep.");
+      if (sec && sec.best && sec.best.orphans < sec.now) lines.push("For failures, a second portal at AP " + (sec.best.i + 1) + " cuts the orphans across the lose-one sweep from " + sec.now + " to " + sec.best.orphans + " and lifts the worst case ceiling from " + mbs(sec.nowWorst) + " to " + mbs(sec.best.worstCeiling) + ".");
+      hs.forEach(function (h) {
+        lines.push("The link AP " + (h.i + 1) + " to AP " + (h.parent + 1) + " " + (h.clearance < 0.6 ? "clears only " + Math.round(h.clearance * 100) + "% of its Fresnel zone" : "loses " + h.loss.toFixed(0) + " dB to diffraction") + ": " +
+                   (h.up === null ? "12 m more mast does not fix it; move one end." : h.up === 0 ? "already clear." : "raise both masts by " + h.up.toFixed(1) + " m."));
+      });
+      advice = lines;
+    }
+    $("m-advice").innerHTML = advice && advice.length
+      ? '<h3 style="margin-top:20px">Where the uplink should be, how high the masts</h3><ul class="t-assume" style="margin-top:6px">' + advice.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") + "</ul>" +
+        (advice.some(function (l) { return /raise both masts/.test(l); }) ? '<div class="t-acts" style="margin-top:8px"><button class="t-btn" id="m-applyh" type="button">Raise the masts as suggested</button></div>' : "")
+      : "";
+    var applyBtn = $("m-applyh");
+    if (applyBtn) applyBtn.addEventListener("click", function () {
+      var hs2 = M.suggestHeights(model(), lastP), aps2 = st.get("ap");
+      hs2.forEach(function (h) { if (h.up) { aps2[h.i].h = Math.min(15, Math.round((aps2[h.i].h + h.up) * 2) / 2); aps2[h.parent].h = Math.min(15, Math.round((aps2[h.parent].h + h.up) * 2) / 2); } });
+      run();
+    });
 
     $("m-rows").innerHTML = p.aps.map(function (r, k) {
-      var col = r.status === "down" || r.status === "unreachable" ? WARN : r.gw ? "#8CE05E" : HOPC[Math.min(Math.max(r.depth, 1), HOPC.length - 1)];
+      var col = apColor(r), a = st.get("ap")[k];
       return "<tr" + (sel && sel.kind === "ap" && sel.i === k ? ' style="background:rgba(255,255,255,0.04)"' : "") + "><td><i style='background:" + col + "'></i>AP " + (k + 1) + "</td>" +
         "<td>" + (r.gw ? "portal" : r.serves ? "point" : "bridge") + (r.kind.dedicated ? "" : ", shared") + (r.status === "down" ? ", down" : "") + "</td>" +
-        "<td>" + r.antenna.label + (r.antenna.h < 360 ? " " + Math.round(p.tree.aps[k].aim) + "°" : "") + (M.isAuto(st.get("ap")[k]) ? " ·auto" : "") + "</td>" +
+        "<td>" + r.antenna.label + (r.antenna.h < 360 ? " " + compassTxt(p.tree.aps[k].aim) : "") + (M.isAuto(a) ? " ·auto" : "") + (r.kind.dedicated && r.serves ? " + " + r.clientAntenna.label.toLowerCase() : "") + "</td>" +
+        "<td>" + (r.channel !== null && r.depth >= 0 ? r.channel : "") + "</td>" +
         "<td>" + (r.gw ? "uplink" : r.parent >= 0 ? "AP " + (r.parent + 1) : "none") + "</td>" +
         "<td>" + (r.depth >= 0 ? r.depth : "none") + "</td>" +
-        "<td>" + (r.link ? mbs(r.link.goodput) + (r.link.fresnelBad ? " !" : "") : r.gw ? "wired" : "0") + "</td>" +
+        "<td>" + (r.link ? mbs(r.link.goodput) + (r.link.fresnelBad ? " !" : "") + (r.link.measured ? " m" : "") : r.gw ? "wired" : "0") + "</td>" +
         "<td>" + (r.depth > 0 ? p.tree.metricOf(k) : r.gw ? "portal" : "none") + "</td>" +
+        "<td" + (r.cci > 0.2 ? ' style="color:#ffd28a"' : "") + ">" + (r.depth > 0 ? pc(r.cci) : "") + "</td>" +
         "<td>" + (r.gw ? "n/a" : r.backhaul === Infinity ? "n/a" : mbs(r.backhaul)) + "</td>" +
         "<td>" + (r.status === "down" || r.status === "unreachable" ? "0" : mbs(r.delivered) + " of " + mbs(r.demand) + " asked") + "</td>" +
         "<td>" + (r.gw ? "" : r.backup >= 0 ? "AP " + (r.backup + 1) : (r.depth > 0 ? '<span style="color:#ffd28a">none</span>' : "")) + "</td></tr>";
@@ -1500,42 +1857,97 @@ it would get.</p>
         "<td" + (bad ? ' style="color:#ffd28a"' : "") + ">" + (c2.orphans.length ? c2.orphans.map(function (x) { return "AP " + (x + 1); }).join(", ") : "none") + "</td>" +
         "<td" + (c2.portalsLeft === 0 ? ' style="color:#ffd28a"' : "") + ">" + c2.portalsLeft + "</td>" +
         "<td>" + mbs(c2.meshMbps) + "</td><td" + (c2.lost > 0.5 ? ' style="color:#ffd28a"' : "") + ">" + mbs(c2.lost) + "</td><td>" + pc(c2.coverage) + "</td></tr>";
-    }).join("") || '<tr><td colspan="6">No live APs to fail.</td></tr>';
+    }).join("") || '<tr><td colspan="6">' + (drag ? "Recalculated when the drag ends." : "No live APs to fail.") + "</td></tr>";
+    $("m-n2note").textContent = R.pairsTried ? "Every pair failed together, " + R.pairsTried + " pairs tried, the worst " + R.pairs.length + " shown." : drag ? "Recalculated when the drag ends." : st.get("ap").length > 14 ? "Too many APs to try every pair." : "Nothing to pair.";
+    $("m-n2").innerHTML = R.pairs.map(function (c2) {
+      return "<tr><td>AP " + (c2.idx[0] + 1) + " and AP " + (c2.idx[1] + 1) + (c2.gw ? " (a portal)" : "") + "</td>" +
+        "<td" + (c2.orphans.length ? ' style="color:#ffd28a"' : "") + ">" + (c2.orphans.length ? c2.orphans.map(function (x) { return "AP " + (x + 1); }).join(", ") : "none") + "</td>" +
+        "<td" + (c2.portalsLeft === 0 ? ' style="color:#ffd28a"' : "") + ">" + c2.portalsLeft + "</td><td>" + mbs(c2.meshMbps) + "</td><td>" + mbs(c2.lost) + "</td></tr>";
+    }).join("");
+
+    /* the walk, as a plot */
+    if (walk && walk.length > 1) {
+      var Wp = 620, Hp = 150, maxD = walk[walk.length - 1].dist || 1, maxMb = Math.max(10, walk.reduce(function (t, w2) { return Math.max(t, w2.alone); }, 0)) * 1.1, sv = [];
+      var xs = function (d) { return 40 + d / maxD * (Wp - 56); }, ys = function (v) { return Hp - 24 - v / maxMb * (Hp - 44); }, yr = function (r) { return Hp - 24 - NFN.clamp((r + 90) / 50, 0, 1) * (Hp - 44); };
+      sv.push('<line x1="40" y1="' + (Hp - 24) + '" x2="' + (Wp - 16) + '" y2="' + (Hp - 24) + '" stroke="rgba(255,255,255,0.15)"/>');
+      walk.forEach(function (w2, k) {
+        if (k === walk.length - 1) return;
+        var w3 = walk[k + 1], col = w2.ok ? apColor(p.aps[w2.ap]) : WARN;
+        sv.push('<rect x="' + xs(w2.dist) + '" y="' + ys(w2.alone) + '" width="' + Math.max(1, xs(w3.dist) - xs(w2.dist)) + '" height="' + (Hp - 24 - ys(w2.alone)) + '" fill="' + col + '" fill-opacity="0.55"/>');
+      });
+      sv.push('<polyline points="' + walk.map(function (w2) { return xs(w2.dist).toFixed(1) + "," + yr(w2.rssi).toFixed(1); }).join(" ") + '" fill="none" stroke="#EAF2F6" stroke-opacity="0.7" stroke-width="1.2"/>');
+      sv.push(T(38, 16, mbs(maxMb / 1.1), "#B0C4CF", "end", 9) + T(Wp - 16, 16, "-40 dBm", "#EAF2F6", "end", 9) + T(Wp - 16, Hp - 26, "-90 dBm", "#EAF2F6", "end", 9));
+      sv.push(T(40, Hp - 8, "0 m", "#8BA2AE", "start", 9) + T(Wp - 16, Hp - 8, Math.round(maxD) + " m walked", "#8BA2AE", "end", 9));
+      var handoffs = 0; for (var q = 1; q < walk.length; q++) if (walk[q].ap !== walk[q - 1].ap) handoffs++;
+      var holes = walk.filter(function (w2) { return !w2.ok; }).length;
+      $("m-walk").innerHTML = '<h3 style="margin-top:20px">The walk</h3><p class="t-hint">Bars are what a client alone would get at each step, coloured by the AP serving it; the line is the signal. ' + handoffs + " handoff" + (handoffs === 1 ? "" : "s") + (holes ? ", " + holes + " of " + walk.length + " steps with no signal" : ", no holes") + '.</p><div class="t-elev"><svg viewBox="0 0 ' + Wp + " " + Hp + '" width="100%" role="img" aria-label="Throughput and signal along the walk">' + sv.join("") + "</svg></div>";
+    } else $("m-walk").innerHTML = "";
 
     $("m-assume").innerHTML = p.assumptions.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("");
-
-    $("m-sheet").value = [
-      "Mesh plan, " + st.get("fw") + " x " + st.get("fd") + " m, " + p.land.label.toLowerCase() + ", " + p.aps.length + " APs, " + p.tree.gateways + " portal" + (p.tree.gateways === 1 ? "" : "s"),
-      "",
-      "Ceiling " + mbs(p.ceiling) + " (" + p.binds + " binds): clients ask " + mbs(p.demand) + ", mesh carries " + mbs(p.meshMbps) + ", uplink " + mbs(p.uplink),
-      p.clients + " clients, " + (p.perClientKbps >= 1000 ? (p.perClientKbps / 1000).toFixed(1) + " Mb/s" : p.perClientKbps.toFixed(0) + " kb/s") + " each against " + p.askKbps + " kb/s asked",
-      "Field covered " + pc(p.coverage) + " at " + st.get("edge") + " dBm, cell radius " + p.radius.toFixed(0) + " m, deepest hop " + p.maxDepth + ", " + p.spof + " single point" + (p.spof === 1 ? "" : "s") + " of failure",
-      ""
-    ].concat(p.aps.map(function (r, k) {
-      var a = st.get("ap")[k];
-      return "  AP " + (k + 1) + " at " + Math.round(a.x) + "," + Math.round(a.y) + " m, mast " + a.h + " m, " + (a.tx === undefined ? st.get("tx") : a.tx) + " dBm, " +
-        r.kind.label.toLowerCase() + ", " + r.antenna.label.toLowerCase() + (M.isAuto(a) ? " (picked)" : "") + (r.antenna.h < 360 ? " aimed " + Math.round(p.tree.aps[k].aim) + " deg" + (a.aim === null || a.aim === undefined ? " (auto)" : " (pinned)") : "") + ": " +
-        (r.status === "down" ? "DOWN" : r.gw ? "portal, uplink" : r.status === "unreachable" ? "NO PATH (" + r.why + ")" :
-         "parent AP " + (r.parent + 1) + ", " + r.depth + " hop" + (r.depth === 1 ? "" : "s") + " (" + p.tree.metricOf(k) + "), link " + mbs(r.link.goodput) + " at " + r.link.snr.toFixed(0) + " dB SNR over " + r.link.d.toFixed(0) + " m" +
-         (r.link.fresnelBad ? ", FRESNEL " + (r.link.clearance * 100).toFixed(0) + "%" : "") + (r.link.diffraction > 0.5 ? ", " + r.link.diffraction.toFixed(0) + " dB diffraction" : "") +
-         ", backhaul " + mbs(r.backhaul) + ", delivers " + mbs(r.delivered) + " of " + mbs(r.demand) + (r.backup >= 0 ? ", backup AP " + (r.backup + 1) : ", NO BACKUP"));
-    })).concat([""], st.get("ob").map(function (o) { return "  " + M.OBSTACLES[o.type].label + " at " + Math.round(o.x) + "," + Math.round(o.y) + " m, " + o.h + " m high, " + o.r + " m across"; }))
-      .concat(c && cl ? ["", "  client at " + Math.round(c.x) + "," + Math.round(c.y) + " m: " + (cl.ap >= 0 && cl.ok ? "AP " + (cl.ap + 1) + ", " + cl.rssi.toFixed(0) + " dBm, " + NFN.phy.label(cl.std, cl.mcs) + ", " + mbs(cl.alone) + " alone, " + mbs(cl.crowd) + " busy, ceiling is " + cl.binds : "no signal")] : [])
-      .concat(["", "Lose one:"], R.cases.map(function (c2) { return "  AP " + (c2.i + 1) + " fails: " + (c2.orphans.length ? "orphans " + c2.orphans.map(function (x) { return "AP " + (x + 1); }).join(", ") : "no orphans") + ", mesh carries " + mbs(c2.meshMbps) + ", " + c2.portalsLeft + " portal" + (c2.portalsLeft === 1 ? "" : "s") + " left"; }))
-      .concat([""], p.assumptions.map(function (a) { return "  assumption: " + a; })).join("\n");
+    $("m-sheet").value = installSheet(p, R, cl, walk);
 
     st.set("ap", st.get("ap")).set("ob", st.get("ob"));
-    /* the address bar catches up when the finger lifts, not on every pixel of a drag */
     if (booted && !drag && !document.getElementById("tool-mesh").hidden) st.push();
   }
 
-  ["m-fw", "m-fd", "m-land", "m-up", "m-prof", "m-hops", "m-band", "m-bw", "m-tx", "m-ant", "m-kind", "m-ss", "m-ray", "m-cl", "m-dev", "m-app", "m-edge", "m-cbw"]
+  /* what the crew on the truck reads */
+  function installSheet(p, R, cl, walk) {
+    var aps = st.get("ap"), north = st.get("north"), c = st.get("c"), lines = [
+      "Mesh install sheet, " + st.get("fw") + " x " + st.get("fd") + " m, " + p.land.label.toLowerCase() + ", " + p.aps.length + " APs, " + p.tree.gateways + " portal" + (p.tree.gateways === 1 ? "" : "s") + ", " + M.domain(st.get("dom")).label,
+      "Positions are metres from the top left corner, x across and y down; bearings are compass degrees, true north" + (north ? " (the map's right hand edge points " + M.compass(0, north).toFixed(0) + ")" : ""),
+      "",
+      "Ceiling " + mbs(p.ceiling) + " (" + p.binds + " binds): clients ask " + mbs(p.demand) + ", mesh carries " + mbs(p.meshMbps) + ", uplink " + mbs(p.uplink),
+      Math.round(p.clients) + " people, " + kbs(p.perClientKbps) + " each against " + p.askKbps + " kb/s asked" + (p.who.unserved > 0.5 ? ", " + Math.round(p.who.unserved) + " with no signal where they stand" : ""),
+      "Field covered " + pc(p.coverage) + " at " + st.get("edge") + " dBm, deepest hop " + p.maxDepth + ", " + p.spof + " single point" + (p.spof === 1 ? "" : "s") + " of failure, " + p.channels.distinct + " channel" + (p.channels.distinct === 1 ? "" : "s"),
+      ""
+    ];
+    p.aps.forEach(function (r, k) {
+      var a = aps[k], res = p.tree.aps[k];
+      lines.push("AP " + (k + 1) + (a.gw ? " PORTAL" : r.serves ? " point" : " bridge") + (r.status === "down" ? " DOWN" : ""));
+      lines.push("  mount: x " + Math.round(a.x) + " m, y " + Math.round(a.y) + " m, mast " + a.h + " m" + (res.z ? " on ground at " + res.z.toFixed(1) + " m" : ""));
+      lines.push("  box: " + r.kind.label.toLowerCase() + ", " + (a.tx === undefined ? st.get("tx") : a.tx) + " dBm" + (r.link && r.link.clamped ? " (capped by EIRP)" : "") + ", " + r.band + " GHz at " + r.bw + " MHz" + (r.channel !== null && r.depth >= 0 ? ", channel " + r.channel : ""));
+      lines.push("  " + (r.kind.dedicated ? "backhaul antenna: " : "antenna: ") + r.antenna.label.toLowerCase() + (M.isAuto(a) ? " (picked)" : "") + (r.antenna.h < 360 ? ", azimuth " + compassTxt(res.aim) + (a.aim === null || a.aim === undefined ? " (auto)" : " (pinned)") : "") + ", down-tilt " + ((a.tilt || 0) + r.antenna.tilt) + " deg");
+      if (r.kind.dedicated && r.serves) lines.push("  client antenna: " + r.clientAntenna.label.toLowerCase() + (r.clientAntenna.h < 360 ? ", azimuth " + compassTxt(res.caim) : "") + ", down-tilt " + ((a.ctilt || 0) + r.clientAntenna.tilt) + " deg");
+      if (r.status === "unreachable") lines.push("  NO PATH: " + r.why);
+      else if (!a.gw && r.link) lines.push("  expect: parent AP " + (r.parent + 1) + ", " + r.depth + " hop" + (r.depth === 1 ? "" : "s") + " (" + p.tree.metricOf(k) + "), link " + mbs(r.link.goodput) + " at " + r.link.snr.toFixed(0) + " dB SNR over " + r.link.d.toFixed(0) + " m" + (r.link.measured ? " (measured)" : "") +
+        (r.link.fresnelBad ? ", FRESNEL " + (r.link.clearance * 100).toFixed(0) + "%" : "") + (r.link.diffraction > 0.5 ? ", " + r.link.diffraction.toFixed(0) + " dB " + (r.link.blockedBy || "loss") : "") + (r.cci > 0.02 ? ", " + pc(r.cci) + " air lost co-channel" : "") +
+        "; backhaul " + mbs(r.backhaul) + ", delivers " + mbs(r.delivered) + " to " + Math.round(r.clients) + " clients; " + (r.backup >= 0 ? "backup AP " + (r.backup + 1) : "NO BACKUP"));
+      else if (a.gw) lines.push("  expect: uplink here, " + (p.portals.filter(function (q) { return q.i === k; })[0] || { points: 0 }).points + " points behind it");
+    });
+    lines.push("");
+    st.get("ob").forEach(function (o) { lines.push("obstacle: " + M.OBSTACLES[o.type].label.toLowerCase() + " at x " + Math.round(o.x) + ", y " + Math.round(o.y) + ", " + o.h + " m high, " + o.r + " m radius"); });
+    st.get("tr").forEach(function (h) { lines.push("ground: " + (h.h >= 0 ? "hill" : "hollow") + " at x " + Math.round(h.x) + ", y " + Math.round(h.y) + ", " + h.h + " m, " + h.r + " m wide"); });
+    st.get("cr").forEach(function (cr, k) { var w2 = p.who.crowds[k]; lines.push("crowd: " + cr.n + " people at x " + Math.round(cr.x) + ", y " + Math.round(cr.y) + ", radius " + cr.r + " m" + (w2 && w2.unserved > 0.5 ? ", " + Math.round(w2.unserved) + " UNSERVED" : "")); });
+    if (c && cl) lines.push("client at x " + Math.round(c.x) + ", y " + Math.round(c.y) + ": " + (cl.ap >= 0 && cl.ok ? "AP " + (cl.ap + 1) + ", " + cl.rssi.toFixed(0) + " dBm, " + NFN.phy.label(cl.std, cl.mcs) + ", " + mbs(cl.alone) + " alone, " + mbs(cl.crowd) + " busy, ceiling is " + cl.binds : "no signal"));
+    if (walk && walk.length) lines.push("walk: " + Math.round(walk[walk.length - 1].dist) + " m, " + walk.filter(function (w2) { return !w2.ok; }).length + " steps of " + walk.length + " with no signal");
+    if (R.cases.length) { lines.push("", "Lose one:"); R.cases.forEach(function (c2) { lines.push("  AP " + (c2.i + 1) + " fails: " + (c2.orphans.length ? "orphans " + c2.orphans.map(function (x) { return "AP " + (x + 1); }).join(", ") : "no orphans") + ", mesh carries " + mbs(c2.meshMbps) + ", " + c2.portalsLeft + " portal" + (c2.portalsLeft === 1 ? "" : "s") + " left"); }); }
+    if (R.pairs && R.pairs.length) { lines.push("", "Lose two, worst first:"); R.pairs.forEach(function (c2) { lines.push("  AP " + (c2.idx[0] + 1) + " and AP " + (c2.idx[1] + 1) + ": " + (c2.orphans.length ? "orphans " + c2.orphans.map(function (x) { return "AP " + (x + 1); }).join(", ") : "no orphans") + ", mesh carries " + mbs(c2.meshMbps)); }); }
+    if (advice && advice.length) { lines.push("", "Advice:"); advice.forEach(function (l) { lines.push("  " + l); }); }
+    if (lastSug && lastSug.reasons.length) { lines.push("", "Antennas picked:"); lastSug.reasons.forEach(function (q) { lines.push("  AP " + (q.i + 1) + ": " + q.why); }); }
+    lines.push("");
+    p.assumptions.forEach(function (a) { lines.push("assumption: " + a); });
+    return lines.join("\n");
+  }
+  /* ── the clock ───────────────────────────────────────────────────────── */
+  var playing = null;
+  $("m-play").addEventListener("click", function () {
+    if (playing) { clearInterval(playing); playing = null; this.innerHTML = "&#9654;"; return; }
+    if (st.get("tod") >= 24) { st.set("tod", 6); $("m-tod").value = 6; }
+    this.innerHTML = "&#10074;&#10074;";
+    playing = setInterval(function () {
+      var t = st.get("tod") + 0.5;
+      if (t >= 24) { t = 24; clearInterval(playing); playing = null; $("m-play").innerHTML = "&#9654;"; }
+      st.set("tod", t); $("m-tod").value = t; run();
+    }, 700);
+  });
+
+  /* ── the controls ────────────────────────────────────────────────────── */
+  ["m-fw", "m-fd", "m-north", "m-land", "m-dom", "m-up", "m-prof", "m-hops", "m-band", "m-bw", "m-dfs", "m-tx", "m-fade", "m-ant", "m-kind", "m-ss", "m-ray", "m-cl", "m-dev", "m-app", "m-edge", "m-cbw", "m-tod", "m-curve"]
     .forEach(function (id) { $(id).addEventListener("input", run); $(id).addEventListener("change", run); });
   ["m-fw", "m-fd"].forEach(function (id) { $(id).addEventListener("input", function () {
     /* keep everything on the field when it shrinks */
     var fw = +$("m-fw").value, fd = +$("m-fd").value;
-    st.get("ap").forEach(function (a) { a.x = Math.min(a.x, fw); a.y = Math.min(a.y, fd); });
-    st.get("ob").forEach(function (o) { o.x = Math.min(o.x, fw); o.y = Math.min(o.y, fd); });
+    ["ap", "ob", "tr", "cr", "pt"].forEach(function (k) { st.get(k).forEach(function (o) { o.x = Math.min(o.x, fw); o.y = Math.min(o.y, fd); }); });
     var c = st.get("c"); if (c) st.set("c", { x: Math.min(c.x, fw), y: Math.min(c.y, fd) });
   }); });
   function copy(text, btn) {
@@ -1546,11 +1958,167 @@ it would get.</p>
   $("m-copy").addEventListener("click", function () { copy($("m-sheet").value, this); });
   $("m-link").addEventListener("click", function () { copy(location.href, this); });
   $("m-reset").addEventListener("click", function () {
-    st.set("ap", DEF_APS.map(function (a) { var b = {}, k; for (k in a) b[k] = a[k]; return b; }))
-      .set("ob", DEF_OBS.map(function (a) { var b = {}, k; for (k in a) b[k] = a[k]; return b; }))
-      .set("c", { x: DEF_CL.x, y: DEF_CL.y });
+    st.set("ap", clone(DEF_APS)).set("ob", clone(DEF_OBS)).set("cr", clone(DEF_CR)).set("tr", []).set("ms", {}).set("pt", []).set("c", clone(DEF_CL));
     sel = null; run();
   });
+
+  /* ── export and import ───────────────────────────────────────────────── */
+  function download(name, text, type) {
+    var a = document.createElement("a"), url = URL.createObjectURL(new Blob([text], { type: type || "text/plain" }));
+    a.href = url; a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+  }
+  $("m-json").addEventListener("click", function () {
+    var m = model(true), p = lastP, out = { tool: "networkfieldnotes mesh planner", version: 1, link: location.href, site: m,
+      result: p ? { ceiling: p.ceiling, binds: p.binds, demand: p.demand, meshMbps: p.meshMbps, uplink: p.uplink, coverage: p.coverage, spof: p.spof,
+        aps: p.aps.map(function (r, k) { return { ap: k + 1, role: r.gw ? "portal" : r.serves ? "point" : "bridge", kind: r.kind.label, antenna: r.antenna.label, azimuth: r.antenna.h < 360 ? Math.round(M.compass(p.tree.aps[k].aim, st.get("north"))) : null, channel: r.channel, parent: r.parent >= 0 ? r.parent + 1 : null, hops: r.depth, linkMbps: r.link ? r.link.goodput : null, backhaulMbps: r.backhaul === Infinity ? null : r.backhaul, deliversMbps: r.delivered, backup: r.backup >= 0 ? r.backup + 1 : null, status: r.status }; }) } : null };
+    download("mesh-plan.json", JSON.stringify(out, null, 2), "application/json");
+  });
+  $("m-csv").addEventListener("click", function () {
+    var p = lastP, aps = st.get("ap"), rows = [["ap", "role", "x_m", "y_m", "mast_m", "kind", "antenna", "azimuth_deg", "tilt_deg", "client_antenna", "client_azimuth_deg", "tx_dbm", "band_ghz", "width_mhz", "channel", "parent", "hops", "link_mbps", "backhaul_mbps", "delivers_mbps", "backup", "status"]];
+    p.aps.forEach(function (r, k) {
+      var a = aps[k], res = p.tree.aps[k];
+      rows.push([k + 1, r.gw ? "portal" : r.serves ? "point" : "bridge", Math.round(a.x), Math.round(a.y), a.h, a.kind || "dual", r.antenna.label, r.antenna.h < 360 ? Math.round(M.compass(res.aim, st.get("north"))) : "", (a.tilt || 0) + r.antenna.tilt,
+        r.kind.dedicated && r.serves ? r.clientAntenna.label : "", r.kind.dedicated && r.serves && r.clientAntenna.h < 360 ? Math.round(M.compass(res.caim, st.get("north"))) : "",
+        a.tx === undefined ? st.get("tx") : a.tx, r.band, r.bw, r.channel === null ? "" : r.channel, r.parent >= 0 ? r.parent + 1 : "", r.depth, r.link ? r.link.goodput.toFixed(0) : "", r.backhaul === Infinity ? "" : r.backhaul.toFixed(0), r.delivered.toFixed(0), r.backup >= 0 ? r.backup + 1 : "", r.status]);
+    });
+    download("mesh-aps.csv", rows.map(function (rw) { return rw.map(function (v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(","); }).join("\n"), "text/csv");
+  });
+  $("m-import").addEventListener("change", function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      var text = String(rd.result);
+      try {
+        if (/^\s*[\[{]/.test(text)) {
+          var j = JSON.parse(text), site = j.site || j;
+          if (site.aps) st.set("ap", site.aps.slice(0, 24).map(function (a) { return { x: +a.x || 0, y: +a.y || 0, h: NFN.clamp(+a.h || 3, 0.5, 15), gw: !!a.gw, down: !!a.down, tx: a.tx === undefined || a.tx === null ? undefined : +a.tx, ant: a.ant || "auto", aim: a.aim === undefined ? null : a.aim, kind: a.kind, cant: a.cant, caim: a.caim === undefined ? null : a.caim, tilt: a.tilt || 0, band: a.band === undefined ? null : a.band, bw: a.bw === undefined ? null : a.bw, ch: a.ch === undefined ? null : a.ch }; }));
+          if (site.obstacles) st.set("ob", deObs(serObs(site.obstacles)));
+          if (site.terrain) st.set("tr", site.terrain.slice(0, 40));
+          if (site.crowds) st.set("cr", site.crowds.slice(0, 40));
+          if (site.meas) st.set("ms", site.meas);
+          if (site.w) st.set("fw", NFN.clamp(+site.w, 60, 1200)); if (site.d) st.set("fd", NFN.clamp(+site.d, 40, 800));
+          if (site.land) st.set("land", site.land); if (site.domain) st.set("dom", site.domain);
+          if (site.uplink) st.set("up", +site.uplink); if (site.tx !== undefined) st.set("tx", +site.tx);
+          if (site.profile) st.set("prof", site.profile); if (site.fGHz) st.set("f", +site.fGHz); if (site.bw) st.set("bw", +site.bw);
+          if (site.north !== undefined) st.set("north", +site.north || 0);
+        } else {
+          /* CSV: the header names the columns, anything we do not know is ignored */
+          var lines = text.split(/\r?\n/).filter(function (l) { return l.trim(); }), head = lines[0].split(",").map(function (h) { return h.trim().toLowerCase(); }), aps = [];
+          lines.slice(1).forEach(function (l) {
+            var cells = l.match(/("([^"]|"")*"|[^,]*)(,|$)/g).map(function (cc) { return cc.replace(/,$/, "").replace(/^"|"$/g, "").replace(/""/g, '"'); }), o = {};
+            head.forEach(function (h, k) { o[h] = cells[k]; });
+            var x = parseFloat(o.x_m || o.x), y = parseFloat(o.y_m || o.y);
+            if (!isFinite(x) || !isFinite(y)) return;
+            var antId = Object.keys(M.ANTENNAS).filter(function (k) { return M.ANTENNAS[k].label.toLowerCase() === String(o.antenna || "").toLowerCase(); })[0],
+                az = parseFloat(o.azimuth_deg);
+            aps.push({ x: x, y: y, h: NFN.clamp(parseFloat(o.mast_m || o.h) || 3, 0.5, 15), gw: /portal/i.test(o.role || ""), kind: M.KINDS[o.kind] ? o.kind : (/bridge/i.test(o.role || "") ? "bridge" : undefined),
+                       ant: antId || "auto", aim: isFinite(az) ? M.fromCompass(az, st.get("north")) : null, tilt: 0, tx: isFinite(parseFloat(o.tx_dbm)) ? parseFloat(o.tx_dbm) : undefined,
+                       band: isFinite(parseFloat(o.band_ghz)) ? parseFloat(o.band_ghz) : null, bw: isFinite(parseFloat(o.width_mhz)) ? parseFloat(o.width_mhz) : null, ch: null });
+          });
+          if (aps.length) st.set("ap", aps.slice(0, 24));
+        }
+        sel = null; writeUi(); run();
+      } catch (e) { alert("Could not read that file: " + e.message); }
+      $("m-import").value = "";
+    };
+    rd.readAsText(f);
+  });
+
+  /* ── scenarios ───────────────────────────────────────────────────────── */
+  function save(slot) { try { localStorage.setItem("nfn-mesh-" + slot, st.toHash()); } catch (e) {} }
+  function load(slot) { var h; try { h = localStorage.getItem("nfn-mesh-" + slot); } catch (e) {} if (h && st.fromHash(h)) { sel = null; writeUi(); run(); } }
+  $("m-saveA").addEventListener("click", function () { save("A"); this.textContent = "Saved A"; var b = this; setTimeout(function () { b.textContent = "Save as A"; }, 1200); });
+  $("m-saveB").addEventListener("click", function () { save("B"); this.textContent = "Saved B"; var b = this; setTimeout(function () { b.textContent = "Save as B"; }, 1200); });
+  $("m-loadA").addEventListener("click", function () { load("A"); });
+  $("m-loadB").addEventListener("click", function () { load("B"); });
+  $("m-cmp").addEventListener("click", function () {
+    var cols = [], names = [];
+    ["A", "B"].forEach(function (slot) {
+      var h; try { h = localStorage.getItem("nfn-mesh-" + slot); } catch (e) {}
+      if (!h) return;
+      var S = NFN.State("mesh", SCHEMA); if (!S.fromHash(h)) return;
+      resolveAnts(S); var p2 = M.plan(modelOf(S)), R2 = M.resilience(modelOf(S));
+      cols.push(summary(p2, R2)); names.push("Scenario " + slot);
+    });
+    if (lastP) { cols.push(summary(lastP, M.resilience(model()))); names.push("This"); }
+    if (!cols.length) { $("m-compare").innerHTML = '<p class="t-hint">Save a scenario first.</p>'; return; }
+    var keys = Object.keys(cols[0]);
+    $("m-compare").innerHTML = '<div class="t-scroll"><table class="t-table m-table" style="min-width:420px"><thead><tr><th></th>' + names.map(function (nm) { return "<th>" + nm + "</th>"; }).join("") + "</tr></thead><tbody>" +
+      keys.map(function (k) { var vals = cols.map(function (cc) { return cc[k]; }), differ = vals.some(function (v) { return v !== vals[0]; }); return "<tr><td>" + k + "</td>" + vals.map(function (v) { return "<td" + (differ ? ' style="color:#ffd28a"' : "") + ">" + esc(v) + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>";
+  });
+  function summary(p2, R2) {
+    var worst = R2.cases.reduce(function (t, c2) { return Math.max(t, c2.orphans.length); }, 0);
+    return { "APs": String(p2.aps.length), "Portals": String(p2.tree.gateways), "Ceiling": mbs(p2.ceiling), "Binds": p2.binds, "Mesh carries": mbs(p2.meshMbps), "Clients ask": mbs(p2.demand),
+             "Per client": kbs(p2.perClientKbps), "Field covered": pc(p2.coverage), "Unserved": String(Math.round(p2.who.unserved)), "Deepest hop": String(p2.maxDepth),
+             "No backup": String(p2.spof), "Unreached": String(p2.unreachable), "Worst single failure": worst + " orphan" + (worst === 1 ? "" : "s"), "Channels": String(p2.channels.distinct) };
+  }
+
+  /* ── a picture under the map ─────────────────────────────────────────── */
+  $("m-img").addEventListener("change", function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      var im = new Image();
+      im.onload = function () {
+        /* shrink to something localStorage will hold */
+        var k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), cv = document.createElement("canvas");
+        cv.width = Math.round(im.naturalWidth * k); cv.height = Math.round(im.naturalHeight * k);
+        cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+        img.url = cv.toDataURL("image/jpeg", 0.8); img.w = cv.width; img.h = cv.height;
+        try { localStorage.setItem("nfn-mesh-img", img.url); } catch (e) {}
+        var fd = NFN.clamp(Math.round(st.get("fw") * img.h / img.w / 10) * 10, 40, 800); st.set("fd", fd); $("m-fd").value = fd;
+        $("m-scalenote").textContent = "Image on. Tap Set the scale, then two points a known distance apart.";
+        run();
+      };
+      im.src = String(rd.result);
+    };
+    rd.readAsDataURL(f);
+  });
+  $("m-scale").addEventListener("click", function () { scalePts = []; setMode("scale"); $("m-scalenote").textContent = "Tap two points on the map that you know the distance between."; });
+  $("m-rmimg").addEventListener("click", function () { img.url = null; try { localStorage.removeItem("nfn-mesh-img"); } catch (e) {} $("m-scalenote").textContent = ""; run(); });
+  $("m-imgop").addEventListener("input", function () { img.op = +this.value / 100; run(); });
+
+  /* ── from where you stand ────────────────────────────────────────────── */
+  var geo = null;
+  try { geo = JSON.parse(localStorage.getItem("nfn-mesh-geo") || "null"); } catch (e) {}
+  function geoToField(lat, lon) {
+    var north = st.get("north"), E = (lon - geo.lon) * Math.cos(geo.lat * Math.PI / 180) * 111320, N = (lat - geo.lat) * 110574,
+        b = (90 + north) * Math.PI / 180;
+    return { x: NFN.clamp(geo.x + E * Math.sin(b) + N * Math.cos(b), 0, st.get("fw")), y: NFN.clamp(geo.y + E * Math.cos(b) - N * Math.sin(b), 0, st.get("fd")) };
+  }
+  $("m-gps").addEventListener("click", function () {
+    if (!navigator.geolocation) { $("m-gpsnote").textContent = "This browser has no location."; return; }
+    $("m-gpsnote").textContent = "Fixing...";
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var lat = pos.coords.latitude, lon = pos.coords.longitude, acc = pos.coords.accuracy, at;
+      if (!geo) { geo = { lat: lat, lon: lon, x: st.get("fw") / 2, y: st.get("fd") / 2 }; try { localStorage.setItem("nfn-mesh-geo", JSON.stringify(geo)); } catch (e) {} at = { x: geo.x, y: geo.y }; }
+      else at = geoToField(lat, lon);
+      var aps = st.get("ap").slice(); if (aps.length >= 24) return;
+      aps.push({ x: at.x, y: at.y, h: 3, gw: !aps.some(function (a) { return a.gw; }), kind: st.get("kind"), ant: st.get("ant"), aim: null, tilt: 0, band: null, bw: null, ch: null });
+      st.set("ap", aps); sel = { kind: "ap", i: aps.length - 1 }; run();
+      $("m-gpsnote").textContent = "AP " + aps.length + " placed at x " + Math.round(at.x) + ", y " + Math.round(at.y) + " m, fix good to " + Math.round(acc) + " m" + (aps.length === 1 || !geo ? "" : "");
+    }, function (err) { $("m-gpsnote").textContent = "No fix: " + err.message; }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+  });
+  $("m-gpsreset").addEventListener("click", function () { geo = null; try { localStorage.removeItem("nfn-mesh-geo"); } catch (e) {} $("m-gpsnote").textContent = "The next fix sets the middle of the field."; });
+
+  /* aim a patch by holding the phone flat and pointing its top edge at the far end */
+  $("m-apcompass").addEventListener("click", function () {
+    if (!(sel && sel.kind === "ap")) return;
+    var done = false;
+    function onHead(e) {
+      var hd = e.webkitCompassHeading !== undefined ? e.webkitCompassHeading : (e.absolute && e.alpha !== null ? 360 - e.alpha : null);
+      if (hd === null || done) return;
+      done = true; window.removeEventListener("deviceorientationabsolute", onHead); window.removeEventListener("deviceorientation", onHead);
+      apEdit(function (a) { a.aim = M.fromCompass(hd, st.get("north")); });
+      $("m-apnote").textContent = "Aimed at " + Math.round(hd) + " degrees by the compass. " + $("m-apnote").textContent;
+    }
+    var go = function () { window.addEventListener("deviceorientationabsolute", onHead); window.addEventListener("deviceorientation", onHead);
+      setTimeout(function () { if (!done) { window.removeEventListener("deviceorientationabsolute", onHead); window.removeEventListener("deviceorientation", onHead); $("m-apnote").textContent = "No compass reading from this browser; set the aim by hand. " + $("m-apnote").textContent; } }, 2500); };
+    var DO = window.DeviceOrientationEvent;
+    if (DO && typeof DO.requestPermission === "function") DO.requestPermission().then(function (r) { if (r === "granted") go(); }).catch(go); else go();
+  });
+
   window.addEventListener("hashchange", function () { if (st.fromHash(location.hash)) { writeUi(); run(); } });
   window.addEventListener("resize", function () { if (!document.getElementById("tool-mesh").hidden) run(); });
 
@@ -1559,6 +2127,7 @@ it would get.</p>
   root._meshState = st;
 })();
 </script>
+
 
 <script>
 /* the switcher. Each tool refuses the other's hash, so the address bar decides

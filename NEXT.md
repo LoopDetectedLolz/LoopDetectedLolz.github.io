@@ -32,7 +32,12 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
   that defaults to the parent and can be pinned, mast height, power and a fail toggle per AP; footprints
   drawn as the antenna's real shape and a wedge showing where a patch looks; a 3D toggle
   with an orbiting camera, Fresnel tubes that go orange where they clip, antenna lobes as
-  wire surfaces, the ground bounce, and the camera in the URL; links drawn by
+  wire surfaces, the ground bounce, masts you can drag, and the camera in the URL; hills,
+  crowds, a walk, a clock, a fade margin, foliage, a regulatory domain with EIRP caps and
+  channel lists, one channel per portal tree with co-channel air charged, per-AP band and
+  width, two antennas on a tri radio box, measured RSSI that corrects the model, advice on
+  the portal and the mast heights, lose-two, a why-not on any link, JSON and CSV in and
+  out, a site image with a two-tap scale, GPS and compass placement, A/B scenarios; links drawn by
   hop depth with their rate, orange and dashed when the Fresnel zone is short; a backup
   parent per point drawn faint, or flagged as a single point of failure; demand, what the
   mesh carries and the uplink on one bar with the ceiling named; an N-1 table that fails
@@ -45,7 +50,7 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
     python3 lab.py qam          # the live simulator widget, same loop
     python3 lab.py --diff       # what the lab copy has that the live one does not
     python3 lab.py --promote    # copy the lab widget over the live one and rebuild
-    node simtest.js             # 117 model checks, no browser
+    node simtest.js             # 191 model checks, no browser
     python3 regress.py          # every page at 360, 768 and 1280
     python3 capture.py academy-01   # regenerate the lesson figures from the live simulator
     python3 build-blog.py       # build the site
@@ -85,19 +90,18 @@ Run `node simtest.js` and `python3 regress.py` before promoting anything.
 3. **GPS and FTM**, once the lab answers the questions below. Positions are already
    recorded per AP in the kit and ride in the CSV and the plan, so the groundwork is done.
 
-Ideas parked from the mesh session, none of them decided:
+Everything on the list of twenty from 2026-09-11 is in the lab. Not yet verified by anyone
+on a phone in a field: the GPS placement, the compass aim and the image scale, which need a
+real device and daylight. Ideas parked, none of them decided:
 
-- Per-AP client counts instead of an even spread, once there is a floor plan or a heat
-  map to weight them.
 - Real vendor path cost numbers. The shapes are right by the documents; the curves inside
   (dB per doubling, node cost per child, Cisco's ease multipliers) are guesses that
   reproduce the vendors' worked examples, and would need a lab measurement to pin down.
-- Terrain. The field is flat; a height map would replace the "rise in the ground" blob,
-  and the 3D view is where it would pay off.
-- Dragging APs in the 3D view. Today it orbits; moving things is the plan view's job.
-- Per-AP down-tilt on patches, and a second antenna per AP so a tri radio box can carry a
-  patch for the backhaul and an omni for the clients. Today one antenna does both jobs,
-  which is the honest picture of a dual radio unit and a pessimistic one of a tri radio.
+- A painted height map instead of gaussian hills, once the hash can carry it or the plan
+  lives somewhere other than a URL.
+- The antenna picker choosing the client antenna and the backhaul width as well as the
+  backhaul antenna. Today it picks one thing per AP and the note says what 20 MHz would buy.
+- Co-channel between client radios of neighbouring APs. Today only backhaul links share air.
 
 ## To verify in the lab, with the AP-735
 
