@@ -5,7 +5,7 @@
    Run: node simtest.js */
 var fs = require("fs"), path = require("path");
 var dir = path.join(__dirname, "theme", "sim");
-["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js", "aps.js", "esx.js", "kml.js"].forEach(function (f) {
+["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js", "aps.js", "esx.js", "kml.js", "emit.js"].forEach(function (f) {
   new Function(fs.readFileSync(path.join(dir, f), "utf8")).call(globalThis);
 });
 var NFN = globalThis.NFN, fails = 0, n = 0;
@@ -393,6 +393,37 @@ if (!PB.flags.some(function (f) { return /aimed at AP 1 but bonds to AP 2/.test(
 n++;
 eq("an aim that agrees with the parent is not flagged", PT.aps[2].aimedAt >= 0 && PT.aps[2].aimedAt !== PT.tree.parent[2], false);
 eq("an omni has no aim to disagree", PT.aps[1].aimedAt, -1);
+
+/* the RF intent a plan implies, and the two controllers' readings of it */
+var IT_ST = { aps: [{ x: 50, y: 100, h: 5, gw: true, ant: "omni", name: "Gate" }, { x: 350, y: 100, h: 5, ant: "pwide", tx: 18 }, { x: 650, y: 100, h: 6, ant: "dish" }], w: 900, d: 200, tworay: false, uplink: 200, clients: 30, bw: 40, domain: "us", dfs: false, north: 0 },
+    IT_P = NFN.mesh.plan(IT_ST), IT = NFN.emit.intent(IT_P, IT_ST);
+eq("intent names the band", IT.band, "5");
+eq("intent carries the width", IT.bw, 40);
+eq("one portal, two points", IT.mesh.portals + "/" + IT.mesh.points, "1/2");
+eq("the portal keeps its name, the rest are numbered", IT.aps[0].name + "," + IT.aps[1].name, "Gate,AP-2");
+if (!IT.channels.used.every(function (c) { return IT.channels.allowed.indexOf(c) >= 0; })) { fails++; console.log("  FAIL a used channel must be in the allowed list"); }
+n++;
+eq("the power window spans the APs", IT.power.min + "-" + IT.power.max, "18-" + IT_P.cfg.tx);
+eq("a patch has a compass aim, an omni none", (IT.aps[1].aim !== null) + "/" + (IT.aps[0].aim === null), "true/true");
+eq("149 at 80 MHz is 149E", NFN.emit.arubaChannel(149, 80), "149E");
+eq("36 at 40 MHz is 36+", NFN.emit.arubaChannel(36, 40), "36+");
+eq("a bare 20 MHz channel", NFN.emit.arubaChannel(11, 20), "11");
+var CEN = NFN.emit.central(IT), MIST = NFN.emit.mist(IT);
+eq("Central: ARM first, then the radio profile, then one ap_settings per AP", CEN.calls.length, 2 + IT.aps.length);
+eq("Central ARM lists the allowed channels", CEN.calls[0].body.a_channels, IT.channels.allowed.join(","));
+eq("Central ARM has 80 MHz off for a 40 MHz plan", CEN.calls[0].body["80mhz_support"], false);
+eq("Central per AP channel wears the width", CEN.calls[2].body.achannel, NFN.emit.arubaChannel(IT.aps[0].channel, 40));
+if (!CEN.mesh_cli.some(function (l) { return /distributed-tree-rssi/.test(l); })) { fails++; console.log("  FAIL the mesh CLI should name the metric"); }
+n++;
+eq("Mist: template, site, mesh setting, then one device each", MIST.calls.length, 3 + IT.aps.length);
+eq("Mist template channels are an array", Array.isArray(MIST.calls[0].body.band_5.channels), true);
+eq("Mist portal is a base", MIST.calls[3].body.mesh.role, "base");
+eq("Mist point is a relay", MIST.calls[4].body.mesh.role, "relay");
+if (!(NFN.emit.text(IT).split("\n").length >= 5 + IT.aps.length)) { fails++; console.log("  FAIL the text should have a header and a line per AP"); }
+n++;
+/* two hops on a Mist plan is a warning, because Mist relays are one hop */
+var CH_ST = Object.assign({}, IT_ST, { aps: [{ x: 50, y: 100, h: 5, gw: true }, { x: 250, y: 100, h: 5 }, { x: 450, y: 100, h: 5 }, { x: 650, y: 100, h: 5 }], tx: 8, profile: "aruba" }), CH_P = NFN.mesh.plan(CH_ST);
+if (CH_P.maxDepth > 1) eq("Mist warns about a plan deeper than one hop", NFN.emit.mist(NFN.emit.intent(CH_P, CH_ST)).warnings.length, 1);
 
 /* a measured path loss, the number AirMatch reports, replaces the model too */
 var LP0 = NFN.mesh.link(A0, B0, { tworay: false }, [], []), LP = NFN.mesh.link(A0, B0, { tworay: false }, [], [], { pl: LP0.plModel + 10 });

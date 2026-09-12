@@ -3,6 +3,7 @@
 
     python3 lab.py              build lab.html, serve it, reload the browser on every save
     python3 lab.py --build      build lab.html once and stop
+    python3 lab.py tools --port=8824   serve on another port
     python3 lab.py --diff       what the lab widget has that the live one does not
     python3 lab.py --promote    copy the lab widget over the live one, rebuild the site
     python3 lab.py --reset      throw the lab widget away and start again from the live one
@@ -19,7 +20,7 @@ import http.server, socketserver
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PORT = 8823
-SIM = ["core", "rf", "phy", "mac", "channels", "capacity", "venue", "mesh", "aps", "esx", "kml"]          # model files, loaded separately in the lab
+SIM = ["core", "rf", "phy", "mac", "channels", "capacity", "venue", "mesh", "aps", "esx", "kml", "emit"]          # model files, loaded separately in the lab
 WIDGET = "qam"                                           # set from argv in main()
 
 
@@ -176,7 +177,12 @@ def watch_loop():
 
 def main():
     global WIDGET
+    global PORT
     args = sys.argv[1:]
+    for a in args:
+        if a.startswith("--port="):
+            PORT = int(a.split("=", 1)[1])
+    args = [a for a in args if not a.startswith("--port=")]
     names = [a for a in args if not a.startswith("-")]
     if names:
         WIDGET = names[0]

@@ -125,7 +125,23 @@ real device and daylight. Asked for on 2026-09-12 and not yet built, in the orde
    directions within 4 dB of each other on 5 GHz. TLS is verified against the Mac's keychains
    because the python.org build trusts only its own bundle and this laptop's outbound TLS is
    inspected. `demo/mesh-central.json` is a synthetic fixture shaped like the output.
-3. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
+3. **A config planner for Central and Mist**: built 2026-09-12. The mesh plan implies an RF
+   intent (`NFN.emit.intent`: band, width, DFS, channel list, power window, mesh profile and
+   hop ceiling, each AP's role, channel, power, antenna, compass aim and expected parent), and
+   `emit.central` and `emit.mist` write that intent as the bodies each controller wants: ARM,
+   a dot11a radio profile and per-AP `ap_settings` (from the CA tenant's Configuration
+   Swagger, read 2026-09-12; mesh cluster is group CLI so it comes out as lines to paste), and
+   a Mist RF template, the site, the mesh setting and each device with base or relay. The
+   "What to configure" fold shows the intent as text and downloads either JSON. Neither JSON
+   is pushed by anything here; the kit's dry-run script pattern is how one would be. Every
+   Mist field is from memory and marked to verify; the Central bodies were read from the
+   Swagger but not pushed. `mist-pull.py` mirrors `central-pull.py` (sites, devices, stats,
+   maps, RRM neighbours) and writes the same site.json with `rssi` where Central had `db`;
+   the importer takes either and the verify table shows dBm for RSSI pairs. Not run against a
+   live Mist org: the RRM neighbours shape is the least certain thing in it, and the parser
+   says what it found. `demo/mesh-mist.json` is a synthetic fixture. Left out on purpose:
+   security, VLANs, RADIUS, tunnelling; nothing in them has a picture to draw.
+4. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
    if a newer app refuses the import, the icons and the key table are there to build by hand.
 
 Ideas parked, none of them decided:
@@ -133,6 +149,12 @@ Ideas parked, none of them decided:
 - Real vendor path cost numbers. The shapes are right by the documents; the curves inside
   (dB per doubling, node cost per child, Cisco's ease multipliers) are guesses that
   reproduce the vendors' worked examples, and would need a lab measurement to pin down.
+  Field experience on 2026-09-12: a far point with a dish aimed past a nearer point at the
+  portal tends to bond with the nearer point on Aruba. Under the sketch that happens with
+  best-link-rssi and not always with distributed-tree-rssi (the near AP's own weak uplink
+  costs more than the direct dish link). If that observation holds on a site with the tree
+  metric, the RSSI term is steeper than 2^((50-snr)/4). The tool now flags a pinned aim
+  that disagrees with the parent the metric chose (`aimedElsewhere`).
 - A painted height map instead of gaussian hills, once the hash can carry it or the plan
   lives somewhere other than a URL.
 - The antenna picker choosing the client antenna and the backhaul width as well as the
