@@ -202,7 +202,15 @@ real device and daylight. Asked for on 2026-09-12 and not yet built, in the orde
    spikes in 48 hours, 12 and 11 clients, sit within a minute of AirMatch's nightly 01:00
    channel moves on two 2.4 GHz radios. Evening 2.4 GHz utilisation 21 to 35 percent, 5 GHz at
    3, floors steady. `demo/mesh-story.json` is the synthetic fixture the tests and the demo
-   button use. Not drawn yet: hops on the map (no AP positions on this site).
+   button use. The mesh planner draws the story's roams on the map when asked (`rm` in the
+   hash, the checkbox in Verify): an arrow per AP pair with the count and median landing,
+   orange under -75 dBm, matched by AP name, so Verify has to have opened the same site.
+   "Follow the cable" goes as far as Classic sees: each AP's radios, clients now, uplink port,
+   speed and duplex (a 100 Mb/s port is called slow); the switch, its port and PoE live in
+   whichever Central manages the switch and on this tenant that is New Central, so the row
+   says "switch not in Classic's view" rather than drawing one. The Classic monitoring API
+   returned zero switches for the account; New Central's UI shows the port through its
+   internal GraphQL, which is not a public contract.
 8. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
    if a newer app refuses the import, the icons and the key table are there to build by hand.
 

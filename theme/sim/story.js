@@ -185,6 +185,22 @@
     return { aps: out, siteClients: vals.length ? { now: vals[vals.length - 1], peak: Math.max.apply(null, vals), mean: vals.reduce(function (t, v) { return t + v; }, 0) / vals.length } : null };
   };
 
+  /* roams between APs, by name: how many went from A to B, how they landed.
+     A same-AP hop is a band change, kept apart. joins have no origin. */
+  S.transitions = function (story) {
+    var out = {}, flips = {}, per = {};
+    S.hops(story).forEach(function (h) {
+      if (h.join || !h.prev || !h.ap) return;
+      per[h.ap] = per[h.ap] || { landings: 0, weak: 0 }; per[h.ap].landings++; if (h.rssi_dbm !== null && h.rssi_dbm < -75) per[h.ap].weak++;
+      if (h.prev === h.ap) { flips[h.ap] = (flips[h.ap] || 0) + 1; return; }
+      var k = h.prev + "|" + h.ap, t = out[k] || (out[k] = { from: h.prev, to: h.ap, n: 0, rssi: [], slow: 0 });
+      t.n++; if (h.rssi_dbm !== null) t.rssi.push(h.rssi_dbm); if (h.latency_ms > 500) t.slow++;
+    });
+    var list = Object.keys(out).map(function (k) { var t = out[k]; t.rssi.sort(function (a, b) { return a - b; }); t.median = t.rssi.length ? t.rssi[Math.floor(t.rssi.length / 2)] : null; delete t.rssi; return t; });
+    list.sort(function (a, b) { return b.n - a.n; });
+    return { pairs: list, flips: flips, perAp: per };
+  };
+
   /* who roams most, who lands weakest: the clients worth a look */
   S.clients = function (story) {
     return ((story && story.trails) || []).map(function (t) {

@@ -461,6 +461,11 @@ if (!S_act.aps.every(function (a) { return a.meanMbps > 0 && a.peakMbps >= a.mea
 n++;
 near("bytes per five minutes become megabits per second", S_act.aps[0].meanMbps, (function () { var smp = S_st.usage[STORY.aps[0].serial].samples, t = 0, c = 0; for (var i = 1; i < smp.length; i++) { t += (smp[i].tx_bytes + smp[i].rx_bytes) * 8 / 300 / 1e6; c++; } return t / c; })(), 1e-9);
 eq("the restless watch tops the client list", SS.clients(S_st)[0].name, "Demo-Watch");
+var S_tr = SS.transitions(S_st);
+eq("transitions count every roam that changed AP", S_tr.pairs.reduce(function (t, p2) { return t + p2.n; }, 0), S_h.filter(function (h) { return !h.join && h.prev && h.prev !== h.ap; }).length);
+eq("a same-AP hop is a band flip, not a transition", Object.keys(S_tr.flips).reduce(function (t, k) { return t + S_tr.flips[k]; }, 0), S_h.filter(function (h) { return !h.join && h.prev === h.ap; }).length);
+if (!S_tr.pairs.every(function (p2, i) { return i === 0 || p2.n <= S_tr.pairs[i - 1].n; })) { fails++; console.log("  FAIL transitions should come busiest first"); }
+n++;
 
 /* a measured path loss, the number AirMatch reports, replaces the model too */
 var LP0 = NFN.mesh.link(A0, B0, { tworay: false }, [], []), LP = NFN.mesh.link(A0, B0, { tworay: false }, [], [], { pl: LP0.plModel + 10 });

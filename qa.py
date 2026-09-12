@@ -202,6 +202,16 @@ def qa_mesh(b, base, page_url):
         cells = [c.strip() for c in r.inner_text().split("\t")]
         nums = [float(re.sub(r"[^0-9.+-]", "", c)) for c in cells[3:6]]
         near("math", f"verify row {cells[0][:30]}: gap = measured - planned", nums[2], nums[1] - nums[0], 1.01)
+    # the roams from the story, on the map, once both tools hold the same site
+    pg.evaluate("localStorage.setItem('nfn-story', JSON.stringify(" + json.dumps(json.load(open(os.path.join(ROOT, "demo/mesh-story.json")))) + "))")
+    pg.set_input_files("#m-central", os.path.join(ROOT, "demo/mesh-story.json")); pg.wait_for_timeout(1200)
+    pg.check("#m-roams"); pg.wait_for_timeout(800)
+    arcs = pg.evaluate("document.querySelectorAll('#m-map path[marker-end]').length")
+    check("use", "roams from the story draw as arrows between the named APs", arcs > 0, arcs, "> 0")
+    check("use", "the roams toggle is in the link", "rm=1" in pg.evaluate("location.hash"), None, "rm=1")
+    pg.uncheck("#m-roams"); pg.wait_for_timeout(300)
+    pg.set_input_files("#m-central", os.path.join(ROOT, "demo/mesh-central.json")); pg.wait_for_timeout(1200)
+    p3 = pg.evaluate("document.getElementById('tools')._mesh()")
     # export and configuration
     with pg.expect_download() as dl: pg.click("#m-json")
     j = json.load(open(dl.value.path()))
@@ -376,6 +386,10 @@ def qa_story(b, base, page_url):
             m = re.match(r"([0-9.]+) (kb/s|Mb/s|Gb/s)", t); return float(m.group(1)) * {"kb/s": 1e-3, "Mb/s": 1, "Gb/s": 1e3}[m.group(2)] if m else None
         mean, peak = val(cells[2]), val(cells[3])
         check("math", f"{cells[0]}: peak at least the mean", mean is not None and peak is not None and peak >= mean * 0.99, (mean, peak), "peak >= mean")
+    cable = pg.locator("#s-cable tr").count()
+    check("use", "follow the cable: one row per AP", cable == len(fx["aps"]), cable, len(fx["aps"]))
+    check("use", "follow the cable: a 100 Mb/s uplink is called slow", "slow port" in pg.inner_text("#s-cable"), None, "slow port")
+    check("use", "follow the cable: the switch is not claimed", "not in Classic" in pg.inner_text("#s-cable"), None, "says the switch is not in view")
     top = pg.locator("#s-clients tr").first.inner_text()
     check("use", "the restless watch tops the client list", "Demo-Watch" in top, top[:40], "Demo-Watch")
     open_all_details(pg, "#tool-story"); text_hygiene(pg, "#tool-story", "story"); tap_targets(pg, "#tool-story", "story")
