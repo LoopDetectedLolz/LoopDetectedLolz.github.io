@@ -28,9 +28,9 @@ So far so good. Here's where it goes sideways.
 
 ## Conversion is a cluster decision, not an AP decision
 
-When you convert an Instant AP to a Campus AP, you aren't talking to that AP. You're talking to the virtual controller, and the virtual controller sends the convert command to every member of the cluster. Every one. HPE's own wording, from the AOS 8.3 conversion page: "the virtual controller sends the convert command to all the other Instant APs." The AP you picked as your pilot is just the one whose web UI you happened to be logged into.
+When you convert an Instant AP to a Campus AP, you aren't talking to that AP. You're talking to the virtual controller, and the virtual controller sends the convert command to every member of the cluster. Every one. HPE's own wording, still present tense on the current AOS 8 conversion page: "the virtual controller sends the convert command to all the other Instant APs." The AP you picked as your pilot is just the one whose web UI you happened to be logged into.
 
-Here's the part that bugs me. The current Instant user guide dropped that sentence from the Campus AP page. It's a bare five-step procedure now. The Remote AP page next to it still carries the warning. So the one page people actually read for this job is the one that stopped telling them.
+Here's the part that bugs me. The Instant user guide, which is the doc set you are actually in when you do this job, dropped that sentence from its Campus AP page. It's a bare five-step procedure now. The Remote AP page next to it still carries the warning. So the one page people actually read for this job is the one that stopped telling them.
 
 So the "convert one AP first" step converts a hundred APs first. They all reboot, all go looking for the controller, and if the controller isn't reachable from where they sit, or the campus AP whitelist isn't ready, or the image download stalls, you now have a hundred APs sitting on a setup SSID waiting for a human, and a very quiet warehouse. Recoverable, but it's a hundred truck rolls instead of one.
 
