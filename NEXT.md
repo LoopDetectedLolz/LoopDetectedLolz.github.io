@@ -95,7 +95,26 @@ Everything on the list of twenty from 2026-09-11 is in the lab, the interface wa
 into progressive disclosure on 2026-09-12, `simsweep.js` baselines the model (80,761 checks
 over 400 sites, clean after one real fix), and an Ekahau .esx opens straight into the field. Not yet verified by anyone
 on a phone in a field: the GPS placement, the compass aim and the image scale, which need a
-real device and daylight. Ideas parked, none of them decided:
+real device and daylight. Asked for on 2026-09-12 and not yet built, in the order they were asked:
+
+1. **Terrain from the APs' GPS.** Given a geo anchor (the first fix, or Ekahau's
+   `gpsReferencePoints`, or a KML centroid) and a radius, fetch elevation tiles and lay real
+   ground under the field. Candidate source: the AWS Open Data Terrarium tiles
+   (`s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png`, height = R*256 + G +
+   B/256 - 32768, public, CORS open as far as known; verify), decoded through a canvas into a
+   raster. `M.ground` then needs a raster mode (bilinear on a grid) beside the hills, the hash
+   carries only the anchor and radius (`geo=lat,lon,r`) and the raster is fetched again on load.
+2. **Central assisted verification.** The kit's rule holds: the page never calls Central. A
+   `central-pull.py` beside the kit's script pulls the site's APs (name, serial, model, GPS
+   where the AP has it, mesh role), the mesh links (neighbour, RSSI, rate, hops) and the radio
+   settings (channel, power), and writes `site.json`; the planner imports it, places the APs by
+   GPS, takes each mesh link's RSSI as a measurement, and shows planned against measured per
+   link with the gap in dB. The toggle is "Verify against Central". Endpoints go in the same
+   marked-to-verify block as the kit's.
+3. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
+   if a newer app refuses the import, the icons and the key table are there to build by hand.
+
+Ideas parked, none of them decided:
 
 - Real vendor path cost numbers. The shapes are right by the documents; the curves inside
   (dB per doubling, node cost per child, Cisco's ease multipliers) are guesses that
