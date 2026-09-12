@@ -761,7 +761,8 @@ it would get.</p>
         <input type="number" id="m-up" min="1" max="10000" step="1" value="100"><span style="font:11px var(--mono);color:var(--text-muted)">Mb/s</span></div>
 
       <h3 style="margin-top:22px">The backhaul</h3>
-      <div class="t-row"><label for="m-prof">Behaves like</label><select id="m-prof"></select></div>
+      <div class="t-row"><label for="m-prof">Picks parents like</label><select id="m-prof"></select></div>
+      <p class="t-hint" id="m-profnote"></p>
       <div class="t-row"><label for="m-hops">Hop ceiling</label>
         <input type="range" id="m-hops" min="1" max="8" step="1" value="4"><output id="m-hops-v">4</output></div>
       <div class="t-row"><label for="m-band">Band</label>
@@ -775,7 +776,7 @@ it would get.</p>
       <div class="t-row"><label for="m-kind">New APs are</label><select id="m-kind"></select></div>
       <div class="t-row"><label for="m-ant">New APs carry</label><select id="m-ant"></select></div>
       <div class="t-row"><label for="m-ray">Ground reflection</label>
-        <select id="m-ray"><option value="1" selected>Two ray, on</option><option value="0">Off</option></select></div>
+        <select id="m-ray"><option value="0" selected>Off, plan without it</option><option value="1">Two ray, in every budget</option></select></div>
 
       <h3 style="margin-top:22px">The crowd</h3>
       <div class="t-row"><label for="m-cl">Clients on site</label>
@@ -798,7 +799,7 @@ it would get.</p>
       <div id="m-reasons"></div>
       <h3 style="margin-top:20px">Every access point</h3>
       <div class="t-scroll"><table class="t-table m-table"><thead><tr>
-        <th>AP</th><th>Role</th><th>Antenna</th><th>Parent</th><th>Hops</th><th>Link</th><th>Cost</th><th>Backhaul</th><th>Delivers</th><th>Backup</th>
+        <th>AP</th><th>Role</th><th>Antenna</th><th>Parent</th><th>Hops</th><th>Link</th><th>Metric</th><th>Backhaul</th><th>Delivers</th><th>Backup</th>
       </tr></thead><tbody id="m-rows"></tbody></table></div>
       <h3 style="margin-top:20px">Lose one</h3>
       <p class="t-hint">Each AP failed in turn, everything else recalculated. Orphans are the APs that lose their way to a portal.</p>
@@ -870,11 +871,11 @@ it would get.</p>
     fw: NFN.f.int(700, 60, 1200), fd: NFN.f.int(360, 40, 800),
     land: NFN.f.pick("open", Object.keys(M.LAND)),
     up: NFN.f.num(100, 1, 10000),
-    prof: NFN.f.pick("generic", Object.keys(M.PROFILES)), hops: NFN.f.int(4, 1, 8),
+    prof: NFN.f.pick("aruba", Object.keys(M.PROFILES)), hops: NFN.f.int(4, 1, 8),
     f: NFN.f.num(5.2, 5.2, 6.0), bw: NFN.f.int(40, 20, 160),
     tx: NFN.f.num(17, 0, 30), ss: NFN.f.int(2, 1, 4),
     ant: NFN.f.pick("auto", ["auto"].concat(Object.keys(M.ANTENNAS))), kind: NFN.f.pick("dual", Object.keys(M.KINDS)),
-    ray: NFN.f.bool(true),
+    ray: NFN.f.bool(false),
     cl: NFN.f.int(300, 0, 20000),
     dev: NFN.f.pick("ax2", CAP.DEVICES.map(function (d) { return d.id; })),
     app: NFN.f.pick("web", CAP.APPS.map(function (a) { return a.id; })),
@@ -1443,6 +1444,7 @@ it would get.</p>
     $("m-hops-v").textContent = st.get("hops"); $("m-tx-v").textContent = st.get("tx") + " dBm";
     $("m-edge-v").textContent = st.get("edge") + " dBm";
     $("m-hops").disabled = M.profile(st.get("prof")).maxHops !== null;
+    $("m-profnote").textContent = M.profile(st.get("prof")).note + ".";
 
     lastP = p; lastCl = cl; viewUi();
     if (st.get("view") === "3d") draw3d(p, cl); else drawMap(p, cl);
@@ -1486,7 +1488,7 @@ it would get.</p>
         "<td>" + (r.gw ? "uplink" : r.parent >= 0 ? "AP " + (r.parent + 1) : "none") + "</td>" +
         "<td>" + (r.depth >= 0 ? r.depth : "none") + "</td>" +
         "<td>" + (r.link ? mbs(r.link.goodput) + (r.link.fresnelBad ? " !" : "") : r.gw ? "wired" : "0") + "</td>" +
-        "<td>" + (r.depth > 0 ? r.cost.toFixed(1) : r.gw ? "0" : "inf") + "</td>" +
+        "<td>" + (r.depth > 0 ? p.tree.metricOf(k) : r.gw ? "portal" : "none") + "</td>" +
         "<td>" + (r.gw ? "n/a" : r.backhaul === Infinity ? "n/a" : mbs(r.backhaul)) + "</td>" +
         "<td>" + (r.status === "down" || r.status === "unreachable" ? "0" : mbs(r.delivered) + " of " + mbs(r.demand) + " asked") + "</td>" +
         "<td>" + (r.gw ? "" : r.backup >= 0 ? "AP " + (r.backup + 1) : (r.depth > 0 ? '<span style="color:#ffd28a">none</span>' : "")) + "</td></tr>";
@@ -1514,7 +1516,7 @@ it would get.</p>
       return "  AP " + (k + 1) + " at " + Math.round(a.x) + "," + Math.round(a.y) + " m, mast " + a.h + " m, " + (a.tx === undefined ? st.get("tx") : a.tx) + " dBm, " +
         r.kind.label.toLowerCase() + ", " + r.antenna.label.toLowerCase() + (M.isAuto(a) ? " (picked)" : "") + (r.antenna.h < 360 ? " aimed " + Math.round(p.tree.aps[k].aim) + " deg" + (a.aim === null || a.aim === undefined ? " (auto)" : " (pinned)") : "") + ": " +
         (r.status === "down" ? "DOWN" : r.gw ? "portal, uplink" : r.status === "unreachable" ? "NO PATH (" + r.why + ")" :
-         "parent AP " + (r.parent + 1) + ", " + r.depth + " hop" + (r.depth === 1 ? "" : "s") + ", link " + mbs(r.link.goodput) + " at " + r.link.snr.toFixed(0) + " dB SNR over " + r.link.d.toFixed(0) + " m" +
+         "parent AP " + (r.parent + 1) + ", " + r.depth + " hop" + (r.depth === 1 ? "" : "s") + " (" + p.tree.metricOf(k) + "), link " + mbs(r.link.goodput) + " at " + r.link.snr.toFixed(0) + " dB SNR over " + r.link.d.toFixed(0) + " m" +
          (r.link.fresnelBad ? ", FRESNEL " + (r.link.clearance * 100).toFixed(0) + "%" : "") + (r.link.diffraction > 0.5 ? ", " + r.link.diffraction.toFixed(0) + " dB diffraction" : "") +
          ", backhaul " + mbs(r.backhaul) + ", delivers " + mbs(r.delivered) + " of " + mbs(r.demand) + (r.backup >= 0 ? ", backup AP " + (r.backup + 1) : ", NO BACKUP"));
     })).concat([""], st.get("ob").map(function (o) { return "  " + M.OBSTACLES[o.type].label + " at " + Math.round(o.x) + "," + Math.round(o.y) + " m, " + o.h + " m high, " + o.r + " m across"; }))
