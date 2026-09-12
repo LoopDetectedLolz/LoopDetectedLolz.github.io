@@ -63,20 +63,53 @@
     return Promise.all([
       E.readJson(buf, entries, "floorPlans.json"), E.readJson(buf, entries, "accessPoints.json"),
       E.readJson(buf, entries, "simulatedRadios.json"), E.readJson(buf, entries, "antennaTypes.json"),
-      E.readJson(buf, entries, "project.json")
+      E.readJson(buf, entries, "project.json"),
+      E.readJson(buf, entries, "wallTypes.json"), E.readJson(buf, entries, "wallSegments.json"), E.readJson(buf, entries, "wallPoints.json"),
+      E.readJson(buf, entries, "requirements.json")
     ]).then(function (r) {
       var floors = (r[0] && r[0].floorPlans) || [], aps = (r[1] && r[1].accessPoints) || [],
           radios = (r[2] && r[2].simulatedRadios) || [], types = (r[3] && r[3].antennaTypes) || [],
-          typeById = {}, radiosByAp = {};
+          wallTypes = (r[5] && r[5].wallTypes) || [], wallSegs = (r[6] && r[6].wallSegments) || [], wallPts = (r[7] && r[7].wallPoints) || [],
+          reqs = (r[8] && r[8].requirements) || [],
+          typeById = {}, radiosByAp = {}, wtById = {}, wpById = {};
       types.forEach(function (t) { typeById[t.id] = t; });
+      wallTypes.forEach(function (w) { wtById[w.id] = w; });
+      wallPts.forEach(function (q) { wpById[q.id] = q; });
+      /* a wall type's loss per crossing on a band: attenuation per metre times thickness */
+      function wallDb(w, band) {
+        var pp = (w.propagationProperties || []).filter(function (q) { return q.band === band; })[0] || (w.propagationProperties || [])[0];
+        return pp ? (pp.attenuationFactor || 0) * (w.thickness || 0) : 0;
+      }
+      /* the default requirement, Ekahau style: primary and secondary signal, SNR, rate, on 5 GHz */
+      var req = reqs.filter(function (q) { return q.isDefault; })[0] || reqs[0] || null, reqOut = null;
+      if (req) {
+        reqOut = { name: req.name };
+        (req.criteria || []).forEach(function (cr) {
+          if (cr.frequencyBand !== "FIVE") return;
+          if (cr.type === "SIGNAL_STRENGTH") reqOut.primary = cr.value; if (cr.type === "SECONDARY_SIGNAL_STRENGTH") reqOut.secondary = cr.value;
+          if (cr.type === "SIGNAL_TO_NOISE_RATIO") reqOut.snr = cr.value; if (cr.type === "DATA_RATE") reqOut.rate = cr.value;
+        });
+      }
       radios.forEach(function (rd) { (radiosByAp[rd.accessPointId] = radiosByAp[rd.accessPointId] || []).push(rd); });
       return {
-        name: r[4] && r[4].name, entries: entries,
+        name: r[4] && r[4].name, entries: entries, requirement: reqOut,
+        /* every antenna type with its measured planes, so the planner can use
+           Ekahau's patterns instead of a beamwidth fit */
+        antennas: types.filter(function (t) { return t.hplane && t.eplane && t.hplane.gains && t.eplane.gains; }).map(function (t) {
+          return { id: t.id, name: t.name, band: t.frequencyBand, maxGain: t.maxGain, tilt: t.defaultTiltAngle || 0, directional: !!t.directional, mounting: t.defaultMounting,
+                   hplane: t.hplane.gains.map(function (g) { return g.gain; }), eplane: t.eplane.gains.map(function (g) { return g.gain; }), model: t.apModel, vendor: t.apVendor };
+        }),
         floors: floors.map(function (f) {
           var mpu = f.metersPerUnit || 1, image = entries.filter(function (x) { return f.imageId && x.name.indexOf(f.imageId) >= 0; })[0] || null;
           return {
             id: f.id, name: f.name, w: (f.width || 0) * mpu, d: (f.height || 0) * mpu, metersPerUnit: mpu,
             pxW: f.width || 0, pxH: f.height || 0, image: image,
+            walls: wallSegs.filter(function (ws) { var q = wpById[ws.wallPoints && ws.wallPoints[0]]; return q && q.location && q.location.floorPlanId === f.id; }).map(function (ws) {
+              var p1 = wpById[ws.wallPoints[0]], p2 = wpById[ws.wallPoints[1]], wt = wtById[ws.wallTypeId];
+              if (!p1 || !p2) return null;
+              return { x1: p1.location.coord.x * mpu, y1: p1.location.coord.y * mpu, x2: p2.location.coord.x * mpu, y2: p2.location.coord.y * mpu,
+                       db: wt ? wallDb(wt, "FIVE") : 3, db24: wt ? wallDb(wt, "TWO") : 3, db6: wt ? wallDb(wt, "SIX") : 3, type: wt ? wt.name : "wall" };
+            }).filter(Boolean),
             aps: aps.filter(function (a) { return a.location && a.location.floorPlanId === f.id && a.mine !== false; }).map(function (a) {
               /* the 5 GHz radio, or the first, carries the height, aim and power */
               var rs = radiosByAp[a.id] || [], five = rs.filter(function (rd) { var t = typeById[rd.antennaTypeId]; return t && /FIVE|5/.test(String(t.frequencyBand || "")); })[0] || rs[0] || {},
@@ -91,7 +124,8 @@
                 tilt: five.antennaTilt !== undefined ? five.antennaTilt : 0,
                 tx: five.transmitPower !== undefined ? five.transmitPower : null,
                 channel: ch.length ? ch[0] : null, width: ch.length ? 20 * ch.length : null,
-                antennaName: antName, ant: E.antennaFor(antName),
+                antennaName: antName, ant: E.antennaFor(antName), antennaTypeId: five.antennaTypeId || null,
+                mounting: five.antennaMounting || (t && t.defaultMounting) || null,
                 external: t ? /EXTERNAL/.test(String(t.apCoupling || "")) : false
               };
             })

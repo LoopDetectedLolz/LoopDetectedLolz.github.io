@@ -190,15 +190,39 @@
      (degrees, positive is up). The aim is the antenna's azimuth; the built-in
      tilt and the AP's own down-tilt point its boresight down. which is "bh"
      for the backhaul antenna or "cl" for the client one. */
+  /* a measured plane: 72 gains at 5 degree steps, absolute dBi, the way an
+     Ekahau antenna type stores them; linear interpolation between steps */
+  function planeAt(gains, deg) {
+    var a = ((deg % 360) + 360) % 360, i = Math.floor(a / 5) % 72, j = (i + 1) % 72, t = (a - i * 5) / 5;
+    return gains[i] + (gains[j] - gains[i]) * t;
+  }
   M.gainToward = function (ap, azDeg, elDeg, C, which) {
     var cl = which === "cl" && M.kind(ap, C).dedicated,
         id = cl ? (ap.cant || "omni") : (ap.ant || (C && C.ant) || "omni"),
-        a = M.antenna(id), P = pats(id),
+        a = M.antenna(id),
         aim = cl ? (ap.caim === undefined || ap.caim === null ? 0 : ap.caim) : (ap.aim === undefined || ap.aim === null ? 0 : ap.aim),
-        tilt = a.tilt + (cl ? (ap.ctilt || 0) : (ap.tilt || 0)),
-        dAz = wrap(azDeg - aim) * D,
-        dEl = wrap(elDeg + tilt) * D;
+        tilt = a.tilt + (cl ? (ap.ctilt || 0) : (ap.tilt || 0));
+    if (a.hp && a.ep) {
+      /* measured planes: the loss off the azimuth peak and the loss off the
+         elevation peak are added, the textbook way of combining two cuts into
+         a 3D estimate when the maker publishes only the cuts. Ekahau's E plane
+         reads 0 at the horizon, 90 straight up, 270 straight down; a positive
+         tilt turns the boresight down. */
+      var gAz = planeAt(a.hp, azDeg - aim), gEl = planeAt(a.ep, elDeg + tilt),
+          g = a.g - (a.g - gAz) - (a.g - gEl);
+      return Math.max(g, a.floorDb);
+    }
+    var P = pats(id), dAz = wrap(azDeg - aim) * D, dEl = wrap(elDeg + tilt) * D;
     return a.g + 10 * Math.log10(Math.max(P.floor, P.h(dAz) * P.v(dEl)));
+  };
+  /* register a measured antenna: gains in dBi at 5 degree steps in each plane */
+  M.registerPattern = function (id, label, maxGain, hplane, eplane, tilt, directional) {
+    if (!hplane || hplane.length !== 72 || !eplane || eplane.length !== 72) return null;
+    var hMin = Math.min.apply(null, hplane), hMax = Math.max.apply(null, hplane), eMin = Math.min.apply(null, eplane),
+        above = hplane.filter(function (g) { return g >= hMax - 3; }).length * 5;
+    M.ANTENNAS[id] = { label: label, g: maxGain, h: directional === false || (directional === undefined && hMax - hMin < 3) ? 360 : Math.max(10, above), v: 60, tilt: tilt || 0, f2b: Math.max(0, hMax - hMin),
+                       hp: hplane, ep: eplane, floorDb: Math.min(hMin, eMin) - 3, measured: true, hidden: true };
+    return id;
   };
 
   /* an unset aim points at the nearest other live AP, which is what an installer
@@ -251,8 +275,8 @@
     var Cc = cfg(C), n = M.land(land).n, d = Math.max(1, Math.hypot(ap.x - x, ap.y - y)),
         d3 = Math.hypot(d, ap.h - 1.2), az = M.bearing(ap, { x: x, y: y }),
         el = Math.atan2(1.2 - ap.h, d) / D, g = M.gainToward(ap, az, el, Cc, "cl"),
-        f = Cc.clientF;
-    return M.apTx(ap, Cc, M.clientAntenna(ap, Cc).g, f) + g - NFN.rf.logDistance(d3, f, n);
+        f = Cc.clientF, wl = Cc.walls ? M.wallsCrossed(ap.x, ap.y, x, y, Cc.walls).db : 0;
+    return M.apTx(ap, Cc, M.clientAntenna(ap, Cc).g, f) + g - NFN.rf.logDistance(d3, f, n) - wl;
   };
 
   /* the footprint at the target level, as a radius per azimuth. This is the
@@ -266,6 +290,20 @@
       out.push({ az: az, r: Math.pow(10, budget / (10 * n)) });
     }
     return out;
+  };
+
+  /* walls, the indoor obstacle: a segment with a loss per crossing in dB, the
+     way Ekahau does it (attenuation per metre times thickness). A link or a
+     client path loses the sum of the walls it crosses. */
+  M.wallsCrossed = function (ax, ay, bx, by, walls) {
+    var loss = 0, n = 0, i;
+    for (i = 0; i < (walls || []).length; i++) {
+      var w = walls[i], d1x = bx - ax, d1y = by - ay, d2x = w.x2 - w.x1, d2y = w.y2 - w.y1, den = d1x * d2y - d1y * d2x;
+      if (Math.abs(den) < 1e-9) continue;
+      var t = ((w.x1 - ax) * d2y - (w.y1 - ay) * d2x) / den, u = ((w.x1 - ax) * d1y - (w.y1 - ay) * d1x) / den;
+      if (t > 0 && t < 1 && u >= 0 && u <= 1) { loss += w.db; n++; }
+    }
+    return { db: loss, n: n };
   };
 
   /* ── one link ──────────────────────────────────────────────────────────── */
@@ -290,8 +328,8 @@
   /* a, b carry x, y, h (mast above ground) and z (ground under the mast, from
      resolve). meas is a measured RSSI for this pair, which replaces the model
      when given; calib is a dB correction learned from other measured links. */
-  M.link = function (a, b, c, obstacles, terrain, meas, calib) {
-    var C = cfg(c), dx = b.x - a.x, dy = b.y - a.y,
+  M.link = function (a, b, c, obstacles, terrain, meas, calib, walls) {
+    var C = cfg(c), dx = b.x - a.x, dy = b.y - a.y, wallLoss = M.wallsCrossed(a.x, a.y, b.x, b.y, walls || C.walls),
         d = Math.max(0.5, Math.hypot(dx, dy)),
         za = (a.z === undefined ? M.ground(a.x, a.y, terrain) : a.z) + a.h,
         zb = (b.z === undefined ? M.ground(b.x, b.y, terrain) : b.z) + b.h,
@@ -351,7 +389,7 @@
         tx = Math.min(txa, txb),
         clamped = M.eirpClamped(a, C, M.apAntenna(a, C).g, f) || M.eirpClamped(b, C, M.apAntenna(b, C).g, f),
         ray = C.tworay ? M.twoRay(d, za, zb, f, C.rho) : 0,
-        model = tx + ga + gb - fspl - worst.loss + ray,
+        model = tx + ga + gb - fspl - worst.loss - wallLoss.db + ray,
         prx = (meas !== undefined && meas !== null && isFinite(meas) ? meas : model + (calib || 0)) - C.fade,
         nf = NFN.rf.noiseFloor(bw, C.nf), snr = prx - nf,
         ss = Math.min(a.ss || C.ss, b.ss || C.ss), std = M.stdMin(a.std || C.std, b.std || C.std),
@@ -361,7 +399,7 @@
     return {
       d: d, d3: d3, fspl: fspl, diffraction: worst.loss, blockedBy: worst.loss > 0.5 ? worst.by : null,
       obstacle: worst.by === "obstacle" || worst.by === "foliage" ? worst.idx : -1, foliage: fol,
-      band: f, bw: bw, ss: ss, std: std, tx: tx, clamped: clamped, tworay: ray, ga: ga, gb: gb,
+      band: f, bw: bw, ss: ss, std: std, tx: tx, clamped: clamped, tworay: ray, ga: ga, gb: gb, walls: wallLoss.n, wallDb: wallLoss.db,
       model: model, measured: meas !== undefined && meas !== null && isFinite(meas), calib: calib || 0,
       prx: prx, noise: nf, snr: snr, mcs: mcs, phyMbps: phy, goodput: good,
       f1: f1mid, clearance: clearMin,
@@ -426,7 +464,7 @@
     for (ii = 0; ii < aps.length; ii++) for (jj = ii + 1; jj < aps.length; jj++) {
       var mv = meas[ii + "-" + jj];
       if (mv === undefined || aps[ii].down || aps[jj].down) continue;
-      var L0 = M.link(aps[ii], aps[jj], C, obstacles, terrain), gap = mv - L0.model + C.fade;
+      var L0 = M.link(aps[ii], aps[jj], C, obstacles, terrain, undefined, 0, site && site.walls), gap = mv - L0.model + C.fade;
       corr[ii] += gap; cnt[ii]++; corr[jj] += gap; cnt[jj]++;
     }
     /* a gap belongs to the pair, half to each end's surroundings */
@@ -440,7 +478,7 @@
     for (i = 0; i < n; i++) { links.push([]); cost.push(Infinity); parent.push(-1); depth.push(-1); }
     for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) {
       /* a failed AP has no links: that is what failing it means */
-      var L = (aps[i].down || aps[j].down) ? null : M.link(aps[i], aps[j], C, obstacles, terrain, meas[i + "-" + j], calibFor(i, j));
+      var L = (aps[i].down || aps[j].down) ? null : M.link(aps[i], aps[j], C, obstacles, terrain, meas[i + "-" + j], calibFor(i, j), site && site.walls);
       links[i][j] = L; links[j][i] = L;
     }
     var gws = 0;
@@ -567,12 +605,16 @@
      by sampling: cheap, and honest about the holes between footprints. aps here
      are the live, reached, client-serving ones with aims resolved. */
   M.coverage = function (aps, c, land, w, dpt) {
-    var C = cfg(c), cols = 40, rows = Math.max(4, Math.round(cols * dpt / w)), hit = 0, i, j, k;
+    var C = cfg(c), cols = 40, rows = Math.max(4, Math.round(cols * dpt / w)), hit = 0, hit2 = 0, i, j, k,
+        second = C.secondary === undefined || C.secondary === null ? C.clientTarget - 10 : C.secondary;
     for (i = 0; i < cols; i++) for (j = 0; j < rows; j++) {
-      var x = (i + 0.5) / cols * w, y = (j + 0.5) / rows * dpt, inside = false;
-      for (k = 0; k < aps.length && !inside; k++) if (M.rssiAt(aps[k], x, y, C, land) >= C.clientTarget) inside = true;
-      if (inside) hit++;
+      var x = (i + 0.5) / cols * w, y = (j + 0.5) / rows * dpt, best = -Infinity, next = -Infinity;
+      for (k = 0; k < aps.length; k++) { var r = M.rssiAt(aps[k], x, y, C, land); if (r > best) { next = best; best = r; } else if (r > next) next = r; }
+      if (best >= C.clientTarget) hit++;
+      /* Ekahau's secondary requirement: a second AP over a bar 10 dB under the first's */
+      if (best >= C.clientTarget && next >= second) hit2++;
     }
+    M.coverage.secondary = hit2 / (cols * rows);
     return hit / (cols * rows);
   };
 
@@ -672,7 +714,7 @@
         radius = M.cellRadius(C, land),
         serveIdx = [], serving = [];
     for (i = 0; i < n; i++) if (T.depth[i] >= 0 && M.kind(aps[i], C).serves) { serveIdx.push(i); serving.push(aps[i]); }
-    var cover = serving.length ? M.coverage(serving, C, land, st.w || 200, st.d || 140) : 0,
+    var cover = serving.length ? M.coverage(serving, C, land, st.w || 200, st.d || 140) : 0, cover2 = serving.length ? M.coverage.secondary : 0,
         dev = st.dev || "ax2", app = st.app || "web", A = NFN.capacity.app(app),
         who = M.assignClients(aps, serveIdx, C, land, st),
         clients = who.total, demand = clients * A.kbps / 1000,
@@ -782,7 +824,7 @@
     if (binds === "uplink") flags.push("The uplink is the ceiling. The mesh carries " + (meshCap >= demand - 1e-9 ? "all " + demand.toFixed(0) + " Mb/s the clients ask for" : meshCap.toFixed(0) + " of the " + demand.toFixed(0) + " Mb/s the clients ask for") + ", but " + uplink + " Mb/s is all that leaves the site. More APs will not change that number.");
 
     return {
-      aps: rows, tree: T, portals: portals, radius: radius, coverage: cover, land: M.land(land),
+      aps: rows, tree: T, portals: portals, radius: radius, coverage: cover, coverage2: cover2, land: M.land(land),
       channels: CH, who: who, spof: spof, down: downN,
       clients: clients, perAp: serveIdx.length ? clients / serveIdx.length : 0, demand: demand,
       meshMbps: meshCap, uplink: uplink, ceiling: ceiling, binds: binds,
@@ -808,7 +850,7 @@
         "every link's capacity is shared equally by the APs behind it",
         ((st.crowds || []).length ? Math.round(who.total) + " people: " + Math.round(who.loose) + " loose and spread evenly, the rest in " + st.crowds.length + " crowd" + (st.crowds.length === 1 ? "" : "s") + " joining the loudest AP where they stand" : "clients spread evenly across the APs the mesh reaches") +
           ", " + A.label.toLowerCase() + " at " + A.kbps + " kb/s each" + (who.factor < 1 ? ", at " + Math.round(who.factor * 100) + "% of the peak for this hour" : ""),
-        "client cell edge at " + C.clientTarget + " dBm on a phone at chest height, path loss exponent " + M.land(land).n + " for " + M.land(land).label.toLowerCase() + "; a plain omni at " + C.tx + " dBm reaches " + radius.toFixed(0) + " m",
+        ((st.walls || []).length ? st.walls.length + " walls, each costing its Ekahau attenuation per crossing on links and on clients; " : "") + "client cell edge at " + C.clientTarget + " dBm on a phone at chest height, a second AP at " + (C.secondary === undefined || C.secondary === null ? C.clientTarget - 10 : C.secondary) + " dBm for secondary coverage, path loss exponent " + M.land(land).n + " for " + M.land(land).label.toLowerCase() + "; a plain omni at " + C.tx + " dBm reaches " + radius.toFixed(0) + " m",
         ((st.terrain || []).length ? "ground shaped by " + st.terrain.length + " hill" + (st.terrain.length === 1 ? "" : "s") + " under masts, links and obstacles; a short mast or a rise shows up as knife edge loss at the ground" : "flat ground; a short mast shows up as knife edge loss at the ground, which stands in for the two ray fade"),
         "no interference from anybody else's network, and no MU-MIMO or OFDMA gain"
       ]
