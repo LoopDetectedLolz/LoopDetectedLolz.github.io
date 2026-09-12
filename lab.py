@@ -6,6 +6,8 @@
     python3 lab.py --diff       what the lab widget has that the live one does not
     python3 lab.py --promote    copy the lab widget over the live one, rebuild the site
     python3 lab.py --reset      throw the lab widget away and start again from the live one
+    python3 lab.py tools --lan  serve on every interface too, so a phone or an iPad on the same
+                                network can open http://<this mac's address>:8823/lab.html
 
 Edit theme/widgets/qam-lab.html. The live widget, theme/widgets/qam.html, is only
 touched by --promote, so the site keeps serving whatever was last pushed while the
@@ -181,7 +183,7 @@ def main():
     LIVE, LABW, _ = paths()
     if not os.path.exists(LIVE) and not os.path.exists(LABW):
         sys.exit("no widget called %s in theme/widgets" % WIDGET)
-    arg = ([a for a in args if a.startswith("-")] or [""])[0]
+    arg = ([a for a in args if a.startswith("-") and a != "--lan"] or [""])[0]
     if arg == "--reset":
         if not os.path.exists(LIVE):
             sys.exit("%s is not on the site yet, so there is nothing to reset to" % WIDGET)
@@ -217,8 +219,16 @@ def main():
         return
     threading.Thread(target=watch_loop, daemon=True).start()
     socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("127.0.0.1", PORT), H) as srv:
+    lan = "--lan" in args
+    with socketserver.TCPServer(("0.0.0.0" if lan else "127.0.0.1", PORT), H) as srv:
         print("  http://127.0.0.1:%d/lab.html   (ctrl-c to stop)" % PORT)
+        if lan:
+            try:
+                import socket
+                sk = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); sk.connect(("10.255.255.255", 1)); ip = sk.getsockname()[0]; sk.close()
+                print("  http://%s:%d/lab.html   on this network" % (ip, PORT))
+            except Exception:
+                print("  and on this machine's network address, port %d" % PORT)
         try:
             srv.serve_forever()
         except KeyboardInterrupt:
