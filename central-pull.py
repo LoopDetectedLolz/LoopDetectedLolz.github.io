@@ -3,6 +3,7 @@
 out of Aruba Central, and write a site.json the mesh planner can import.
 
     python3 central-pull.py --group Burns-Home --out site.json
+    python3 central-pull.py --group Burns-Home --story 48 --out site.json    # plus two days of what happened
     python3 central-pull.py --group Burns-Home --dry-run     # list the calls, make none
 
 The planner never calls Central. This script does, from the laptop, with
@@ -42,6 +43,14 @@ ENDPOINTS = {
     "ap":        "/monitoring/v1/aps/{serial}",
     "radios":    "/airmatch/telemetry/v1/reporting_radio_all",
     "pathloss":  "/airmatch/telemetry/v1/nbr_pathloss_radio/{radio_mac}/{band}",
+    # the story: what every client did, what every radio heard, and what changed
+    "clients":   "/monitoring/v1/clients/wireless",
+    "trail":     "/monitoring/v1/clients/wireless/{mac}/mobility_trail",
+    "rf":        "/monitoring/v3/aps/{serial}/rf_summary",
+    "rf_events": "/airmatch/telemetry/v1/rf_events/{radio_mac}",
+    "audit":     "/auditlogs/v1/events",
+    "count":     "/monitoring/v1/clients/count",
+    "usage":     "/monitoring/v3/aps/bandwidth_usage",
     # VisualRF only knows an AP's position once it sits on a floor plan
     "campus":    "/visualrf_api/v1/campus",
     "campus1":   "/visualrf_api/v1/campus/{campus_id}",
@@ -190,6 +199,73 @@ def noise(v):
     return -abs(v) if isinstance(v, (int, float)) else None
 
 
+def story(tok, group, out_aps, radio_ap, hours):
+    """Everything that happened on the site over the window, for the timeline,
+    the interference graph, the RF weather and plan against actual."""
+    now = int(time.time()); t0 = now - int(hours * 3600)
+    by_serial = {a["serial"]: a for a in out_aps}
+    # every client's hops
+    trails, offset, clients = [], 0, []
+    while True:
+        page = get(tok, ENDPOINTS["clients"], {"group": group, "limit": 200, "offset": offset, "calculate_total": "true"}) or {}
+        rows = page.get("clients", []); clients.extend(rows); offset += len(rows)
+        if not rows or offset >= (page.get("total") or 0): break
+    for c in clients:
+        mac = norm_mac(c.get("macaddr")); hops, off = [], 0
+        while True:
+            page = get(tok, ENDPOINTS["trail"].format(mac=mac), {"calculate_total": "true", "limit": 100, "offset": off, "from_timestamp": t0, "to_timestamp": now}, quiet=True) or {}
+            part = page.get("trails", []); hops.extend(part); off += len(part)
+            if not part or off >= (page.get("total") or 0) or off >= 3000: break
+        if not hops: continue
+        hs = []
+        for t in hops:
+            ch, bw = channel_width(t.get("channel")); lat = t.get("latency"); rssi = t.get("rssi")
+            hs.append({"ts": int(t["ts"] / 1000) if t.get("ts", 0) > 1e12 else t.get("ts"), "ap": t.get("ap_name"), "serial": t.get("ap_serial"), "prev": t.get("previous_ap_name"),
+                       "type": t.get("roaming_type"), "latency_ms": int(lat) if str(lat or "").lstrip("-").isdigit() else None, "band": band_key(t.get("band")), "channel": ch, "bw": bw,
+                       "rssi_dbm": rssi if isinstance(rssi, (int, float)) and rssi < 0 else None, "join": not t.get("previous_ap_name")})
+        hs.sort(key=lambda h: h["ts"] or 0)
+        trails.append({"mac": mac, "name": c.get("name"), "os": c.get("os_type"), "hops": hs})
+    print(f"  {len(clients)} clients, {sum(len(t['hops']) for t in trails)} hops over {hours:g} h")
+    # what every radio heard: noise floor and utilisation in five minute samples; the API hands back
+    # a bounded window per call, so walk it in three hour steps
+    rf = {}
+    for a in out_aps:
+        for r in a["radios"]:
+            if r.get("status") == "Down" or not r.get("band"): continue
+            samples, cur = [], t0
+            while cur < now:
+                end = min(now, cur + 3 * 3600)
+                page = get(tok, ENDPOINTS["rf"].format(serial=a["serial"]), {"band": r["band"], "radio_number": {"5": 0, "2.4": 1, "6": 2}.get(r["band"], 0), "from_timestamp": cur, "to_timestamp": end}, quiet=True) or {}
+                for smp in page.get("samples", []) or []:
+                    samples.append({"ts": smp.get("timestamp"), "noise_dbm": smp.get("noise_floor"), "util_pct": smp.get("utilization")})
+                cur = end
+            rf[r["mac"]] = {"ap": a["name"], "serial": a["serial"], "band": r["band"], "samples": samples}
+    print(f"  {len(rf)} radios with {sum(len(v['samples']) for v in rf.values())} five minute samples")
+    # what changed: reboots from uptime, channel moves from AirMatch, people from the audit trail
+    events = []
+    for a in out_aps:
+        up = a.get("uptime_s")
+        if isinstance(up, (int, float)) and now - up >= t0:
+            events.append({"ts": int(now - up), "kind": "reboot", "ap": a["name"], "text": f"{a['name']} came up" + (f" ({a['reboot_reason']})" if a.get("reboot_reason") else "")})
+    for rm, (eth, band) in radio_ap.items():
+        for e in get(tok, ENDPOINTS["rf_events"].format(radio_mac=rm), quiet=True) or []:
+            if not e or not isinstance(e, dict) or (e.get("timestamp") or 0) < t0: continue
+            apn = next((x["name"] for x in out_aps if x["mac"] == eth), eth)
+            events.append({"ts": e.get("timestamp"), "kind": "channel", "ap": apn, "band": band, "text": f"{apn} {band} GHz moved from {e.get('channel')} to {e.get('new_channel')} at {width_mhz(e.get('new_bandwidth'))} MHz ({str(e.get('type') or '').replace('AIRMATCH_', '').lower()})"})
+    au = get(tok, ENDPOINTS["audit"], {"limit": 200, "offset": 0, "start_time": t0, "end_time": now}, quiet=True) or {}
+    for e in au.get("events", []) or []:
+        events.append({"ts": e.get("ts"), "kind": "config", "ap": e.get("target") if e.get("target") not in (None, "-") else None, "text": f"{e.get('classification') or 'change'}: {e.get('description')}", "user": e.get("user")})
+    events.sort(key=lambda e: e["ts"] or 0)
+    print(f"  {len(events)} events: " + ", ".join(f"{k} {sum(1 for e in events if e['kind'] == k)}" for k in ("reboot", "channel", "config")))
+    # plan against actual: the site's client count over time and each AP's traffic
+    count = [{"ts": x.get("timestamp"), "clients": x.get("client_count")} for x in (get(tok, ENDPOINTS["count"], {"group": group, "from_timestamp": now - min(int(hours * 3600), 3 * 3600), "to_timestamp": now}, quiet=True) or {}).get("samples", []) or []]
+    usage = {}
+    for a in out_aps:
+        smp = (get(tok, ENDPOINTS["usage"], {"serial": a["serial"], "from_timestamp": now - min(int(hours * 3600), 3 * 3600), "to_timestamp": now}, quiet=True) or {}).get("samples", []) or []
+        usage[a["serial"]] = {"ap": a["name"], "clients_now": a.get("client_count"), "samples": [{"ts": x.get("timestamp"), "tx_bytes": x.get("tx_data_bytes"), "rx_bytes": x.get("rx_data_bytes")} for x in smp]}
+    return {"hours": hours, "from": t0, "to": now, "trails": trails, "rf": rf, "events": events, "count": count, "usage": usage}
+
+
 def main():
     global DRY, CTX
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
@@ -197,6 +273,7 @@ def main():
     ap.add_argument("--site", help="site name, for its address and position (default: the group name)")
     ap.add_argument("--out", default="site.json")
     ap.add_argument("--dry-run", action="store_true", help="print the calls and make none")
+    ap.add_argument("--story", type=float, default=0, metavar="HOURS", help="also pull what happened: every client's hops, every radio's noise and utilisation, reboots, channel moves and the audit trail over this window")
     args = ap.parse_args()
     DRY = args.dry_run
     CTX = tls_context()
@@ -216,7 +293,7 @@ def main():
     # 2. the access points in the group, radios and all
     aps, offset = [], 0
     while True:
-        page = get(tok, ENDPOINTS["aps"], {"group": args.group, "limit": 100, "offset": offset, "calculate_total": "true", "show_resource_details": "true"}) or {}
+        page = get(tok, ENDPOINTS["aps"], {"group": args.group, "limit": 100, "offset": offset, "calculate_total": "true", "calculate_client_count": "true", "show_resource_details": "true"}) or {}
         rows = page.get("aps", [])
         aps.extend(rows)
         offset += len(rows)
@@ -240,6 +317,7 @@ def main():
             "name": a.get("name"), "serial": a.get("serial"), "mac": norm_mac(a.get("macaddr")), "model": model_id(a.get("model")),
             "status": a.get("status"), "mesh_role": a.get("mesh_role"), "ip": a.get("ip_address"), "site": a.get("site"),
             "firmware": a.get("firmware_version"), "radios": radios,
+            "uptime_s": a.get("uptime"), "client_count": a.get("client_count"), "reboot_reason": d.get("last_reboot_reason"),
         }
         out_aps.append(row)
         by_eth[row["mac"]] = row
@@ -293,8 +371,9 @@ def main():
     else:
         print("  no floor plans, so no AP positions; the planner will lay them out for you to drag")
 
+    st = story(tok, args.group, out_aps, radio_ap, args.story) if args.story and not DRY else None
     doc = {"source": "aruba-central-classic", "base": BASE, "group": args.group, "pulled": time.strftime("%Y-%m-%dT%H:%M:%S"),
-           "site": site, "aps": out_aps, "pathloss": pathloss,
+           "site": site, "aps": out_aps, "pathloss": pathloss, "story": st,
            "note": "Loss is AirMatch's neighbour path loss in dB between radios (db is the latest, avg_db the running mean). Positions are VisualRF floor placements; APs report no GNSS position through this API. Field shapes checked against a live CA tenant on 2026-09-12."}
     if DRY:
         print("dry run only; nothing written")
