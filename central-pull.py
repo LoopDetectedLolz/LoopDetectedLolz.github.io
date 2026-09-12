@@ -29,7 +29,7 @@ the keychains the way Chrome does, or set CENTRAL_CA_FILE to a PEM.
 Endpoints were read from the CA cluster's own Swagger on 2026-09-12. Another
 cluster serves the same paths from its own gateway host.
 """
-import argparse, json, os, platform, ssl, subprocess, sys, tempfile, time, urllib.error, urllib.parse, urllib.request
+import argparse, json, os, platform, re, ssl, subprocess, sys, time, urllib.error, urllib.parse, urllib.request
 
 BASE = os.environ.get("CENTRAL_BASE", "https://apigw-ca.central.arubanetworks.com").rstrip("/")
 TOKEN_FILE = os.path.expanduser(os.environ.get("CENTRAL_TOKEN_FILE", "~/.config/nfn/central-token.json"))
@@ -92,10 +92,16 @@ def refresh(tok):
     cid, sec = os.environ.get("CENTRAL_CLIENT_ID"), os.environ.get("CENTRAL_CLIENT_SECRET")
     if not (cid and sec and tok.get("refresh_token")):
         sys.exit("token expired; set CENTRAL_CLIENT_ID and CENTRAL_CLIENT_SECRET to refresh it, or download a new token file")
-    q = urllib.parse.urlencode({"client_id": cid, "client_secret": sec, "grant_type": "refresh_token", "refresh_token": tok["refresh_token"]})
+    q = urllib.parse.urlencode({"client_id": cid.strip(), "client_secret": sec.strip(), "grant_type": "refresh_token", "refresh_token": tok["refresh_token"]})
     req = urllib.request.Request(BASE + ENDPOINTS["refresh"] + "?" + q, data=b"", method="POST")
-    with urllib.request.urlopen(req, timeout=30, context=CTX) as r:
-        new = json.load(r)
+    try:
+        with urllib.request.urlopen(req, timeout=30, context=CTX) as r:
+            new = json.load(r)
+    except urllib.error.HTTPError as e:
+        sys.exit(f"refresh refused ({e.code}): {e.read()[:300].decode(errors='replace')}\n"
+                 "a refresh token is single use and lasts about two weeks; if it was already spent, download a new token file")
+    if "access_token" not in new:
+        sys.exit("refresh returned no access token: " + json.dumps(new)[:300])
     tok.update(new)
     try:
         with open(TOKEN_FILE, "w") as f:
@@ -136,11 +142,52 @@ def norm_mac(m):
 
 
 def band_key(b):
-    b = str(b or "").lower()
+    """Monitoring gives a radio's band as a code (0 or blank 2.4 GHz, 1 5 GHz,
+    3 6 GHz); AirMatch says 5GHz or 5ghz. Everything becomes 2.4, 5 or 6."""
+    b = str(b if b is not None else "").strip().lower()
+    if b in ("", "0", "2.4", "2.4ghz", "2"): return "2.4"
+    if b in ("1", "5", "5ghz"): return "5"
+    if b in ("3", "6", "6ghz"): return "6"
     if b.startswith("2"): return "2.4"
     if b.startswith("6"): return "6"
     if b.startswith("5"): return "5"
     return b
+
+
+def channel_width(ch):
+    """Monitoring writes the channel Aruba style: 149E is 149 at 80 MHz, 36+ or
+    40- is 40 MHz, 5S is 160 MHz, a bare number is 20. Returns (channel, MHz)."""
+    t = str(ch if ch is not None else "").strip()
+    m = re.match(r"^(\d+)([ES+\-]?)$", t)
+    if not m:
+        return None, None
+    return int(m.group(1)), {"E": 80, "S": 160, "+": 40, "-": 40}.get(m.group(2), 20)
+
+
+def width_mhz(bw):
+    """AirMatch says CBW80; the planner wants 80."""
+    m = re.search(r"(\d+)", str(bw if bw is not None else ""))
+    return int(m.group(1)) if m else None
+
+
+def streams(ss):
+    """'2x2:2' is two streams."""
+    m = re.search(r":(\d+)$", str(ss if ss is not None else ""))
+    if m:
+        return int(m.group(1))
+    m = re.match(r"^(\d+)", str(ss if ss is not None else ""))
+    return int(m.group(1)) if m else None
+
+
+def model_id(m):
+    """Monitoring says 735, the QuickSpecs and the planner say AP-735."""
+    m = str(m if m is not None else "").strip()
+    return m if not m or m.upper().startswith("AP-") else "AP-" + m
+
+
+def noise(v):
+    """Monitoring reports the noise floor as a positive number of dB below zero."""
+    return -abs(v) if isinstance(v, (int, float)) else None
 
 
 def main():
@@ -183,13 +230,14 @@ def main():
         radios = []
         for r in a.get("radios", []) or []:
             det = next((x for x in d.get("radios", []) or [] if norm_mac(x.get("macaddr")) == norm_mac(r.get("macaddr"))), {})
+            ch, bw = channel_width(r.get("channel"))
             radios.append({
-                "mac": norm_mac(r.get("macaddr")), "band": band_key(r.get("band")), "channel": r.get("channel"),
-                "tx_dbm": r.get("tx_power"), "ss": r.get("spatial_stream"), "status": r.get("status"), "mode": r.get("mode"),
-                "noise_dbm": det.get("noise_floor"), "utilization": r.get("utilization"),
+                "mac": norm_mac(r.get("macaddr")), "band": band_key(r.get("band")), "channel": ch, "bw": bw, "channel_raw": r.get("channel"),
+                "tx_dbm": r.get("tx_power"), "ss": streams(r.get("spatial_stream")), "status": r.get("status"), "mode": r.get("mode"),
+                "noise_dbm": noise(det.get("noise_floor")), "utilization": r.get("utilization"),
             })
         row = {
-            "name": a.get("name"), "serial": a.get("serial"), "mac": norm_mac(a.get("macaddr")), "model": a.get("model"),
+            "name": a.get("name"), "serial": a.get("serial"), "mac": norm_mac(a.get("macaddr")), "model": model_id(a.get("model")),
             "status": a.get("status"), "mesh_role": a.get("mesh_role"), "ip": a.get("ip_address"), "site": a.get("site"),
             "firmware": a.get("firmware_version"), "radios": radios,
         }
@@ -202,28 +250,33 @@ def main():
         eth = norm_mac(r.get("ap_eth_mac"))
         if eth not in by_eth:
             continue
-        rm = norm_mac(r.get("radio_mac"))
+        rm = norm_mac(r.get("radio_mac") or r.get("mac"))  # the Swagger says radio_mac, the gateway sends mac
+        if not rm:
+            continue
         radio_ap[rm] = (eth, band_key(r.get("band")))
         # the monitoring radio MAC and AirMatch's radio MAC are usually the same;
         # when they differ the band picks the radio
         rs = by_eth[eth]["radios"]
         x = next((x for x in rs if x["mac"] == rm), None) or next((x for x in rs if x["band"] == band_key(r.get("band")) and "radio_mac" not in x), None)
         if x:
-            x.update({"eirp_dbm": r.get("eirp_dbm", r.get("eirp")), "bw": r.get("bandwidth"), "chains": r.get("num_chains"), "radio_mac": rm})
+            x.update({"eirp_dbm": r.get("eirp_dbm", r.get("eirp")), "bw": width_mhz(r.get("bandwidth")) or x.get("bw"), "chains": r.get("num_chains"), "radio_mac": rm,
+                      "channel": r.get("channel") or x.get("channel"), "static_channel": bool(r.get("is_static_chan")), "static_eirp": bool(r.get("is_static_eirp"))})
     print(f"  {len(radio_ap)} radios known to AirMatch")
 
     # 4. the loss AirMatch measured between our radios, both directions kept
-    pathloss = []
+    pathloss, strangers = [], 0
     for rm, (eth, band) in radio_ap.items():
-        for n in get(tok, ENDPOINTS["pathloss"].format(radio_mac=rm, band=band), quiet=True) or []:
+        # the path wants 2.4ghz, 5ghz or 6ghz, lower case, and says so in a 400 otherwise
+        for n in get(tok, ENDPOINTS["pathloss"].format(radio_mac=rm, band=band + "ghz"), quiet=True) or []:
             nb = norm_mac(n.get("nbr_mac"))
             if nb not in radio_ap:
-                continue  # somebody else's AP, or a BSSID we cannot place
+                strangers += 1  # somebody else's AP, or a radio we cannot place
+                continue
             pathloss.append({
                 "from": by_eth[eth]["serial"], "to": by_eth[radio_ap[nb][0]]["serial"], "band": band,
-                "db": n.get("pathloss"), "channel": n.get("channel"), "bw": n.get("bandwidth"), "ts": n.get("timestamp"),
+                "db": n.get("pathloss"), "avg_db": n.get("avg"), "channel": n.get("channel"), "bw": width_mhz(n.get("bandwidth")), "ts": n.get("timestamp"),
             })
-    print(f"  {len(pathloss)} measured paths between these APs")
+    print(f"  {len(pathloss)} measured paths between these APs" + (f", {strangers} to radios that are not in the group" if strangers else ""))
 
     # 5. positions, only where VisualRF has the AP on a floor plan
     placed = 0
@@ -242,7 +295,7 @@ def main():
 
     doc = {"source": "aruba-central-classic", "base": BASE, "group": args.group, "pulled": time.strftime("%Y-%m-%dT%H:%M:%S"),
            "site": site, "aps": out_aps, "pathloss": pathloss,
-           "note": "Loss is AirMatch's neighbour path loss in dB between radios. Positions are VisualRF floor placements; APs report no GNSS position through this API."}
+           "note": "Loss is AirMatch's neighbour path loss in dB between radios (db is the latest, avg_db the running mean). Positions are VisualRF floor placements; APs report no GNSS position through this API. Field shapes checked against a live CA tenant on 2026-09-12."}
     if DRY:
         print("dry run only; nothing written")
         return

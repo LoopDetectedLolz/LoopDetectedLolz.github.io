@@ -116,9 +116,15 @@ real device and daylight. Asked for on 2026-09-12 and not yet built, in the orde
    `M.measuredPrx` turns into received power. "Planned against measured" lists every pair with
    the gap and says whether the offset is steady (something the model does not see) or spread
    (APs not where the map says). Endpoints were read from the CA cluster's own Swagger that
-   day. Not yet run against the live tenant: do that with the token, and check the field names
-   the code assumes (`radios[].tx_power`, `reporting_radio_all[].eirp_dbm`, `nbr_pathloss`).
-   `demo/mesh-central.json` is a synthetic fixture shaped like the output.
+   day and then run against the live tenant, which corrected the Swagger in five places, all
+   handled in the script: monitoring gives the radio band as a code (0 or blank 2.4, 1 5, 3 6),
+   the channel Aruba style (`149E` is 149 at 80 MHz, `+`/`-` 40, `S` 160), streams as `2x2:2`,
+   the noise floor as a positive number and the model without its `AP-` prefix; AirMatch calls
+   the radio MAC `mac` not `radio_mac`, says `5GHz` and `CBW80`, and the path loss URL wants
+   `5ghz` lower case (a 400 tells you the enum). Six radios, twelve measured paths, both
+   directions within 4 dB of each other on 5 GHz. TLS is verified against the Mac's keychains
+   because the python.org build trusts only its own bundle and this laptop's outbound TLS is
+   inspected. `demo/mesh-central.json` is a synthetic fixture shaped like the output.
 3. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
    if a newer app refuses the import, the icons and the key table are there to build by hand.
 
