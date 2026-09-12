@@ -104,13 +104,21 @@ real device and daylight. Asked for on 2026-09-12 and not yet built, in the orde
    B/256 - 32768, public, CORS open as far as known; verify), decoded through a canvas into a
    raster. `M.ground` then needs a raster mode (bilinear on a grid) beside the hills, the hash
    carries only the anchor and radius (`geo=lat,lon,r`) and the raster is fetched again on load.
-2. **Central assisted verification.** The kit's rule holds: the page never calls Central. A
-   `central-pull.py` beside the kit's script pulls the site's APs (name, serial, model, GPS
-   where the AP has it, mesh role), the mesh links (neighbour, RSSI, rate, hops) and the radio
-   settings (channel, power), and writes `site.json`; the planner imports it, places the APs by
-   GPS, takes each mesh link's RSSI as a measurement, and shows planned against measured per
-   link with the gap in dB. The toggle is "Verify against Central". Endpoints go in the same
-   marked-to-verify block as the kit's.
+2. **Central assisted verification**: built 2026-09-12. `central-pull.py --group <name>` (GET
+   only, refuses any other method; token file from Classic Central's API Gateway, path in
+   `CENTRAL_TOKEN_FILE`, refresh with `CENTRAL_CLIENT_ID`/`SECRET`) writes a `site.json` with
+   the group's APs, their radios, and the loss AirMatch measured between them
+   (`/airmatch/telemetry/v1/nbr_pathloss_radio`), which is a better number than RSSI because it
+   does not care what power the AP was running. The planner's "Verify against Central" fold
+   opens it: models, power, channel and width from the radios, portal unless `mesh_role` is
+   point, positions from VisualRF floor placement when there is one and a row to drag when
+   not, and each measured pair becomes `{pl}` in `ms` (hash form `0-1:L85`), which
+   `M.measuredPrx` turns into received power. "Planned against measured" lists every pair with
+   the gap and says whether the offset is steady (something the model does not see) or spread
+   (APs not where the map says). Endpoints were read from the CA cluster's own Swagger that
+   day. Not yet run against the live tenant: do that with the token, and check the field names
+   the code assumes (`radios[].tx_power`, `reporting_radio_all[].eirp_dbm`, `nbr_pathloss`).
+   `demo/mesh-central.json` is a synthetic fixture shaped like the output.
 3. **Stream Deck**: done, `streamdeck/`. The profile schema is the one the desktop app writes;
    if a newer app refuses the import, the icons and the key table are there to build by hand.
 
@@ -140,9 +148,13 @@ Ideas parked, none of them decided:
 
 Both are plumbing questions, not physics ones, and both gate the GPS work.
 
-- Does New Central return a latitude and longitude for it, in the UI and through the API?
-  It very likely does, because standard-power 6 GHz outdoors needs AFC and AFC needs a
-  position, which is why the GNSS receiver is on these APs at all.
+- Does Central return a latitude and longitude for it? Checked 2026-09-12 on a home
+  tenant with an AP-735 indoors: New Central's AP Location page shows only the site's
+  geocoded pin and "no floors", and nothing in the Classic API carries an AP GNSS
+  position. VisualRF returns AP latitude and longitude only for APs placed on a floor
+  plan, and the site itself has coordinates. So today the anchor for terrain has to be
+  the site, the first phone fix, Ekahau's reference points or a KML centroid, not the AP.
+  An outdoor AP with a sky view may report differently; that reading is still open.
 - Does anything expose AP-to-AP FTM ranging in a form you can read out? Best guess is no:
   Aruba has used FTM for client ranging, and inter-AP measurements may only live inside the
   mesh or location engine. If it is there, GPS anchors the map and FTM tightens it, which

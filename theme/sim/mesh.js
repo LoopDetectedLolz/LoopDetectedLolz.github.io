@@ -325,9 +325,22 @@
      through the canopy, the short path form. 12 m of trees at 5 GHz is 12 dB. */
   M.foliage = function (dM, fGHz) { return dM <= 0 ? 0 : 0.2 * Math.pow(fGHz * 1000, 0.3) * Math.pow(dM, 0.6); };
 
+  /* A measurement for a pair is either a number, the RSSI in dBm read off an
+     AP, or { pl: dB }, the path loss between the two radios as AirMatch reports
+     it (Central: /airmatch/telemetry/v1/nbr_pathloss_radio). Loss is the better
+     of the two to carry because it does not care what power the AP was running
+     when it was read. Either way this gives the received power it implies. */
+  M.measuredPrx = function (mv, tx, ga, gb) {
+    if (mv === undefined || mv === null) return null;
+    if (typeof mv === "number") return isFinite(mv) ? mv : null;
+    if (typeof mv === "object" && isFinite(mv.pl)) return tx + ga + gb - mv.pl;
+    return null;
+  };
+
   /* a, b carry x, y, h (mast above ground) and z (ground under the mast, from
-     resolve). meas is a measured RSSI for this pair, which replaces the model
-     when given; calib is a dB correction learned from other measured links. */
+     resolve). meas is a measurement for this pair (see measuredPrx), which
+     replaces the model when given; calib is a dB correction learned from other
+     measured links. */
   M.link = function (a, b, c, obstacles, terrain, meas, calib, walls) {
     var C = cfg(c), dx = b.x - a.x, dy = b.y - a.y, wallLoss = M.wallsCrossed(a.x, a.y, b.x, b.y, walls || C.walls),
         d = Math.max(0.5, Math.hypot(dx, dy)),
@@ -390,7 +403,8 @@
         clamped = M.eirpClamped(a, C, M.apAntenna(a, C).g, f) || M.eirpClamped(b, C, M.apAntenna(b, C).g, f),
         ray = C.tworay ? M.twoRay(d, za, zb, f, C.rho) : 0,
         model = tx + ga + gb - fspl - worst.loss - wallLoss.db + ray,
-        prx = (meas !== undefined && meas !== null && isFinite(meas) ? meas : model + (calib || 0)) - C.fade,
+        mPrx = M.measuredPrx(meas, tx, ga, gb),
+        prx = (mPrx !== null ? mPrx : model + (calib || 0)) - C.fade,
         nf = NFN.rf.noiseFloor(bw, C.nf), snr = prx - nf,
         ss = Math.min(a.ss || C.ss, b.ss || C.ss), std = M.stdMin(a.std || C.std, b.std || C.std),
         mcs = (a.noBand || b.noBand) ? -1 : NFN.phy.mcsFor(std, snr - C.margin),
@@ -400,7 +414,9 @@
       d: d, d3: d3, fspl: fspl, diffraction: worst.loss, blockedBy: worst.loss > 0.5 ? worst.by : null,
       obstacle: worst.by === "obstacle" || worst.by === "foliage" ? worst.idx : -1, foliage: fol,
       band: f, bw: bw, ss: ss, std: std, tx: tx, clamped: clamped, tworay: ray, ga: ga, gb: gb, walls: wallLoss.n, wallDb: wallLoss.db,
-      model: model, measured: meas !== undefined && meas !== null && isFinite(meas), calib: calib || 0,
+      model: model, measured: mPrx !== null, calib: calib || 0,
+      /* the loss the budget assumed and, when one was measured, the loss read */
+      plModel: fspl + worst.loss + wallLoss.db - ray, plMeas: meas && typeof meas === "object" && isFinite(meas.pl) ? meas.pl : null,
       prx: prx, noise: nf, snr: snr, mcs: mcs, phyMbps: phy, goodput: good,
       f1: f1mid, clearance: clearMin,
       /* 60% of the first Fresnel zone is the rule of thumb for "clear" */
@@ -464,7 +480,9 @@
     for (ii = 0; ii < aps.length; ii++) for (jj = ii + 1; jj < aps.length; jj++) {
       var mv = meas[ii + "-" + jj];
       if (mv === undefined || aps[ii].down || aps[jj].down) continue;
-      var L0 = M.link(aps[ii], aps[jj], C, obstacles, terrain, undefined, 0, site && site.walls), gap = mv - L0.model + C.fade;
+      var L0 = M.link(aps[ii], aps[jj], C, obstacles, terrain, undefined, 0, site && site.walls), mp = M.measuredPrx(mv, L0.tx, L0.ga, L0.gb);
+      if (mp === null) continue;
+      var gap = mp - L0.model;
       corr[ii] += gap; cnt[ii]++; corr[jj] += gap; cnt[jj]++;
     }
     /* a gap belongs to the pair, half to each end's surroundings */
