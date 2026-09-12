@@ -5,7 +5,7 @@
    Run: node simtest.js */
 var fs = require("fs"), path = require("path");
 var dir = path.join(__dirname, "theme", "sim");
-["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js", "esx.js"].forEach(function (f) {
+["core.js", "rf.js", "phy.js", "mac.js", "channels.js", "capacity.js", "venue.js", "mesh.js", "esx.js", "kml.js"].forEach(function (f) {
   new Function(fs.readFileSync(path.join(dir, f), "utf8")).call(globalThis);
 });
 var NFN = globalThis.NFN, fails = 0, n = 0;
@@ -449,6 +449,21 @@ var r1 = NFN.rng(7), r2 = NFN.rng(7), same = true;
 for (var i = 0; i < 50; i++) if (r1() !== r2()) same = false;
 eq("the same seed gives the same sequence", same, true);
 eq("different seeds do not", NFN.rng(7)() === NFN.rng(8)(), false);
+
+/* ── a Google Earth drawing ────────────────────────────────────────────── */
+var kmlSite = NFN.kml.toSite(NFN.kml.parse(fs.readFileSync(path.join(__dirname, "demo", "mesh-test.kml"), "utf8")));
+eq("two placemarks become masts", kmlSite.aps.length, 2);
+eq("the one named portal is the portal", kmlSite.aps[0].gw, true);
+near("a height in the name is the mast height", kmlSite.aps[0].h, 5, 0.001);
+near("a relative altitude is a mast height too", kmlSite.aps[1].h, 4, 0.001);
+eq("an extruded polygon is a building", kmlSite.obstacles[0].type, "building");
+near("at its extruded height", kmlSite.obstacles[0].h, 8, 0.001);
+eq("a crowd by name with its headcount", kmlSite.crowds[0].n, 800);
+eq("a path is the walk", kmlSite.path.length, 3);
+if (!(kmlSite.overlay && kmlSite.overlay.w > 300)) { fails++; console.log("  FAIL the ground overlay should carry its bounds"); }
+n++;
+/* 0.003 degrees of latitude is 332 m, so the field is that plus the margins */
+near("degrees became metres", kmlSite.overlay.d, 0.003 * 110574, 0.5);
 
 /* ── an Ekahau project ─────────────────────────────────────────────────── */
 eq("antenna names: an internal omni", NFN.esx.antennaFor("Aruba AP-635 Internal 5 GHz"), "omni");

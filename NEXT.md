@@ -105,6 +105,12 @@ real device and daylight. Ideas parked, none of them decided:
 - The antenna picker choosing the client antenna and the backhaul width as well as the
   backhaul antenna. Today it picks one thing per AP and the note says what 20 MHz would buy.
 - Co-channel between client radios of neighbouring APs. Today only backhaul links share air.
+- Google Earth import reads drawn placemarks, extruded polygons, paths and ground overlays;
+  the photogrammetry mesh and terrain cannot come across. A KML with a `Model` (a COLLADA
+  building) is not read; if that ever matters, its bounding box is the obstacle.
+- The liquid glass prototype (`lab.py glass`) is a look to raid, not a redesign. Decide which
+  pieces the site takes: the pointer specular and the glowing meters with motes are the
+  candidates; the refraction is Chrome only.
 - Export back to Ekahau. Reading .esx is done; writing one means matching their schema
   exactly, and a half-right project file is worse than the CSV. Needs a real .esx from
   the current release to copy the shape from, and the antenna catalogue to map back.

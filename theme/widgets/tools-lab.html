@@ -100,7 +100,21 @@
 .t-big{text-shadow:0 0 28px rgba(140,224,94,0.25)}
 .t-stat{background:rgba(255,255,255,0.035);box-shadow:inset 0 1px 0 rgba(255,255,255,0.10)}
 .m-cbar{background:rgba(255,255,255,0.04)}
-.m-cbar i{box-shadow:0 0 14px -2px currentColor}
+.m-cbar{overflow:visible}
+.m-cbar i{position:relative;overflow:hidden;box-shadow:0 0 16px -1px currentColor,inset 0 1px 0 rgba(255,255,255,0.35)}
+.m-cbar i::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.22),transparent 55%,rgba(0,0,0,0.12))}
+/* motes drifting inside a meter: opacity and transform only, staggered so they never line up */
+.m-cbar i b{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;opacity:0;top:50%;left:10%;box-shadow:0 0 6px 1px rgba(255,255,255,0.7);animation:m-mote 5s linear infinite}
+.m-cbar i b:nth-child(2){left:30%;animation-duration:6.3s;animation-delay:-1.4s;width:2px;height:2px}
+.m-cbar i b:nth-child(3){left:55%;animation-duration:4.4s;animation-delay:-2.9s}
+.m-cbar i b:nth-child(4){left:72%;animation-duration:7.1s;animation-delay:-0.7s;width:2px;height:2px}
+.m-cbar i b:nth-child(5){left:88%;animation-duration:5.6s;animation-delay:-3.8s}
+.m-cbar i b:nth-child(6){left:44%;animation-duration:8.2s;animation-delay:-5.1s;width:1.5px;height:1.5px}
+@keyframes m-mote{0%{transform:translate(0,-6px);opacity:0}15%{opacity:0.9}50%{transform:translate(14px,5px);opacity:0.6}85%{opacity:0.9}100%{transform:translate(28px,-6px);opacity:0}}
+.t-stat b{text-shadow:0 0 12px rgba(234,242,246,0.18)}
+.tools input[type=range]{filter:drop-shadow(0 0 6px rgba(140,224,94,0.45))}
+.m-zx input[type=range]{filter:drop-shadow(0 0 6px rgba(94,210,218,0.45))}
+@media (prefers-reduced-motion:reduce){.m-cbar i b{animation:none;opacity:0.5}}
 .m-on{color:#06202A!important;background:var(--teal)!important;border-color:var(--teal)!important}
 #m-fail.m-on{background:var(--orange)!important;border-color:var(--orange)!important}
 .m-more{margin-top:12px;border:1px solid var(--t-line);border-radius:11px;padding:0 12px}
@@ -897,6 +911,11 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <div class="t-row" style="margin-top:8px" id="m-esxfloorrow" hidden><label for="m-esxfloor">Floor</label><select id="m-esxfloor"></select></div>
         <p class="t-hint" id="m-esxnote"></p>
       </details>
+      <details class="m-more"><summary>From Google Earth</summary>
+        <p class="t-hint">Draw the site in Google Earth and save it as .kml or .kmz: placemarks become masts (put "portal" and a height like "5 m" in the name), extruded polygons become buildings, a polygon or pin named "crowd 800" becomes a crowd, a path becomes the walk, and an image overlay lands under the map at its bounds. The 3D buildings and terrain you see in Google Earth do not export, so they cannot come across.</p>
+        <input type="file" id="m-kml" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" aria-label="Google Earth file" style="font:12px var(--sans);color:var(--text-dim);max-width:100%">
+        <p class="t-hint" id="m-kmlnote"></p>
+      </details>
       <details class="m-more"><summary>On site with a phone</summary>
         <p class="t-hint">At the mount point: the first fix sets the middle of the field, every fix after lands an AP where you are.</p>
         <div class="t-sight"><button class="t-btn" id="m-gps" type="button">Add an AP here</button><button class="t-btn" id="m-gpsreset" type="button">Forget the fix</button></div>
@@ -1156,7 +1175,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
   }
   function mbs(x) { return x >= 1000 ? (x / 1000).toFixed(1) + " Gb/s" : x >= 10 ? x.toFixed(0) + " Mb/s" : x >= 1 ? x.toFixed(1) + " Mb/s" : Math.round(x * 1000) + " kb/s"; }
   function compassTxt(az) { return Math.round(M.compass(az, st.get("north"))) + "°"; }
-  var img = { url: null, w: 0, h: 0, op: 0.55 };
+  var img = { url: null, w: 0, h: 0, op: 0.55, box: null };
+  try { var savedBox = localStorage.getItem("nfn-mesh-imgbox"); if (savedBox) img.box = JSON.parse(savedBox); } catch (e) {}
   try { var savedImg = localStorage.getItem("nfn-mesh-img"); if (savedImg) { img.url = savedImg; var im0 = new Image(); im0.onload = function () { img.w = im0.naturalWidth; img.h = im0.naturalHeight; run(); }; im0.src = savedImg; } } catch (e) {}
 
   var MOTION = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -1186,7 +1206,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
                '<pattern id="m-grid" width="' + (20 * L.s) + '" height="' + (20 * L.s) + '" patternUnits="userSpaceOnUse" x="' + L.ox + '" y="' + L.oy + '">' +
                '<path d="M ' + (20 * L.s) + ' 0 L 0 0 0 ' + (20 * L.s) + '" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs>');
     parts.push('<rect x="' + L.ox + '" y="' + L.oy + '" width="' + (fw * L.s) + '" height="' + (fd * L.s) + '" fill="rgba(3,10,16,0.35)" stroke="rgba(255,255,255,0.14)" rx="6"/>');
-    if (img.url) parts.push('<image href="' + img.url + '" x="' + L.ox + '" y="' + L.oy + '" width="' + (fw * L.s) + '" height="' + (fd * L.s) + '" preserveAspectRatio="none" opacity="' + img.op + '" style="pointer-events:none"/>');
+    if (img.url) { var ib = img.box || { x: 0, y: 0, w: fw, d: fd }; parts.push('<image href="' + img.url + '" x="' + X(ib.x) + '" y="' + Y(ib.y) + '" width="' + (ib.w * L.s) + '" height="' + (ib.d * L.s) + '" preserveAspectRatio="none" opacity="' + img.op + '" style="pointer-events:none"/>'); }
     parts.push('<rect x="' + L.ox + '" y="' + L.oy + '" width="' + (fw * L.s) + '" height="' + (fd * L.s) + '" fill="url(#m-grid)" rx="6"/>');
     /* a scale bar that is a round number of metres, and the compass */
     var bar = [10, 20, 25, 50, 100, 200, 250, 500].filter(function (mm) { return mm * L.s >= 60 && mm * L.s <= 200; })[0] || 50;
@@ -1905,7 +1925,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
     var top = Math.max(p.demand, p.meshMbps, p.uplink, 1) * 1.08;
     $("m-ceiling").innerHTML = [["Clients ask", p.demand, "#EAF2F6"], ["Mesh carries", p.meshMbps, "#5ED2DA"], ["Uplink", p.uplink, "#8CE05E"]].map(function (b) {
       var bind = (b[0] === "Uplink" && p.binds === "uplink") || (b[0] === "Mesh carries" && p.binds === "mesh");
-      return '<div class="m-cb"><span>' + b[0] + '</span><div class="m-cbar"><i style="width:' + (b[1] / top * 100) + '%;background:' + (bind ? WARN : b[2]) + '"></i></div><b style="color:' + (bind ? "#ffd28a" : b[2]) + '">' + mbs(b[1]) + (bind ? " · the ceiling" : "") + "</b></div>";
+      var colr = bind ? WARN : b[2];
+      return '<div class="m-cb"><span>' + b[0] + '</span><div class="m-cbar"><i style="width:' + (b[1] / top * 100) + '%;background:' + colr + ';color:' + colr + '"><b></b><b></b><b></b><b></b><b></b><b></b></i></div><b style="color:' + (bind ? "#ffd28a" : b[2]) + '">' + mbs(b[1]) + (bind ? " · the ceiling" : "") + "</b></div>";
     }).join("");
 
     $("m-flags").innerHTML = p.flags.map(function (f) { return '<div class="t-note' + (/ceiling|no second|down|orphan|Fresnel|no usable|No portal|unserved|no AP|co-channel|caps/i.test(f) ? " t-bad" : "") + '">' + esc(f) + "</div>"; }).join("");
@@ -1986,6 +2007,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
       sv.push(T(40, Hp - 8, "0 m", "#8BA2AE", "start", 9) + T(Wp - 16, Hp - 8, Math.round(maxD) + " m walked", "#8BA2AE", "end", 9));
       var handoffs = 0; for (var q = 1; q < walk.length; q++) if (walk[q].ap !== walk[q - 1].ap) handoffs++;
       var holes = walk.filter(function (w2) { return !w2.ok; }).length;
+      sv.unshift('<defs><filter id="m-wglow" x="-10%" y="-30%" width="120%" height="160%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#m-wglow)">');
+      sv.push("</g>");
       $("m-walk").innerHTML = '<details class="m-more" open><summary>The walk</summary><p class="t-hint">Bars are what a client alone would get at each step, coloured by the AP serving it; the line is the signal. ' + handoffs + " handoff" + (handoffs === 1 ? "" : "s") + (holes ? ", " + holes + " of " + walk.length + " steps with no signal" : ", no holes") + '.</p><div class="t-elev"><svg viewBox="0 0 ' + Wp + " " + Hp + '" width="100%" role="img" aria-label="Throughput and signal along the walk">' + sv.join("") + "</svg></div></details>";
     } else $("m-walk").innerHTML = "";
 
@@ -2163,26 +2186,56 @@ Tap anything to change it. The big number is what gets off the site, and the not
   /* ── a picture under the map ─────────────────────────────────────────── */
   $("m-img").addEventListener("change", function () {
     var f = this.files && this.files[0]; if (!f) return;
-    var rd = new FileReader();
+    f.arrayBuffer().then(function (ab) {
+      setImage(ab, null, function () {
+        var fd = NFN.clamp(Math.round(st.get("fw") * img.h / img.w / 10) * 10, 40, 800); st.set("fd", fd); $("m-fd").value = fd;
+        $("m-scalenote").textContent = "Image on. Tap Set the scale, then two points a known distance apart.";
+      });
+    });
+  });
+  $("m-scale").addEventListener("click", function () { scalePts = []; setMode("scale"); $("m-scalenote").textContent = "Tap two points on the map that you know the distance between."; });
+  $("m-rmimg").addEventListener("click", function () { img.url = null; img.box = null; try { localStorage.removeItem("nfn-mesh-img"); localStorage.removeItem("nfn-mesh-imgbox"); } catch (e) {} $("m-scalenote").textContent = ""; run(); });
+  /* an image from bytes, shrunk for localStorage, optionally boxed to part of the field */
+  function setImage(bytes, box, then) {
+    var u8 = new Uint8Array(bytes), type = u8[0] === 0x89 ? "image/png" : u8[0] === 0xff ? "image/jpeg" : "image/png", rd = new FileReader();
     rd.onload = function () {
       var im = new Image();
       im.onload = function () {
-        /* shrink to something localStorage will hold */
-        var k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), cv = document.createElement("canvas");
-        cv.width = Math.round(im.naturalWidth * k); cv.height = Math.round(im.naturalHeight * k);
+        var kk = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), cv = document.createElement("canvas");
+        cv.width = Math.round(im.naturalWidth * kk); cv.height = Math.round(im.naturalHeight * kk);
         cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
-        img.url = cv.toDataURL("image/jpeg", 0.8); img.w = cv.width; img.h = cv.height;
-        try { localStorage.setItem("nfn-mesh-img", img.url); } catch (e) {}
-        var fd = NFN.clamp(Math.round(st.get("fw") * img.h / img.w / 10) * 10, 40, 800); st.set("fd", fd); $("m-fd").value = fd;
-        $("m-scalenote").textContent = "Image on. Tap Set the scale, then two points a known distance apart.";
-        run();
+        img.url = cv.toDataURL("image/jpeg", 0.8); img.w = cv.width; img.h = cv.height; img.box = box || null;
+        try { localStorage.setItem("nfn-mesh-img", img.url); if (box) localStorage.setItem("nfn-mesh-imgbox", JSON.stringify(box)); else localStorage.removeItem("nfn-mesh-imgbox"); } catch (e) {}
+        if (then) then(); run();
       };
       im.src = String(rd.result);
     };
-    rd.readAsDataURL(f);
+    rd.readAsDataURL(new Blob([bytes], { type: type }));
+  }
+
+  /* ── a Google Earth drawing ──────────────────────────────────────────── */
+  $("m-kml").addEventListener("change", function () {
+    var f = this.files && this.files[0]; if (!f || !NFN.kml) return;
+    $("m-kmlnote").textContent = "Reading...";
+    f.arrayBuffer().then(function (ab) { return NFN.kml.open(ab); }).then(function (r) {
+      var site = r.site;
+      if (!site) { $("m-kmlnote").textContent = "Nothing drawn in that file: no placemarks, polygons, paths or overlays."; return; }
+      var fw = NFN.clamp(Math.round(site.w / 10) * 10, 60, 1200), fd = NFN.clamp(Math.round(site.d / 10) * 10, 40, 800), sx = fw / site.w, sy = fd / site.d;
+      st.set("fw", fw).set("fd", fd); $("m-fw").value = fw; $("m-fd").value = fd; st.set("north", 0);
+      if (site.aps.length) st.set("ap", site.aps.slice(0, 24).map(function (a) { return { x: a.x * sx, y: a.y * sy, h: a.h, gw: a.gw, kind: st.get("kind"), ant: "auto", aim: null, tilt: 0, band: null, bw: null, ch: null, name: a.name }; }));
+      st.set("ob", site.obstacles.slice(0, 24).map(function (o) { return { x: o.x * sx, y: o.y * sy, type: o.type, h: o.h, r: o.r }; }));
+      st.set("cr", site.crowds.slice(0, 24).map(function (c2) { return { x: c2.x * sx, y: c2.y * sy, r: c2.r, n: c2.n }; }));
+      st.set("pt", site.path ? site.path.slice(0, 40).map(function (q) { return { x: q.x * sx, y: q.y * sy }; }) : []);
+      st.set("tr", []).set("ms", {});
+      var note = site.aps.length + " mast" + (site.aps.length === 1 ? "" : "s") + ", " + site.obstacles.length + " obstacle" + (site.obstacles.length === 1 ? "" : "s") + ", " + site.crowds.length + " crowd" + (site.crowds.length === 1 ? "" : "s") + (site.path ? ", a walk" : "") + (site.overlay ? ", an overlay" : "") +
+                 " placed on a " + fw + " by " + fd + " m field, north up, centred on " + site.lat0.toFixed(5) + ", " + site.lon0.toFixed(5) + ". " + site.notes.join("; ") + ".";
+      $("m-kmlnote").textContent = note;
+      if (site.overlay && r.image) setImage(r.image, { x: site.overlay.x * sx, y: site.overlay.y * sy, w: site.overlay.w * sx, d: site.overlay.d * sy });
+      else if (site.overlay) $("m-kmlnote").textContent += " The overlay image was not inside the file (a .kml points at it by name; save as .kmz to carry it).";
+      sel = null; writeUi(); run();
+    }).catch(function (e) { $("m-kmlnote").textContent = "Could not read it: " + e.message; });
+    this.value = "";
   });
-  $("m-scale").addEventListener("click", function () { scalePts = []; setMode("scale"); $("m-scalenote").textContent = "Tap two points on the map that you know the distance between."; });
-  $("m-rmimg").addEventListener("click", function () { img.url = null; try { localStorage.removeItem("nfn-mesh-img"); } catch (e) {} $("m-scalenote").textContent = ""; run(); });
   $("m-imgop").addEventListener("input", function () { img.op = +this.value / 100; run(); });
 
   /* ── an Ekahau project ───────────────────────────────────────────────── */
@@ -2217,23 +2270,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     st.set("ob", []).set("tr", []).set("ms", {}).set("pt", []);
     var note = pj_note(fl, aps);
     if (fl.image && esxBuf) {
-      NFN.esx.read(esxBuf, fl.image).then(function (bytes) {
-        var u8 = new Uint8Array(bytes), type = u8[0] === 0x89 ? "image/png" : u8[0] === 0xff ? "image/jpeg" : "image/png",
-            blob = new Blob([bytes], { type: type }), rd = new FileReader();
-        rd.onload = function () {
-          var im = new Image();
-          im.onload = function () {
-            var kk = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), cv = document.createElement("canvas");
-            cv.width = Math.round(im.naturalWidth * kk); cv.height = Math.round(im.naturalHeight * kk);
-            cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
-            img.url = cv.toDataURL("image/jpeg", 0.8); img.w = cv.width; img.h = cv.height;
-            try { localStorage.setItem("nfn-mesh-img", img.url); } catch (e) {}
-            run();
-          };
-          im.src = String(rd.result);
-        };
-        rd.readAsDataURL(blob);
-      }).catch(function () {});
+      NFN.esx.read(esxBuf, fl.image).then(function (bytes) { setImage(bytes, null); }).catch(function () {});
     }
     $("m-esxnote").textContent = note;
     sel = null; writeUi(); run();
