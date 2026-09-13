@@ -115,7 +115,9 @@ def open_all_details(pg, scope):
     pg.wait_for_timeout(300)
 
 def tap_targets(pg, scope, label):
-    small = pg.evaluate(f"""[...document.quererySelectorAll({scope!r}+' button, '+{scope!r}+' select, '+{scope!r}+' summary')].filter(e=>{{const r=e.getBoundingClientRect();return r.height>0&&r.width>0&&(r.height<38)}}).map(e=>(e.id||e.textContent.trim().slice(0,20))+' '+Math.round(e.getBoundingClientRect().height)+'px')""".replace("quererySelectorAll", "querySelectorAll"))
+    # offsetHeight is the layout box; getBoundingClientRect would include the 120 ms
+    # press animation (scale 0.97) on a pill the bot clicked a moment ago
+    small = pg.evaluate(f"""[...document.quererySelectorAll({scope!r}+' button, '+{scope!r}+' select, '+{scope!r}+' summary')].filter(e=>e.offsetHeight>0&&e.offsetWidth>0&&e.offsetHeight<38).map(e=>(e.id||e.textContent.trim().slice(0,20))+' '+e.offsetHeight+'px')""".replace("quererySelectorAll", "querySelectorAll"))
     check("use", f"{label}: every control at least 38 px tall", len(small) == 0, small[:6], [])
 
 # ── the mesh planner ────────────────────────────────────────────────────────
