@@ -50,13 +50,19 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
     python3 lab.py qam          # the live simulator widget, same loop
     python3 lab.py --diff       # what the lab copy has that the live one does not
     python3 lab.py --promote    # copy the lab widget over the live one and rebuild
-    node simtest.js             # 202 model checks, no browser
+    node simtest.js             # 324 model checks, no browser
     node simsweep.js 400        # invariants over 400 random sites, about 40 s
+    PYTHONPATH=.qa/pylib python3 qa.py   # the QA bot: 211 checks in a real browser, about a minute, from a terminal (not a sandboxed session)
     python3 regress.py          # every page at 360, 768 and 1280
     python3 capture.py academy-01   # regenerate the lesson figures from the live simulator
     python3 build-blog.py       # build the site
 
-Run `node simtest.js` and `python3 regress.py` before promoting anything.
+Run `node simtest.js` and `python3 regress.py` before promoting anything, and `qa.py` after any
+change to `theme/sim/` or the lab widgets. Its first real run was 2026-09-13: 197 of 208, and
+eleven failures were five problems, three of them the bot's own (its file server did not answer
+the page's reload poll, its drag did not scroll, it read a style key as the sentence); the two
+real ones were 35 px fold summaries and a channel list with 169 to 177 at 20 MHz but not 167,
+175 and 171 at 40 and 80. Then 211 of 211.
 
 ## Decided, so it does not get relitigated
 
