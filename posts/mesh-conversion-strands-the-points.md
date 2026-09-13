@@ -26,6 +26,12 @@ The obvious next thought is fine, Central will push the mesh config down to it. 
 
 That is not a Central limitation you can argue your way around. The doc is direct: the first provisioning happens over the wire. After that the mesh behaves like any other deployment. But the first time is the wire, and a conversion makes every AP a first time again.
 
+## The objection, which is a good one
+
+AOS 10 has a mesh recovery mechanism. It is PSK based, the key is generated from the customer ID, and the doc describes it as how a mesh node gets a link back to the managed device when the mesh link is broken and no other cluster is available. Read that quickly and it sounds like the answer to everything above.
+
+I would not build a migration on it. Recovery is described as a repair path for a deployment that already exists, not as a provisioning path for an AP that just had its config cleaned and was handed to a different manager, and nothing in the mesh or migration pages says a freshly converted point can use it to receive its first configuration. I have not tested it either, so treat that as unproven in both directions. The wire is the documented path, and until somebody proves otherwise the wire is what belongs in the plan.
+
 {{figure: fig-mesh-order.svg | The two orders are the same amount of work. One of them is done from a bench and the other is done from a ladder, twice.}}
 
 ## The order that works
@@ -48,17 +54,21 @@ On mesh-auto, nobody assigns the role. The AP works it out at boot. Ethernet lin
 
 The running-time version is the one that bites. A point that later sees Ethernet 0 come up runs loop detection, and if the link is real it reboots as a portal. So plugging into a mesh point to have a look at something is not a passive act. Neither is unplugging a portal, which reboots five minutes after it loses its wired uplink.
 
+Fair warning that the page argues with itself on this one. The Automatic Mesh Role Assignment section says a point that finds Ethernet 0 available reboots as a portal. The running time section, a few paragraphs later, says the AP checks for a loop and, if it does not find one, does not reboot and carries on as a point. Same page, two answers. Plan for the reboot, because that is the assumption that costs you nothing if you are wrong, and put it on the lab list if you need to know for certain.
+
 ## Everything else on that page worth taking with you
 
 A short list of things that are all documented and all cost somebody a day at some point.
 
-Reverse conversion is not symmetrical. Forward, you convert a whole AP group in one command. Backward, from AOS 10 to AOS 8, it is one AP at a time from that AP's console, and the doc says so plainly. Plan the rollback as a per-device job, not a group job.
+Reverse conversion is not symmetrical. Forward, you add an AP group to the conversion list and convert the lot at once. Backward, from AOS 10 to AOS 8, it is one AP at a time from that AP's console, and the doc says so plainly. Plan the rollback as a per-device job, not a group job.
 
 ADP discovery is off in AOS 10, so a converted AP ignores the DHCP and DNS options you have been using to point APs at things. If that was part of your bring-up, it is not part of it any more.
 
 A mesh point cannot be converted to a Remote AP at all, because mesh does not do VPN. If your plan had a RAP in it somewhere, that is the sentence to find first.
 
-Eight mesh points per portal is the ceiling. And if you were planning 6 GHz backhaul, that band is WPA3-SAE only for mesh, so a cluster still configured for WPA2 PSK either gets converted to SAE automatically on 6 GHz or does not run there at all.
+Eight mesh points per portal is the documented ceiling.
+
+And if 6 GHz backhaul is in the plan, check the opmode before you commit to the band. The mesh notes say 6 GHz supports only wpa3-sae-aes, and that a cluster configured for wpa2-psk-aes gets switched to SAE on that band. Worth knowing that this text sits inside the AP-615 section rather than the general mesh guidance, so treat it as model specific until you have confirmed it for the hardware in your hand.
 
 ## Checklist before you convert anything with no cable in it
 
@@ -71,7 +81,7 @@ Eight mesh points per portal is the ceiling. And if you were planning 6 GHz back
 | Rollback planned per AP | AOS 10 back to AOS 8 is not a group operation |
 | DHCP or DNS option-based discovery removed from the plan | ADP is disabled in AOS 10 |
 | Points per portal at eight or fewer | Documented ceiling |
-| 6 GHz backhaul means WPA3-SAE | WPA2 PSK does not run mesh on 6 GHz |
+| 6 GHz backhaul, confirm the opmode for your model | The 6 GHz WPA3-SAE requirement is written in the AP-615 section, not the general guidance |
 
 ## Bottom line
 
