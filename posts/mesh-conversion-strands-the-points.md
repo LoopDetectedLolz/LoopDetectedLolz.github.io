@@ -70,7 +70,7 @@ Eight mesh points per portal is the ceiling. And if you were planning 6 GHz back
 | Group in Central holds the mesh config before the AP arrives | So the profile is waiting rather than being built while you stand there |
 | Rollback planned per AP | AOS 10 back to AOS 8 is not a group operation |
 | DHCP or DNS option-based discovery removed from the plan | ADP is disabled in AOS 10 |
-| Points per portal under eight | Documented ceiling |
+| Points per portal at eight or fewer | Documented ceiling |
 | 6 GHz backhaul means WPA3-SAE | WPA2 PSK does not run mesh on 6 GHz |
 
 ## Bottom line
