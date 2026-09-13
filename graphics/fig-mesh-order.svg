@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-label="Two orders of work: converting the mesh in place strands every point, while wiring each access point first, converting it, letting Central provision it and then placing it works">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{font-size:15px;font-weight:700}
+    .n{font-size:10.5px;letter-spacing:1.5px}
+    .s{font-size:11.5px;font-weight:600}
+    .note{font-size:12px}
+  </style>
+  <marker id="o1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="15" y="26" class="t hd" fill="#ffffff">Same job, two orders. One of them needs a ladder afterwards.</text>
+
+  <text x="15" y="58" class="t mono n" fill="#F5A524">THE PLAN THAT STRANDS THEM</text>
+  <g class="t">
+    <g transform="translate(15,70)"><rect width="230" height="46" rx="9" fill="#F5A524" fill-opacity="0.10" stroke="#F5A524" stroke-opacity="0.55" stroke-dasharray="6 5"/><text class="s" x="115" y="21" text-anchor="middle" fill="#FFC168">Convert the whole site</text><text class="s" x="115" y="37" text-anchor="middle" fill="#FFC168">from the controller</text></g>
+    <g transform="translate(275,70)"><rect width="230" height="46" rx="9" fill="#F5A524" fill-opacity="0.10" stroke="#F5A524" stroke-opacity="0.55" stroke-dasharray="6 5"/><text class="s" x="115" y="21" text-anchor="middle" fill="#FFC168">Central wipes all config</text><text class="s" x="115" y="37" text-anchor="middle" fill="#FFC168">but the uplink parameters</text></g>
+    <g transform="translate(535,70)"><rect width="250" height="46" rx="9" fill="#F5A524" fill-opacity="0.10" stroke="#F5A524" stroke-opacity="0.55" stroke-dasharray="6 5"/><text class="s" x="125" y="21" text-anchor="middle" fill="#FFC168">Every point is now off the air</text><text class="s" x="125" y="37" text-anchor="middle" fill="#FFC168">with no way to be provisioned</text></g>
+  </g>
+  <g stroke="#8BA2AE" stroke-width="1.4" fill="none" marker-end="url(#o1)"><path d="M247 93 L271 93"/><path d="M507 93 L531 93"/></g>
+
+  <text x="15" y="164" class="t mono n" fill="#8CE05E">THE ORDER THAT WORKS</text>
+  <g class="t" fill="#06202A">
+    <g transform="translate(15,176)"><rect width="146" height="46" rx="9" fill="#5ED2DA"/><text class="s" x="73" y="21" text-anchor="middle">1. Bring it</text><text class="s" x="73" y="37" text-anchor="middle">to the wire</text></g>
+    <g transform="translate(175,176)"><rect width="146" height="46" rx="9" fill="#5ED2DA"/><text class="s" x="73" y="21" text-anchor="middle">2. Convert it</text><text class="s" x="73" y="37" text-anchor="middle">while wired</text></g>
+    <g transform="translate(335,176)"><rect width="160" height="46" rx="9" fill="#5ED2DA"/><text class="s" x="80" y="21" text-anchor="middle">3. Let Central push</text><text class="s" x="80" y="37" text-anchor="middle">the cluster profile</text></g>
+    <g transform="translate(509,176)"><rect width="146" height="46" rx="9" fill="#8CE05E"/><text class="s" x="73" y="21" text-anchor="middle">4. Verify it comes</text><text class="s" x="73" y="37" text-anchor="middle">up as a portal</text></g>
+    <g transform="translate(669,176)"><rect width="146" height="46" rx="9" fill="#8CE05E"/><text class="s" x="73" y="21" text-anchor="middle">5. Unplug, place it,</text><text class="s" x="73" y="37" text-anchor="middle">it boots as a point</text></g>
+  </g>
+  <g stroke="#8BA2AE" stroke-width="1.4" fill="none" marker-end="url(#o1)"><path d="M163 199 L171 199"/><path d="M323 199 L331 199"/><path d="M497 199 L505 199"/><path d="M657 199 L665 199"/></g>
+  <text x="15" y="262" class="t note" fill="#B0C4CF">Step 3 is the whole point. It is the only step that cannot happen over the air, and it is the one people skip because</text>
+  <text x="15" y="282" class="t note" fill="#B0C4CF">the AP is already up a pole.</text>
+</svg>
