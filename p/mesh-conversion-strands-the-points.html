@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Network Field Notes</title>
-<meta name="description" content="Campus networks, wireless, NAC, and the forum threads that keep asking the same question.">
-<link rel="canonical" href="https://networkfieldnotes.com/">
+<title>Converting a Mesh Over the Air Strands Every Point</title>
+<meta name="description" content="Conversion keeps the uplink parameters and throws away everything else, and Central wants a mesh provisioned over the wire the first time. Put those two sentences together before you convert anything on a pole.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/mesh-conversion-strands-the-points.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="Network Field Notes">
-<meta property="og:description" content="Campus networks, wireless, NAC, and the forum threads that keep asking the same question.">
-<meta property="og:url" content="https://networkfieldnotes.com/">
-<meta property="og:image" content="https://networkfieldnotes.com/og/home.png">
+<meta property="og:title" content="Converting a Mesh Over the Air Strands Every Point">
+<meta property="og:description" content="Conversion keeps the uplink parameters and throws away everything else, and Central wants a mesh provisioned over the wire the first time. Put those two sentences together before you convert anything on a pole.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/mesh-conversion-strands-the-points.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/mesh-conversion-strands-the-points.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Network Field Notes">
-<meta name="twitter:description" content="Campus networks, wireless, NAC, and the forum threads that keep asking the same question.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/home.png">
-
+<meta name="twitter:title" content="Converting a Mesh Over the Air Strands Every Point">
+<meta name="twitter:description" content="Conversion keeps the uplink parameters and throws away everything else, and Central wants a mesh provisioned over the wire the first time. Put those two sentences together before you convert anything on a pole.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/mesh-conversion-strands-the-points.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-13"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Converting a Mesh Over the Air Strands Every Point", "description": "Conversion keeps the uplink parameters and throws away everything else, and Central wants a mesh provisioned over the wire the first time. Put those two sentences together before you convert anything on a pole.", "datePublished": "2026-09-13", "image": "https://networkfieldnotes.com/og/mesh-conversion-strands-the-points.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/mesh-conversion-strands-the-points.html", "keywords": "Wireless, Migration, AOS-10, Mesh"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -488,113 +488,235 @@ html.qam-fs .rig{display:none}
 <div class="ground"></div>
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
-  <a class="brand" href="/"><span class="mk"><img src="logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
-  <nav class="nav"><a class="pill on" href="/">Posts</a><a class="pill" href="academy.html">Academy</a><a class="pill" href="simulator.html">Simulator</a><a class="pill" href="about.html">About</a><a class="pill outline" id="search-toggle" href="#search" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
-  <div class="search" id="search"><input id="q" type="search" placeholder="Search field notes" autocomplete="off"></div>
+  <a class="brand" href="../"><span class="mk"><img src="../logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
+  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill" href="../academy.html">Academy</a><a class="pill" href="../simulator.html">Simulator</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  
 </div></div></header>
 <main class="wrap">
-<a class="sim-teaser g-card" href="simulator.html" data-rise data-view="pop">
-  <img src="media/banner-walkthrough.jpg" alt="The simulator: a Yagi sending symbols down a beam to a constellation" width="1600" height="900" loading="lazy">
-  <div class="sim-copy">
-    <span class="eyebrow">On the air right now</span>
-    <h3>A Wi-Fi link you can break</h3>
-    <p>A real frame from a packet capture, one particle per symbol, through a link budget with walls you can drag, a reflection, spatial streams and a Teams call. Add interference and watch the voice drop packets while the chat just runs late.</p>
-    <span class="btn">Open the simulator</span>
-  </div>
-</a>
-<section class="hero g-hero rise" data-view="pop">
-  <div class="sheen"></div><div class="glow"></div>
-  <span class="tag green"><span class="dot"></span>Latest field note</span>
-  <h1 class="h-hero">Converting a Mesh Over the Air Strands Every Point</h1>
-  <p class="lede">Conversion keeps the uplink parameters and throws away everything else, and Central wants a mesh provisioned over the wire the first time. Put those two sentences together before you convert anything on a pole.</p>
-  <div class="row">
-    <a class="btn cta" href="p/mesh-conversion-strands-the-points.html" data-origin="zoom">Read the writeup</a>
-    <span class="meta">5 min &#183; Sep 13, 2026</span>
-  </div>
-</section>
+<div class="narrow">
+  <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
+  <article>
+    <header class="post-head g-hero cat-Wireless" data-view="zoom">
+      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Sep 13, 2026 &#183; 5 min</span></div>
+      <h1 class="h-hero">Converting a Mesh Over the Air Strands Every Point</h1>
+    </header>
+    <div class="post-body g-card" data-rise>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Three states of an over the air mesh conversion: a working mesh, conversion wiping everything but the uplink parameters, and mesh points with no cluster configuration and no wire to receive one">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .big{font-size:20px;font-weight:700}
+    .eyebrow{font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{font-size:10.5px;letter-spacing:2px}
+    .lb{font-size:12px;font-weight:600}
+    .note{font-size:12px}
+  </style>
+  <marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8CE05E"/></marker>
+  </defs>
 
-<div class="filter"><span class="eyebrow">Filter</span><span class="chip on" data-cat="all">All</span><span class="chip c-green" data-cat="Wireless">Wireless</span><span class="chip c-orange" data-cat="Academy">Academy</span><span class="chip c-red" data-cat="Lab">Lab</span><span class="chip " data-cat="RF survey">RF survey</span><span class="chip c-blue" data-cat="NAC">NAC</span><span class="chip " data-cat="Switching">Switching</span><span class="chip " data-cat="Docs">Docs</span></div>
+  <text x="30" y="34" class="t mono eyebrow" fill="#8CE05E">CONVERSION IS A PROVISIONING EVENT</text>
+  <text x="30" y="64" class="t big" fill="#ffffff">A mesh point cannot be provisioned over the mesh you just erased.</text>
 
-<section>
-  <div class="grid" id="posts">
-    <a class="card g-card hidden" href="p/mesh-conversion-strands-the-points.html" data-origin="zoom" data-rise data-cat="Wireless" data-text="converting a mesh over the air strands every point conversion keeps the uplink parameters and throws away everything else, and central wants a mesh provisioned over the wire the first time. put those two sentences together before you convert anything on a pole. wireless migration aos-10 mesh" data-featured>
-  <div class="card-top"><span class="tag c-green">Wireless</span><span class="meta">Sep 13</span></div>
-  <h3 class="h-card">Converting a Mesh Over the Air Strands Every Point</h3>
-  <p>Conversion keeps the uplink parameters and throws away everything else, and Central wants a mesh provisioned over the wire the first time. Put those two sentences together before you convert anything on a pole.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Airheads thread</span><b>5 min</b></div>
-</a><a class="card g-card" href="p/wizard-object-model.html" data-origin="zoom" data-rise data-cat="Wireless" data-text="the wizard is lying about the shape of your config a tunneled mpsk client that authenticates and lands nowhere, a central nac certificate that never gets issued, and a device quietly overriding group policy. three features, one shape, and none of them raise an error. wireless central new central mpsk">
-  <div class="card-top"><span class="tag c-green">Wireless</span><span class="meta">Sep 12</span></div>
-  <h3 class="h-card">The Wizard Is Lying About the Shape of Your Config</h3>
-  <p>A tunneled MPSK client that authenticates and lands nowhere, a Central NAC certificate that never gets issued, and a device quietly overriding group policy. Three features, one shape, and none of them raise an error.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Airheads thread</span><b>5 min</b></div>
-</a><a class="card g-card" href="p/how-the-banner-works.html" data-origin="zoom" data-rise data-cat="Wireless" data-text="the banner is a wi-fi link you can break the animation at the top of this site sends a real frame from a packet capture, one symbol per particle, through a link budget you can drag walls into. four minutes on what it is doing and why the teams call breaks before the chat does. wireless rf lab">
-  <div class="card-top"><span class="tag c-green">Wireless</span><span class="meta">Sep 11</span></div>
-  <h3 class="h-card">The Banner Is a Wi-Fi Link You Can Break</h3>
-  <p>The animation at the top of this site sends a real frame from a packet capture, one symbol per particle, through a link budget you can drag walls into. Four minutes on what it is doing and why the Teams call breaks before the chat does.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Field note</span><b>3 min</b></div>
-</a><a class="card g-card" href="p/academy-01-what-a-radio-actually-sends.html" data-origin="zoom" data-rise data-cat="Academy" data-text="what a radio actually sends frequency, wavelength, and the dbm math you can do in your head. then a lab where you walk away from an ap and watch the number fall exactly the way the formula says it will. wireless academy rf">
-  <div class="card-top"><span class="tag c-orange">Academy</span><span class="meta">Sep 10</span></div>
-  <h3 class="h-card">What a Radio Actually Sends</h3>
-  <p>Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Wireless Academy</span><b>7 min</b></div>
-</a><a class="card g-card" href="p/clearpass-intune-eap-tls-lab.html" data-origin="zoom" data-rise data-cat="Lab" data-text="your clearpass intune integration probably authenticates nothing most clearpass and intune builds look up a mac address and call the result authentication. here&#x27;s the version where the certificate does the authenticating, intune does the authorizing, and the two are tied together by something the client can&#x27;t lie about. clearpass intune eap-tls nac">
-  <div class="card-top"><span class="tag c-red">Lab</span><span class="meta">Sep 9</span></div>
-  <h3 class="h-card">Your ClearPass Intune Integration Probably Authenticates Nothing</h3>
-  <p>Most ClearPass and Intune builds look up a MAC address and call the result authentication. Here&#x27;s the version where the certificate does the authenticating, Intune does the authorizing, and the two are tied together by something the client can&#x27;t lie about.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Lab build</span><b>11 min</b></div>
-</a><a class="card g-card" href="p/channel-173-survey-blind-spot.html" data-origin="zoom" data-rise data-cat="RF survey" data-text="your survey tool can&#x27;t see channel 173 a client sat on one ap for 49 minutes while the signal fell to -69 dbm, and every heatmap said coverage was fine. the radio it was stuck to was on a channel the survey never scanned. wireless survey ekahau rf design">
-  <div class="card-top"><span class="tag ">RF survey</span><span class="meta">Sep 9</span></div>
-  <h3 class="h-card">Your Survey Tool Can&#x27;t See Channel 173</h3>
-  <p>A client sat on one AP for 49 minutes while the signal fell to -69 dBm, and every heatmap said coverage was fine. The radio it was stuck to was on a channel the survey never scanned.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Field engagement</span><b>5 min</b></div>
-</a><a class="card g-card" href="p/saml-login-validates-and-still-fails.html" data-origin="zoom" data-rise data-cat="NAC" data-text="your clearpass saml login validates and still fails admin mfa on clearpass means saml to your idp, and every guide you find is about onboard instead. here are the three places an admin login fails silently, in the order to check them. clearpass security entra id saml">
-  <div class="card-top"><span class="tag c-blue">NAC</span><span class="meta">Sep 5</span></div>
-  <h3 class="h-card">Your ClearPass SAML Login Validates and Still Fails</h3>
-  <p>Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Airheads thread</span><b>7 min</b></div>
-</a><a class="card g-card" href="p/one-pilot-ap-converts-all-of-them.html" data-origin="zoom" data-rise data-cat="Wireless" data-text="one pilot ap converts all hundred of them someone with a hundred instant aps on airwave wanted to move them to a controller cluster and, sensibly, test on one ap first. the virtual controller had other plans. wireless instant aos-8 migration">
-  <div class="card-top"><span class="tag c-green">Wireless</span><span class="meta">Sep 5</span></div>
-  <h3 class="h-card">One Pilot AP Converts All Hundred of Them</h3>
-  <p>Someone with a hundred Instant APs on AirWave wanted to move them to a controller cluster and, sensibly, test on one AP first. The virtual controller had other plans.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Airheads thread</span><b>6 min</b></div>
-</a><a class="card g-card" href="p/vsx-upgrade-hitless.html" data-origin="zoom" data-rise data-cat="Switching" data-text="your vsx upgrade is hitless right up until it isn&#x27;t everybody has heard a vsx upgrade is hitless. almost nobody has been told what hitless is conditional on. it&#x27;s a single cable and a 180 second timer. switching aos-cx vsx">
-  <div class="card-top"><span class="tag ">Switching</span><span class="meta">Sep 4</span></div>
-  <h3 class="h-card">Your VSX Upgrade Is Hitless Right Up Until It Isn&#x27;t</h3>
-  <p>Everybody has heard a VSX upgrade is hitless. Almost nobody has been told what hitless is conditional on. It&#x27;s a single cable and a 180 second timer.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Field note</span><b>8 min</b></div>
-</a><a class="card g-card" href="p/when-the-docs-disagree.html" data-origin="zoom" data-rise data-cat="Docs" data-text="when the docs disagree with themselves, somebody has to decide three official minimum versions, a withdrawn release note, and a command renamed without a memo. how to get to a decision you can put in a change record. process documentation aos-cx">
-  <div class="card-top"><span class="tag ">Docs</span><span class="meta">Sep 4</span></div>
-  <h3 class="h-card">When the Docs Disagree With Themselves, Somebody Has to Decide</h3>
-  <p>Three official minimum versions, a withdrawn release note, and a command renamed without a memo. How to get to a decision you can put in a change record.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Field note</span><b>7 min</b></div>
-</a><a class="card g-card" href="p/mdns-bridge-mode-airtime.html" data-origin="zoom" data-rise data-cat="Wireless" data-text="84 percent of your airtime is printers saying hello someone counted. 269,253 mdns frames in under six minutes, 84 percent of an uplink, and every one of them going out over the air at 6 mbps. here&#x27;s the math nobody does. wireless aos-8 multicast">
-  <div class="card-top"><span class="tag c-green">Wireless</span><span class="meta">Aug 2</span></div>
-  <h3 class="h-card">84 Percent of Your Airtime Is Printers Saying Hello</h3>
-  <p>Someone counted. 269,253 mDNS frames in under six minutes, 84 percent of an uplink, and every one of them going out over the air at 6 Mbps. Here&#x27;s the math nobody does.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Airheads thread</span><b>13 min</b></div>
-</a><a class="card g-card" href="p/aos8-to-aos10-is-a-rebuild.html" data-origin="zoom" data-rise data-cat="Wireless" data-text="aos-8 to aos-10 is a rebuild, not an upgrade three threads in one week, three symptoms, one cause: people planned an upgrade and got handed a rebuild. what doesn&#x27;t come with you, the pre-validate defect everyone blames on dns, and the order of operations. wireless aos-10 central migration">
-  <div class="card-top"><span class="tag c-green">Wireless</span><span class="meta">Jul 30</span></div>
-  <h3 class="h-card">AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade</h3>
-  <p>Three threads in one week, three symptoms, one cause: people planned an upgrade and got handed a rebuild. What doesn&#x27;t come with you, the pre-validate defect everyone blames on DNS, and the order of operations.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Airheads thread</span><b>13 min</b></div>
-</a><a class="card g-card" href="p/poe-budgets-wifi7-aps.html" data-origin="zoom" data-rise data-cat="Wireless" data-text="your new ap isn&#x27;t broken, it&#x27;s hungry: poe budgets in the wi-fi 7 era wi-fi 7 aps don&#x27;t fail when they&#x27;re underpowered. they negotiate, shrug, and come up in a reduced mode with the 6 ghz radio dark. nothing turns red. wireless poe wi-fi 7">
-  <div class="card-top"><span class="tag c-green">Wireless</span><span class="meta">Jul 29</span></div>
-  <h3 class="h-card">Your New AP Isn&#x27;t Broken, It&#x27;s Hungry: PoE Budgets in the Wi-Fi 7 Era</h3>
-  <p>Wi-Fi 7 APs don&#x27;t fail when they&#x27;re underpowered. They negotiate, shrug, and come up in a reduced mode with the 6 GHz radio dark. Nothing turns red.</p>
-  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Airheads thread</span><b>5 min</b></div>
-</a>
-  </div>
-  <div class="empty">Nothing matches that. Try a broader word, or clear the filter.</div>
-</section>
+  <g>
+    <text x="30" y="100" class="t mono cap" fill="#8BA2AE">BEFORE</text>
+    <rect x="30" y="112" width="256" height="150" rx="12" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <rect x="50" y="132" width="90" height="30" rx="7" fill="#8CE05E"/>
+    <text x="95" y="152" class="t lb" fill="#06202A" text-anchor="middle">Portal</text>
+    <path d="M50 147 L34 147" stroke="#5ED2DA" stroke-width="2.5"/>
+    <text x="150" y="152" class="t note" fill="#5ED2DA">wired</text>
+    <rect x="60" y="196" width="80" height="28" rx="7" fill="#5ED2DA"/>
+    <text x="100" y="215" class="t lb" fill="#06202A" text-anchor="middle">Point</text>
+    <rect x="170" y="196" width="80" height="28" rx="7" fill="#5ED2DA"/>
+    <text x="210" y="215" class="t lb" fill="#06202A" text-anchor="middle">Point</text>
+    <path d="M95 162 L100 196 M95 162 L206 196" stroke="#8CE05E" stroke-width="1.6" stroke-dasharray="3 3"/>
+    <text x="50" y="248" class="t note" fill="#B0C4CF">cluster profile on every one</text>
+  </g>
 
-<section class="band g-card" data-rise>
-  <div>
-    <h3>Field notes, not a newsletter</h3>
-    <p>Campus networks, wireless, NAC, and the forum threads that keep asking the same question.</p>
-  </div>
-</section>
+  <g>
+    <text x="322" y="100" class="t mono cap" fill="#8BA2AE">DURING: ap convert</text>
+    <rect x="322" y="112" width="256" height="150" rx="12" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="342" y="140" class="t note" fill="#B0C4CF">The AP boots AOS 10, finds Central,</text>
+    <text x="342" y="160" class="t note" fill="#B0C4CF">and Central cleans up the old config.</text>
+    <rect x="342" y="176" width="216" height="34" rx="8" fill="#8CE05E" fill-opacity="0.16" stroke="#8CE05E" stroke-opacity="0.5"/>
+    <text x="450" y="197" class="t lb" fill="#B6F08F" text-anchor="middle">Uplink parameters: kept</text>
+    <rect x="342" y="216" width="216" height="34" rx="8" fill="none" stroke="#8BA2AE" stroke-width="1.4" stroke-dasharray="6 5"/>
+    <text x="450" y="237" class="t lb" fill="#8BA2AE" text-anchor="middle">Mesh cluster profile: gone</text>
+  </g>
+
+  <g>
+    <text x="614" y="100" class="t mono cap" fill="#8BA2AE">AFTER</text>
+    <rect x="614" y="112" width="256" height="150" rx="12" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <rect x="634" y="132" width="90" height="30" rx="7" fill="#8CE05E"/>
+    <text x="679" y="152" class="t lb" fill="#06202A" text-anchor="middle">Portal</text>
+    <path d="M634 147 L618 147" stroke="#5ED2DA" stroke-width="2.5"/>
+    <rect x="644" y="196" width="80" height="28" rx="7" fill="none" stroke="#8BA2AE" stroke-width="1.4" stroke-dasharray="6 5"/>
+    <text x="684" y="215" class="t lb" fill="#8BA2AE" text-anchor="middle">Point</text>
+    <rect x="754" y="196" width="80" height="28" rx="7" fill="none" stroke="#8BA2AE" stroke-width="1.4" stroke-dasharray="6 5"/>
+    <text x="794" y="215" class="t lb" fill="#8BA2AE" text-anchor="middle">Point</text>
+    <text x="634" y="248" class="t note" fill="#8BA2AE">no cluster profile, no wire, no way back</text>
+  </g>
+
+  <path d="M290 187 L318 187" stroke="#8CE05E" stroke-width="1.8" fill="none" marker-end="url(#m1)"/>
+  <path d="M582 187 L610 187" stroke="#8CE05E" stroke-width="1.8" fill="none" marker-end="url(#m1)"/>
+  <text x="30" y="322" class="t note" fill="#B0C4CF">Central requires a mesh to be provisioned over the wire the first time. That first time is now.</text>
+</svg></div>
+      
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>A migrating-mesh-to-Central thread, and the sinking feeling that came with reading the plan</div>
+      <div class="prose"><p>Somebody on Reddit was moving a mesh network to Central and laid out the plan. Convert the APs, let them come up in AOS 10, carry on. Reasonable plan, and it would have worked fine if every one of those APs had a cable in it.</p>
+<p>Two facts kill it, and neither of them is hiding. HPE's own migration page says that after an AP converts, Central cleans up any old configuration on it except for the uplink parameters. The Central mesh page says the mesh network must be provisioned for the first time by plugging into the wired network. Read those one after the other and the outcome writes itself: the conversion takes away the thing that lets a mesh point join the network, and the only way to give it back is the one thing a mesh point does not have.</p>
+<h2>What actually gets erased</h2>
+<p>A mesh point does not find its portal by magic. It authenticates to it using the mesh cluster profile it was provisioned with: the cluster name that goes out as the MSSID, the key, the priority. That profile is why a point associates to your portal and not to the one across the car park. It is config, it lives on the AP, and it is not an uplink parameter.</p>
+<p>So when the AP reboots into AOS 10 and Central does its cleanup, the point comes back with an AOS 10 image, its uplink settings, and no idea that your mesh exists. It sits there advertising nothing and joining nothing.</p>
+<h2>And the wire is not optional</h2>
+<p>The obvious next thought is fine, Central will push the mesh config down to it. Central will, once it can talk to the AP. It cannot talk to the AP, because the AP's only path to Central was the mesh link that no longer forms.</p>
+<p>That is not a Central limitation you can argue your way around. The doc is direct: the first provisioning happens over the wire. After that the mesh behaves like any other deployment. But the first time is the wire, and a conversion makes every AP a first time again.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-label="Two orders of work: converting the mesh in place strands every point, while wiring each access point first, converting it, letting Central provision it and then placing it works">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{font-size:15px;font-weight:700}
+    .n{font-size:10.5px;letter-spacing:1.5px}
+    .s{font-size:11.5px;font-weight:600}
+    .note{font-size:12px}
+  </style>
+  <marker id="o1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="15" y="26" class="t hd" fill="#ffffff">Same job, two orders. One of them needs a ladder afterwards.</text>
+
+  <text x="15" y="58" class="t mono n" fill="#F5A524">THE PLAN THAT STRANDS THEM</text>
+  <g class="t">
+    <g transform="translate(15,70)"><rect width="230" height="46" rx="9" fill="#F5A524" fill-opacity="0.10" stroke="#F5A524" stroke-opacity="0.55" stroke-dasharray="6 5"/><text class="s" x="115" y="21" text-anchor="middle" fill="#FFC168">Convert the whole site</text><text class="s" x="115" y="37" text-anchor="middle" fill="#FFC168">from the controller</text></g>
+    <g transform="translate(275,70)"><rect width="230" height="46" rx="9" fill="#F5A524" fill-opacity="0.10" stroke="#F5A524" stroke-opacity="0.55" stroke-dasharray="6 5"/><text class="s" x="115" y="21" text-anchor="middle" fill="#FFC168">Central wipes all config</text><text class="s" x="115" y="37" text-anchor="middle" fill="#FFC168">but the uplink parameters</text></g>
+    <g transform="translate(535,70)"><rect width="250" height="46" rx="9" fill="#F5A524" fill-opacity="0.10" stroke="#F5A524" stroke-opacity="0.55" stroke-dasharray="6 5"/><text class="s" x="125" y="21" text-anchor="middle" fill="#FFC168">Every point is now off the air</text><text class="s" x="125" y="37" text-anchor="middle" fill="#FFC168">with no way to be provisioned</text></g>
+  </g>
+  <g stroke="#8BA2AE" stroke-width="1.4" fill="none" marker-end="url(#o1)"><path d="M247 93 L271 93"/><path d="M507 93 L531 93"/></g>
+
+  <text x="15" y="164" class="t mono n" fill="#8CE05E">THE ORDER THAT WORKS</text>
+  <g class="t" fill="#06202A">
+    <g transform="translate(15,176)"><rect width="146" height="46" rx="9" fill="#5ED2DA"/><text class="s" x="73" y="21" text-anchor="middle">1. Bring it</text><text class="s" x="73" y="37" text-anchor="middle">to the wire</text></g>
+    <g transform="translate(175,176)"><rect width="146" height="46" rx="9" fill="#5ED2DA"/><text class="s" x="73" y="21" text-anchor="middle">2. Convert it</text><text class="s" x="73" y="37" text-anchor="middle">while wired</text></g>
+    <g transform="translate(335,176)"><rect width="160" height="46" rx="9" fill="#5ED2DA"/><text class="s" x="80" y="21" text-anchor="middle">3. Let Central push</text><text class="s" x="80" y="37" text-anchor="middle">the cluster profile</text></g>
+    <g transform="translate(509,176)"><rect width="146" height="46" rx="9" fill="#8CE05E"/><text class="s" x="73" y="21" text-anchor="middle">4. Verify it comes</text><text class="s" x="73" y="37" text-anchor="middle">up as a portal</text></g>
+    <g transform="translate(669,176)"><rect width="146" height="46" rx="9" fill="#8CE05E"/><text class="s" x="73" y="21" text-anchor="middle">5. Unplug, place it,</text><text class="s" x="73" y="37" text-anchor="middle">it boots as a point</text></g>
+  </g>
+  <g stroke="#8BA2AE" stroke-width="1.4" fill="none" marker-end="url(#o1)"><path d="M163 199 L171 199"/><path d="M323 199 L331 199"/><path d="M497 199 L505 199"/><path d="M657 199 L665 199"/></g>
+  <text x="15" y="262" class="t note" fill="#B0C4CF">Step 3 is the whole point. It is the only step that cannot happen over the air, and it is the one people skip because</text>
+  <text x="15" y="282" class="t note" fill="#B0C4CF">the AP is already up a pole.</text>
+</svg><figcaption>The two orders are the same amount of work. One of them is done from a bench and the other is done from a ladder, twice.</figcaption></figure>
+<h2>The order that works</h2>
+<p>Nothing clever here, it just has to happen in this sequence.</p>
+<p>Bring the AP to a wired port. Convert it there. Let it boot into AOS 10, find Central, land in the right group and take the mesh cluster profile. Watch it come up as a portal, because a wired AP with a reachable network is a portal by definition. Then unplug it, put it where it belongs, and let it boot with no Ethernet, at which point it becomes a point and joins the cluster that the portal is advertising.</p>
+<p>Portals first, and get them converted and stable before you strand anything on purpose. A point with nothing to join is just an expensive light.</p>
+<p>If the site is big enough that carrying everything back to a bench is unrealistic, the wire does not have to be a permanent one. A patch cable and a PoE injector at the base of the pole is a wired port. It only has to be there once, for one boot.</p>
+<h2>The role you did not choose</h2>
+<p>Worth knowing while you are in here, because it explains a couple of confusing reboots.</p>
+<p>On mesh-auto, nobody assigns the role. The AP works it out at boot. Ethernet link down means point. Ethernet link up means it checks whether the network is actually reachable, either by pinging its gateway with a static address or by getting a DHCP lease, and it is only a portal if that works. Link up with nothing behind it makes it a point again, which is a nice touch.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 250" role="img" aria-label="How an AOS 10 access point picks its mesh role at boot: Ethernet link down makes it a point, Ethernet up plus a reachable network makes it a portal, Ethernet up without reachability makes it a point">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{font-size:15px;font-weight:700}
+    .q{font-size:12.5px;font-weight:600}
+    .lb{font-size:12.5px;font-weight:600}
+    .note{font-size:11.5px}
+    .n{font-size:10.5px;letter-spacing:1.5px}
+  </style>
+  <marker id="r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="15" y="26" class="t hd" fill="#ffffff">Nobody assigns the role. The AP decides at boot, on mesh-auto.</text>
+
+  <rect x="15" y="46" width="180" height="46" rx="9" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.12"/>
+  <text x="105" y="68" class="t q" fill="#EAF2F6" text-anchor="middle">Eth 0 link up</text>
+  <text x="105" y="84" class="t note" fill="#8BA2AE" text-anchor="middle">at boot?</text>
+
+  <rect x="255" y="46" width="220" height="46" rx="9" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.12"/>
+  <text x="365" y="68" class="t q" fill="#EAF2F6" text-anchor="middle">Network reachable?</text>
+  <text x="365" y="84" class="t note" fill="#8BA2AE" text-anchor="middle">gateway pings, or DHCP answers</text>
+
+  <rect x="540" y="40" width="150" height="34" rx="8" fill="#8CE05E"/>
+  <text x="615" y="62" class="t lb" fill="#06202A" text-anchor="middle">Mesh portal</text>
+  <rect x="540" y="86" width="150" height="34" rx="8" fill="#5ED2DA"/>
+  <text x="615" y="108" class="t lb" fill="#06202A" text-anchor="middle">Mesh point</text>
+
+  <g stroke="#8BA2AE" stroke-width="1.4" fill="none" marker-end="url(#r)">
+    <path d="M195 69 L249 69"/>
+    <path d="M475 62 L534 57"/>
+    <path d="M475 78 L534 100"/>
+    <path d="M105 92 C105 140 300 140 534 106"/>
+  </g>
+  <text x="205" y="62" class="t mono n" fill="#8CE05E">YES</text>
+  <text x="484" y="48" class="t mono n" fill="#8CE05E">YES</text>
+  <text x="484" y="96" class="t mono n" fill="#F5A524">NO</text>
+  <text x="120" y="112" class="t mono n" fill="#F5A524">NO ETHERNET</text>
+
+  <text x="15" y="176" class="t mono n" fill="#8BA2AE">THE PART THAT SURPRISES PEOPLE</text>
+  <text x="15" y="198" class="t note" fill="#B0C4CF" font-size="12">A point that later sees its Ethernet 0 link come up sends loop detection packets, and if the link is real it reboots</text>
+  <text x="15" y="218" class="t note" fill="#B0C4CF" font-size="12">as a portal. So plugging a mesh point in to "check something" changes its role and costs you a reboot, and unplugging</text>
+  <text x="15" y="238" class="t note" fill="#B0C4CF" font-size="12">a portal for five minutes reboots it too.</text>
+</svg><figcaption>Role detection at boot, plus the bit that catches people: a live Ethernet link on a point is a reboot into a portal, not a convenience.</figcaption></figure>
+<p>The running-time version is the one that bites. A point that later sees Ethernet 0 come up runs loop detection, and if the link is real it reboots as a portal. So plugging into a mesh point to have a look at something is not a passive act. Neither is unplugging a portal, which reboots five minutes after it loses its wired uplink.</p>
+<h2>Everything else on that page worth taking with you</h2>
+<p>A short list of things that are all documented and all cost somebody a day at some point.</p>
+<p>Reverse conversion is not symmetrical. Forward, you convert a whole AP group in one command. Backward, from AOS 10 to AOS 8, it is one AP at a time from that AP's console, and the doc says so plainly. Plan the rollback as a per-device job, not a group job.</p>
+<p>ADP discovery is off in AOS 10, so a converted AP ignores the DHCP and DNS options you have been using to point APs at things. If that was part of your bring-up, it is not part of it any more.</p>
+<p>A mesh point cannot be converted to a Remote AP at all, because mesh does not do VPN. If your plan had a RAP in it somewhere, that is the sentence to find first.</p>
+<p>Eight mesh points per portal is the ceiling. And if you were planning 6 GHz backhaul, that band is WPA3-SAE only for mesh, so a cluster still configured for WPA2 PSK either gets converted to SAE automatically on 6 GHz or does not run there at all.</p>
+<h2>Checklist before you convert anything with no cable in it</h2>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Every AP has a wired port available, even a temporary one</td>
+<td>First provisioning after conversion is wired, no exceptions</td>
+</tr>
+<tr>
+<td>Portals converted, provisioned and verified before any point</td>
+<td>A point with no portal advertising has nothing to join</td>
+</tr>
+<tr>
+<td>Mesh cluster name and key recorded off the APs first</td>
+<td>The AP's copy does not survive the cleanup</td>
+</tr>
+<tr>
+<td>Group in Central holds the mesh config before the AP arrives</td>
+<td>So the profile is waiting rather than being built while you stand there</td>
+</tr>
+<tr>
+<td>Rollback planned per AP</td>
+<td>AOS 10 back to AOS 8 is not a group operation</td>
+</tr>
+<tr>
+<td>DHCP or DNS option-based discovery removed from the plan</td>
+<td>ADP is disabled in AOS 10</td>
+</tr>
+<tr>
+<td>Points per portal under eight</td>
+<td>Documented ceiling</td>
+</tr>
+<tr>
+<td>6 GHz backhaul means WPA3-SAE</td>
+<td>WPA2 PSK does not run mesh on 6 GHz</td>
+</tr>
+</tbody>
+</table>
+<h2>Bottom line</h2>
+<p>Conversion is a provisioning event, and provisioning needs a path. Any AP whose only path is the network you are rebuilding cannot be provisioned by that rebuild, and mesh points are the clearest case because their path is the mesh itself.</p>
+<p>The rule generalises past mesh. Before you convert anything, ask how the device will reach its new manager after it forgets everything it knew. If the answer is the thing you are converting, put a cable in it first.</p></div>
+    </div>
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Moving to AOS 10 <span class="meta">part 3 of 3</span></h3><div class="ser-steps"><a class="ser-step" href="aos8-to-aos10-is-a-rebuild.html"><span class="ser-n">1</span><span class="ser-t">AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade</span></a><a class="ser-step" href="one-pilot-ap-converts-all-of-them.html"><span class="ser-n">2</span><span class="ser-t">One Pilot AP Converts All Hundred of Them</span></a><a class="ser-step here" href="mesh-conversion-strands-the-points.html"><span class="ser-n">3</span><span class="ser-t">Converting a Mesh Over the Air Strands Every Point</span><span class="ser-tag">You are here</span></a></div></section>
+    <section class="end g-card" data-rise>
+      <h3>More field notes</h3>
+      <div class="postnav"><a class="pn g-card" href="wizard-object-model.html"><span class="eyebrow">Older</span>The Wizard Is Lying About the Shape of Your Config</a></div>
+    </section>
+  </article>
+</div>
 </main>
-<a class="rig" href="socials.html" data-origin="genie" aria-label="Where else to find me"><img src="character/nfn-bot-wave.svg" alt="" width="104" height="104"></a>
+<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-signal.svg" alt="" width="104" height="104"></a>
 <footer><div class="wrap">
   <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
   <span><a href="/rss.xml">RSS</a></span>

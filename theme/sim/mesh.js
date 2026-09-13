@@ -347,11 +347,14 @@
      AP, or { pl: dB }, the path loss between the two radios as AirMatch reports
      it (Central: /airmatch/telemetry/v1/nbr_pathloss_radio). Loss is the better
      of the two to carry because it does not care what power the AP was running
-     when it was read. Either way this gives the received power it implies. */
+     when it was read. AirMatch's figure is EIRP minus the RSSI the neighbour
+     heard, and an RSSI already has the receiving antenna in it, so the received
+     power it implies is transmit power plus the transmitter's gain minus the
+     loss: the receiver's gain is not added again. */
   M.measuredPrx = function (mv, tx, ga, gb) {
     if (mv === undefined || mv === null) return null;
     if (typeof mv === "number") return isFinite(mv) ? mv : null;
-    if (typeof mv === "object" && isFinite(mv.pl)) return tx + ga + gb - mv.pl;
+    if (typeof mv === "object" && isFinite(mv.pl)) return tx + ga - mv.pl;
     return null;
   };
 
@@ -433,8 +436,9 @@
       obstacle: worst.by === "obstacle" || worst.by === "foliage" ? worst.idx : -1, foliage: fol,
       band: f, bw: bw, ss: ss, std: std, tx: tx, clamped: clamped, tworay: ray, ga: ga, gb: gb, walls: wallLoss.n, wallDb: wallLoss.db,
       model: model, measured: mPrx !== null, calib: calib || 0,
-      /* the loss the budget assumed and, when one was measured, the loss read */
-      plModel: fspl + worst.loss + wallLoss.db - ray, plMeas: meas && typeof meas === "object" && isFinite(meas.pl) ? meas.pl : null,
+      /* the loss the budget assumed, in AirMatch's terms (EIRP to RSSI, so the
+         receiver's gain comes off the propagation loss), and the loss read */
+      plModel: fspl + worst.loss + wallLoss.db - ray - gb, plMeas: meas && typeof meas === "object" && isFinite(meas.pl) ? meas.pl : null,
       prx: prx, noise: nf, snr: snr, mcs: mcs, phyMbps: phy, goodput: good,
       f1: f1mid, clearance: clearMin,
       /* 60% of the first Fresnel zone is the rule of thumb for "clear" */
