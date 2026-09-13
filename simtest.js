@@ -225,6 +225,14 @@ var ML4 = NFN.mesh.link({ x: 0, y: 0, h: 3 }, { x: 200, y: 0, h: 3 }, { tworay: 
 eq("a building beside the path costs nothing", ML4.diffraction, 0);
 var ML5 = NFN.mesh.link({ x: 0, y: 0, h: 3, tx: 10 }, { x: 200, y: 0, h: 3, tx: 23 }, { tworay: false });
 near("the weaker transmitter sets the link", ML5.prx, ML.prx - 13, 0.001);
+/* the point measured on 2026-09-13: a measured 91 dB path, 21 dBm EIRP, a -92 floor at
+   80 MHz (noise figure 3), and the AP ran MCS 7 down. The margin gates the link; it
+   does not take rate off it. */
+var MLm = NFN.mesh.link({ x: 0, y: 0, h: 3, tx: 21, ant: "omni", bw: 80, ss: 2, std: "ax" }, { x: 30, y: 0, h: 3, tx: 21, ant: "omni", bw: 80, ss: 2, std: "ax" }, { tworay: false, nf: 3, margin: 6 }, [], [], { pl: 91 });
+near("a 91 dB path at 21 dBm over a -92 floor is SNR 22 plus the antenna", MLm.snr, 21 - 91 + NFN.mesh.ANTENNAS.omni.g + 92, 0.6);
+eq("and runs at the rate its SNR earns, MCS 7 not 4", MLm.mcs, 7);
+var MLw = NFN.mesh.link({ x: 0, y: 0, h: 3, tx: 21, ant: "omni", bw: 80, std: "ax" }, { x: 30, y: 0, h: 3, tx: 21, ant: "omni", bw: 80, std: "ax" }, { tworay: false, nf: 3, margin: 6 }, [], [], { pl: 114 });
+eq("while a link under the lowest rate plus the margin is refused", MLw.ok, false);
 near("two ray with no bounce is 0 dB", NFN.mesh.twoRay(100, 3, 3, 5.2, 0), 0, 0.001);
 var tr = NFN.mesh.twoRay(150, 3, 3, 5.2, 0.5);
 if (!(tr >= -6.03 && tr <= 3.53)) { fails++; console.log("  FAIL two ray at rho 0.5 is bounded by -6 and +3.5 dB: " + tr); }

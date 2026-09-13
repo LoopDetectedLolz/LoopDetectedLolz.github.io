@@ -1175,7 +1175,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     up: NFN.f.num(100, 1, 10000),
     prof: NFN.f.pick("aruba", Object.keys(M.PROFILES)), hops: NFN.f.int(4, 1, 8),
     f: NFN.f.num(5.2, 5.2, 6.0), bw: NFN.f.int(40, 20, 160), dfs: NFN.f.bool(false),
-    tx: NFN.f.num(17, 0, 30), fade: NFN.f.num(0, 0, 15), ss: NFN.f.int(2, 1, 4),
+    tx: NFN.f.num(17, 0, 30), fade: NFN.f.num(0, 0, 15), ss: NFN.f.int(2, 1, 4), nf: NFN.f.num(7, 0, 12),
     ant: NFN.f.pick("auto", ["auto"].concat(Object.keys(M.ANTENNAS))), kind: NFN.f.pick("dual", Object.keys(M.KINDS)),
     mdl: NFN.f.pick("", [""].concat(NFN.aps ? NFN.aps.MODELS.map(function (m) { return m.id; }) : [])),
     ray: NFN.f.bool(false),
@@ -1262,7 +1262,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     return { aps: aps, obstacles: S.get("ob"), terrain: S.get("tr"), crowds: S.get("cr"), meas: S.get("ms"),
              w: S.get("fw"), d: S.get("fd"), land: S.get("land"), north: S.get("north"), domain: S.get("dom"), dfs: S.get("dfs"),
              uplink: S.get("up"), profile: S.get("prof"), maxHops: S.get("hops"),
-             fGHz: S.get("f"), bw: S.get("bw"), tx: S.get("tx"), fade: S.get("fade"), ant: S.get("ant"), ss: S.get("ss"),
+             fGHz: S.get("f"), bw: S.get("bw"), tx: S.get("tx"), fade: S.get("fade"), ant: S.get("ant"), ss: S.get("ss"), nf: S.get("nf"),
              tworay: S.get("ray"),
              clients: S.get("cl"), dev: S.get("dev"), app: S.get("app"),
              tod: S.get("tod") >= 24 ? null : S.get("tod"), curve: S.get("curve"),
@@ -2466,11 +2466,18 @@ Tap anything to change it. The big number is what gets off the site, and the not
         var avg = function (l) { return l.reduce(function (t, v) { return t + v; }, 0) / l.length; };
         Object.keys(seenR).forEach(function (key) { ms[key] = NFN.clamp(avg(seenR[key]), -100, -20); });
         Object.keys(seen).forEach(function (key) { ms[key] = { pl: avg(seen[key]) }; });
+        /* the radios report their own noise floor; the receiver's noise figure is that
+           floor over thermal for the width, and it replaces the 7 dB guess (three APs
+           read -92 at 80 MHz on 2026-09-13, a figure of 3, four dB of SNR the guess threw away) */
+        var floors = [];
+        src.forEach(function (a) { (a.radios || []).forEach(function (r) { if (String(r.band) === String(aps[0].band || 5) && isFinite(+r.noise_dbm) && /\d+/.test(String(r.bw || ""))) floors.push(+r.noise_dbm - NFN.rf.noiseFloor(+String(r.bw).match(/\d+/)[0], 0)); }); });
+        var nfRead = null;
+        if (floors.length) { floors.sort(function (x, y) { return x - y; }); nfRead = NFN.clamp(Math.round(floors[floors.length >> 1]), 0, 12); st.set("nf", nfRead); }
         st.set("ap", aps).set("ms", ms);
         central = { pulled: doc.pulled, group: doc.group, names: aps.map(function (a) { return a.name; }) };
         try { localStorage.setItem("nfn-mesh-central", JSON.stringify(central)); } catch (e) {}
         var pairs = Object.keys(ms).length;
-        $("m-centralnote").textContent = n + " AP" + (n === 1 ? "" : "s") + " from " + (doc.source === "juniper-mist" ? "Mist site " : "group ") + (doc.group || "?") + (placed ? ", placed from the floor plan" : cur.length === n ? ", kept where you had them" : ", in a row to drag into place") + "; " + pairs + " pair" + (pairs === 1 ? "" : "s") + " with a measure" + (Object.keys(seenR).length && !Object.keys(seen).length ? "d RSSI" : "d loss") + (pairs ? "" : " (a controller reports neighbours it can hear; APs on different channels or too far apart never appear)") + ". Models, power, channel and width came from the radios.";
+        $("m-centralnote").textContent = n + " AP" + (n === 1 ? "" : "s") + " from " + (doc.source === "juniper-mist" ? "Mist site " : "group ") + (doc.group || "?") + (placed ? ", placed from the floor plan" : cur.length === n ? ", kept where you had them" : ", in a row to drag into place") + "; " + pairs + " pair" + (pairs === 1 ? "" : "s") + " with a measure" + (Object.keys(seenR).length && !Object.keys(seen).length ? "d RSSI" : "d loss") + (pairs ? "" : " (a controller reports neighbours it can hear; APs on different channels or too far apart never appear)") + ". Models, power, channel and width came from the radios" + (nfRead !== null ? ", and so did the noise floor (figure " + nfRead + " dB)" : "") + ".";
         sel = null; writeUi(); run();
       } catch (e) { $("m-centralnote").textContent = "Could not read it: " + e.message; }
     };
