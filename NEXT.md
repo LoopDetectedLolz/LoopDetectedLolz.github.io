@@ -285,12 +285,48 @@ What was learned, in the order it cost time:
 - A factory reset of an AP wipes the cluster; it re-onboards into the group in about seven
   minutes including an image step, and takes the cluster back with the group config.
 
-State at the end of the night: cluster Burns-Mesh in group Burns-Home; 505H and 735 rebooted
-as portals and healthy, wired; 635 role saved as point in Central but the AP offline since
-about 23:20 and not beaconing as a point (absent from the portals' neighbour lists); 1/1/12
-admin up with PoE on. Next: power-cycle the 635 with its port up so it comes back wired and
-takes the point role, confirm in Central, then shut 1/1/12, PoE off, PoE on, and watch
-`show ap mesh link` on the 505H. The planner said 635 to 505H at about -64 dBm, MCS 4.
+The morning of the 13th, what happened and what it taught:
+
+- A role saved while the AP is offline is never delivered. The 635 had to come back on the
+  wire once (port up, PoE cycled), show Synchronized with a fresh "last config changed" stamp,
+  and only then did shut, PoE off, PoE on boot it as a point: uptime reset, ETH0 Down, CURRENT
+  UPLINK "WiFi Mesh", back in Central over the air inside four minutes. The device page in
+  Chrome kept showing the old snapshot until a hard reload; navigating the SPA is not enough.
+- **`show ap mesh link` RSSI is not a measurement on 10.8.1.0.** It read 46 for the 735 at a
+  real SNR of 9 and 46 for the 505H at a real SNR of 30. The rates told the truth (72/8 to 17
+  Mb/s on the weak link, 720/408 to 612 on the good one). `show ap monitor ap-list` is the
+  honest read: curr-rssi, curr-snr and a `pathloss` column the AP computes itself. The
+  planner's Verify fold and any post must use that, never the mesh table's number.
+- The point first picked the 735 at 100 dB of loss (SNR 9) because the 505H was on 149E and
+  a point's backhaul radio parks on its parent's channel and does not scan: the 505H was not
+  losing, it was not in the race. Portals in a cluster want one channel. Pinning the 735 to
+  149E (Central's per AP channel list only offers the 80 MHz blocks by their lowest channel,
+  116E not 120E, so the move went the other way) put both portals on one primary; three and a
+  half minutes later the 635 had reselected the 505H.
+- A per AP power change (Transmit Power: Manual) takes effect live, no reboot, and Central's
+  radio list confirms it within a minute. Cutting the 735 from 21 to 15 moved the monitor
+  table's read of it by the same 6 dB; the mesh table's 46 did not move.
+- Measured against the planner: 635 to 505H predicted about -64 dBm from AirMatch's 90 to 92
+  dB, measured -65 to -70 (two BSSIDs on one radio); 635 to 735 budgeted at 100 dB, the AP's
+  own pathloss column says 98. Both budgets right. The rate was wrong: MCS 4 predicted, MCS 7
+  running, because `mesh.js` took the 6 dB margin off the SNR before picking the rate as well
+  as using it as the gate, and the 7 dB noise figure put the 80 MHz floor at -88 when all
+  three radios report -92. Fixed the same morning: the margin only gates, Verify reads the
+  noise figure from the radios (`nf` in the mesh hash), a test pins the measured point.
+- Aruba's `show ap mesh neighbours` is spelled that way; `neighbors` is a parse error.
+- Central's Tools > Commands runs 486 canned show commands on an AP with no device login
+  (`show ap mesh link`, `show ap mesh neighbours`, `show ap mesh cluster topology`, `show ap
+  monitor ap-list` all there). It is the way to read a mesh point without a console session.
+
+State at the end of the morning: cluster Burns-Mesh; 505H a portal, automatic, on 149; 735 a
+portal, 5 GHz pinned to 149E, power back to Automatic; 635 a point on the 505H, wire down
+(1/1/12 shutdown, PoE on). Undo, in order: `no shutdown` on 1/1/12 (the 635 comes back wired
+and stays a point in name; set its Mesh Role to None and reboot it to make it an ordinary AP);
+735 channel back to Automatic; portals' roles to None and reboot if the cluster should go;
+`lab-mesh.py restore` for the group config. Not done: a throughput test through the point
+(the client sat on the same 5 GHz radio as the backhaul, so it is the `relays` halving case;
+MCS 7 on 80 MHz says 200 to 250 Mb/s down if the ISP is not the ceiling), and the move test
+(predict with the planner first, then place the 635 halfway and measure).
 
 ## To verify in the lab, with the AP-735
 

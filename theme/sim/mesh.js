@@ -428,7 +428,11 @@
         prx = (mPrx !== null ? mPrx : model + (calib || 0)) - C.fade,
         nf = NFN.rf.noiseFloor(bw, C.nf), snr = prx - nf,
         ss = Math.min(a.ss || C.ss, b.ss || C.ss), std = M.stdMin(a.std || C.std, b.std || C.std),
-        mcs = (a.noBand || b.noBand) ? -1 : NFN.phy.mcsFor(std, snr - C.margin),
+        /* the margin is a gate, not a handicap: a link counts once its SNR clears the
+           lowest rate by C.margin, and then it runs at the rate its SNR earns. Held
+           against a real point on 2026-09-13: MCS 7 at SNR 25 to 30 on 80 MHz, which
+           SNRMIN gives and SNRMIN minus a margin does not. */
+        mcs = (a.noBand || b.noBand) || snr < NFN.phy.SNRMIN[0] + C.margin ? -1 : NFN.phy.mcsFor(std, snr),
         phy = mcs >= 0 ? NFN.phy.rate(std, mcs, ss, bw) : 0,
         good = mcs >= 0 ? NFN.mac.throughput({ std: std, mcs: mcs, ss: ss, bw: bw, bytes: 1500, agg: 64, retry: C.retry }) / 1e6 : 0;
     return {
