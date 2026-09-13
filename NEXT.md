@@ -254,6 +254,44 @@ Ideas parked, none of them decided:
 - The Ekahau reader was tested on a synthetic project shaped like the exports seen; open a
   real .esx and check the direction convention (0 taken as up the plan) and the image entry.
 
+## The mesh test on the home lab, 2026-09-12 into 13
+
+What was learned, in the order it cost time:
+
+- `lab-mesh.py cluster` adds `mesh-cluster <name> wpa2-psk <key> priority 1` to the group and
+  Central accepts it, the APs show it under `show ap mesh cluster status` (Enabled), but the
+  per AP **Mesh Role stays None** and None means mesh off. Role AUTO is not the default; the
+  role is set per AP under Device > Config > System > Mesh (None, auto, portal, point). Set the
+  portals to portal and the point to point, then reboot each; the form's footer *button* did
+  not save, the footer *link* did, and the proof is the "Please reboot the access point"
+  prompt. Once the portals rebooted with the role, `show ap mesh neighbours` on the 505H listed
+  the 735 as a portal at RSSI 10 over the 97 dB pair, which is the planner's budget for it.
+- An AP decides its role at boot. Dropping its switch port at runtime leaves it stranded
+  (Central freezes its last state, the queued reboot never reaches it). The remote power button
+  is the switch: AOS-CX keeps PoE on a `shutdown` port, so `no power-over-ethernet` then
+  `power-over-ethernet` on the port (console, `hpe-central support-mode enable` first on a
+  Central managed switch) reboots the AP with no link.
+- Classic Central's MultiEdit editor is Monaco; edits made through the model API are dropped,
+  only typed edits count, and `no power-over-ethernet` typed there did not survive the save
+  either. The console is the tool for PoE; the form page (Interfaces > Ports) is fine for
+  Admin Up.
+- The switch had to be brought into Classic Central (group Burns-Home-CX-Lab) to be reachable
+  at all; it imported its running config as the baseline (status went "initial group config
+  pending" then Sync) and needed a device password set before any config page opened.
+- Ports on the 6200: 505H on 1/1/10 (7 W), 735 on 1/1/7 (11.7 W), 635 on 1/1/12 (9.4 W,
+  labelled Upstairs_AP-735).
+- The GreenLake session in Chrome expires every twenty minutes or so and the Classic API token
+  every two hours; both cost a round trip to Dustin each time.
+- A factory reset of an AP wipes the cluster; it re-onboards into the group in about seven
+  minutes including an image step, and takes the cluster back with the group config.
+
+State at the end of the night: cluster Burns-Mesh in group Burns-Home; 505H and 735 rebooted
+as portals and healthy, wired; 635 role saved as point in Central but the AP offline since
+about 23:20 and not beaconing as a point (absent from the portals' neighbour lists); 1/1/12
+admin up with PoE on. Next: power-cycle the 635 with its port up so it comes back wired and
+takes the point role, confirm in Central, then shut 1/1/12, PoE off, PoE on, and watch
+`show ap mesh link` on the 505H. The planner said 635 to 505H at about -64 dBm, MCS 4.
+
 ## To verify in the lab, with the AP-735
 
 Both are plumbing questions, not physics ones, and both gate the GPS work.
