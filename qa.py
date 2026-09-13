@@ -237,6 +237,11 @@ def qa_mesh(b, base, page_url):
     check("math", "Mist config: template, site, mesh, one device per AP", len(mist["calls"]) == 3 + len(p3["aps"]), len(mist["calls"]), 3 + len(p3["aps"]))
     intent = pg.inner_text("#m-intent")
     check("use", "the intent names the band, width and every AP", "GHz" in intent and intent.count("\n") >= 4 + len(p3["aps"]), intent.count("\n"), f">= {4 + len(p3['aps'])}")
+    # the story of the tree, read from the tree
+    story = pg.evaluate("document.getElementById('tools')._narrate()")
+    kinds = [q["kind"] for q in story["steps"]]
+    check("use", "the mesh story has a rule, portals, a step per point and a ceiling", kinds[0] == "rule" and kinds[-1] == "ceiling" and len([k for k in kinds if k.startswith("hop") or k in ("orphan", "down")]) == len([r for r in p3["aps"] if not r["gw"]]), kinds, "rule, portal, hop..., ceiling")
+    check("use", "and it is on the page", pg.locator("#m-story li").count() == len(story["steps"]), pg.locator("#m-story li").count(), len(story["steps"]))
     # 3D, then back
     pg.click("#tool-mesh .m-view[data-view='3d']"); pg.wait_for_timeout(800)
     check("use", "3D view draws the field", pg.evaluate("document.querySelectorAll('#m-map *').length") > 20, pg.evaluate("document.querySelectorAll('#m-map *').length"), "> 20 elements")

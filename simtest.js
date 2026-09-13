@@ -233,6 +233,15 @@ near("a 91 dB path at 21 dBm over a -92 floor is SNR 22 plus the antenna", MLm.s
 eq("and runs at the rate its SNR earns, MCS 7 not 4", MLm.mcs, 7);
 var MLw = NFN.mesh.link({ x: 0, y: 0, h: 3, tx: 21, ant: "omni", bw: 80, std: "ax" }, { x: 30, y: 0, h: 3, tx: 21, ant: "omni", bw: 80, std: "ax" }, { tworay: false, nf: 3, margin: 6 }, [], [], { pl: 114 });
 eq("while a link under the lowest rate plus the margin is refused", MLw.ok, false);
+/* the story of the tree is read from the tree */
+var NS = { aps: [{ x: 20, y: 60, h: 4, gw: true, ant: "omni" }, { x: 200, y: 60, h: 4, ant: "omni" }, { x: 380, y: 60, h: 4, ant: "omni" }, { x: 2600, y: 2600, h: 4, ant: "omni" }], w: 3000, d: 3000, uplink: 100, clients: 30, tworay: false },
+    NP = NFN.mesh.plan(NS), NN = NFN.mesh.narrate(NS, NP, [null, "Barn", null, null]);
+eq("the story opens with the rule and closes with the ceiling", NN.steps[0].kind + ">" + NN.steps[NN.steps.length - 1].kind, "rule>ceiling");
+eq("one step per point that attached, plus the orphan", NN.steps.filter(function (q) { return /^hop/.test(q.kind); }).length + NN.steps.filter(function (q) { return q.kind === "orphan"; }).length, NP.aps.filter(function (r) { return !r.gw; }).length);
+var hop2 = NN.steps.filter(function (q) { return q.title.indexOf("AP 3") === 0; })[0];
+eq("a point's step names the parent the tree gave it", !!hop2 && hop2.title.indexOf("parent " + (NP.tree.parent[2] === 1 ? "Barn" : "AP " + (NP.tree.parent[2] + 1))) > 0, true);
+eq("and the far AP is told why it never attached", NN.steps.filter(function (q) { return q.kind === "orphan" && /short of|different|ceiling|No other/.test(q.text); }).length, 1);
+eq("no programmer text leaks into the story", /NaN|undefined|\[object|Infinity/.test(NN.steps.map(function (q) { return q.text; }).join(" ")), false);
 near("two ray with no bounce is 0 dB", NFN.mesh.twoRay(100, 3, 3, 5.2, 0), 0, 0.001);
 var tr = NFN.mesh.twoRay(150, 3, 3, 5.2, 0.5);
 if (!(tr >= -6.03 && tr <= 3.53)) { fails++; console.log("  FAIL two ray at rho 0.5 is bounded by -6 and +3.5 dB: " + tr); }
