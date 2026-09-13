@@ -497,7 +497,7 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
     <header class="post-head g-hero cat-Wireless" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Sep 13, 2026 &#183; 5 min</span></div>
+      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Sep 13, 2026 &#183; 7 min</span></div>
       <h1 class="h-hero">Converting a Mesh Over the Air Strands Every Point</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -570,6 +570,9 @@ html.qam-fs .rig{display:none}
 <h2>And the wire is not optional</h2>
 <p>The obvious next thought is fine, Central will push the mesh config down to it. Central will, once it can talk to the AP. It cannot talk to the AP, because the AP's only path to Central was the mesh link that no longer forms.</p>
 <p>That is not a Central limitation you can argue your way around. The doc is direct: the first provisioning happens over the wire. After that the mesh behaves like any other deployment. But the first time is the wire, and a conversion makes every AP a first time again.</p>
+<h2>The objection, which is a good one</h2>
+<p>AOS 10 has a mesh recovery mechanism. It is PSK based, the key is generated from the customer ID, and the doc describes it as how a mesh node gets a link back to the managed device when the mesh link is broken and no other cluster is available. Read that quickly and it sounds like the answer to everything above.</p>
+<p>I would not build a migration on it. Recovery is described as a repair path for a deployment that already exists, not as a provisioning path for an AP that just had its config cleaned and was handed to a different manager, and nothing in the mesh or migration pages says a freshly converted point can use it to receive its first configuration. I have not tested it either, so treat that as unproven in both directions. The wire is the documented path, and until somebody proves otherwise the wire is what belongs in the plan.</p>
 <figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-label="Two orders of work: converting the mesh in place strands every point, while wiring each access point first, converting it, letting Central provision it and then placing it works">
   <defs><style>
     .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
@@ -655,12 +658,14 @@ html.qam-fs .rig{display:none}
   <text x="15" y="238" class="t note" fill="#B0C4CF" font-size="12">a portal for five minutes reboots it too.</text>
 </svg><figcaption>Role detection at boot, plus the bit that catches people: a live Ethernet link on a point is a reboot into a portal, not a convenience.</figcaption></figure>
 <p>The running-time version is the one that bites. A point that later sees Ethernet 0 come up runs loop detection, and if the link is real it reboots as a portal. So plugging into a mesh point to have a look at something is not a passive act. Neither is unplugging a portal, which reboots five minutes after it loses its wired uplink.</p>
+<p>Fair warning that the page argues with itself on this one. The Automatic Mesh Role Assignment section says a point that finds Ethernet 0 available reboots as a portal. The running time section, a few paragraphs later, says the AP checks for a loop and, if it does not find one, does not reboot and carries on as a point. Same page, two answers. Plan for the reboot, because that is the assumption that costs you nothing if you are wrong, and put it on the lab list if you need to know for certain.</p>
 <h2>Everything else on that page worth taking with you</h2>
 <p>A short list of things that are all documented and all cost somebody a day at some point.</p>
-<p>Reverse conversion is not symmetrical. Forward, you convert a whole AP group in one command. Backward, from AOS 10 to AOS 8, it is one AP at a time from that AP's console, and the doc says so plainly. Plan the rollback as a per-device job, not a group job.</p>
+<p>Reverse conversion is not symmetrical. Forward, you add an AP group to the conversion list and convert the lot at once. Backward, from AOS 10 to AOS 8, it is one AP at a time from that AP's console, and the doc says so plainly. Plan the rollback as a per-device job, not a group job.</p>
 <p>ADP discovery is off in AOS 10, so a converted AP ignores the DHCP and DNS options you have been using to point APs at things. If that was part of your bring-up, it is not part of it any more.</p>
 <p>A mesh point cannot be converted to a Remote AP at all, because mesh does not do VPN. If your plan had a RAP in it somewhere, that is the sentence to find first.</p>
-<p>Eight mesh points per portal is the ceiling. And if you were planning 6 GHz backhaul, that band is WPA3-SAE only for mesh, so a cluster still configured for WPA2 PSK either gets converted to SAE automatically on 6 GHz or does not run there at all.</p>
+<p>Eight mesh points per portal is the documented ceiling.</p>
+<p>And if 6 GHz backhaul is in the plan, check the opmode before you commit to the band. The mesh notes say 6 GHz supports only wpa3-sae-aes, and that a cluster configured for wpa2-psk-aes gets switched to SAE on that band. Worth knowing that this text sits inside the AP-615 section rather than the general mesh guidance, so treat it as model specific until you have confirmed it for the hardware in your hand.</p>
 <h2>Checklist before you convert anything with no cable in it</h2>
 <table>
 <thead>
@@ -699,8 +704,8 @@ html.qam-fs .rig{display:none}
 <td>Documented ceiling</td>
 </tr>
 <tr>
-<td>6 GHz backhaul means WPA3-SAE</td>
-<td>WPA2 PSK does not run mesh on 6 GHz</td>
+<td>6 GHz backhaul, confirm the opmode for your model</td>
+<td>The 6 GHz WPA3-SAE requirement is written in the AP-615 section, not the general guidance</td>
 </tr>
 </tbody>
 </table>
