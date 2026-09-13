@@ -954,6 +954,105 @@
     return { link: L, why: why };
   };
 
+  /* ── how the mesh formed, in words ────────────────────────────────────
+     The tree is a picture; this is the story of it, in the order a mesh forms:
+     the rule the profile plays by, the portals, then each point by the hop it
+     sits at, with the candidates it heard, the one the metric took and why the
+     runner-up lost, its fallback, and what the hop costs the ones behind it.
+     Every number is read from the tree, none is worked out a second time, so
+     the story cannot drift from the map. `names` is optional (AP names from a
+     controller); "AP 3" otherwise. Steps carry a `kind` the page can style by. */
+  M.narrate = function (st, plan, names) {
+    var T = plan.tree, C = plan.cfg || cfg(st), P = T.profile, n = T.aps.length, i, j, steps = [];
+    var nm = function (k) { return (names && names[k]) || "AP " + (k + 1); };
+    var f0 = function (x) { return isFinite(x) ? x.toFixed(0) : "?"; };
+    var mbs = function (x) { return !isFinite(x) ? "?" : x >= 100 ? x.toFixed(0) + " Mb/s" : x.toFixed(1) + " Mb/s"; };
+    var rate = function (L) { return L.mcs >= 0 ? "MCS " + L.mcs + ", " + mbs(L.goodput) : "no rate"; };
+    var row = function (k) { return plan.aps[k]; };
+    var isPortal = function (k) { return T.depth[k] === 0; };
+    if (!n) return { steps: [{ kind: "rule", title: "Nothing to form", text: "Put an AP on the field and mark one a portal." }] };
+
+    /* 1. the rule */
+    var how = {
+      "rssi-tree": "a point adds up the cost of every link between it and a portal, a cost that doubles for every 4 dB a link weakens plus a charge for each child its parent already carries, and takes the cheapest total. One marginal link costs more than two good hops; two near-equal hops never beat one good direct link.",
+      "rssi": "a point takes the strongest link to any node that already has a path, full stop. Hop count does not enter into it.",
+      "ease": "a point rates each path by its weakest link's ease, 2 to the power of SNR over 3, divided by the number of hops, and takes the best.",
+      "airtime": "a point sums the airtime a gigabit would take across every link on the path and takes the least. A row of APs tends to chain straight back to the portal.",
+      "single": "a relay attaches to a base, one hop only. Anything that cannot hear a base is out."
+    };
+    steps.push({ kind: "rule", title: "The rule in force: " + P.label,
+      text: (how[P.metric] || P.note) + " Links under " + (P.thr ? P.thr + " dB SNR" : "the gate") + " are taken last, a link counts only once its SNR clears the lowest rate by " + C.margin + " dB, and the tree is rebuilt each round until nobody would change parent" + (T.maxHops ? ", within " + T.maxHops + " hop" + (T.maxHops === 1 ? "" : "s") + " of a portal" : "") + "." });
+
+    /* 2. the portals */
+    var portals = [], chans = {};
+    for (i = 0; i < n; i++) if (isPortal(i)) { portals.push(i); chans[row(i).channel] = 1; }
+    if (!portals.length) {
+      steps.push({ kind: "portal", title: "No portal", text: "Nobody is on the wire, so nothing forms. Mark the AP with the uplink as a portal." });
+      return { steps: steps };
+    }
+    var distinct = Object.keys(chans).length;
+    steps.push({ kind: "portal", title: portals.length === 1 ? nm(portals[0]) + " is the portal" : portals.map(nm).join(" and ") + " are the portals",
+      text: (portals.length === 1 ? "It sits" : "They sit") + " on the wire at path cost zero, so every path ends here. " +
+            portals.map(function (k) { return nm(k) + " beacons on channel " + (row(k).channel || "?") + " and carries " + (T.subtree[k] - 1) + " point" + (T.subtree[k] - 1 === 1 ? "" : "s") + " behind it"; }).join("; ") + ". " +
+            (portals.length === 1 ? "" : distinct > 1 ? "The portals are on different channels. On real hardware a point scans once at boot, then parks its backhaul radio on its parent's channel and stops scanning, so a portal on another channel is invisible to it until its link drops; put portals on one channel if they are to be each other's fallback (measured on an AOS 10 point, 2026-09-13)." : "The portals share a channel, so a point can hear both and fall from one to the other.") });
+
+    /* 3. each point, by the hop it sits at */
+    var order = [];
+    for (i = 0; i < n; i++) if (T.depth[i] > 0) order.push(i);
+    order.sort(function (a, b) { return T.depth[a] - T.depth[b] || a - b; });
+    order.forEach(function (i) {
+      var p = T.parent[i], L = T.links[i][p], r = row(i), cands = [];
+      for (j = 0; j < n; j++) {
+        if (j === i || T.depth[j] < 0) continue;
+        var Lj = T.links[i][j]; if (!Lj || !Lj.ok) continue;
+        var k = j, loop = false; while (k >= 0) { if (k === i) { loop = true; break; } k = T.parent[k]; }
+        if (loop) continue;
+        cands.push({ j: j, L: Lj, m: T.metricFor(i, j), depth: T.depth[j] });
+      }
+      cands.sort(function (a, b) { return a.j === p ? -1 : b.j === p ? 1 : b.L.snr - a.L.snr; });
+      var heard = cands.map(function (c) { return nm(c.j) + (isPortal(c.j) ? " (portal)" : " (" + c.depth + " hop" + (c.depth === 1 ? "" : "s") + " out)") + " at SNR " + f0(c.L.snr) + ", " + rate(c.L) + ", " + c.m; }).join("; ");
+      var runner = cands.filter(function (c) { return c.j !== p; })[0], why = "";
+      if (runner) {
+        var dSnr = runner.L.snr - L.snr;
+        if (P.metric === "rssi") why = dSnr > 0 ? " That looks wrong until you notice " + nm(runner.j) + " has no path of its own yet in the round this settled; the metric only takes links to nodes already attached." : " Strongest link wins under this rule, and " + nm(p) + " is " + f0(-dSnr) + " dB louder.";
+        else if (P.metric === "single") why = " Under this rule only a base counts, and " + nm(p) + " is the loudest one.";
+        else if (dSnr > 0 && runner.depth > T.depth[p]) why = " " + nm(runner.j) + " is louder by " + f0(dSnr) + " dB, but it sits " + runner.depth + " hop" + (runner.depth === 1 ? "" : "s") + " out, and its own path back costs more than the " + f0(dSnr) + " dB buys: the metric takes the cheaper total, not the louder link.";
+        else if (dSnr > 0) why = " " + nm(runner.j) + " is louder by " + f0(dSnr) + " dB and no deeper, and still lost: it already carries " + T.children[runner.j].length + " child" + (T.children[runner.j].length === 1 ? "" : "ren") + " and the metric charges for each, so the load spread instead.";
+        else if (runner.depth < T.depth[p]) why = " " + nm(runner.j) + " is closer to the wire but " + f0(-dSnr) + " dB quieter, and under this rule " + f0(-dSnr) + " dB of link costs more than the hop it would save.";
+        else why = " " + nm(p) + " is louder by " + f0(-dSnr) + " dB and " + (T.depth[p] < runner.depth ? "closer to the wire" : "no deeper") + ", so the choice was not close.";
+      }
+      var text = nm(i) + " hears " + (cands.length ? cands.length + " candidate" + (cands.length === 1 ? "" : "s") + ": " + heard + "." : "nobody it could use.") +
+                 " It attaches to " + nm(p) + " at SNR " + f0(L.snr) + " (" + rate(L) + ", " + T.depth[i] + " hop" + (T.depth[i] === 1 ? "" : "s") + " to the wire)." + why;
+      if (r.backup >= 0) text += " If " + nm(p) + " fails it falls back to " + nm(r.backup) + " (" + T.metricFor(i, r.backup) + ").";
+      else text += " There is no second parent: lose " + nm(p) + " and " + nm(i) + " goes dark.";
+      if (r.relays > 0) text += " Everything behind it crosses " + r.relays + " relay" + (r.relays === 1 ? "" : "s") + " whose one radio does both jobs, in on one side and out the other, and each such relay halves what passes.";
+      if (T.subtree[i] > 1) text += " It relays for " + (T.subtree[i] - 1) + " point" + (T.subtree[i] - 1 === 1 ? "" : "s") + " of its own.";
+      text += " Its share of the path back is " + mbs(r.backhaul) + (r.demand > 0 ? " against " + mbs(r.demand) + " its clients ask for" : "") + ".";
+      steps.push({ kind: T.depth[i] === 1 ? "hop1" : "hop", title: nm(i) + ", hop " + T.depth[i] + ": parent " + nm(p), text: text });
+    });
+
+    /* 4. the ones that never attached */
+    for (i = 0; i < n; i++) {
+      if (T.depth[i] >= 0) continue;
+      var r2 = row(i);
+      if (r2.status === "down") { steps.push({ kind: "down", title: nm(i) + " is down", text: "Switched off or failed; the tree above is the one the mesh falls back to without it." }); continue; }
+      var best = null;
+      for (j = 0; j < n; j++) { if (j === i) continue; var Lb = T.links[i][j]; if (Lb && T.depth[j] >= 0 && (!best || Lb.snr > best.L.snr)) best = { j: j, L: Lb }; }
+      var reason = !best ? "No other AP is up." :
+        best.L.blockedBy === "band" ? "The nearest, " + nm(best.j) + ", is on a different backhaul band." :
+        !best.L.ok ? "The loudest thing it hears is " + nm(best.j) + " at SNR " + f0(best.L.snr) + ", " + f0(NFN.phy.SNRMIN[0] + C.margin - best.L.snr) + " dB short of the " + (NFN.phy.SNRMIN[0] + C.margin) + " the lowest rate needs with the gate." + (best.L.blockedBy ? " The path is blocked by " + best.L.blockedBy + "." : "") :
+        "It hears " + nm(best.j) + " at SNR " + f0(best.L.snr) + " but every path is past the " + T.maxHops + " hop ceiling.";
+      steps.push({ kind: "orphan", title: nm(i) + " never attaches", text: reason });
+    }
+
+    /* 5. the ceiling */
+    var bindsText = plan.binds === "uplink" ? "The uplink binds: the mesh could carry " + mbs(plan.meshMbps) + " but only " + mbs(plan.uplink) + " leaves the site."
+      : plan.binds === "mesh" ? "The mesh binds: the clients ask for " + mbs(plan.demand) + ", the uplink would take " + mbs(plan.uplink) + ", and the weakest shared hop lets " + mbs(plan.meshMbps) + " through."
+      : "Demand binds: the clients ask for " + mbs(plan.demand) + " and both the mesh (" + mbs(plan.meshMbps) + ") and the uplink (" + mbs(plan.uplink) + ") have room.";
+    steps.push({ kind: "ceiling", title: "What the tree delivers", text: bindsText + (plan.spof ? " " + plan.spof + " point" + (plan.spof === 1 ? " has" : "s have") + " no fallback." : "") + (plan.unreachable ? " " + plan.unreachable + " never attached." : "") });
+    return { steps: steps, hops: T.maxDepth, portals: portals.length, orphans: plan.unreachable };
+  };
+
   /* ── picking the antennas ──────────────────────────────────────────────
      The customer knows where a mast can go and how tall it is. What goes on top
      is the question, and it has a search-shaped answer: start everyone on an

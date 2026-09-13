@@ -201,6 +201,13 @@
 .m-on{color:#06202A!important;background:var(--teal)!important;border-color:var(--teal)!important}
 #m-fail.m-on{background:var(--orange)!important;border-color:var(--orange)!important}
 .m-more{margin-top:12px;border:1px solid var(--t-line);border-radius:11px;padding:0 12px}
+.m-story{margin:6px 0 4px;padding:0 0 0 18px;color:var(--text-dim);font-size:13px;line-height:1.55}
+.m-story li{margin:0 0 10px;padding-left:4px}
+.m-story li::marker{color:var(--text-muted);font:600 11px var(--mono)}
+.m-story b{display:block;color:var(--text);font:600 12px var(--mono);letter-spacing:0.04em;margin-bottom:2px}
+.m-story .m-st-rule b,.m-story .m-st-ceiling b{color:var(--teal)}
+.m-story .m-st-portal b{color:var(--green)}
+.m-story .m-st-orphan b,.m-story .m-st-down b{color:#ffd28a}
 .m-more>summary{cursor:pointer;list-style:none;font:600 11px var(--mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--text-muted);padding:11px 0;min-height:38px;box-sizing:border-box;display:flex;align-items:center;gap:8px}
 .m-more>summary::-webkit-details-marker{display:none}
 .m-more>summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--text-muted);border-bottom:1.5px solid var(--text-muted);transform:rotate(-45deg);transition:transform .2s cubic-bezier(0.32,0.72,0,1)}
@@ -1029,6 +1036,10 @@ Tap anything to change it. The big number is what gets off the site, and the not
       <div class="m-ceiling" id="m-ceiling"></div>
       <div id="m-flags"></div>
       <div id="m-advice"></div>
+      <details class="m-more" id="m-storybox"><summary>How this mesh formed</summary>
+        <p class="t-hint">The tree above, told in the order a mesh forms: the rule, the portals, then each point by the hop it sits at, with everything it could hear, the one it took and why the runner-up lost. Change anything on the map and the story is retold.</p>
+        <ol class="m-story" id="m-story"></ol>
+      </details>
       <details class="m-more" id="m-reasonsbox"><summary>What to put on the masts</summary><div id="m-reasons"></div></details>
       <details class="m-more" open><summary>Every access point</summary>
         <div class="t-scroll"><table class="t-table m-table"><thead><tr>
@@ -2106,6 +2117,9 @@ Tap anything to change it. The big number is what gets off the site, and the not
       return '<div class="m-cb"><span>' + b[0] + '</span><div class="m-cbar"><i style="width:' + (b[1] / top * 100) + '%;background:' + colr + ';color:' + colr + '"><b></b><b></b><b></b><b></b><b></b><b></b></i></div><b style="color:' + (bind ? "#ffd28a" : b[2]) + '">' + mbs(b[1]) + (bind ? " · the ceiling" : "") + "</b></div>";
     }).join("");
 
+    $("m-story").innerHTML = M.narrate(model(), p, st.get("ap").map(function (a, k) { return apName(k); })).steps.map(function (q) {
+      return '<li class="m-st-' + q.kind + '"><b>' + esc(q.title) + "</b>" + esc(q.text) + "</li>";
+    }).join("");
     $("m-flags").innerHTML = p.flags.map(function (f) { return '<div class="t-note' + (/ceiling|no second|down|orphan|Fresnel|no usable|No portal|unserved|no AP|co-channel|caps/i.test(f) ? " t-bad" : "") + '">' + esc(f) + "</div>"; }).join("");
     $("m-reasonsbox").hidden = !(lastSug && lastSug.reasons.length);
     $("m-reasons").innerHTML = lastSug && lastSug.reasons.length
@@ -2717,6 +2731,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
 
   writeUi(); run(); booted = true;
   root._mesh = function () { return M.plan(model()); };
+  root._narrate = function () { return M.narrate(model(), lastP || M.plan(model()), st.get("ap").map(function (a, k) { return apName(k); })); };
   root._meshState = st;
   root._redraw = function () { if (lastP) { if (st.get("view") === "3d") draw3d(lastP, lastCl, lastWalk); else drawMap(lastP, lastCl, lastWalk); } };
 })();
