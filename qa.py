@@ -45,9 +45,12 @@ def mos_g107(loss_frac, delay_ms=0):
     idd = 0 if delay_ms < 177.3 else 0.024 * delay_ms + 0.11 * (delay_ms - 177.3)
     R = 93.2 - ie - idd
     return 1 if R < 0 else 4.5 if R > 100 else 1 + 0.035 * R + R * (R - 60) * (100 - R) * 7e-6
-US_5 = {20: [36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 149, 153, 157, 161, 165],
-        40: [38, 46, 54, 62, 102, 110, 118, 126, 134, 142, 151, 159], 80: [42, 58, 106, 122, 138, 155], 160: [50, 114]}
-US_5_NODFS = {20: [36, 40, 44, 48, 149, 153, 157, 161, 165], 40: [38, 46, 151, 159], 80: [42, 155], 160: []}
+# U-NII-1 through U-NII-3 plus U-NII-4, which the FCC opened in 2020 (169, 173 and 177 at
+# 20 MHz, so 167 and 175 at 40 and 171 at 80); the channel 173 post is the site's own
+# statement of that, and the tool's list has to agree with it
+US_5 = {20: [36, 40, 44, 48, 52, 56, 60, 64, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 149, 153, 157, 161, 165, 169, 173, 177],
+        40: [38, 46, 54, 62, 102, 110, 118, 126, 134, 142, 151, 159, 167, 175], 80: [42, 58, 106, 122, 138, 155, 171], 160: [50, 114]}
+US_5_NODFS = {20: [36, 40, 44, 48, 149, 153, 157, 161, 165, 169, 173, 177], 40: [38, 46, 151, 159, 167, 175], 80: [42, 155, 171], 160: []}
 def us_channels_5(bw, dfs): return (US_5 if dfs else US_5_NODFS)[bw]
 
 # ── the report ───────────────────────────────────────────────────────────────
@@ -72,18 +75,24 @@ def build_pages():
         shutil.copyfile(os.path.join(ROOT, "lab.html"), dst); out[w] = "/lab-qa-" + w + ".html"
     return out
 
-class Quiet(http.server.SimpleHTTPRequestHandler):
-    def log_message(self, *a): pass
-
 def serve():
+    # lab's own handler, because the lab page polls /__lab_mtime for its reload and a
+    # plain file server answers that with a 404 every 700 ms, which the bot then reads
+    # as a page error
+    import lab
     s = socket.socket(); s.bind(("127.0.0.1", 0)); port = s.getsockname()[1]; s.close()
-    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", port), lambda *a, **k: Quiet(*a, directory=ROOT, **k))
+    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", port), lab.H)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd, f"http://127.0.0.1:{port}"
 
 def page_errors(pg):
     errs = []
-    pg.on("console", lambda m: errs.append(m.text) if m.type == "error" and "fonts.g" not in m.text and "ERR_FAILED" not in m.text and "favicon" not in m.text else None)
+    def on_console(m):
+        # a 404's console text never names the resource; the location does
+        where = (m.location or {}).get("url", "") if hasattr(m, "location") else ""
+        if m.type == "error" and "fonts.g" not in m.text and "ERR_FAILED" not in m.text and "favicon" not in m.text + where:
+            errs.append(m.text + (" (" + where.rsplit("/", 1)[-1] + ")" if where else ""))
+    pg.on("console", on_console)
     pg.on("pageerror", lambda e: errs.append(str(e)))
     return errs
 
@@ -172,6 +181,9 @@ def qa_mesh(b, base, page_url):
     pg.select_option("#m-add", "move")
     a0 = pg.evaluate("document.getElementById('tools')._meshState.get('ap')[0]")
     node = pg.locator("#m-map g[data-kind='ap'][data-i='0']")
+    # raw mouse events do not scroll, and bounding_box is viewport relative, so a node
+    # below the fold gets a drag that lands on nothing
+    if node.count(): node.scroll_into_view_if_needed(); pg.wait_for_timeout(200)
     nb = node.bounding_box() if node.count() else None
     if nb:
         cx, cy = nb["x"] + nb["width"] / 2, nb["y"] + nb["height"] / 2
@@ -273,7 +285,8 @@ def qa_venue(b, base, page_url):
     check("math", "the antenna covers a contiguous run of rows", 0 <= fp["firstRow"] <= fp["lastRow"] < len(rows), (fp["firstRow"], fp["lastRow"]), f"within 0..{len(rows)-1}")
     check("math", "front signal is stronger than back", v["near"]["rssi"] > v["far"]["rssi"], (v["near"]["rssi"], v["far"]["rssi"]), "near > far")
     near("math", "SNR = RSSI - noise at the back", v["far"]["snr"], v["far"]["rssi"] - v["far"]["noise"], 0.01)
-    check("use", "the verdict is a sentence", isinstance(v["verdict"], str) and len(v["verdict"]) > 10, v["verdict"][:60], "text")
+    check("use", "the verdict is a word the page styles by", v["verdict"] in ("good", "wide", "narrow", "tight", "misses"), v["verdict"], "one of the verdict keys")
+    check("use", "and the reason is a sentence", isinstance(v.get("why"), str) and len(v["why"]) > 10, str(v.get("why"))[:60], "text")
     open_all_details(pg, "#tool-venue"); text_hygiene(pg, "#tool-venue", "venue"); tap_targets(pg, "#tool-venue", "venue")
     check("use", "no page errors", not errs, errs[:3], [])
     pg.close()
