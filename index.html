@@ -261,9 +261,13 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
 /* narrow screens */
 @media (max-width:700px){
   .nav .cat{display:none}
-  .nav{flex:1 0 100%;margin-left:0;flex-wrap:nowrap;justify-content:space-between;gap:0}
-  .pill{padding:0 9px;font-size:14px;letter-spacing:-0.01em;white-space:nowrap}
-  .pill.outline{padding:0 11px;gap:0}.pill.outline span{display:none}
+  /* six pills at 360 px: tighter, and a nav that would not fit scrolls sideways instead of clipping the last one */
+  .nav{flex:1 0 100%;margin-left:0;flex-wrap:nowrap;justify-content:space-between;gap:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{display:none}
+  .hdr .wrap{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+  .hdr-in{padding-left:8px;padding-right:8px}
+  .pill{padding:0 6px;font-size:13px;letter-spacing:-0.01em;white-space:nowrap;flex:0 0 auto}
+  .pill.outline{padding:0 8px;gap:0}.pill.outline span{display:none}
   .hero{padding:var(--s6) var(--s4)}
   .post-head,.post-body,.about,.end{padding:var(--s6) var(--s4)}
   .band{padding:var(--s5) var(--s4)}
@@ -489,7 +493,7 @@ html.qam-fs .rig{display:none}
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
   <a class="brand" href="/"><span class="mk"><img src="logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
-  <nav class="nav"><a class="pill on" href="/">Posts</a><a class="pill" href="academy.html">Academy</a><a class="pill" href="simulator.html">Simulator</a><a class="pill" href="about.html">About</a><a class="pill outline" id="search-toggle" href="#search" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  <nav class="nav"><a class="pill on" href="/">Posts</a><a class="pill" href="academy.html">Academy</a><a class="pill" href="simulator.html">Simulator</a><a class="pill" href="tools.html">Tools</a><a class="pill" href="about.html">About</a><a class="pill outline" id="search-toggle" href="#search" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
   <div class="search" id="search"><input id="q" type="search" placeholder="Search field notes" autocomplete="off"></div>
 </div></div></header>
 <main class="wrap">

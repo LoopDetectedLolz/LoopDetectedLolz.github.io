@@ -1,0 +1,16 @@
+name = "nfn-comments"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://networkfieldnotes.com"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "nfn-comments"
+database_id = "PUT-THE-ID-WRANGLER-PRINTS-HERE"
+
+# Secrets, set with `wrangler secret put <NAME>`, never written in this file:
+#   TURNSTILE_SECRET   the secret half of the Turnstile widget
+#   ADMIN_TOKEN        a long random string; comments.py reads it from NFN_ADMIN_TOKEN
+#   IP_SALT            any long random string; makes the stored IP hashes unguessable
