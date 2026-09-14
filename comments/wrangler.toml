@@ -8,7 +8,7 @@ ALLOWED_ORIGIN = "https://networkfieldnotes.com"
 [[d1_databases]]
 binding = "DB"
 database_name = "nfn-comments"
-database_id = "PUT-THE-ID-WRANGLER-PRINTS-HERE"
+database_id = "ff650a8a-c9b7-4201-8a3b-fd2d6c1fbbf9"
 
 # Secrets, set with `wrangler secret put <NAME>`, never written in this file:
 #   TURNSTILE_SECRET   the secret half of the Turnstile widget
