@@ -21,6 +21,8 @@ SITE = {
     "linkedin": "https://www.linkedin.com/in/dustinburns3020/",
     "email": "dustin.burns@networkfieldnotes.com",   # socials page only; keep out of feeds and metadata
 }
+COMMENTS_API = ""            # e.g. "https://api.networkfieldnotes.com"; empty turns comments off everywhere
+TURNSTILE_SITEKEY = ""       # the public half of the Turnstile widget
 BASE_URL = "https://networkfieldnotes.com"
 CUSTOM_DOMAIN = "networkfieldnotes.com"
 
@@ -75,6 +77,15 @@ def terminalize(h):
 def widget(name, up="../"):
     path = os.path.join(ROOT, "theme", "widgets", name + ".html")
     return open(path, encoding="utf-8").read() if os.path.exists(path) else ""
+
+def comments_block(p):
+    """Comment section for a post. Off when COMMENTS_API is empty or the post says comments: off."""
+    if not COMMENTS_API or str(p.get("comments", "")).strip().lower() in ("off", "no", "false"):
+        return ""
+    return (widget("comments")
+            .replace("__SLUG__", E(p["slug"]))
+            .replace("__API__", E(COMMENTS_API.rstrip("/")))
+            .replace("__SITEKEY__", E(TURNSTILE_SITEKEY)))
 
 def series_nav(p):
     if not p["series"]: return ""
@@ -173,6 +184,7 @@ def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False,
     nav = ('<a class="pill%s" href="%s">Posts</a>' % (" on" if active == "posts" else "", root))
     nav += '<a class="pill%s" href="%sacademy.html">Academy</a>' % (" on" if active == "academy" else "", up)
     nav += '<a class="pill%s" href="%ssimulator.html">Simulator</a>' % (" on" if active == "simulator" else "", up)
+    nav += '<a class="pill%s" href="%stools.html">Tools</a>' % (" on" if active == "tools" else "", up)
     nav += '<a class="pill%s" href="%sabout.html">About</a>' % (" on" if active == "about" else "", up)
     if search:
         nav += '<a class="pill outline" id="search-toggle" href="#search" aria-label="Search">%s<span>Search</span></a>' % ICO_SEARCH
@@ -318,6 +330,7 @@ for i, p in enumerate(posts):
       <div class="prose">{p["html"]}</div>
     </div>
     {series_nav(p)}
+    {comments_block(p)}
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
       <div class="postnav">{nav}</div>
@@ -431,6 +444,34 @@ sim += f'''
 </section>
 ''' + foot("nfn-bot-signal.svg")
 open(os.path.join(ROOT, "simulator.html"), "w", encoding="utf-8").write(sim)
+
+# ── tools page: the planners ────────────────────────────────────────────────
+# the lab loads the model files as separate scripts for a fast reload; the site
+# gets them concatenated into the page, in lab.py's order, so the page is one file
+# and works from a saved copy. The widget itself is the promoted tools.html.
+import lab as _lab
+SIM_JS = "\n".join(open(os.path.join(ROOT, "theme", "sim", f + ".js"), encoding="utf-8").read()
+                   for f in _lab.SIM if os.path.exists(os.path.join(ROOT, "theme", "sim", f + ".js")))
+TOOLS_DESC = "Four planning tools that show their working: how many access points a crowd needs, where to aim an antenna at a block of seats, how a mesh forms on a field and what it will carry, and what happened on a site from what the controller recorded."
+tools = head("Tools · " + SITE["name"], TOOLS_DESC, BASE_URL + "/tools.html", BASE_URL + "/og/tools.png", active="tools")
+tools += f'''
+<section class="sim-intro">
+  <span class="tag green"><span class="dot"></span>Tools</span>
+  <h1 class="h-hero">Planning tools that show their working</h1>
+  <p class="lede">Every number on these pages is computed from the standards and the physics, not looked up, and every control lives in the address bar, so a link is the whole argument. The mesh planner was held against a real point on 2026-09-13: the budgets matched to a couple of dB, and the one thing it got wrong was fixed the same morning. Open a fold to see how a figure was reached; the story fold under the mesh map tells the tree in the order a mesh forms.</p>
+</section>
+<script>{SIM_JS}</script>
+''' + widget("tools") + '''
+<section class="band g-card" data-rise>
+  <div>
+    <h3>Why a mesh has to be provisioned over the wire</h3>
+    <p>The planner tells you where the points will attach. The field note tells you what happens when the roles never reach them.</p>
+  </div>
+  <a class="btn" href="p/mesh-conversion-strands-the-points.html">Read the field note</a>
+</section>
+''' + foot("nfn-bot-think.svg")
+open(os.path.join(ROOT, "tools.html"), "w", encoding="utf-8").write(tools)
+print("  + tools.html (%d KB of model in the page)" % (len(SIM_JS) // 1024))
 
 # ── socials (genie target) ──────────────────────────────────────────────────
 SOCIALS = [("LinkedIn", "Where I post when something is worth a wider audience.", SITE["linkedin"], "in"),
@@ -581,6 +622,7 @@ for p in posts:
 og_card(SITE["tagline"][:110], "Field notes", os.path.join(ROOT, "og", "home.png"))
 og_card("Wireless Academy: the theory, and the lab that proves it", "Wireless Academy", os.path.join(ROOT, "og", "academy.png"))
 og_card("The simulator: a Wi-Fi link you can break, one symbol at a time", "Simulator", os.path.join(ROOT, "og", "simulator.png"))
+og_card("Planning tools that show their working: capacity, aiming, mesh, and what happened", "Tools", os.path.join(ROOT, "og", "tools.png"))
 rasterize(os.path.join(ROOT, "logo", "nfn-favicon.svg"), os.path.join(ROOT, "apple-touch-icon.png"), 180, 180)
 
 # ── sitemap, feed, housekeeping ─────────────────────────────────────────────
@@ -588,6 +630,7 @@ urls = ['<url><loc>%s/</loc><changefreq>weekly</changefreq><priority>1.0</priori
         '<url><loc>%s/about.html</loc><priority>0.5</priority></url>' % BASE_URL,
         '<url><loc>%s/academy.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/simulator.html</loc><priority>0.8</priority></url>' % BASE_URL,
+        '<url><loc>%s/tools.html</loc><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/socials.html</loc><priority>0.3</priority></url>' % BASE_URL]
 urls += ['<url><loc>%s/p/%s.html</loc><lastmod>%s</lastmod><priority>0.8</priority></url>'
          % (BASE_URL, p["slug"], p["date"]) for p in posts]

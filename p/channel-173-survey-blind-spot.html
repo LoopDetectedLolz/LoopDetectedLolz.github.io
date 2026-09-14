@@ -261,9 +261,13 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(-
 /* narrow screens */
 @media (max-width:700px){
   .nav .cat{display:none}
-  .nav{flex:1 0 100%;margin-left:0;flex-wrap:nowrap;justify-content:space-between;gap:0}
-  .pill{padding:0 9px;font-size:14px;letter-spacing:-0.01em;white-space:nowrap}
-  .pill.outline{padding:0 11px;gap:0}.pill.outline span{display:none}
+  /* six pills at 360 px: tighter, and a nav that would not fit scrolls sideways instead of clipping the last one */
+  .nav{flex:1 0 100%;margin-left:0;flex-wrap:nowrap;justify-content:space-between;gap:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{display:none}
+  .hdr .wrap{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+  .hdr-in{padding-left:8px;padding-right:8px}
+  .pill{padding:0 6px;font-size:13px;letter-spacing:-0.01em;white-space:nowrap;flex:0 0 auto}
+  .pill.outline{padding:0 8px;gap:0}.pill.outline span{display:none}
   .hero{padding:var(--s6) var(--s4)}
   .post-head,.post-body,.about,.end{padding:var(--s6) var(--s4)}
   .band{padding:var(--s5) var(--s4)}
@@ -489,7 +493,7 @@ html.qam-fs .rig{display:none}
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
   <a class="brand" href="../"><span class="mk"><img src="../logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
-  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill" href="../academy.html">Academy</a><a class="pill" href="../simulator.html">Simulator</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill" href="../academy.html">Academy</a><a class="pill" href="../simulator.html">Simulator</a><a class="pill" href="../tools.html">Tools</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
   
 </div></div></header>
 <main class="wrap">
@@ -601,6 +605,7 @@ html.qam-fs .rig{display:none}
 <p>When the measurements and the complaints disagree, it's worth one round of asking what the measurement isn't covering before deciding the users are imagining it. On this floor the users were right and my heatmap was wrong, and it took a stuck laptop and a 49-minute association to talk me into checking.</p></div>
     </div>
     <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wi-Fi 7 rollout <span class="meta">part 2 of 2</span></h3><div class="ser-steps"><a class="ser-step" href="poe-budgets-wifi7-aps.html"><span class="ser-n">1</span><span class="ser-t">Your New AP Isn&#x27;t Broken, It&#x27;s Hungry: PoE Budgets in the Wi-Fi 7 Era</span></a><a class="ser-step here" href="channel-173-survey-blind-spot.html"><span class="ser-n">2</span><span class="ser-t">Your Survey Tool Can&#x27;t See Channel 173</span><span class="ser-tag">You are here</span></a></div></section>
+    
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
       <div class="postnav"><a class="pn g-card" href="saml-login-validates-and-still-fails.html"><span class="eyebrow">Older</span>Your ClearPass SAML Login Validates and Still Fails</a><a class="pn g-card" href="clearpass-intune-eap-tls-lab.html"><span class="eyebrow">Newer</span>Your ClearPass Intune Integration Probably Authenticates Nothing</a></div>
