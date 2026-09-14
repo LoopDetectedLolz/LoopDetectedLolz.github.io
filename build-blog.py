@@ -183,7 +183,6 @@ def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False,
     root = up or "/"
     nav = ('<a class="pill%s" href="%s">Posts</a>' % (" on" if active == "posts" else "", root))
     nav += '<a class="pill%s" href="%sacademy.html">Academy</a>' % (" on" if active == "academy" else "", up)
-    nav += '<a class="pill%s" href="%ssimulator.html">Simulator</a>' % (" on" if active == "simulator" else "", up)
     nav += '<a class="pill%s" href="%stools.html">Tools</a>' % (" on" if active == "tools" else "", up)
     nav += '<a class="pill%s" href="%sabout.html">About</a>' % (" on" if active == "about" else "", up)
     if search:
@@ -427,7 +426,7 @@ acad += f'''
 open(os.path.join(ROOT, "academy.html"), "w", encoding="utf-8").write(acad)
 
 # ── simulator page: the banner on its own ───────────────────────────────────
-sim = head("Simulator · " + SITE["name"], "A Wi-Fi link you can break: a real frame sent symbol by symbol through a link budget, a reflection, spatial streams and a Teams call, with interference you add yourself.", BASE_URL + "/simulator.html", BASE_URL + "/og/simulator.png", active="simulator")
+sim = head("Simulator · " + SITE["name"], "A Wi-Fi link you can break: a real frame sent symbol by symbol through a link budget, a reflection, spatial streams and a Teams call, with interference you add yourself.", BASE_URL + "/simulator.html", BASE_URL + "/og/simulator.png", active="tools")
 sim += f'''
 <section class="sim-intro">
   <span class="tag green"><span class="dot"></span>Simulator</span>
