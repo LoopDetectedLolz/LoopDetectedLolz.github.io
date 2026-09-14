@@ -501,7 +501,7 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 14, 2026 &#183; 6 min</span></div>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 14, 2026 &#183; 8 min</span></div>
       <h1 class="h-hero">Bands, Channels and Widths</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -904,7 +904,38 @@ html.qam-fs .rig{display:none}
 <li>Do it again at 80 MHz.</li>
 <li>Now walk to the edge of coverage, where RSSI is around -70 dBm, and repeat at 20 and at 80.</li>
 </ol>
-<p><strong>What you should see.</strong> Close in, the PHY rate roughly doubles with each doubling of width and throughput follows it up, though not by the full factor, because overhead does not shrink. At the edge, the picture inverts: the 80 MHz link holds a lower modulation than the 20 MHz link did, or drops entirely, because you spent 6 dB on width that you did not have to spend.</p>
+<p><strong>What you should see.</strong> Here is what the model behind the simulator on this site says, for a Wi-Fi 6 client with two spatial streams, a 0.8 microsecond guard interval, a 7 dB noise figure, and 1500 byte frames aggregated 64 deep with the medium to itself.</p>
+<table>
+<thead>
+<tr>
+<th>Width</th>
+<th>Close in, RSSI -55 dBm</th>
+<th>At the edge, RSSI -72 dBm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>20 MHz</td>
+<td>MCS 11, 287 Mb/s PHY, about 235 Mb/s of throughput</td>
+<td>MCS 5, 138 Mb/s PHY, about 117 Mb/s</td>
+</tr>
+<tr>
+<td>40 MHz</td>
+<td>MCS 10, 516 Mb/s PHY, about 399 Mb/s</td>
+<td>MCS 4, 206 Mb/s PHY, about 172 Mb/s</td>
+</tr>
+<tr>
+<td>80 MHz</td>
+<td>MCS 9, 961 Mb/s PHY, about 673 Mb/s</td>
+<td>MCS 3, 288 Mb/s PHY, about 236 Mb/s</td>
+</tr>
+</tbody>
+</table>
+<p>Two things in that table are worth more than the numbers themselves.</p>
+<p>The first is that throughput never keeps up with the PHY rate, and the gap widens as the rate climbs: 82 percent of the PHY rate at 20 MHz close in, 70 percent at 80 MHz. Preamble, interframe spaces, backoff and the acknowledgement do not get smaller when the data gets faster, so the faster you go, the larger a share of your airtime is spent not carrying data. That is lesson 5 arriving early.</p>
+<p>The second is the one I had wrong before I ran the numbers. <strong>Wider is still faster at the edge.</strong> At -72 dBm the 80 MHz link sits three MCS steps lower than the 20 MHz link and still moves twice the data, because four times the subcarriers beats a few steps of modulation. The cost of width is not that it is slower out there. The cost is where the link gives up entirely: in this model a 20 MHz link holds on to about -91 dBm and an 80 MHz link quits around -85, six decibels earlier, which by the rule from lesson one is half the distance. Width does not make the far edge slow, it moves the far edge closer.</p>
+<p>And none of that counts the cost the game shows you, which is that you have fewer cells to place. In a real room the noise floor is not thermal either, it is other people, and a wider channel scoops up more of them.</p>
+<p><strong>A word on where these numbers come from.</strong> They are computed, not measured: the same MCS tables, airtime and noise floor model that drives the simulator, run for this lesson. They are here to make the shape of the trade concrete rather than to tell you what your gear will print. When I have run this lab on my own AP I will replace them with measured figures and say where the model was wrong, because it will be wrong somewhere, and the gap between the two is usually the most interesting part of the exercise.</p>
 <p><strong>What means it is broken.</strong> If the PHY rate does not move at all when you change width, the client never reconnected, or it is a 20 MHz only device, and plenty of scanners and handhelds are. If throughput goes up but airtime goes up faster, you are watching retries, not capacity.</p>
 <h2>Three questions</h2>
 <ol>
