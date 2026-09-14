@@ -64,10 +64,13 @@ def build():
     js = open(os.path.join(ROOT, "theme", "app.js"), encoding="utf-8").read()
     w = open(LABW, encoding="utf-8").read()
     E = lambda t: html.escape(str(t), quote=True)
-    if WIDGET == "qam":
+    if WIDGET in ("qam", "tools"):
         tj = open(os.path.join(ROOT, "demo", "traffic.json"), encoding="utf-8").read().strip()
-        w = w.replace('<section class="qam g-card" id="qam"',
-                      '<section class="qam g-card" id="qam" data-title="%s" data-traffic="%s"' % (E("Lab"), E(tj)), 1)
+        qw = w if WIDGET == "qam" else open(os.path.join(ROOT, "theme", "widgets", "qam-lab.html"), encoding="utf-8").read()
+        qw = qw.replace('<section class="qam g-card" id="qam"',
+                        '<section class="qam g-card" id="qam" data-title="%s" data-traffic="%s"' % (E("Lab"), E(tj)), 1)
+        # the tools page carries the simulator as its fifth tab; the lab shows the lab copy of it
+        w = qw if WIDGET == "qam" else w.replace("<!-- qam:here (the build and the lab put the simulator widget here) -->", qw, 1)
     add, rem = drift()
     state = ("not on the site yet" if add < 0 else
              "same as live" if not (add or rem) else "%d lines added, %d removed vs live" % (add, rem))

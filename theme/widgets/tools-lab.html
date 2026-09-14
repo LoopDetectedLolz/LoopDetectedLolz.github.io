@@ -243,6 +243,11 @@
   <button type="button" data-tool="venue">Aiming at a seating block</button>
   <button type="button" data-tool="mesh">Mesh on a field</button>
   <button type="button" data-tool="story">What happened</button>
+  <button type="button" data-tool="air">On the air right now</button>
+</div>
+
+<div class="t-tool" id="tool-air" hidden>
+<!-- qam:here (the build and the lab put the simulator widget here) -->
 </div>
 
 <div class="t-tool" id="tool-capacity">
@@ -2981,7 +2986,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
   var bar = document.querySelector("#tools .t-switch");
   if (!bar) return;
   function show(name) {
-    ["capacity", "venue", "mesh", "story"].forEach(function (t) {
+    ["capacity", "venue", "mesh", "story", "air"].forEach(function (t) {
       var el = document.getElementById("tool-" + t);
       if (el) el.hidden = t !== name;
     });
@@ -2997,7 +3002,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     var b = e.target.closest("button[data-tool]");
     if (b) show(b.getAttribute("data-tool"));
   });
-  var m = /^#(capacity|venue|mesh|story)\//.exec(location.hash || "");
+  var m = /^#(capacity|venue|mesh|story|air)(\/|$)/.exec(location.hash || "");
   show(m ? m[1] : "capacity");
 })();
 </script>
