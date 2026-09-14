@@ -5279,7 +5279,9 @@ Tap anything to change it. The big number is what gets off the site, and the not
               M.isAuto(p) ? "" : p.ant, p.aim === undefined || p.aim === null ? "" : Math.round(p.aim), p.kind || "",
               p.cant || "", p.caim === undefined || p.caim === null ? "" : Math.round(p.caim), p.tilt || "",
               p.band === undefined || p.band === null ? "" : p.band, p.bw === undefined || p.bw === null ? "" : p.bw,
-              p.ch === undefined || p.ch === null ? "" : p.ch, p.model || ""].join(",");
+              p.ch === undefined || p.ch === null ? "" : p.ch, p.model || "",
+              /* a name, from the kit's "where it went" or a controller; commas and semicolons are the separators, so they go */
+              p.name ? String(p.name).replace(/[,;&=#%]/g, " ").replace(/\s+/g, " ").trim().slice(0, 24) : ""].join(",");
     }).join(";");
   }
   function deAps(s) {
@@ -5292,7 +5294,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
                ant: M.ANTENNAS[b[5]] ? b[5] : "auto", aim: aim, kind: M.KINDS[b[7]] ? b[7] : undefined,
                cant: M.ANTENNAS[b[8]] ? b[8] : undefined, caim: caim, tilt: tilt === null ? 0 : NFN.clamp(tilt, -10, 45),
                band: band === null ? null : band, bw: bw === null ? null : bw, ch: ch === null ? null : ch,
-               model: b[14] && NFN.aps && NFN.aps.model(b[14]) ? b[14] : undefined };
+               model: b[14] && NFN.aps && NFN.aps.model(b[14]) ? b[14] : undefined,
+               name: b[15] ? b[15].replace(/[<>]/g, "").trim().slice(0, 24) || undefined : undefined };
     }).filter(Boolean);
     return out.length ? out.slice(0, 24) : undefined;
   }
@@ -6318,7 +6321,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
 
     $("m-rows").innerHTML = p.aps.map(function (r, k) {
       var col = apColor(r), a = st.get("ap")[k];
-      return "<tr" + (sel && sel.kind === "ap" && sel.i === k ? ' style="background:rgba(255,255,255,0.04)"' : "") + "><td><i style='background:" + col + "'></i>AP " + (k + 1) + "</td>" +
+      return "<tr" + (sel && sel.kind === "ap" && sel.i === k ? ' style="background:rgba(255,255,255,0.04)"' : "") + "><td><i style='background:" + col + "'></i>" + esc(apName(k)) + (a.name || (central && central.names && central.names[k]) ? " <small style='color:var(--text-muted)'>" + (k + 1) + "</small>" : "") + "</td>" +
         "<td>" + (r.gw ? "portal" : r.serves ? "point" : "bridge") + (r.kind.dedicated ? "" : ", shared") + (r.status === "down" ? ", down" : "") + "</td>" +
         "<td>" + (a.model ? a.model + (NFN.aps.model(a.model).verified ? "" : " ?") + ": " : "") + r.antenna.label.replace(/^AP-\d+ built in, /, "built in ") + (r.antenna.h < 360 ? " " + compassTxt(p.tree.aps[k].aim) : "") + (M.isAuto(a) ? " ·auto" : "") + (r.kind.dedicated && r.serves ? " + " + r.clientAntenna.label.toLowerCase().replace(/^ap-\d+ built in, /, "built in ") : "") + "</td>" +
         "<td>" + (r.channel !== null && r.depth >= 0 ? r.channel : "") + "</td>" +
@@ -6616,8 +6619,10 @@ Tap anything to change it. The big number is what gets off the site, and the not
         var pos;
         if (placed && n) {
           var lat0 = src.reduce(function (t, a) { return t + a.lat; }, 0) / n, lon0 = src.reduce(function (t, a) { return t + a.lon; }, 0) / n, kx = Math.cos(lat0 * Math.PI / 180) * 111320;
-          var pts = src.map(function (a) { return { x: (a.lon - lon0) * kx, y: -(a.lat - lat0) * 110574 }; }), span = pts.reduce(function (m2, q) { return Math.max(m2, Math.abs(q.x) * 2.6, Math.abs(q.y) * 2.6); }, 60);
-          fw = NFN.clamp(Math.round(span / 10) * 10, 60, 1200); fd = NFN.clamp(Math.round(span * 0.7 / 10) * 10, 40, 800);
+          var pts = src.map(function (a) { return { x: (a.lon - lon0) * kx, y: -(a.lat - lat0) * 110574 }; }),
+              sx = pts.reduce(function (m2, q) { return Math.max(m2, Math.abs(q.x) * 2.6); }, 60), sy = pts.reduce(function (m2, q) { return Math.max(m2, Math.abs(q.y) * 2.6); }, 40);
+          /* width and depth from their own spans, or a north-south site gets clamped to the edges */
+          fw = NFN.clamp(Math.round(sx / 10) * 10, 60, 1200); fd = NFN.clamp(Math.round(sy / 10) * 10, 40, 800);
           st.set("fw", fw).set("fd", fd).set("north", 0); $("m-fw").value = fw; $("m-fd").value = fd;
           pos = pts.map(function (q) { return { x: NFN.clamp(fw / 2 + q.x, 2, fw - 2), y: NFN.clamp(fd / 2 + q.y, 2, fd - 2) }; });
         } else if (cur.length === n) pos = cur.map(function (a) { return { x: a.x, y: a.y }; });

@@ -19,7 +19,7 @@ Two kinds of check, both counted:
          read every sentence for anything that would make them stop trusting it
 Exit code 1 when anything fails. A failure prints what was seen and what was expected.
 """
-import argparse, glob, http.server, json, math, os, re, shutil, socket, sys, threading, time
+import argparse, glob, http.server, json, math, os, re, shutil, socket, sys, threading, time, urllib.parse
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
@@ -253,6 +253,14 @@ def qa_mesh(b, base, page_url):
     check("use", "no page errors after using it", not errs, errs[:3], [])
     pg.close()
     # a phone
+    # the kit's handoff: a hash with named masts, as kit.js writes it
+    pgk, errk = open_lab(b, base + page_url, hash_="#mesh/v1?fw=190&fd=250&north=0&ap=" + urllib.parse.quote("169,129,6,,p,,,,,,,,,,,north gate 6 m pole;70,29,3,,,,,,,,,,,,,beer tent;45,217,4,,,,,,,,,,,,,stage 4 m"))
+    ka = pgk.evaluate("document.getElementById('tools')._meshState.get('ap')")
+    check("use", "a kit link lands three named masts with their roles and heights", [(a["name"], a["gw"], a["h"]) for a in ka] == [("north gate 6 m pole", True, 6), ("beer tent", False, 3), ("stage 4 m", False, 4)], [(a.get("name"), a["gw"], a["h"]) for a in ka], "names, one portal, 6/3/4 m")
+    check("use", "and the table and the story use the names", "north gate" in pgk.inner_text("#m-rows") and "beer tent" in pgk.inner_text("#m-story"), None, True)
+    check("use", "and the planner writes the names back into its own hash", "beer%20tent" in pgk.evaluate("location.hash") or "beer tent" in urllib.parse.unquote(pgk.evaluate("location.hash")), None, True)
+    check("use", "no page errors from a kit link", not errk, errk[:3], [])
+    pgk.close()
     pg, errs = open_lab(b, base + page_url, width=390, hash_="#mesh/v1")
     check("use", "phone: no sideways scroll", pg.evaluate("document.documentElement.scrollWidth") <= 390, pg.evaluate("document.documentElement.scrollWidth"), "<= 390")
     check("use", "phone: the big number is on screen without scrolling far", pg.locator("#m-big").bounding_box()["y"] < 2600, None, "< 2600 px")

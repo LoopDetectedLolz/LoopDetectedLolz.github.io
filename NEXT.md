@@ -94,9 +94,11 @@ real ones were 35 px fold summaries and a channel list with 169 to 177 at 20 MHz
    walks one design through it with figures from `capture.py`; the home lab mesh test is the
    obvious one (predicted against measured, the story fold explaining the tree, roles and
    models only, never the serials).
-2. **Fold the RF planning into the kit.** The kit currently records and provisions; the
-   mesh planner is what phase two should open into. The planner's hash is the handoff:
-   the kit already knows AP positions, so it can build `#mesh/v1?ap=...` itself.
+2. **Fold the RF planning into the kit.** Done 2026-09-14: phase two carries "Open these N
+   positions in the mesh planner" once two APs have a fix; the kit builds the `#mesh/v1` hash
+   itself (roles, heights from the placement text, placement as the AP name), the planner's
+   table and story use the names, and the QA bot holds the round trip. Not yet done: the
+   reverse, a plan's install sheet back into the kit's placement column.
 3. **GPS and FTM**, once the lab answers the questions below. Positions are already
    recorded per AP in the kit and ride in the CSV and the plan, so the groundwork is done.
 
