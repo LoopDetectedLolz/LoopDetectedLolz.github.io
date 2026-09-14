@@ -43,9 +43,11 @@ Drop the access points onto legal channels. The rules are the real ones: 40 MHz 
 
 Width is a radio setting, not an SSID setting, and that trips people up on both platforms.
 
-In **Aruba Central** with AOS 10, channel width lives in the RF configuration that applies to the AP group, alongside the channel list and transmit power, not anywhere in the WLAN wizard. Set it there and it applies to every AP the group holds. To see what an AP actually ended up on, rather than what you asked for, `show ap bss-table` on the AP gives you the BSSID, the channel and the width in use, and the channel column is where you find out that your 80 MHz plan quietly became 40 because a neighbour was already sitting there.
+In **Aruba Central**, width lives in the RF profile alongside the channel list and transmit power, and nowhere in the WLAN wizard. The important part is that the profile is an object you assign rather than a switch you flip: you choose which APs get which profile, so the group is a convenient default and not the only unit, and a single AP can be handed its own. An override on one AP beats what the group says. That is how you fix one bad room, and it is also how somebody's fix from eight months ago is still quietly in force on an AP nobody has looked at since.
 
-In **Mist**, width is in the RF template at org level, with a per AP override if you need one, and the client insights view will show you the negotiated PHY rate that resulted. The template is the right place to make the decision once.
+To see what an AP actually ended up on, rather than what you asked for, `show ap bss-table` gives you the BSSID, the channel and the width in use. That column is where you find out your 80 MHz plan quietly became 40 because a neighbour was already sitting there.
+
+In **Mist**, width is in the RF template at org level, and you can override it on a single AP from that AP's page when one room genuinely needs something different. Client insights then shows you the PHY rate that resulted. Make the decision once in the template, and treat each per AP override as something that owes you an explanation later.
 
 On the **Sidekick**, the channel view shows you the width as occupied spectrum rather than as a setting, which is the only view that tells you what your neighbours chose.
 
