@@ -37,7 +37,9 @@ def call(path, payload=None):
     req = urllib.request.Request(
         API + path,
         data=json.dumps(payload).encode() if payload is not None else None,
-        headers={"authorization": "Bearer " + TOKEN, "content-type": "application/json"},
+        headers={"authorization": "Bearer " + TOKEN, "content-type": "application/json",
+                 # Cloudflare's browser integrity check 403s the default Python-urllib signature
+                 "user-agent": "nfn-comments/1.0 (+https://networkfieldnotes.com)"},
         method="POST" if payload is not None else "GET",
     )
     try:
@@ -45,6 +47,11 @@ def call(path, payload=None):
             return json.load(r)
     except urllib.error.HTTPError as e:
         body = e.read().decode(errors="replace")
+        if e.code == 403 and "1010" in body:
+            sys.exit("Cloudflare blocked this request on its user agent, not the Worker. "
+                     "Something stripped the user-agent header this script sets.")
+        if e.code == 401:
+            sys.exit("401: NFN_ADMIN_TOKEN does not match the ADMIN_TOKEN secret on the Worker.")
         sys.exit("%s %s: %s" % (e.code, e.reason, body[:400]))
     except urllib.error.URLError as e:
         if isinstance(e.reason, ssl.SSLCertVerificationError):
