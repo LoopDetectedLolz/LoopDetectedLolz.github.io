@@ -25,3 +25,8 @@ build-blog.py.preglass
 __pycache__/
 .qa/
 lab-qa-*.html
+
+# wrangler local state: caches the Cloudflare account id, keep it out of a public repo
+.wrangler/
+comments/.wrangler/
+node_modules/

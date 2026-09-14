@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Three rows comparing what the mesh planner predicted with what the access point measured: received power on the good link, path loss on the marginal link, and the rate, where the planner said MCS 4 and the radio ran MCS 7">
+  <defs>
+    <style>
+      .eb{font:700 13px "Instrument Sans",-apple-system,Helvetica,sans-serif;letter-spacing:3px;fill:#8CE05E}
+      .hl{font:600 20px "Instrument Sans",-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
+      .lb{font:500 13px "Instrument Sans",-apple-system,Helvetica,sans-serif;fill:#B0C4CF}
+      .sm{font:400 11px "Instrument Sans",-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
+      .mo{font:500 12px "JetBrains Mono",ui-monospace,Menlo,monospace;fill:#EAF2F6}
+      .mod{font:500 12px "JetBrains Mono",ui-monospace,Menlo,monospace;fill:#8BA2AE}
+      .cap{font:400 12px "Instrument Sans",-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
+      .trk{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
+    </style>
+  </defs>
+  <text x="40" y="36" class="eb">MESH PLANNER, MEASURED</text>
+  <text x="40" y="66" class="hl">Two link budgets right to 2 dB, one rate wrong by three MCS steps</text>
+
+  <!-- legend -->
+  <rect x="612" y="80" width="12" height="12" rx="2" fill="none" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="3 2"/>
+  <text x="630" y="90" class="sm">planner said</text>
+  <rect x="722" y="80" width="12" height="12" rx="2" fill="#8CE05E"/>
+  <text x="740" y="90" class="sm">the AP measured</text>
+
+  <!-- row 1: received power on the good link -->
+  <text x="40" y="126" class="lb">Point to the 505H portal</text>
+  <text x="40" y="144" class="sm">received power</text>
+  <rect x="290" y="112" width="560" height="26" rx="6" class="trk"/>
+  <text x="290" y="156" class="sm">-90 dBm</text>
+  <text x="850" y="156" class="sm" text-anchor="end">-50 dBm</text>
+  <!-- scale: -90 at x=290, -50 at x=850, 14 px per dB -->
+  <rect x="570" y="116" width="70" height="18" rx="4" fill="#8CE05E" fill-opacity="0.85"/>
+  <text x="562" y="129" class="mo" text-anchor="end">-70 to -65 measured</text>
+  <line x1="654" y1="108" x2="654" y2="142" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="3 2"/>
+  <text x="662" y="122" class="mod">-64 predicted</text>
+
+  <!-- row 2: path loss on the marginal link -->
+  <text x="40" y="196" class="lb">Point to the 735 portal</text>
+  <text x="40" y="214" class="sm">path loss</text>
+  <rect x="290" y="182" width="560" height="26" rx="6" class="trk"/>
+  <text x="290" y="226" class="sm">80 dB</text>
+  <text x="850" y="226" class="sm" text-anchor="end">110 dB</text>
+  <!-- scale: 80 at x=290, 110 at x=850, 18.67 px per dB -->
+  <rect x="616" y="186" width="18" height="18" rx="4" fill="#8CE05E" fill-opacity="0.85"/>
+  <text x="608" y="199" class="mo" text-anchor="end">98 measured</text>
+  <line x1="663" y1="178" x2="663" y2="212" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="3 2"/>
+  <text x="671" y="192" class="mod">100 budgeted</text>
+
+  <!-- row 3: the rate -->
+  <text x="40" y="266" class="lb">Point to the 505H portal</text>
+  <text x="40" y="284" class="sm">rate, 80 MHz, two streams</text>
+  <g>
+    <!-- twelve MCS cells from x=290, 46 px each with 2 px gaps -->
+    <rect x="290" y="252" width="44" height="26" rx="5" class="trk"/><text x="312" y="270" class="mod" text-anchor="middle">0</text>
+    <rect x="336" y="252" width="44" height="26" rx="5" class="trk"/><text x="358" y="270" class="mod" text-anchor="middle">1</text>
+    <rect x="382" y="252" width="44" height="26" rx="5" class="trk"/><text x="404" y="270" class="mod" text-anchor="middle">2</text>
+    <rect x="428" y="252" width="44" height="26" rx="5" class="trk"/><text x="450" y="270" class="mod" text-anchor="middle">3</text>
+    <rect x="474" y="252" width="44" height="26" rx="5" fill="none" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="3 2"/><text x="496" y="270" class="mo" text-anchor="middle" style="fill:#5ED2DA">4</text>
+    <rect x="520" y="252" width="44" height="26" rx="5" class="trk"/><text x="542" y="270" class="mod" text-anchor="middle">5</text>
+    <rect x="566" y="252" width="44" height="26" rx="5" class="trk"/><text x="588" y="270" class="mod" text-anchor="middle">6</text>
+    <rect x="612" y="252" width="44" height="26" rx="5" fill="#4FBDEA"/><text x="634" y="270" class="mo" text-anchor="middle" style="fill:#06202A">7</text>
+    <rect x="658" y="252" width="44" height="26" rx="5" class="trk"/><text x="680" y="270" class="mod" text-anchor="middle">8</text>
+    <rect x="704" y="252" width="44" height="26" rx="5" class="trk"/><text x="726" y="270" class="mod" text-anchor="middle">9</text>
+    <rect x="750" y="252" width="44" height="26" rx="5" class="trk"/><text x="772" y="270" class="mod" text-anchor="middle">10</text>
+    <rect x="796" y="252" width="44" height="26" rx="5" class="trk"/><text x="818" y="270" class="mod" text-anchor="middle">11</text>
+  </g>
+  <text x="496" y="296" class="sm" text-anchor="middle">432 Mb/s said</text>
+  <text x="634" y="296" class="sm" text-anchor="middle" style="fill:#4FBDEA">720 Mb/s ran</text>
+
+  <text x="40" y="322" class="cap">The miss was policy, not physics: a 6 dB margin taken off the rate as well as gating the link, and a 7 dB noise figure where the radios report 3.</text>
+</svg>
