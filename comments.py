@@ -15,15 +15,25 @@ Usage:
     python3 comments.py reply --slug vsx-upgrade-hitless --body "Good catch, fixed."
     python3 comments.py export comments.json
 """
-import os, sys, json, argparse, datetime, urllib.request, urllib.error
+import os, sys, json, ssl, argparse, datetime, urllib.request, urllib.error
+
+def _ctx():
+    """macOS pythons from python.org do not use the system trust store, so urllib cannot
+    verify a perfectly good certificate. certifi carries its own CA bundle."""
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
 
 API = os.environ.get("NFN_COMMENTS_API", "https://api.networkfieldnotes.com").rstrip("/")
 TOKEN = os.environ.get("NFN_ADMIN_TOKEN", "")
 
 
 def call(path, payload=None):
-    if not TOKEN:
-        sys.exit("Set NFN_ADMIN_TOKEN first. It is the ADMIN_TOKEN you gave wrangler.")
+    if not TOKEN or TOKEN.strip().lower().startswith("the admin"):
+        sys.exit("Set NFN_ADMIN_TOKEN to the real value you gave 'wrangler secret put ADMIN_TOKEN',\n"
+                 "not the placeholder text.")
     req = urllib.request.Request(
         API + path,
         data=json.dumps(payload).encode() if payload is not None else None,
@@ -31,12 +41,16 @@ def call(path, payload=None):
         method="POST" if payload is not None else "GET",
     )
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
+        with urllib.request.urlopen(req, timeout=30, context=_ctx()) as r:
             return json.load(r)
     except urllib.error.HTTPError as e:
         body = e.read().decode(errors="replace")
         sys.exit("%s %s: %s" % (e.code, e.reason, body[:400]))
     except urllib.error.URLError as e:
+        if isinstance(e.reason, ssl.SSLCertVerificationError):
+            sys.exit("This python cannot verify certificates. Either 'pip3 install certifi', or run\n"
+                     "  /Applications/Python\\ 3.*/Install\\ Certificates.command\n"
+                     "Underlying error: %s" % e.reason)
         sys.exit("Could not reach %s: %s" % (API, e.reason))
 
 
