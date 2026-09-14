@@ -457,10 +457,10 @@ tools += f'''
 <section class="sim-intro">
   <span class="tag green"><span class="dot"></span>Tools</span>
   <h1 class="h-hero">Planning tools that show their working</h1>
-  <p class="lede">Every number on these pages is computed from the standards and the physics, not looked up, and every control lives in the address bar, so a link is the whole argument. The mesh planner was held against a real point on 2026-09-13: the budgets matched to a couple of dB, and the one thing it got wrong was fixed the same morning. Open a fold to see how a figure was reached; the story fold under the mesh map tells the tree in the order a mesh forms. The <a href="simulator.html">simulator</a>, one frame sent symbol by symbol through a link you can break, has a page of its own.</p>
+  <p class="lede">Every number on these pages is computed from the standards and the physics, not looked up, and every control lives in the address bar, so a link is the whole argument. The mesh planner was held against a real point on 2026-09-13: the budgets matched to a couple of dB, and the one thing it got wrong was fixed the same morning. Open a fold to see how a figure was reached; the story fold under the mesh map tells the tree in the order a mesh forms. The fifth tab is the simulator, one frame sent symbol by symbol through a link you can break; it also has <a href="simulator.html">a page of its own</a>.</p>
 </section>
 <script>{SIM_JS}</script>
-''' + widget("tools") + '''
+''' + widget("tools").replace("<!-- qam:here (the build and the lab put the simulator widget here) -->", qam, 1) + '''
 <section class="band g-card" data-rise>
   <div>
     <h3>Why a mesh has to be provisioned over the wire</h3>
