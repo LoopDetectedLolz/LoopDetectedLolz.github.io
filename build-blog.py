@@ -21,7 +21,7 @@ SITE = {
     "linkedin": "https://www.linkedin.com/in/dustinburns3020/",
     "email": "dustin.burns@networkfieldnotes.com",   # socials page only; keep out of feeds and metadata
 }
-COMMENTS_API = ""            # e.g. "https://api.networkfieldnotes.com"; empty turns comments off everywhere
+COMMENTS_API = "https://api.networkfieldnotes.com"   # empty this line to turn comments off everywhere
 TURNSTILE_SITEKEY = "0x4AAAAAAE0IseyiQ4X9zk6r"   # public half of the Turnstile widget, safe in the page
 BASE_URL = "https://networkfieldnotes.com"
 CUSTOM_DOMAIN = "networkfieldnotes.com"
