@@ -457,7 +457,7 @@ tools += f'''
 <section class="sim-intro">
   <span class="tag green"><span class="dot"></span>Tools</span>
   <h1 class="h-hero">Planning tools that show their working</h1>
-  <p class="lede">Every number on these pages is computed from the standards and the physics, not looked up, and every control lives in the address bar, so a link is the whole argument. The mesh planner was held against a real point on 2026-09-13: the budgets matched to a couple of dB, and the one thing it got wrong was fixed the same morning. Open a fold to see how a figure was reached; the story fold under the mesh map tells the tree in the order a mesh forms.</p>
+  <p class="lede">Every number on these pages is computed from the standards and the physics, not looked up, and every control lives in the address bar, so a link is the whole argument. The mesh planner was held against a real point on 2026-09-13: the budgets matched to a couple of dB, and the one thing it got wrong was fixed the same morning. Open a fold to see how a figure was reached; the story fold under the mesh map tells the tree in the order a mesh forms. The <a href="simulator.html">simulator</a>, one frame sent symbol by symbol through a link you can break, has a page of its own.</p>
 </section>
 <script>{SIM_JS}</script>
 ''' + widget("tools") + '''
