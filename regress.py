@@ -1,7 +1,29 @@
+"""Visual regression over the built site: every page at three widths, then the
+index's filter, search and transitions. Serves the repo itself on a free port
+and finds the Chromium the QA bot uses, so it runs the same way:
+
+    PYTHONPATH=.qa/pylib python3 regress.py
+"""
 from playwright.sync_api import sync_playwright
-import glob, os, sys
-B="http://127.0.0.1:8822"
-pages=["/","/about.html","/socials.html","/academy.html","/simulator.html"]+["/p/"+os.path.basename(f) for f in sorted(glob.glob("/tmp/site/p/*.html"))]
+import glob, os, sys, socket, threading, http.server
+ROOT=os.path.dirname(os.path.abspath(__file__))
+class Quiet(http.server.SimpleHTTPRequestHandler):
+    def log_message(self,*a): pass
+    def handle_error(self,*a): pass          # a page closed mid-download is Chromium's business, not a finding
+    def copyfile(self,src,dst):
+        try: super().copyfile(src,dst)
+        except BrokenPipeError: pass
+_s=socket.socket(); _s.bind(("127.0.0.1",0)); PORT=_s.getsockname()[1]; _s.close()
+_httpd=http.server.ThreadingHTTPServer(("127.0.0.1",PORT), lambda *a,**k: Quiet(*a,directory=ROOT,**k))
+threading.Thread(target=_httpd.serve_forever,daemon=True).start()
+B="http://127.0.0.1:%d"%PORT
+pages=["/","/about.html","/socials.html","/academy.html","/simulator.html","/tools.html","/kit.html"]+["/p/"+os.path.basename(f) for f in sorted(glob.glob(os.path.join(ROOT,"p","*.html")))]
+def launch(pw):
+    try: return pw.chromium.launch()
+    except Exception:
+        for cand in glob.glob(os.path.expanduser("~/Library/Caches/ms-playwright/chromium*/chrome-*/Chromium.app/Contents/MacOS/Chromium"))+glob.glob(os.path.expanduser("~/Library/Caches/ms-playwright/chromium_headless_shell*/*/chrome-headless-shell")):
+            return pw.chromium.launch(executable_path=cand)
+        raise
 vis="[...document.querySelectorAll('.card[data-cat]')].filter(c=>!c.classList.contains('hidden')).map(c=>c.dataset.cat)"
 fails=[]
 def newpage(b,w,h=900):
@@ -10,7 +32,7 @@ def newpage(b,w,h=900):
     pg.route("**/fonts.gstatic.com/**", lambda r: r.abort())
     return pg
 with sync_playwright() as pw:
-    b=pw.chromium.launch()
+    b=launch(pw)
     for path in pages:
         for w in (360,768,1280):
             pg=newpage(b,w); errs=[]
@@ -23,15 +45,17 @@ with sync_playwright() as pw:
             pg.wait_for_timeout(400)
             broken=pg.evaluate("[...document.images].filter(i=>!i.complete||i.naturalWidth===0).map(i=>i.getAttribute('src'))")
             rig=pg.evaluate("(()=>{const r=document.querySelector('.rig');if(!r)return 'MISSING';const cs=getComputedStyle(r);return cs.position+' z'+cs.zIndex})()")
-            room=pg.evaluate("(function(){var p=document.querySelector('.page'),m=p&&p.querySelector(':scope>main');return parseFloat(getComputedStyle(p).paddingBottom)+(m?parseFloat(getComputedStyle(m).paddingBottom):0)})()")
+            room=pg.evaluate("(function(){var p=document.querySelector('.page'),m=p&&p.querySelector(':scope>main');if(!p)return 0;return parseFloat(getComputedStyle(p).paddingBottom)+(m?parseFloat(getComputedStyle(m).paddingBottom):0)})()")
             greens=pg.evaluate("[...document.querySelectorAll('.btn.cta,.pill.on')].filter(e=>getComputedStyle(e).backgroundImage.includes('140, 224, 94')||getComputedStyle(e).backgroundColor.includes('140, 224, 94')).length")
             contact=pg.evaluate("/get in touch|grab me|second set of eyes|send it my way|corrections welcome|reach out|i'd like to hear/i.test(document.body.innerText)")
             taps=pg.evaluate("[...document.querySelectorAll('a.pill,a.btn,.chip,.rig')].filter(e=>e.getBoundingClientRect().height>0&&e.getBoundingClientRect().height<38).length")
-            ok = sw<=w and not errs and not broken and rig.startswith('fixed') and room>=140 and greens<=1 and not contact and taps==0
+            chrome = path!="/kit.html"   # the kit is a standalone page: no mascot, no page padding, its own layout
+            ok = sw<=w and not errs and not broken and (not chrome or (rig.startswith('fixed') and room>=140 and greens<=1)) and not contact and taps==0
             if not ok: fails.append((path,w,dict(scrollWidth=sw,errs=errs[:2],broken=broken,rig=rig,room=room,greens=greens,contact=contact,smallTaps=taps)))
             pg.close()
     print("A. pages x widths:", len(pages)*3, "checked |", len(fails), "failed")
     for f in fails: print("   FAIL", f)
+    if fails: sys.exit(1)
     pg=newpage(b,1280)
     pg.goto(B+"/#cat=Wireless", wait_until="domcontentloaded"); pg.wait_for_timeout(400); a=set(pg.evaluate(vis))
     pg.click(".chip[data-cat='NAC']"); pg.wait_for_timeout(400); c=set(pg.evaluate(vis))
@@ -44,7 +68,7 @@ with sync_playwright() as pw:
           "| pill ring colour:", pg.evaluate("getComputedStyle(document.querySelector('.pill.on')).borderTopColor"))
     pg.goto(B+"/p/vsx-upgrade-hitless.html", wait_until="domcontentloaded"); pg.wait_for_timeout(300)
     pg.click("a.tag"); pg.wait_for_timeout(500)
-    print("C. from a post, click its category tag ->", set(pg.evaluate(vis)), "| url:", pg.url.split('8822')[1])
+    print("C. from a post, click its category tag ->", set(pg.evaluate(vis)), "| url:", pg.url.split(str(PORT))[1])
     pg.go_back(); pg.wait_for_timeout(300); pg.go_forward(); pg.wait_for_timeout(300)
     print("   back/forward keeps filter:", set(pg.evaluate(vis)))
     pg.click(".chip[data-cat='all']"); pg.click("#search-toggle"); pg.fill("#q","zzzzqq"); pg.wait_for_timeout(200)
@@ -69,5 +93,5 @@ with sync_playwright() as pw:
     r=pg.evaluate("(()=>{const r=document.querySelector('.rig').getBoundingClientRect();const w=document.querySelector('footer .wrap');const f=w.getBoundingClientRect();const pr=parseFloat(getComputedStyle(w).paddingRight);const last=document.querySelector('.postnav').getBoundingClientRect();return {rigTopUnscrolled:Math.round(top0),rigTopScrolled:Math.round(r.top),footerTextRight:Math.round(f.right-pr),rigLeft:Math.round(r.left),lastContentBottom:Math.round(last.bottom),rigTop:Math.round(r.top)}})()".replace("top0",str(top0)))
     print("F. rig fixed on scroll:", r["rigTopUnscrolled"]==r["rigTopScrolled"], "| footer text clears rig:", r["footerTextRight"]<=r["rigLeft"], "| last content above rig:", r["lastContentBottom"]<=r["rigTop"], r)
     for w in (360,1280):
-        pg=newpage(b,w,1100); pg.goto(B+"/", wait_until="domcontentloaded"); pg.wait_for_timeout(500); pg.screenshot(path=f"/tmp/r-index-{w}.png"); pg.close()
+        pg=newpage(b,w,1100); pg.goto(B+"/", wait_until="domcontentloaded"); pg.wait_for_timeout(500); pg.screenshot(path=os.path.join(os.environ.get("TMPDIR","/tmp"),f"r-index-{w}.png")); pg.close()
     b.close()
