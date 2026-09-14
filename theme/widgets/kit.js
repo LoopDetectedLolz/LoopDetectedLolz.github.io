@@ -100,6 +100,44 @@
     }).join("") || '<tr><td colspan="6" class="k-empty">Nothing recorded yet. Scan a label, paste a packing list, or add one by hand.</td></tr>';
     var portals = S.aps.filter(function (a) { return a.role === "portal"; }).length;
     $("k-apcount").textContent = S.aps.length + " recorded, " + portals + " portal" + (portals === 1 ? "" : "s");
+    plannerLink();
+  }
+
+  /* ── the handoff to the mesh planner ────────────────────────────────────
+     The planner's whole state is its hash, so the kit can write one: every AP
+     with a fix becomes a mast, projected about the centroid the way kml.js
+     does it (equirectangular, north up), portals and wired APs on the wire,
+     a height read out of "where it went" when it says one ("4 m pole"), the
+     placement as the AP's name. The planner is not in the offline cache, so
+     the link needs signal; the kit says so rather than pretending. */
+  function plannerHash() {
+    var fixed = S.aps.filter(function (a) { return a.lat != null && a.lon != null; });
+    if (fixed.length < 2) return null;
+    var lat0 = 0, lon0 = 0;
+    fixed.forEach(function (a) { lat0 += a.lat; lon0 += a.lon; }); lat0 /= fixed.length; lon0 /= fixed.length;
+    var kx = Math.cos(lat0 * Math.PI / 180) * 111320, ky = 110574;
+    var pts = fixed.map(function (a) { return { a: a, x: (a.lon - lon0) * kx, y: -(a.lat - lat0) * ky }; });
+    var sx = 60, sy = 40;
+    pts.forEach(function (q) { sx = Math.max(sx, Math.abs(q.x) * 2.6); sy = Math.max(sy, Math.abs(q.y) * 2.6); });
+    var fw = Math.min(1200, Math.max(60, Math.round(sx / 10) * 10)), fd = Math.min(800, Math.max(40, Math.round(sy / 10) * 10));
+    var aps = pts.map(function (q) {
+      var m = /(\d+(?:\.\d+)?)\s*m\b/i.exec(q.a.place || ""), h = m ? Math.min(15, Math.max(0.5, parseFloat(m[1]))) : 3;
+      var x = Math.round(Math.min(fw - 2, Math.max(2, fw / 2 + q.x))), y = Math.round(Math.min(fd - 2, Math.max(2, fd / 2 + q.y)));
+      var name = (q.a.place || q.a.serial || "").replace(/[,;&=#%]/g, " ").replace(/\s+/g, " ").trim().slice(0, 24);
+      /* x,y,h,tx,flags,ant,aim,kind,cant,caim,tilt,band,bw,ch,model,name: the planner's own order */
+      return [x, y, h, "", q.a.role === "point" ? "" : "p", "", "", "", "", "", "", "", "", "", "", name].join(",");
+    });
+    return "#mesh/v1?fw=" + fw + "&fd=" + fd + "&north=0&ap=" + encodeURIComponent(aps.join(";"));
+  }
+  function plannerLink() {
+    var el = $("k-planner"); if (!el) return;
+    var fixed = S.aps.filter(function (a) { return a.lat != null && a.lon != null; }).length, h = plannerHash();
+    if (!S.aps.length) { el.innerHTML = ""; return; }
+    if (!h) { el.textContent = "Fix at least two positions and the kit will hand them to the mesh planner as a site."; return; }
+    var left = S.aps.length - fixed;
+    el.innerHTML = '<a class="k-btn" href="tools.html' + h + '" target="_blank" rel="noopener">Open these ' + fixed + ' positions in the mesh planner</a> ' +
+      "<span>Portals and wired APs on the wire, points over the air, heights read from \"where it went\" when it says one (\"4 m pole\"), 3 m otherwise" +
+      (left ? "; " + left + " without a fix " + (left === 1 ? "is" : "are") + " left out" : "") + ". The planner needs signal; it is not in the kit's offline copy.</span>";
   }
 
   /* ── the queue ─────────────────────────────────────────────────────────── */
