@@ -718,7 +718,164 @@ html.qam-fs .rig{display:none}
 <p>The rule generalises past mesh. Before you convert anything, ask how the device will reach its new manager after it forgets everything it knew. If the answer is the thing you are converting, put a cable in it first.</p></div>
     </div>
     <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Moving to AOS 10 <span class="meta">part 3 of 3</span></h3><div class="ser-steps"><a class="ser-step" href="aos8-to-aos10-is-a-rebuild.html"><span class="ser-n">1</span><span class="ser-t">AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade</span></a><a class="ser-step" href="one-pilot-ap-converts-all-of-them.html"><span class="ser-n">2</span><span class="ser-t">One Pilot AP Converts All Hundred of Them</span></a><a class="ser-step here" href="mesh-conversion-strands-the-points.html"><span class="ser-n">3</span><span class="ser-t">Converting a Mesh Over the Air Strands Every Point</span><span class="ser-tag">You are here</span></a></div></section>
-    
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="mesh-conversion-strands-the-points" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+  <style>
+  .c-wrap{padding:var(--s5);margin-top:var(--s5)}
+  .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
+  .c-head h3{font-size:19px;letter-spacing:-0.02em}
+  .c-head .meta{font-family:var(--mono);font-size:12px;color:var(--text-muted)}
+  .c-list{list-style:none;margin:0 0 var(--s5);padding:0;display:flex;flex-direction:column;gap:var(--s3)}
+  .c-item{padding:var(--s4);border:1px solid var(--line);border-radius:var(--r-inner);background:var(--solid)}
+  .c-item.c-mine{border-color:rgba(140,224,94,0.35);background:rgba(140,224,94,0.06)}
+  .c-who{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .c-who b{font-size:14.5px}
+  .c-badge{font:600 10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;
+    border:1px solid rgba(140,224,94,0.45);color:var(--green)}
+  .c-when{font-family:var(--mono);font-size:11.5px;color:var(--text-muted)}
+  .c-body p{font-size:15px;line-height:1.7;color:var(--text-dim);margin:0 0 10px;overflow-wrap:anywhere}
+  .c-body p:last-child{margin-bottom:0}
+  .c-empty{font-size:14.5px;color:var(--text-muted);margin-bottom:var(--s5)}
+  .c-form{display:flex;flex-direction:column;gap:var(--s3)}
+  .c-form[hidden],.c-list[hidden]{display:none}   /* display:flex beats the hidden attribute without this */
+  .c-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
+  .c-f{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .c-f span{font:10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+  .c-wrap input[type=text],.c-wrap input[type=email],.c-wrap textarea{
+    width:100%;min-height:46px;font:15px var(--sans);color:var(--text);background:rgba(3,10,16,0.8);
+    border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .c-wrap textarea{min-height:120px;line-height:1.6;resize:vertical}
+  .c-wrap input:focus-visible,.c-wrap textarea:focus-visible,.c-wrap button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .c-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+  .c-actions{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+  .c-note{font-size:12.5px;line-height:1.6;color:var(--text-muted)}
+  .c-say{font-size:13.5px;line-height:1.6}
+  .c-say.c-ok{color:var(--green)}
+  .c-say.c-bad{color:var(--orange)}
+  .c-off{font-size:13.5px;color:var(--text-muted)}
+  @media (max-width:560px){.c-row{grid-template-columns:1fr}.c-wrap{padding:var(--s4)}}
+  </style>
+
+  <div class="c-head"><h3>Comments</h3><span class="meta" id="c-count"></span></div>
+  <ul class="c-list" id="c-list"></ul>
+  <p class="c-empty" id="c-empty" hidden>Nothing here yet. If you have run into this, or I have it wrong, say so.</p>
+
+  <form class="c-form" id="c-form" novalidate>
+    <div class="c-row">
+      <label class="c-f"><span>Name</span><input type="text" id="c-name" maxlength="60" autocomplete="name" placeholder="Optional"></label>
+      <label class="c-f"><span>Email, kept private</span><input type="email" id="c-email" maxlength="200" autocomplete="email" placeholder="Optional, never shown"></label>
+    </div>
+    <label class="c-f"><span>Comment</span><textarea id="c-body" maxlength="2000" required placeholder="Corrections welcome. Version numbers especially."></textarea></label>
+    <input class="c-hp" type="text" id="c-website" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="Leave this empty">
+    <div id="c-cap"></div>
+    <div class="c-actions">
+      <button class="btn cta" type="submit" id="c-send">Post comment</button>
+      <span class="c-say" id="c-say" role="status"></span>
+    </div>
+    <p class="c-note">Comments appear straight away. Your email, if you leave one, is stored so I can reply to you and is never shown on the page or passed to anyone. Anything abusive gets removed.</p>
+  </form>
+  <p class="c-off" id="c-offline" hidden>Comments are offline at the moment.</p>
+
+  <script>
+  (function () {
+    var root = document.getElementById("comments");
+    if (!root) return;
+    var API = root.dataset.api, SLUG = root.dataset.slug, KEY = root.dataset.sitekey;
+    var list = document.getElementById("c-list"), count = document.getElementById("c-count"),
+        empty = document.getElementById("c-empty"), form = document.getElementById("c-form"),
+        say = document.getElementById("c-say"), send = document.getElementById("c-send"),
+        cap = document.getElementById("c-cap"), offline = document.getElementById("c-offline");
+
+    function when(iso) {
+      var then = Date.parse(iso), mins = Math.round((Date.now() - then) / 60000);
+      if (isNaN(then)) return "";
+      if (mins < 1) return "just now";
+      if (mins < 60) return mins + (mins === 1 ? " minute ago" : " minutes ago");
+      var hrs = Math.round(mins / 60);
+      if (hrs < 24) return hrs + (hrs === 1 ? " hour ago" : " hours ago");
+      var days = Math.round(hrs / 24);
+      if (days < 8) return days + (days === 1 ? " day ago" : " days ago");
+      return new Date(then).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    }
+
+    function render(rows) {
+      list.textContent = "";
+      rows.forEach(function (c) {
+        var li = document.createElement("li");
+        li.className = "c-item" + (c.is_author ? " c-mine" : "");
+        var who = document.createElement("div"); who.className = "c-who";
+        var b = document.createElement("b"); b.textContent = c.name || "Anonymous"; who.appendChild(b);
+        if (c.is_author) { var tag = document.createElement("span"); tag.className = "c-badge"; tag.textContent = "Author"; who.appendChild(tag); }
+        var t = document.createElement("span"); t.className = "c-when"; t.textContent = when(c.created_at); who.appendChild(t);
+        li.appendChild(who);
+        var body = document.createElement("div"); body.className = "c-body";
+        String(c.body || "").split(/\n{2,}/).forEach(function (para) {
+          var p = document.createElement("p"); p.textContent = para;   // textContent, never innerHTML
+          body.appendChild(p);
+        });
+        li.appendChild(body);
+        list.appendChild(li);
+      });
+      count.textContent = rows.length ? rows.length + (rows.length === 1 ? " comment" : " comments") : "";
+      empty.hidden = rows.length > 0;
+    }
+
+    function load() {
+      return fetch(API + "/v1/comments?slug=" + encodeURIComponent(SLUG), { cache: "no-store" })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { render(d.comments || []); })
+        .catch(function () { form.hidden = true; empty.hidden = true; list.hidden = true; count.textContent = ""; offline.hidden = false; });
+    }
+
+    if (KEY) {
+      var box = document.createElement("div");
+      box.className = "cf-turnstile";
+      box.setAttribute("data-sitekey", KEY);
+      box.setAttribute("data-theme", "dark");
+      cap.appendChild(box);
+      var s = document.createElement("script");
+      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+      s.async = true; s.defer = true;
+      document.head.appendChild(s);
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var body = document.getElementById("c-body").value.trim();
+      if (body.length < 2) { say.className = "c-say c-bad"; say.textContent = "Write something first."; return; }
+      var token = (form.querySelector('[name="cf-turnstile-response"]') || {}).value || "";
+      if (KEY && !token) { say.className = "c-say c-bad"; say.textContent = "Wait for the spam check to finish, then post."; return; }
+      send.disabled = true; say.className = "c-say"; say.textContent = "Posting.";
+      fetch(API + "/v1/comments", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          slug: SLUG,
+          name: document.getElementById("c-name").value,
+          email: document.getElementById("c-email").value,
+          body: body,
+          website: document.getElementById("c-website").value,
+          token: token
+        })
+      }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          send.disabled = false;
+          if (!res.ok) { say.className = "c-say c-bad"; say.textContent = res.d.error || "That did not go through."; return; }
+          document.getElementById("c-body").value = "";
+          say.className = "c-say c-ok"; say.textContent = "Posted. Thanks.";
+          if (window.turnstile) { try { window.turnstile.reset(); } catch (err) {} }
+          load();
+        })
+        .catch(function () {
+          send.disabled = false; say.className = "c-say c-bad";
+          say.textContent = "Could not reach the comment service. Try again in a minute.";
+        });
+    });
+
+    load();
+  })();
+  </script>
+</section>
+
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
       <div class="postnav"><a class="pn g-card" href="wizard-object-model.html"><span class="eyebrow">Older</span>The Wizard Is Lying About the Shape of Your Config</a><a class="pn g-card" href="mesh-planner-held-against-a-real-point.html"><span class="eyebrow">Newer</span>I Held the Mesh Planner Against a Real Point and It Was Wrong About One Thing</a></div>

@@ -1,6 +1,10 @@
 name = "nfn-comments"
 main = "worker.js"
 compatibility_date = "2026-09-01"
+workers_dev = false            # no second public hostname; the API answers on our domain only
+
+# wrangler creates this custom domain and its certificate on deploy, since the zone is in the same account
+routes = [{ pattern = "api.networkfieldnotes.com", custom_domain = true }]
 
 [vars]
 ALLOWED_ORIGIN = "https://networkfieldnotes.com"
