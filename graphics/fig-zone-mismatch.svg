@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-label="The Policy Manager Zone is set on the cluster node and again on the network device, and a mismatch between the two is never reported">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .n{fill:#8BA2AE;font-size:10.5px;font-family:JetBrains Mono,ui-monospace,Menlo,monospace;letter-spacing:1.5px}
+    .path{fill:#8BA2AE;font-size:11px;font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .val{font-size:15px;font-weight:700}
+    .note{fill:#B0C4CF;font-size:12px}
+  </style></defs>
+
+  <text x="15" y="26" class="t hd">One setting, two pages, no validation between them.</text>
+
+  <g class="t">
+    <rect x="15" y="52" width="400" height="128" rx="10" fill="rgba(3,10,16,0.5)" stroke="#5ED2DA" stroke-opacity="0.55"/>
+    <text x="34" y="78" class="n">WHERE THE NODES ARE</text>
+    <text x="34" y="100" class="path">Administration › Server Manager ›</text>
+    <text x="34" y="118" class="path">Server Configuration › node › System</text>
+    <text x="34" y="152" class="val" fill="#5ED2DA">Policy Manager Zone:  Zone 1</text>
+    <text x="34" y="171" class="note" font-size="11.5">Both nodes. Publisher and subscriber.</text>
+
+    <rect x="485" y="52" width="400" height="128" rx="10" fill="rgba(3,10,16,0.5)" stroke="#F5A524" stroke-opacity="0.6"/>
+    <text x="504" y="78" class="n">WHERE THE SWITCH IS</text>
+    <text x="504" y="100" class="path">Configuration › Network › Devices ›</text>
+    <text x="504" y="118" class="path">device › SNMP Read Settings</text>
+    <text x="504" y="152" class="val" fill="#F5A524">Policy Manager Zone:  default</text>
+    <text x="504" y="171" class="note" font-size="11.5">A zone with no servers in it.</text>
+
+    <path d="M415 116 L470 116" stroke="#F5A524" stroke-width="1.6" fill="none" stroke-dasharray="5 4"/>
+    <path d="M433 104 L451 128 M451 104 L433 128" stroke="#F5A524" stroke-width="2.2"/>
+  </g>
+
+  <rect x="15" y="196" width="870" height="90" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+  <text x="32" y="222" class="t note">Saving either page succeeds. No warning, no event, no red text. The polling carries on, so nothing looks broken,</text>
+  <text x="32" y="244" class="t note">and the node it comes from is not the one your firewall rule names. Read both pages before you write the rule.</text>
+  <text x="32" y="272" class="t note" fill="#8BA2AE">Device Info Poll Interval, meanwhile, lives in Service Parameters on each node rather than in Cluster-Wide Parameters.</text>
+</svg>

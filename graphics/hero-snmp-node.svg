@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A ClearPass cluster polling a switch by SNMP, where the poll comes from the subscriber and not from the publisher everyone assumes">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .lbl{fill:#B0C4CF;font-size:11px}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:10px;fill:#5ED2DA}
+    .node{font-size:13px;font-weight:700}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+
+  <text x="30" y="36" class="t eyebrow">"JUST PERMIT THE CLEARPASS ADDRESS"</text>
+  <text x="30" y="66" class="t big">The poll does not come from the node you log into.</text>
+
+  <g class="t">
+    <!-- cluster frame -->
+    <rect x="28" y="106" width="300" height="186" rx="12" fill="rgba(3,10,16,0.45)" stroke="rgba(255,255,255,0.10)"/>
+    <text x="44" y="130" class="lbl" fill="#8BA2AE">CLEARPASS CLUSTER</text>
+
+    <!-- publisher, assumed -->
+    <rect x="46" y="142" width="264" height="58" rx="10" fill="none" stroke="#8BA2AE" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <text x="62" y="167" class="node" fill="#B0C4CF">Publisher</text>
+    <text x="62" y="187" class="lbl">the one everybody permits</text>
+    <text x="294" y="176" class="t mono" fill="#8BA2AE" text-anchor="end">.51</text>
+
+    <!-- subscriber, actual -->
+    <rect x="46" y="212" width="264" height="58" rx="10" fill="#8CE05E" fill-opacity="0.12" stroke="#8CE05E" stroke-width="1.5"/>
+    <text x="62" y="237" class="node" fill="#8CE05E">Subscriber</text>
+    <text x="62" y="257" class="lbl" fill="#B6F08F">the one that actually polled</text>
+    <text x="294" y="246" class="t mono" fill="#8CE05E" text-anchor="end">.52</text>
+
+    <!-- muted path -->
+    <path d="M330 171 C 420 171, 470 200, 556 200" stroke="#8BA2AE" stroke-width="1.6" fill="none" stroke-dasharray="5 5" marker-end="url(#am)" opacity="0.6"/>
+    <!-- live path -->
+    <path d="M330 241 C 420 241, 470 214, 556 214" stroke="#8CE05E" stroke-width="2.2" fill="none" marker-end="url(#ag)"/>
+    <text x="398" y="160" class="lbl" fill="#8BA2AE" font-size="10.5">assumed</text>
+    <text x="400" y="262" class="lbl" fill="#8CE05E" font-size="10.5">observed  ·  udp/161</text>
+
+    <!-- switch -->
+    <rect x="566" y="150" width="306" height="116" rx="12" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA"/>
+    <text x="586" y="178" class="node" fill="#5ED2DA">Access switch</text>
+    <text x="586" y="201" class="lbl" fill="#EAF2F6">SNMPv3 read, ARP table</text>
+    <text x="586" y="222" class="lbl">IP to MAC for a device that</text>
+    <text x="586" y="240" class="lbl">never sends a DHCP request</text>
+    <text x="852" y="178" class="t mono" text-anchor="end">Zone?</text>
+  </g>
+
+  <text x="30" y="318" class="t lbl" fill="#8BA2AE">The Policy Manager Zone picks the node. It is set in two places, and nothing tells you when they disagree.</text>
+</svg>

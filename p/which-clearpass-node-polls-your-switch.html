@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Your ClearPass SAML Login Validates and Still Fails</title>
-<meta name="description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/saml-login-validates-and-still-fails.html">
+<title>Which ClearPass Node Is Actually Polling Your Switch</title>
+<meta name="description" content="SNMP reads do not come from the publisher. They come from whichever node the cluster decides to use, which matters the moment you write a firewall rule or a control plane ACL that names one address. Here is how to prove which node is sending, and why ARP polling is the only thing that classifies a static device behind a firewall before it authenticates.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/which-clearpass-node-polls-your-switch.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="Your ClearPass SAML Login Validates and Still Fails">
-<meta property="og:description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/saml-login-validates-and-still-fails.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/saml-login-validates-and-still-fails.png">
+<meta property="og:title" content="Which ClearPass Node Is Actually Polling Your Switch">
+<meta property="og:description" content="SNMP reads do not come from the publisher. They come from whichever node the cluster decides to use, which matters the moment you write a firewall rule or a control plane ACL that names one address. Here is how to prove which node is sending, and why ARP polling is the only thing that classifies a static device behind a firewall before it authenticates.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/which-clearpass-node-polls-your-switch.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/which-clearpass-node-polls-your-switch.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Your ClearPass SAML Login Validates and Still Fails">
-<meta name="twitter:description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/saml-login-validates-and-still-fails.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-05"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your ClearPass SAML Login Validates and Still Fails", "description": "Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.", "datePublished": "2026-09-05", "image": "https://networkfieldnotes.com/og/saml-login-validates-and-still-fails.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/saml-login-validates-and-still-fails.html", "keywords": "ClearPass, Security, Entra ID, SAML"}</script>
+<meta name="twitter:title" content="Which ClearPass Node Is Actually Polling Your Switch">
+<meta name="twitter:description" content="SNMP reads do not come from the publisher. They come from whichever node the cluster decides to use, which matters the moment you write a firewall rule or a control plane ACL that names one address. Here is how to prove which node is sending, and why ARP polling is the only thing that classifies a static device behind a firewall before it authenticates.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/which-clearpass-node-polls-your-switch.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-15"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Which ClearPass Node Is Actually Polling Your Switch", "description": "SNMP reads do not come from the publisher. They come from whichever node the cluster decides to use, which matters the moment you write a firewall rule or a control plane ACL that names one address. Here is how to prove which node is sending, and why ARP polling is the only thing that classifies a static device behind a firewall before it authenticates.", "datePublished": "2026-09-15", "image": "https://networkfieldnotes.com/og/which-clearpass-node-polls-your-switch.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/which-clearpass-node-polls-your-switch.html", "keywords": "ClearPass, Security, AOS-CX"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -500,157 +500,205 @@ html.qam-fs .rig{display:none}
 <div class="narrow">
   <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
-    <header class="post-head g-hero cat-NAC" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-blue" href="../index.html#cat=NAC" title="All NAC posts">NAC</a><span class="meta">Sep 5, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">Your ClearPass SAML Login Validates and Still Fails</h1>
+    <header class="post-head g-hero cat-Lab" data-view="zoom">
+      <div class="row" style="margin:0"><a class="tag c-red" href="../index.html#cat=Lab" title="All Lab posts">Lab</a><span class="meta">Sep 15, 2026 &#183; 8 min</span></div>
+      <h1 class="h-hero">Which ClearPass Node Is Actually Polling Your Switch</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Three places a ClearPass admin SAML login fails silently">
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A ClearPass cluster polling a switch by SNMP, where the poll comes from the subscriber and not from the publisher everyone assumes">
   <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:11px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:10px;fill:#8CE05E}
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .lbl{fill:#B0C4CF;font-size:11px}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:10px;fill:#5ED2DA}
+    .node{font-size:13px;font-weight:700}
   </style>
-  <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#B0C4CF"/></marker></defs>
-  <text x="30" y="36" class="t eyebrow">"SSO IS SET UP AND LOGIN FAILS"</text>
-  <text x="30" y="66" class="t big">Trust is half the job. The other half hands out the privilege.</text>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+
+  <text x="30" y="36" class="t eyebrow">"JUST PERMIT THE CLEARPASS ADDRESS"</text>
+  <text x="30" y="66" class="t big">The poll does not come from the node you log into.</text>
+
   <g class="t">
-    <!-- admin -->
-    <rect x="20" y="150" width="70" height="60" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="55" y="185" text-anchor="middle" fill="#EAF2F6" font-size="13">Admin</text>
-    <line x1="90" y1="180" x2="115" y2="180" stroke="#B0C4CF" stroke-width="2" marker-end="url(#arr3)"/>
-    <!-- gate 1 -->
-    <rect x="120" y="110" width="230" height="140" rx="10" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA"/>
-    <text x="235" y="136" text-anchor="middle" fill="#5ED2DA" font-size="13" font-weight="700">Gate 1 · redirect at all?</text>
-    <text x="235" y="160" text-anchor="middle" fill="#EAF2F6" font-size="12">Single Sign-On page</text>
-    <text x="235" y="180" text-anchor="middle" class="lbl">Enable SSO for: Policy Manager ticked?</text>
-    <text x="235" y="200" text-anchor="middle" class="lbl">IdP URL set?</text>
-    <text x="235" y="232" text-anchor="middle" class="mono">Configuration › Identity › Single Sign-On</text>
-    <line x1="350" y1="180" x2="378" y2="180" stroke="#B0C4CF" stroke-width="2" marker-end="url(#arr3)"/>
-    <!-- gate 2 -->
-    <rect x="383" y="110" width="240" height="140" rx="10" fill="rgba(3,10,16,0.55)" stroke="#4FBDEA"/>
-    <text x="503" y="136" text-anchor="middle" fill="#4FBDEA" font-size="13" font-weight="700">Gate 2 · assertion valid?</text>
-    <text x="503" y="160" text-anchor="middle" fill="#EAF2F6" font-size="12">Entra ⇄ ClearPass trust</text>
-    <text x="503" y="180" text-anchor="middle" class="lbl">IdP signing cert required, in CTL first</text>
-    <text x="503" y="200" text-anchor="middle" class="lbl">Entity ID + Reply URL = SP metadata</text>
-    <text x="503" y="232" text-anchor="middle" class="mono">Name ID defaults to UPN</text>
-    <line x1="623" y1="180" x2="651" y2="180" stroke="#B0C4CF" stroke-width="2" marker-end="url(#arr3)"/>
-    <!-- gate 3 -->
-    <rect x="656" y="110" width="224" height="140" rx="10" fill="rgba(3,10,16,0.55)" stroke="#8CE05E"/>
-    <text x="768" y="136" text-anchor="middle" fill="#8CE05E" font-size="13" font-weight="700">Gate 3 · any privilege?</text>
-    <text x="768" y="160" text-anchor="middle" fill="#EAF2F6" font-size="12">Admin SSO Login service</text>
-    <text x="768" y="180" text-anchor="middle" class="lbl">Aruba Application Authorization</text>
-    <text x="768" y="200" text-anchor="middle" class="lbl">enforcement → admin privilege</text>
-    <text x="768" y="232" text-anchor="middle" class="mono">Service Templates &amp; Wizards</text>
+    <!-- cluster frame -->
+    <rect x="28" y="106" width="300" height="186" rx="12" fill="rgba(3,10,16,0.45)" stroke="rgba(255,255,255,0.10)"/>
+    <text x="44" y="130" class="lbl" fill="#8BA2AE">CLEARPASS CLUSTER</text>
+
+    <!-- publisher, assumed -->
+    <rect x="46" y="142" width="264" height="58" rx="10" fill="none" stroke="#8BA2AE" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <text x="62" y="167" class="node" fill="#B0C4CF">Publisher</text>
+    <text x="62" y="187" class="lbl">the one everybody permits</text>
+    <text x="294" y="176" class="t mono" fill="#8BA2AE" text-anchor="end">.51</text>
+
+    <!-- subscriber, actual -->
+    <rect x="46" y="212" width="264" height="58" rx="10" fill="#8CE05E" fill-opacity="0.12" stroke="#8CE05E" stroke-width="1.5"/>
+    <text x="62" y="237" class="node" fill="#8CE05E">Subscriber</text>
+    <text x="62" y="257" class="lbl" fill="#B6F08F">the one that actually polled</text>
+    <text x="294" y="246" class="t mono" fill="#8CE05E" text-anchor="end">.52</text>
+
+    <!-- muted path -->
+    <path d="M330 171 C 420 171, 470 200, 556 200" stroke="#8BA2AE" stroke-width="1.6" fill="none" stroke-dasharray="5 5" marker-end="url(#am)" opacity="0.6"/>
+    <!-- live path -->
+    <path d="M330 241 C 420 241, 470 214, 556 214" stroke="#8CE05E" stroke-width="2.2" fill="none" marker-end="url(#ag)"/>
+    <text x="398" y="160" class="lbl" fill="#8BA2AE" font-size="10.5">assumed</text>
+    <text x="400" y="262" class="lbl" fill="#8CE05E" font-size="10.5">observed  ·  udp/161</text>
+
+    <!-- switch -->
+    <rect x="566" y="150" width="306" height="116" rx="12" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA"/>
+    <text x="586" y="178" class="node" fill="#5ED2DA">Access switch</text>
+    <text x="586" y="201" class="lbl" fill="#EAF2F6">SNMPv3 read, ARP table</text>
+    <text x="586" y="222" class="lbl">IP to MAC for a device that</text>
+    <text x="586" y="240" class="lbl">never sends a DHCP request</text>
+    <text x="852" y="178" class="t mono" text-anchor="end">Zone?</text>
   </g>
-  <rect x="30" y="272" width="840" height="44" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
-  <text x="450" y="290" text-anchor="middle" class="t lbl">All three fail the same way from the login page. Authenticated with no role looks exactly like a failed login.</text>
-  <text x="450" y="308" text-anchor="middle" class="t" fill="#8CE05E" font-size="12">SAML everywhere you can. RADIUS and TACACS+ where you must.</text>
+
+  <text x="30" y="318" class="t lbl" fill="#8BA2AE">The Policy Manager Zone picks the node. It is set in two places, and nothing tells you when they disagree.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>A year-old Airheads thread about admin MFA, revived by someone who had &quot;set up SSO&quot; and couldn&#x27;t log in</div>
-      <div class="prose"><h2>Why I'm writing this</h2>
-<p>Every ClearPass deployment I touch now gets the same question from the security team within a week: can we put MFA on the admin GUI? The answer is yes, and the way you do it is SAML to whatever identity provider already has MFA in front of it, which these days is usually Entra ID.</p>
-<p>That's the easy part. The part that generates forum threads is what happens next. You configure single sign-on, the login page redirects to Microsoft, you authenticate, you get bounced back to ClearPass, and it says no. No error worth reading. Just no.</p>
-<p>Someone hit exactly this on the forums and asked what they'd missed. Turns out there are three different things you can miss, and they all fail the same way from the login page, so here they are in the order to check them.</p>
-<h2>The two halves nobody explains together</h2>
-<p>ClearPass admin SSO is two separate jobs, and the documentation treats them as two separate pages, which is why people finish one and think they're done.</p>
-<p><strong>The trust half</strong> lives under Configuration, Identity, Single Sign-On. That's where you tell ClearPass who the IdP is, what certificate to trust, and which applications should use SSO at all. When this half is right, the SAML assertion comes back and validates.</p>
-<p><strong>The privilege half</strong> is a service. ClearPass doesn't hand out admin rights because Microsoft said you're a real person. It hands them out because a service ran, matched you, and an enforcement profile said Super Administrator or Read-only Administrator or whatever the role is. If that service doesn't exist, you're authenticated and you have nothing, and authenticated with nothing looks exactly like a failed login.</p>
-<p>Most "SSO is set up but login fails" threads are people who built the trust half and never built the service half.</p>
-<h2>Gate 1: does it redirect at all?</h2>
-<p>On the Single Sign-On page there's a field called Enable SSO for, and it's a list of applications (Policy Manager, Guest, Insight, Onboard, and the Guest operator login). Policy Manager has to be ticked. If it isn't, the admin login page never redirects to your IdP in the first place, and you'll sit there wondering why your carefully built Entra app never sees a request.</p>
-<p>While you're on that page, confirm the IdP URL is the actual sign-on endpoint from the Entra enterprise app, not the tenant login page.</p>
-<h2>Gate 2: does the assertion validate?</h2>
-<p>The Identity Provider Signing Certificate field is required, and there's a step before it: the cert has to be in the Certificate Trust List first, or it won't appear in that dropdown. Download the signing cert from the Entra app (Base64), import it under Administration, Certificates, Trust List with the Usage set to SAML, then come back and select it. It shows up with a CN of Microsoft Azure Federated SSO. Miss that and the assertion arrives, fails signature validation, and you get the same silent no.</p>
-<p>Two more things have to agree between the two sides. The Entity ID and the Reply URL in the Entra app need to match what ClearPass publishes in its SP metadata, which you can download from the same page. They're of the form <code>https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp</code> and <code>https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp/acs</code>. Copy them out of the metadata rather than typing them; a trailing slash is enough to break it.</p>
-<p>If you run a cluster, that FQDN is per node. Every node has its own ACS URL, and the Entra app has to carry all of them as Reply URLs, or SSO works against the publisher and fails against everything else. HPE's own Okta write-up makes the same point with Okta's "requestable SSO URLs," and it applies just as much to Entra.</p>
-<p>And one that isn't on either page: NTP. ClearPass's own SSO doc says flatly that if the clocks are out of sync, SAML will not function. Assertions carry validity windows measured in minutes. Check <code>show ntp</code> or the Server Configuration page before you touch anything else. Call it gate zero.</p>
-<h2>Gate 3: does anybody get a privilege?</h2>
-<p>This is the one the original thread was missing. Go to Configuration, Service Templates and Wizards, and use the Policy Manager Admin SSO Login (SAML SP Service) template. It was called ClearPass Admin SSO Login in 6.8 and earlier, which is why half the guides you'll find use the old name. It builds the service and the enforcement policy that actually maps a user to an admin privilege level. You can hand-build the same thing, and if you do, the service type is Aruba Application Authorization. The user guide describes that type as providing authorization for users of Aruba applications, sending a Generic Application Enforcement profile to grant the privilege. So: service type Aruba Application Authorization, enforcement policy type Application, enforcement profile Generic Application Enforcement pointed at Super Administrator or Read-only Administrator or whichever level you mean. I had Authentication in an earlier draft of this. HPE's own Entra write-up says Authorization, and so does the user guide.</p>
-<p>One more thing that isn't obvious until you try group-based roles. Entra sends its group and tenant claims with long schema-style attribute names that aren't in the ClearPass SSO dictionary out of the box. To match on them you export the SSO dictionary under Administration, Dictionaries, Applications, add the attributes, and import it back. Until you do, the group claim is in the assertion (a SAML tracer will show it) and ClearPass just can't see it.</p>
-<p>Then check what the service is matching on. Entra sends the user principal name as the Name ID by default. If your enforcement conditions or your authorization source lookup expect sAMAccountName, nothing matches, nobody gets a role, same silent failure. Either change the Entra claim to send the attribute ClearPass expects, or change the ClearPass side to look up by UPN. Pick one and write it down.</p>
-<pre><code>Configuration &gt; Identity &gt; Single Sign-On
-  Enable SSO for: [x] Policy Manager
-  IdP URL: https://login.microsoftonline.com/&lt;TENANT-ID&gt;/saml2
-  IdP Signing Certificate: &lt;cert already in Trust List&gt;
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Building authentication services in the lab and finding the SNMP poll arriving from the subscriber</div>
+      <div class="prose"><p>I built a two node cluster, registered a switch as a network device, ticked Allow SNMP Read, and then went looking for the traffic. I expected it from the publisher. That is the node I log into, the node that holds the configuration, the node every diagram puts in the middle.</p>
+<p>It was not the publisher.</p>
+<p>If you have ever written a firewall rule or a control plane ACL that permits SNMP from your ClearPass address, singular, this post is for you. The rule works, the polling works, and then one day you add a subscriber or fail over and half your endpoints stop getting classified for reasons nobody can find.</p>
+<h2>Why the SNMP read is worth defending in the first place</h2>
+<p>Most people treat SNMP read on a network device as an optional extra that fills in a port description somewhere. It is doing more than that, and it matters most in exactly the place it is easiest to forget: a segment sitting behind a firewall.</p>
+<p>Here is the case I keep running into. A group of devices lives on a VLAN behind a FortiGate. They are statically addressed because somebody decided years ago that printers, cameras and controllers should not move. They speak when spoken to. And they will eventually hit a MAC authentication service on ClearPass, at which point ClearPass has to decide what they are.</p>
+<p>Without SNMP, here is what ClearPass knows about that device before the first authentication request arrives: nothing.</p>
+<p>It has no DHCP fingerprint, because the device never asks for a lease. This is the part people try to solve with an IP helper pointed at ClearPass, and it is the right instinct on a normal subnet. It does nothing here. There is no DHCP conversation to relay. You cannot forward a packet that was never sent.</p>
+<p>It has no active scan result either, because an active scan needs a target address, and ClearPass has no reason to believe that address exists or belongs to anything on your network.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-label="What ClearPass Profiler knows about a statically addressed device behind a firewall, with SNMP ARP polling enabled and without it">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .n{fill:#8BA2AE;font-size:10.5px;font-family:JetBrains Mono,ui-monospace,Menlo,monospace;letter-spacing:1.5px}
+    .row{font-size:12.5px}
+    .note{fill:#B0C4CF;font-size:12px}
+    .box{font-size:12.5px;font-weight:600}
+  </style></defs>
 
-Configuration &gt; Service Templates &amp; Wizards &gt; Policy Manager Admin SSO Login (SAML SP Service)
-  Service type:             Aruba Application Authorization
-  Enforcement policy type:  Application
-  Enforcement profile:      Generic Application Enforcement -&gt; admin privilege level
-                            (Super Administrator, Read-only Administrator, ...)
+  <text x="15" y="26" class="t hd">A static device behind a firewall gives Profiler three chances. Two of them are already gone.</text>
 
-Administration &gt; Certificates &gt; Trust List
-  Entra signing cert, Usage: SAML
+  <text x="15" y="58" class="t n">WITHOUT SNMP ARP READ</text>
+  <g class="t">
+    <rect x="15" y="70" width="410" height="44" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="32" y="97" class="row" fill="#8BA2AE">DHCP fingerprint</text>
+    <text x="408" y="97" class="row" fill="#F5A524" text-anchor="end">nothing, the device has a static address</text>
 
-Entra enterprise app
-  Identifier (Entity ID): https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp
-  Reply URL (ACS):        https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp/acs   (one per cluster node)
-  Name ID:                user.userprincipalname (default)
-</code></pre>
-<h2>Where to look when it still fails</h2>
-<p>Access Tracker. A SAML admin login that reaches the service shows up there as an Application Auth request (HPE's own SSO write-ups show exactly that), and the reject reason tells you which gate you're stuck at. If there's nothing in Access Tracker at all, you're at gate 1 or gate 2: the request never got far enough to hit a service. A SAML tracer extension in the browser shows you the assertion itself, which is the fastest way to see whether a claim is actually being sent.</p>
-<p>And a bit of sequencing advice straight from HPE support: enable SSO for Guest or Insight first, prove the round trip works, then tick Policy Manager. A broken SSO build on Policy Manager is a lockout, and you'd rather find gate 3 on the Insight login page.</p>
-<p>One more setting worth knowing on the SSO page while you're building this for MFA: Force Authentication, off by default. Turn it on and ClearPass makes the IdP re-authenticate even when the admin already has a live session with Microsoft, which is usually what the security team meant when they asked for MFA on the GUI.</p>
-<h2>Checklist</h2>
-<table>
-<thead>
-<tr>
-<th>Check</th>
-<th>Where</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Clocks in sync</td>
-<td>NTP on every node</td>
-</tr>
-<tr>
-<td>Policy Manager ticked under Enable SSO for</td>
-<td>Configuration, Identity, Single Sign-On</td>
-</tr>
-<tr>
-<td>IdP signing cert imported to the Trust List, then selected</td>
-<td>Same page, after Certificate Trust List</td>
-</tr>
-<tr>
-<td>Entity ID and Reply URL copied from SP metadata</td>
-<td>Entra enterprise app</td>
-</tr>
-<tr>
-<td>Every cluster node's ACS URL is a Reply URL in Entra</td>
-<td>Entra enterprise app</td>
-</tr>
-<tr>
-<td>Policy Manager Admin SSO Login service exists, type Aruba Application Authorization</td>
-<td>Service Templates and Wizards</td>
-</tr>
-<tr>
-<td>Generic Application Enforcement profile maps to a real admin privilege level</td>
-<td>The service's enforcement policy</td>
-</tr>
-<tr>
-<td>Group claim attributes added to the SSO dictionary, if you map roles on groups</td>
-<td>Administration, Dictionaries, Applications</td>
-</tr>
-<tr>
-<td>Force Authentication on, if MFA every time is the requirement</td>
-<td>Single Sign-On page</td>
-</tr>
-<tr>
-<td>Name ID attribute matches what the service looks up</td>
-<td>Entra claims vs ClearPass conditions</td>
-</tr>
-<tr>
-<td>Request visible in Access Tracker</td>
-<td>Monitoring</td>
-</tr>
-</tbody>
-</table>
-<h2>Bottom line</h2>
-<p>SAML everywhere you can, RADIUS and TACACS+ where you must. That was the consensus on the thread and I agree with it. Just know that on ClearPass, SAML is two builds, not one, and the second one is the one that gives you a role.</p></div>
+    <rect x="15" y="122" width="410" height="44" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="32" y="149" class="row" fill="#8BA2AE">Active scan</text>
+    <text x="408" y="149" class="row" fill="#F5A524" text-anchor="end">nothing, no address to aim at</text>
+
+    <rect x="15" y="174" width="410" height="44" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="32" y="201" class="row" fill="#8BA2AE">RADIUS attributes</text>
+    <text x="408" y="201" class="row" fill="#B0C4CF" text-anchor="end">a MAC, at auth time, too late</text>
+
+    <text x="15" y="248" class="t note" fill="#F5A524">Unknown device, generic role, and a re-auth needed before policy can be right.</text>
+  </g>
+
+  <text x="470" y="58" class="t n">WITH SNMP ARP READ</text>
+  <g class="t">
+    <rect x="470" y="70" width="415" height="44" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="487" y="97" class="row" fill="#8BA2AE">DHCP fingerprint</text>
+    <text x="868" y="97" class="row" fill="#8BA2AE" text-anchor="end">still nothing, and that is fine</text>
+
+    <rect x="470" y="122" width="415" height="44" rx="8" fill="#8CE05E" fill-opacity="0.12" stroke="#8CE05E" stroke-opacity="0.55"/>
+    <text x="487" y="149" class="row" fill="#8CE05E">ARP table off the L3 gateway</text>
+    <text x="868" y="149" class="row" fill="#B6F08F" text-anchor="end">IP bound to MAC, on a poll cycle</text>
+
+    <rect x="470" y="174" width="415" height="44" rx="8" fill="#8CE05E" fill-opacity="0.12" stroke="#8CE05E" stroke-opacity="0.55"/>
+    <text x="487" y="201" class="row" fill="#8CE05E">Active scan, now targeted</text>
+    <text x="868" y="201" class="row" fill="#B6F08F" text-anchor="end">category on the endpoint before auth</text>
+
+    <text x="470" y="248" class="t note" fill="#8CE05E">Classified on the first authentication attempt, with no client involvement at all.</text>
+  </g>
+
+  <rect x="15" y="266" width="870" height="52" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+  <text x="32" y="290" class="t note">A DHCP relay pointed at ClearPass is the usual fix for a blind segment, and it does nothing here. There is no</text>
+  <text x="32" y="310" class="t note">DHCP conversation to relay. The gateway's ARP table is the only place that MAC and that IP appear together.</text>
+</svg><figcaption>What Profiler knows about a statically addressed device behind a firewall, with SNMP ARP polling and without it. The DHCP column is empty either way.</figcaption></figure>
+<p>SNMP ARP polling is what breaks that deadlock. ClearPass reads the ARP table off the layer 3 gateway for that VLAN, which is the one device on the network that is guaranteed to have seen the endpoint's MAC and IP together. That single binding is the hinge. Once ClearPass has it, the endpoint record exists, the IP is attached to the MAC, and everything else Profiler can do has somewhere to point.</p>
+<p>The reason this is better than profiling after the fact is timing. The ARP read happens on a poll cycle, on its own, with no client involvement. By the time the device sends its first MAC authentication request, ClearPass already has a device category on the endpoint and your enforcement policy can match it on the first attempt. The alternative is a policy that has to reject or under-authorise the device once, profile it, and then wait for a re-auth to put it where it belongs. That works on a laptop that retries in seconds. It does not work on a controller that gives up and needs a site visit.</p>
+<h2>The wrong assumption</h2>
+<p>The ARP read is worth protecting, so people protect it, and they protect it with a rule naming the publisher. That is the mistake.</p>
+<p>SNMP read is not a publisher function. The node that performs it is chosen by the <strong>Policy Manager Zone</strong>, which is a field on two different pages that nobody checks together.</p>
+<p>Every cluster node has a zone, under Administration, Server Manager, Server Configuration, the node, System tab. Every network device also has a zone, under Configuration, Network, Devices, the device, SNMP Read Settings tab. The zone is the thing that says "these nodes talk to that gear", and it exists precisely so a node in one data centre does not poll a switch in another.</p>
+<p>In my lab both nodes sat in Zone 1. The switch sat in <code>default</code>. Three zones existed and one of them had no servers in it at all.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-label="The Policy Manager Zone is set on the cluster node and again on the network device, and a mismatch between the two is never reported">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .n{fill:#8BA2AE;font-size:10.5px;font-family:JetBrains Mono,ui-monospace,Menlo,monospace;letter-spacing:1.5px}
+    .path{fill:#8BA2AE;font-size:11px;font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .val{font-size:15px;font-weight:700}
+    .note{fill:#B0C4CF;font-size:12px}
+  </style></defs>
+
+  <text x="15" y="26" class="t hd">One setting, two pages, no validation between them.</text>
+
+  <g class="t">
+    <rect x="15" y="52" width="400" height="128" rx="10" fill="rgba(3,10,16,0.5)" stroke="#5ED2DA" stroke-opacity="0.55"/>
+    <text x="34" y="78" class="n">WHERE THE NODES ARE</text>
+    <text x="34" y="100" class="path">Administration › Server Manager ›</text>
+    <text x="34" y="118" class="path">Server Configuration › node › System</text>
+    <text x="34" y="152" class="val" fill="#5ED2DA">Policy Manager Zone:  Zone 1</text>
+    <text x="34" y="171" class="note" font-size="11.5">Both nodes. Publisher and subscriber.</text>
+
+    <rect x="485" y="52" width="400" height="128" rx="10" fill="rgba(3,10,16,0.5)" stroke="#F5A524" stroke-opacity="0.6"/>
+    <text x="504" y="78" class="n">WHERE THE SWITCH IS</text>
+    <text x="504" y="100" class="path">Configuration › Network › Devices ›</text>
+    <text x="504" y="118" class="path">device › SNMP Read Settings</text>
+    <text x="504" y="152" class="val" fill="#F5A524">Policy Manager Zone:  default</text>
+    <text x="504" y="171" class="note" font-size="11.5">A zone with no servers in it.</text>
+
+    <path d="M415 116 L470 116" stroke="#F5A524" stroke-width="1.6" fill="none" stroke-dasharray="5 4"/>
+    <path d="M433 104 L451 128 M451 104 L433 128" stroke="#F5A524" stroke-width="2.2"/>
+  </g>
+
+  <rect x="15" y="196" width="870" height="90" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+  <text x="32" y="222" class="t note">Saving either page succeeds. No warning, no event, no red text. The polling carries on, so nothing looks broken,</text>
+  <text x="32" y="244" class="t note">and the node it comes from is not the one your firewall rule names. Read both pages before you write the rule.</text>
+  <text x="32" y="272" class="t note" fill="#8BA2AE">Device Info Poll Interval, meanwhile, lives in Service Parameters on each node rather than in Cluster-Wide Parameters.</text>
+</svg><figcaption>The two places the zone is set, and what it looks like when they disagree. Nothing in the interface objects.</figcaption></figure>
+<p>Nothing warns you. There is no red text, no validation on save, no event. The polling keeps happening, which is why it takes months to notice, and the node it comes from is not the one you assumed.</p>
+<p>So the checklist is short, and you do it before you touch a firewall:</p>
+<ol>
+<li>Read the zone on every node. Server Configuration lists it in a column, so this is one screen.</li>
+<li>Read the zone on the network device. Different page, different tab.</li>
+<li>If they do not match, that is your finding. Fix the device to match the zone your nodes are in rather than inventing a new zone.</li>
+</ol>
+<p>While you are in there, note that <code>Device Info Poll Interval</code> lives in Service Parameters on <strong>each node</strong>, under ClearPass network services, not in Cluster-Wide Parameters. A cluster wide behaviour configured per node is exactly the kind of thing that hides a discrepancy for a year.</p>
+<h2>Proving it from the switch</h2>
+<p>Zones tell you what should happen. A counter tells you what did. On AOS-CX the cheapest proof is a control plane ACL that permits what is already permitted and counts it on the way through.</p>
+<p>Two things before you paste this. Rule 30 is not optional, because an ACL ends in an implicit deny and a control plane ACL without a trailing permit will take the box away from you. And check which VRF your management session is on. If you manage the switch out of band on the <code>mgmt</code> VRF and the SNMP poll arrives on an SVI in <code>default</code>, the two never touch each other, which is the safest way to run this.</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div><pre><code><span class="ln"><span class="pr">sw-lab-01# </span>configure</span><span class="ln">sw-lab-01(config)# access-list ip CPPM-SNMP-WATCH</span><span class="ln">sw-lab-01(config-acl-ip)#   10 permit udp 10.100.0.51/32 any eq 161 count</span><span class="ln">sw-lab-01(config-acl-ip)#   20 permit udp 10.100.0.52/32 any eq 161 count</span><span class="ln">sw-lab-01(config-acl-ip)#   30 permit any any any count</span><span class="ln">sw-lab-01(config-acl-ip)# exit</span><span class="ln">sw-lab-01(config)# apply access-list ip CPPM-SNMP-WATCH control-plane vrf default</span></code></pre></div>
+<p>Clear the counters, wait out one poll interval, and read them back.</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div><pre><code><span class="ln"><span class="pr">sw-lab-01# </span>clear access-list hitcounts ip CPPM-SNMP-WATCH control-plane vrf default</span><span class="ln"><span class="pr">sw-lab-01# </span>show access-list hitcounts ip CPPM-SNMP-WATCH control-plane vrf default</span><span class="ln"> </span><span class="ln">Statistics for ACL CPPM-SNMP-WATCH (ipv4):</span><span class="ln">  Control Plane (vrf default):</span><span class="ln"> </span><span class="ln">           Hit Count  Configuration</span><span class="ln">                   0    10 permit udp 10.100.0.51/32 any eq 161 count</span><span class="ln hot">                  48    20 permit udp 10.100.0.52/32 any eq 161 count</span><span class="ln">               11207    30 permit any any any count</span></code></pre></div>
+<p>That is the whole answer in one screen. Rule 10 is the publisher and it never fired. The polling came from the subscriber, and an ACL that had named only <code>10.100.0.51</code> would have dropped every one of those packets.</p>
+<p>Take it off when you are done. It costs nothing to leave, but a counting ACL on the control plane is not something to forget about.</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div><pre><code><span class="ln"><span class="pr">sw-lab-01# </span>configure</span><span class="ln">sw-lab-01(config)# no apply access-list ip CPPM-SNMP-WATCH control-plane vrf default</span><span class="ln">sw-lab-01(config)# no access-list ip CPPM-SNMP-WATCH</span></code></pre></div>
+<p>The numbers above are illustrative rather than a transcript of one run. The pattern is the point: one rule at zero, the other one climbing, and it is not the rule you expected.</p>
+<p>If you would rather not touch the control plane at all, mirror the uplink to a laptop and filter on <code>udp port 161</code>. Slower to set up, same answer, no chance of locking yourself out.</p>
+<h2>Proving it from ClearPass</h2>
+<p>Do it from both ends, because two independent sources agreeing is what turns a finding into something you can put in a design document.</p>
+<p>A capture on each node, filtered to the conversation, tells you which one is talking:</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div><pre><code><span class="ln">udp port 161 and host 10.201.13.250</span></code></pre></div>
+<p>Run it on the publisher and on every subscriber at the same time, for longer than one poll interval. The node that produces output is your answer, and if you only ever capture on the publisher you will conclude, wrongly, that SNMP polling is broken.</p>
+<p>One thing that trips people up on the way: the Event Viewer has a <strong>Select Server</strong> dropdown at the top right, and it defaults to whichever node you logged into. Logs are per node. Looking at the publisher and seeing nothing is not evidence that nothing happened.</p>
+<h2>Use SNMPv3, and make both ends agree</h2>
+<p>If you are going to send credentials to every access switch in the estate on a timer, do not send a v2c community string. SNMPv3 with authentication and privacy is not more work, it is the same work in more fields.</p>
+<p>On the switch:</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div><pre><code><span class="ln">sw-lab-01(config)# snmpv3 user cpsnmp auth sha auth-pass plaintext &lt;auth-passphrase&gt; priv aes priv-pass plaintext &lt;priv-passphrase&gt;</span><span class="ln">sw-lab-01(config)# snmp-server vrf default</span><span class="ln">sw-lab-01(config)# exit</span><span class="ln"><span class="pr">sw-lab-01# </span>show snmpv3 users</span></code></pre></div>
+<p>On ClearPass, the matching side is Configuration, Network, Devices, the device, SNMP Read Settings. Set the read setting to SNMP v3 with Authentication using SHA and with Privacy, the privacy protocol to AES_128, and the username to the one you just created. Then tick <strong>Read ARP table from this device</strong>, which is the checkbox that does the work described at the top of this post and is off by default.</p>
+<p>Three ways this fails quietly, in the order I hit them:</p>
+<p>The authentication protocol and privacy protocol have to match exactly on both ends. SHA against MD5, or AES against DES, fails as a timeout rather than as an authentication error, so it reads like a reachability problem.</p>
+<p>The SNMP agent has to be enabled on the VRF the poll arrives on. A user that exists on a switch with no agent on that VRF is a user that never answers.</p>
+<p>And the zone has to match, which is where this post started.</p>
+<h2>What right looks like</h2>
+<p>Permit every node in the cluster, not the one you log into. Set the device zone to the zone your nodes actually live in. Tick the ARP checkbox. Then spend ten minutes with a counting ACL to prove that the packets arrive from where you think they do, because the alternative is finding out during a cutover, from a printer.</p></div>
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>ClearPass, properly <span class="meta">part 1 of 3</span></h3><div class="ser-steps"><a class="ser-step here" href="saml-login-validates-and-still-fails.html"><span class="ser-n">1</span><span class="ser-t">Your ClearPass SAML Login Validates and Still Fails</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="clearpass-intune-eap-tls-lab.html"><span class="ser-n">2</span><span class="ser-t">Your ClearPass Intune Integration Probably Authenticates Nothing</span><span class="ser-tag">Next</span></a><a class="ser-step" href="which-clearpass-node-polls-your-switch.html"><span class="ser-n">3</span><span class="ser-t">Which ClearPass Node Is Actually Polling Your Switch</span></a></div></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="saml-login-validates-and-still-fails" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>ClearPass, properly <span class="meta">part 3 of 3</span></h3><div class="ser-steps"><a class="ser-step" href="saml-login-validates-and-still-fails.html"><span class="ser-n">1</span><span class="ser-t">Your ClearPass SAML Login Validates and Still Fails</span></a><a class="ser-step" href="clearpass-intune-eap-tls-lab.html"><span class="ser-n">2</span><span class="ser-t">Your ClearPass Intune Integration Probably Authenticates Nothing</span></a><a class="ser-step here" href="which-clearpass-node-polls-your-switch.html"><span class="ser-n">3</span><span class="ser-t">Which ClearPass Node Is Actually Polling Your Switch</span><span class="ser-tag">You are here</span></a></div></section>
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="which-clearpass-node-polls-your-switch" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -810,7 +858,7 @@ Entra enterprise app
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="one-pilot-ap-converts-all-of-them.html"><span class="eyebrow">Older</span>One Pilot AP Converts All Hundred of Them</a><a class="pn g-card" href="channel-173-survey-blind-spot.html"><span class="eyebrow">Newer</span>Your Survey Tool Can&#x27;t See Channel 173</a></div>
+      <div class="postnav"><a class="pn g-card" href="mesh-planner-held-against-a-real-point.html"><span class="eyebrow">Older</span>I Held the Mesh Planner Against a Real Point and It Was Wrong About One Thing</a></div>
     </section>
   </article>
 </div>
