@@ -273,6 +273,7 @@ def main():
     ap.add_argument("--site", help="site name, for its address and position (default: the group name)")
     ap.add_argument("--out", default="site.json")
     ap.add_argument("--dry-run", action="store_true", help="print the calls and make none")
+    ap.add_argument("--keys", action="store_true", help="print every field name the AP list and AP detail records carry, with a sample value for any that looks like a position, then stop (GET only, writes nothing)")
     ap.add_argument("--story", type=float, default=0, metavar="HOURS", help="also pull what happened: every client's hops, every radio's noise and utilisation, reboots, channel moves and the audit trail over this window")
     args = ap.parse_args()
     DRY = args.dry_run
@@ -301,7 +302,24 @@ def main():
             break
     print(f"  {len(aps)} access points")
 
-    out_aps, by_eth = [], {}
+    if args.keys:
+        # what the tenant actually returns, so "does the API carry an AP position" is read, not remembered
+        def walk(o, pre, into):
+            if isinstance(o, dict):
+                for k, v in o.items(): walk(v, pre + k + ".", into)
+            elif isinstance(o, list) and o and isinstance(o[0], dict): walk(o[0], pre + "[].", into)
+            else: into[pre[:-1]] = o
+        for a in aps:
+            flat = {}
+            walk(a, "", flat); walk(get(tok, ENDPOINTS["ap"].format(serial=a["serial"]), quiet=True) or {}, "detail.", flat)
+            geo = {k: v for k, v in flat.items() if re.search(r"lat|lon|gps|gnss|geo|alt|position|locat|ftm|range", k, re.I)}
+            print(f"  {a.get('name')}: {len(flat)} fields; position-like: " + (", ".join(f"{k}={v!r}" for k, v in geo.items()) if geo else "none"))
+        print("  all field names, once:")
+        names = set()
+        for a in aps:
+            flat = {}; walk(a, "", flat); names.update(flat)
+        print("   " + ", ".join(sorted(names)))
+        return
     for a in aps:
         d = get(tok, ENDPOINTS["ap"].format(serial=a["serial"]), quiet=True) or {}
         radios = []
