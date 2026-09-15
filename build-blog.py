@@ -29,6 +29,7 @@ CUSTOM_DOMAIN = "networkfieldnotes.com"
 E = lambda t: html.escape(str(t), quote=True)
 CSS = open(os.path.join(ROOT, "theme", "style.css"), encoding="utf-8").read()
 JS = open(os.path.join(ROOT, "theme", "app.js"), encoding="utf-8").read()
+GROUND_JS = open(os.path.join(ROOT, "theme", "ground.js"), encoding="utf-8").read()
 
 def svg(name):
     p = os.path.join(ROOT, "graphics", name)
@@ -216,6 +217,9 @@ def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False,
 <style>{CSS}</style></head>
 <body{body_cls}>
 <div class="ground"></div>
+<canvas id="nfn-fx" aria-hidden="true"></canvas>
+<div class="gx-pane" aria-hidden="true"></div>
+<div class="gx-grain" aria-hidden="true"></div>
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
   <a class="brand" href="{root}"><span class="mk"><img src="{up}logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">{E(SITE["name"])}</span></a>
@@ -233,6 +237,7 @@ def foot(bot, up=""):
 </div></footer>
 </div>
 <script>{JS}</script>
+<script>{GROUND_JS}</script>
 </body></html>'''
 
 

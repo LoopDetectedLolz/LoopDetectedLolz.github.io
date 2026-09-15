@@ -31,6 +31,7 @@
   --ease:cubic-bezier(0.32,0.72,0,1);
   --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
   --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --gb:6px; --veil:0.80;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -42,6 +43,17 @@ body{min-height:100vh;min-height:100svh;background:var(--ink);color:var(--text);
   radial-gradient(900px 620px at 12% -6%,rgba(47,168,224,0.42),transparent 62%),
   radial-gradient(760px 560px at 88% 8%,rgba(140,224,94,0.26),transparent 60%),
   radial-gradient(1000px 700px at 60% 108%,rgba(23,138,168,0.34),transparent 62%),var(--ink)}
+/* topographic ground: .ground is the fallback floor, the canvas is the map, .gx-pane is the
+   glass, .gx-grain is the frost. Frost stays sharp on purpose; scatter lives on the pane. */
+#nfn-fx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block;
+  filter:blur(var(--gb));transform:scale(1.10);transform-origin:center}
+.gx-pane{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--veil);
+  background:linear-gradient(158deg,rgba(255,255,255,0.038) 0%,rgba(255,255,255,0.010) 36%,rgba(255,255,255,0) 60%),
+             radial-gradient(1500px 950px at 50% 122%,rgba(3,10,16,0.22),transparent 72%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(255,255,255,0.04)}
+.gx-grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:calc(var(--veil) * 0.46);
+  mix-blend-mode:overlay;background-size:170px 170px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23n)'/%3E%3C/svg%3E")}
 .page{position:relative;z-index:1}
 .wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(var(--gutter),env(safe-area-inset-left));padding-right:max(var(--gutter),env(safe-area-inset-right))}
 .narrow{max-width:900px;margin:0 auto}
@@ -490,6 +502,9 @@ html.qam-fs .rig{display:none}
 </style></head>
 <body>
 <div class="ground"></div>
+<canvas id="nfn-fx" aria-hidden="true"></canvas>
+<div class="gx-pane" aria-hidden="true"></div>
+<div class="gx-grain" aria-hidden="true"></div>
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
   <a class="brand" href="/"><span class="mk"><img src="logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
@@ -2294,6 +2309,61 @@ html.qam-fs .rig{display:none}
     return { steps: steps, hops: T.maxDepth, portals: portals.length, orphans: plan.unreachable };
   };
 
+  /* ── what the AP knows about where it is ──────────────────────────────
+     Read from an AP-635 on AOS 10.8.1.0 over Central's remote console, 2026-09-14.
+     `show ap gps summary` carries the fix as NMEA sentences ($GNGGA, $GNGNS,
+     $GNRMC: latitude, longitude, altitude), `show ap gps ellipse` the error
+     ellipse (major and minor axis in metres, angle in degrees) and a `hop` and
+     `distance` for a position inherited over a ranged neighbour, `show ap range
+     scanning-results` the FTM table (peer BSSID, average RTT in picoseconds,
+     RSSI, standard deviation in ps, channel, valid RTTs). These parse the pasted
+     text; nothing here talks to an AP. */
+  M.gpsParse = function (text) {
+    var t = String(text || ""), out = {}, m;
+    m = /\$GN(?:GGA|GNS|RMC)\s+(-?\d+\.\d+),\s*(-?\d+\.\d+)\s+(-?\d+(?:\.\d+)?)?\s*M?/i.exec(t);
+    if (m) { out.lat = +m[1]; out.lon = +m[2]; if (m[3] !== undefined) out.alt = +m[3]; }
+    var kv = function (k) { var r = new RegExp("^\\s*" + k + "\\s+(-?\\d+(?:\\.\\d+)?)", "mi").exec(t); return r ? +r[1] : undefined; };
+    if (out.lat === undefined && kv("latitude") !== undefined) { out.lat = kv("latitude"); out.lon = kv("longitude"); }
+    if (kv("major-axis") !== undefined) { out.major = kv("major-axis"); out.minor = kv("minor-axis"); out.angle = kv("angle"); }
+    if (kv("hop") !== undefined) out.hop = kv("hop");
+    if (kv("distance") !== undefined) out.viaDistance = kv("distance");
+    m = /^\s*time\s+(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)/mi.exec(t); if (m) out.time = m[1];
+    m = /GPS Firmware\s+(\w+)/i.exec(t); if (m) out.chip = m[1];
+    var cons = []; t.replace(/^\s*(\w+) Constellation\s+Enable/gmi, function (_, c) { cons.push(c); return _; });
+    if (cons.length) out.constellations = cons;
+    return isFinite(out.lat) && isFinite(out.lon) ? out : null;
+  };
+
+  /* an FTM round trip in picoseconds is a distance: light covers 0.29979 mm per
+     picosecond and the trip is there and back */
+  M.ftmMetres = function (rttPs) { return rttPs * 299792458e-12 / 2; };
+  M.ftmParse = function (text) {
+    var rows = [];
+    String(text || "").split("\n").forEach(function (line) {
+      var m = /^\s*([0-9a-f]{2}(?::[0-9a-f]{2}){5})\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(\S+)\s+(\d+)\s+(\d+)/i.exec(line);
+      if (!m) return;
+      var rtt = +m[2], sd = +m[4];
+      rows.push({ bssid: m[1].toLowerCase(), rttPs: rtt, rssi: +m[3], sdPs: sd, channel: m[5], validRtts: +m[6], ftms: +m[7],
+                  metres: M.ftmMetres(rtt), plusMinus: M.ftmMetres(sd) });
+    });
+    return rows;
+  };
+
+  /* fixes to a field: equirectangular about the centroid, north up, width and depth
+     from their own spans, the same projection the kit and the KML reader use. Returns
+     the field size and a point per fix, plus the error ellipses in metres. */
+  M.geoPlace = function (fixes) {
+    var pts = fixes.filter(function (f) { return f && isFinite(f.lat) && isFinite(f.lon); });
+    if (pts.length < 1) return null;
+    var lat0 = 0, lon0 = 0;
+    pts.forEach(function (f) { lat0 += f.lat; lon0 += f.lon; }); lat0 /= pts.length; lon0 /= pts.length;
+    var kx = Math.cos(lat0 * Math.PI / 180) * 111320, ky = 110574, sx = 60, sy = 40;
+    var rel = pts.map(function (f) { var x = (f.lon - lon0) * kx, y = -(f.lat - lat0) * ky; sx = Math.max(sx, Math.abs(x) * 2.6 + 2 * (f.major || 0)); sy = Math.max(sy, Math.abs(y) * 2.6 + 2 * (f.major || 0)); return { x: x, y: y, f: f }; });
+    var fw = NFN.clamp(Math.round(sx / 10) * 10, 60, 1200), fd = NFN.clamp(Math.round(sy / 10) * 10, 40, 800);
+    return { fw: fw, fd: fd, lat0: lat0, lon0: lon0, kx: kx, ky: ky,
+             points: rel.map(function (q) { return { x: NFN.clamp(fw / 2 + q.x, 2, fw - 2), y: NFN.clamp(fd / 2 + q.y, 2, fd - 2), fix: q.f }; }) };
+  };
+
   /* ── picking the antennas ──────────────────────────────────────────────
      The customer knows where a mast can go and how tall it is. What goes on top
      is the question, and it has a search-shaped answer: start everyone on an
@@ -3563,7 +3633,7 @@ html.qam-fs .rig{display:none}
 </div>
 
 <div class="t-tool" id="tool-air" hidden>
-<section class="qam g-card" id="qam" data-title="I Held the Mesh Planner Against a Real Point and It Was Wrong About One Thing" data-traffic="{&quot;ping&quot;:{&quot;name&quot;:&quot;Ping (ICMP, cleartext)&quot;,&quot;pcap&quot;:&quot;demo/nfn-ping.pcap&quot;,&quot;kind&quot;:&quot;ping&quot;,&quot;frames&quot;:[&quot;08012c000200000000010200000000020200000000030001aaaa030000000800450000521d4b400040019954c000020ac0000201080028344e4600014e6574776f726b204669656c64204e6f7465733a2074686973206973207768617420636c65617274657874206c6f6f6b73206c696b65cc4e176a&quot;],&quot;fields&quot;:[[[0,2,&quot;Frame Control&quot;,&quot;0x0801: type Data, To DS = 1 (client to AP)&quot;],[2,2,&quot;Duration&quot;,&quot;44 microseconds reserved for the ACK&quot;],[4,6,&quot;Address 1&quot;,&quot;receiver, the AP&#x27;s BSSID 02:00:00:00:00:01&quot;],[10,6,&quot;Address 2&quot;,&quot;transmitter, the client 02:00:00:00:00:02&quot;],[16,6,&quot;Address 3&quot;,&quot;final destination 02:00:00:00:00:03, the wired side&quot;],[22,2,&quot;Sequence Control&quot;,&quot;sequence number 16, fragment 0&quot;],[24,8,&quot;LLC / SNAP&quot;,&quot;AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4&quot;],[32,20,&quot;IPv4 header&quot;,&quot;192.0.2.10 to 192.0.2.1, TTL 64, protocol 1 = ICMP&quot;],[52,8,&quot;ICMP header&quot;,&quot;type 8 echo request, id 0x4e46, sequence 1&quot;],[60,54,&quot;ICMP payload&quot;,&quot;the text, as bytes, in cleartext&quot;],[114,4,&quot;FCS&quot;,&quot;CRC-32 over everything before it; one flipped bit anywhere and this no longer matches&quot;]]],&quot;app&quot;:[{&quot;seq&quot;:1,&quot;to&quot;:&quot;192.0.2.1&quot;}],&quot;note&quot;:&quot;one echo request; the reply would come back the same way&quot;},&quot;voice&quot;:{&quot;name&quot;:&quot;Teams voice (SRTP over UDP)&quot;,&quot;pcap&quot;:&quot;demo/nfn-teams-voice.pcap&quot;,&quot;kind&quot;:&quot;voice&quot;,&quot;count&quot;:15000,&quot;sample&quot;:[&quot;08012c00020000000001020000000002020000000003800caaaa0300000008004500006e3000400040110c4cc000020acb007128c3680d96005a0000806f0c1c0a2f7c404e464e31cccd8589daef2b5b6451f43e1c6ace20e1d3485baa616d3ce30df84f1438bcc66d53d835ddac0597e163f7b096e920fe1c95e039d8f1852b18a435c8fed532c605188202ae2e35a54c87&quot;,&quot;08012c00020000000001020000000002020000000003900caaaa0300000008004500006e3001400040110c4bc000020acb007128c3680d96005a0000806f0c1d0a2f80004e464e31bf3d3ffaf13be8e7eb82eba7daf933807538c2006ecc2d6499e1393a4d809b2154b62b1e32af53c4d605938d8378f449c99d8abd816a5e03de1f35fec9cf009a9f5c61c6a158849bca79&quot;,&quot;08012c00020000000001020000000002020000000003a00caaaa0300000008004500006e3002400040110c4ac000020acb007128c3680d96005a0000806f0c1e0a2f83c04e464e31b84f23947cde84231185e76b354123213e808ccb11ab844b0076b93072db5a8e74cb5a50e3663c0b2d1ec8564f047a49f316e7c4be98a7034dfa0fdb0af883bc440f57c3739b6b90cd18&quot;,&quot;08012c00020000000001020000000002020000000003b00caaaa0300000008004500006e3003400040110c49c000020acb007128c3680d96005a0000806f0c1f0a2f87804e464e31f05513e57e103e8975687e8598055fbefb35de3ca4551a9dfe4ddb7354ebcf0304d6d8d4a89961b80fee6344f263519f0e7f6ecd1c0a57bdbe005e082020a4ec50f365a426324af8f87d&quot;,&quot;08012c00020000000001020000000002020000000003c00caaaa0300000008004500006e3004400040110c48c000020acb007128c3680d96005a0000806f0c200a2f8b404e464e3150f065a51644400377c032df7c45e87c7372a5619e2eaf63199825eff852ea399133c96ac1892588f818d1ea69f1f5410c130461a29ee543683535f657469b80ed45084db6a1e7bc037c&quot;,&quot;08012c00020000000001020000000002020000000003d00caaaa0300000008004500006e3005400040110c47c000020acb007128c3680d96005a0000806f0c210a2f8f004e464e314652fc5adf81a7dd4b252572c4fb8f345cbd3dca714d9c20fe2317446c398d847c6c942d073393a440dfd856057012a18df1076e3b6aa8f0a5cd235802dc0cb60f1827ce9c9a075852b6&quot;,&quot;08012c00020000000001020000000002020000000003e00caaaa0300000008004500006e3006400040110c46c000020acb007128c3680d96005a0000806f0c220a2f92c04e464e3197014e8014d03ff91dbdd1dbc51dbeb2b35fbdc15ae03dcfbbb059b84ce69e21319cd238912583a985eca8c5ae95d50146a74414c3b721d2ed24857a7ed0a44b02c971f534aacb0ef4ba&quot;,&quot;08012c00020000000001020000000002020000000003f00caaaa0300000008004500006e3007400040110c45c000020acb007128c3680d96005a0000806f0c230a2f96804e464e31fc63fe4e72926ccf62a1ee74de460a94e1c3430c0f6e3b67db0671af8eb05adf125b0af928905e7ca6efa75f9dcd360c65d44c7ce17b016ec18c8d8bcb53fa97fc77a8c45f15b59e3385&quot;],&quot;fields&quot;:[[[0,2,&quot;Frame Control&quot;,&quot;0x0801: type Data, To DS = 1 (client to AP)&quot;],[2,2,&quot;Duration&quot;,&quot;44 microseconds reserved for the ACK&quot;],[4,6,&quot;Address 1&quot;,&quot;receiver, the AP&#x27;s BSSID 02:00:00:00:00:01&quot;],[10,6,&quot;Address 2&quot;,&quot;transmitter, the client 02:00:00:00:00:02&quot;],[16,6,&quot;Address 3&quot;,&quot;final destination 02:00:00:00:00:03, the wired side&quot;],[22,2,&quot;Sequence Control&quot;,&quot;sequence number 200 and up, one per packet&quot;],[24,8,&quot;LLC / SNAP&quot;,&quot;AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4&quot;],[32,20,&quot;IPv4 header&quot;,&quot;192.0.2.10 to 203.0.113.40, TTL 64, protocol 17 = UDP&quot;],[52,8,&quot;UDP header&quot;,&quot;port 50024 to 3478, the media relay&quot;],[60,12,&quot;RTP header&quot;,&quot;version 2, payload type 111 (SILK/Opus), sequence, timestamp (48 kHz clock, +960 per 20 ms), SSRC 0x4e464e31&quot;],[72,60,&quot;SRTP payload&quot;,&quot;20 ms of encoded speech under AES-128-CTR; without the key it is noise&quot;],[132,10,&quot;SRTP auth tag&quot;,&quot;HMAC-SHA1-80 over the RTP header and ciphertext; a flipped bit fails this too&quot;],[142,4,&quot;FCS&quot;,&quot;CRC-32 over everything before it&quot;]]],&quot;app&quot;:[{&quot;seq&quot;:3100,&quot;ts&quot;:170884160,&quot;wave&quot;:[0.041,0.064,0.194,0.301,0.132,-0.182,-0.283,-0.158,-0.076,-0.058,0.1,0.32,0.284,-0.007,-0.201,-0.173,-0.147,-0.183,-0.057,0.237,0.353,0.156,-0.064,-0.104,-0.136,-0.256,-0.224,0.072,0.317,0.253,0.072,0.015]},{&quot;seq&quot;:3101,&quot;ts&quot;:170885120,&quot;wave&quot;:[-0.042,-0.238,-0.341,-0.122,0.189,0.254,0.152,0.13,0.104,-0.123,-0.36,-0.281,0.014,0.165,0.145,0.187,0.243,0.057,-0.27,-0.352,-0.143,0.028,0.055,0.153,0.318,0.244,-0.095,-0.314,-0.229,-0.098,-0.078,0.03]},{&quot;seq&quot;:3102,&quot;ts&quot;:170886080,&quot;wave&quot;:[0.289,0.371,0.108,-0.183,-0.216,-0.158,-0.196,-0.142,0.154,0.393,0.271,-0.01,-0.116,-0.125,-0.242,-0.299,-0.048,0.296,0.339,0.138,0.024,-0.008,-0.184,-0.378,-0.252,0.114,0.295,0.207,0.141,0.146,-0.031,-0.342]},{&quot;seq&quot;:3103,&quot;ts&quot;:170887040,&quot;wave&quot;:[-0.389,-0.093,0.16,0.174,0.18,0.271,0.169,-0.191,-0.411,-0.254,-0.009,0.056,0.116,0.307,0.346,0.03,-0.311,-0.315,-0.144,-0.091,-0.033,0.227,0.432,0.249,-0.123,-0.26,-0.19,-0.201,-0.211,0.045,0.39,0.392]},{&quot;seq&quot;:3104,&quot;ts&quot;:170888000,&quot;wave&quot;:[0.084,-0.118,-0.129,-0.217,-0.347,-0.183,0.226,0.412,0.235,0.048,0.011,-0.12,-0.377,-0.379,-0.009,0.306,0.28,0.165,0.17,0.063,-0.277,-0.472,-0.236,0.116,0.208,0.183,0.275,0.269,-0.069,-0.425,-0.379,-0.084]},{&quot;seq&quot;:3105,&quot;ts&quot;:170888960,&quot;wave&quot;:[0.056,0.089,0.269,0.417,0.183,-0.252,-0.392,-0.219,-0.106,-0.081,0.139,0.444,0.394,-0.01,-0.279,-0.24,-0.204,-0.255,-0.079,0.329,0.491,0.216,-0.089,-0.144,-0.189,-0.356,-0.312,0.1,0.44,0.351,0.1,0.021]},{&quot;seq&quot;:3106,&quot;ts&quot;:170889920,&quot;wave&quot;:[-0.058,-0.33,-0.472,-0.169,0.262,0.351,0.21,0.181,0.143,-0.17,-0.498,-0.388,0.02,0.228,0.2,0.258,0.335,0.079,-0.371,-0.485,-0.197,0.039,0.076,0.21,0.435,0.334,-0.13,-0.429,-0.313,-0.134,-0.107,0.041]},{&quot;seq&quot;:3107,&quot;ts&quot;:170890880,&quot;wave&quot;:[0.393,0.505,0.147,-0.248,-0.294,-0.215,-0.266,-0.192,0.209,0.53,0.365,-0.014,-0.157,-0.168,-0.325,-0.401,-0.064,0.397,0.454,0.184,0.032,-0.011,-0.245,-0.503,-0.334,0.151,0.39,0.273,0.186,0.192,-0.041,-0.449]}],&quot;seq0&quot;:3100,&quot;ts0&quot;:170884160,&quot;ssrc&quot;:1313230385,&quot;keys&quot;:{&quot;srtp_key&quot;:&quot;659c611029666f4c075d78397bfe528e&quot;,&quot;srtp_salt&quot;:&quot;24295975e03dfb6ed4e0bac0c808&quot;,&quot;srtp_auth&quot;:&quot;3ba7bd16577577125ceb7276e6d6095c9c7a80b5&quot;},&quot;check&quot;:{&quot;0&quot;:&quot;6487f42a138e1ccb&quot;,&quot;1&quot;:&quot;5620965fe7501ba3&quot;,&quot;7&quot;:&quot;6828e40757d59b26&quot;,&quot;100&quot;:&quot;51932677c5628032&quot;,&quot;1000&quot;:&quot;33153e431066a7d1&quot;,&quot;14999&quot;:&quot;90c4ecd5ca72396e&quot;},&quot;note&quot;:&quot;15,000 packets, 20 ms apart, five minutes of a call; UDP, so a lost packet is a gap&quot;},&quot;chat&quot;:{&quot;name&quot;:&quot;Teams chat (TLS over TCP)&quot;,&quot;pcap&quot;:&quot;demo/nfn-teams-chat.pcap&quot;,&quot;kind&quot;:&quot;chat&quot;,&quot;script&quot;:[{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:21:04&quot;,&quot;text&quot;:&quot;Can you hear me? You keep cutting out.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:21:11&quot;,&quot;text&quot;:&quot;Barely. Is that the warehouse AP again?&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:21:19&quot;,&quot;text&quot;:&quot;Microwave in the break room. Watch the retries.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:21:27&quot;,&quot;text&quot;:&quot;Moving to the next channel now.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:21:38&quot;,&quot;text&quot;:&quot;Better. Crystal clear.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:21:49&quot;,&quot;text&quot;:&quot;Radio is on 149 now, 80 wide. Old channel had utilisation pegged for an hour.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:21:58&quot;,&quot;text&quot;:&quot;Retry rate?&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:22:06&quot;,&quot;text&quot;:&quot;38 percent on 2.4. The 5 GHz radio was clean the whole time.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:22:15&quot;,&quot;text&quot;:&quot;Then why were the scanners on 2.4?&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:22:26&quot;,&quot;text&quot;:&quot;Band steering is off on that SSID. Somebody turned it off for the label printers.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:22:36&quot;,&quot;text&quot;:&quot;Printers are 2.4 only, fine. Scanners do 5. Turn steering back on and exclude the printer OUI.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:22:49&quot;,&quot;text&quot;:&quot;Done. Steering on, printer OUI in the 2.4 only list.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:22:57&quot;,&quot;text&quot;:&quot;Note it in the change log so nobody flips it again.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:23:05&quot;,&quot;text&quot;:&quot;Logged.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:23:12&quot;,&quot;text&quot;:&quot;Roam a scanner across the dock doors and watch the client page.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:23:22&quot;,&quot;text&quot;:&quot;Walking it now. Hold on.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:23:48&quot;,&quot;text&quot;:&quot;Roamed at -67, landed on 5 GHz, MCS 7 at the far door.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:23:56&quot;,&quot;text&quot;:&quot;Good. Still no drops on our call?&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:24:03&quot;,&quot;text&quot;:&quot;None since the channel change.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:24:12&quot;,&quot;text&quot;:&quot;Pull the RF health graph for the ticket before it rolls off.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:24:25&quot;,&quot;text&quot;:&quot;Exported. Also the break room is not on the map, it is behind the racks.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:24:34&quot;,&quot;text&quot;:&quot;Add it to the survey notes. That microwave is a permanent interferer.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:24:44&quot;,&quot;text&quot;:&quot;Want a channel exclusion on 2.4 for that AP?&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:24:53&quot;,&quot;text&quot;:&quot;No. Let the RF management handle it now that steering is on. Watch it tomorrow.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:25:02&quot;,&quot;text&quot;:&quot;Will do. Anything else while I am on the floor?&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:25:11&quot;,&quot;text&quot;:&quot;The mezzanine AP showed 3 dB lower Tx power in the audit. Check its port.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:25:31&quot;,&quot;text&quot;:&quot;It is on a 15 W port. PoE budget again.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:25:39&quot;,&quot;text&quot;:&quot;Of course it is. Log it, we move it to a 30 W port on the refresh.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:25:48&quot;,&quot;text&quot;:&quot;Logged. Heading back to the closet.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:25:55&quot;,&quot;text&quot;:&quot;Send me the screenshots and I will write it up.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:26:02&quot;,&quot;text&quot;:&quot;On the way.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:26:09&quot;,&quot;text&quot;:&quot;Great call quality now, by the way.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:26:16&quot;,&quot;text&quot;:&quot;Told you it was the microwave.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:26:22&quot;,&quot;text&quot;:&quot;You said warehouse AP.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:26:28&quot;,&quot;text&quot;:&quot;I said it was the warehouse AP&#x27;s problem.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:26:35&quot;,&quot;text&quot;:&quot;Sure you did.&quot;}],&quot;sample&quot;:[&quot;08012c000200000000010200000000020200000000030019aaaa0300000008004500008d400040004006fc37c000020acb007128c82201bb1a2b3c005e6f7a005018ffff94d800001703030060000000000000000192a6fdec9e27f627e48ab4963543464abb6dcc7f037ac29df062f332813be87485638260ba817a72d396d920eb48f3fcdd921db37a3d3c6530a9621634239cc5a6aa7a148109811340f8f4330650eeabb3d79e0ce828a57215f329b9&quot;,&quot;08022c000200000000020200000000010200000000031019aaaa0300000008004500008f400140004006fc34cb007128c000020a01bbc8225e6f7a001a2b3c655018fffff8c50000170303006200000000000000021e365d9ae1a0efb72e7d12e44dac3acc08bbe9ee43809444ad6a20f2d5d5b2f495fdfb24a0e6b007f6687dfcb32417a25e1c9c9551e32dc642399ab33655584be3600464beb7697da88b3f6dee8f82f94fa7aed4a3ad6812d7c9005970ab&quot;,&quot;08012c000200000000010200000000020200000000032019aaaa03000000080045000096400240004006fc2cc000020acb007128c82201bb1a2b3c655e6f7a675018ffffae70000017030300690000000000000003b67d4f29e6130acde369516a1f6d29ffd9f9f3a179f5aad1d91697bc5244a50cad8df8054167021121ca51ea9632fd8245aeb0b147df6795efd77251116e274cdf9e6dcfa989e2d9e83ea20da3cce94c2f61bcbafd325fe41cf1737b784be2e14c8dcd5482&quot;,&quot;08022c000200000000020200000000010200000000033019aaaa03000000080045000087400340004006fc3acb007128c000020a01bbc8225e6f7a671a2b3cd35018ffff8daf0000170303005a0000000000000004b775d170deaf2784278dca4911c7cd4d9ab67fe5db8cb3559f2379f3285104585253c7ddaf96fa4ae049efea2e89bd37e0be1fe048f44323617de953a07a4d5f71dee213f7e5b6f61d78eb7eaa99dbfeada3186d72d9&quot;],&quot;fields&quot;:[[[0,2,&quot;Frame Control&quot;,&quot;0x0801: type Data, To DS = 1 (client to AP)&quot;],[2,2,&quot;Duration&quot;,&quot;44 microseconds reserved for the ACK&quot;],[4,6,&quot;Address 1&quot;,&quot;receiver, the AP&#x27;s BSSID 02:00:00:00:00:01&quot;],[10,6,&quot;Address 2&quot;,&quot;transmitter, the client 02:00:00:00:00:02&quot;],[16,6,&quot;Address 3&quot;,&quot;final destination 02:00:00:00:00:03, the wired side&quot;],[22,2,&quot;Sequence Control&quot;,&quot;sequence number 400, fragment 0&quot;],[24,8,&quot;LLC / SNAP&quot;,&quot;AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4&quot;],[32,20,&quot;IPv4 header&quot;,&quot;192.0.2.10 to 203.0.113.40, TTL 64, protocol 6 = TCP&quot;],[52,20,&quot;TCP header&quot;,&quot;port 51234 to 443, PSH+ACK, the chat session to the Teams service&quot;],[72,5,&quot;TLS record header&quot;,&quot;0x17 application data, version 3.3, 96 bytes&quot;],[77,8,&quot;TLS nonce&quot;,&quot;explicit nonce for AES-GCM, counts up per record&quot;],[85,72,&quot;TLS ciphertext&quot;,&quot;the JSON message under AES-128-GCM; 72 bytes of noise without the key&quot;],[157,16,&quot;TLS auth tag&quot;,&quot;GCM tag; a flipped bit fails this before the app ever sees the message&quot;],[173,4,&quot;FCS&quot;,&quot;CRC-32 over everything before it&quot;]],[[0,2,&quot;Frame Control&quot;,&quot;0x0802: type Data, From DS = 1 (AP to client)&quot;],[2,2,&quot;Duration&quot;,&quot;44 microseconds reserved for the ACK&quot;],[4,6,&quot;Address 1&quot;,&quot;receiver, the client 02:00:00:00:00:02&quot;],[10,6,&quot;Address 2&quot;,&quot;transmitter, the AP&#x27;s BSSID 02:00:00:00:00:01&quot;],[16,6,&quot;Address 3&quot;,&quot;original source 02:00:00:00:00:03, the wired side&quot;],[22,2,&quot;Sequence Control&quot;,&quot;sequence number 401, fragment 0&quot;],[24,8,&quot;LLC / SNAP&quot;,&quot;AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4&quot;],[32,20,&quot;IPv4 header&quot;,&quot;203.0.113.40 to 192.0.2.10, TTL 64, protocol 6 = TCP&quot;],[52,20,&quot;TCP header&quot;,&quot;port 443 to 51234, PSH+ACK, the chat session to the Teams service&quot;],[72,5,&quot;TLS record header&quot;,&quot;0x17 application data, version 3.3, 98 bytes&quot;],[77,8,&quot;TLS nonce&quot;,&quot;explicit nonce for AES-GCM, counts up per record&quot;],[85,74,&quot;TLS ciphertext&quot;,&quot;the JSON message under AES-128-GCM; 74 bytes of noise without the key&quot;],[159,16,&quot;TLS auth tag&quot;,&quot;GCM tag; a flipped bit fails this before the app ever sees the message&quot;],[175,4,&quot;FCS&quot;,&quot;CRC-32 over everything before it&quot;]],[[0,2,&quot;Frame Control&quot;,&quot;0x0801: type Data, To DS = 1 (client to AP)&quot;],[2,2,&quot;Duration&quot;,&quot;44 microseconds reserved for the ACK&quot;],[4,6,&quot;Address 1&quot;,&quot;receiver, the AP&#x27;s BSSID 02:00:00:00:00:01&quot;],[10,6,&quot;Address 2&quot;,&quot;transmitter, the client 02:00:00:00:00:02&quot;],[16,6,&quot;Address 3&quot;,&quot;final destination 02:00:00:00:00:03, the wired side&quot;],[22,2,&quot;Sequence Control&quot;,&quot;sequence number 402, fragment 0&quot;],[24,8,&quot;LLC / SNAP&quot;,&quot;AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4&quot;],[32,20,&quot;IPv4 header&quot;,&quot;192.0.2.10 to 203.0.113.40, TTL 64, protocol 6 = TCP&quot;],[52,20,&quot;TCP header&quot;,&quot;port 51234 to 443, PSH+ACK, the chat session to the Teams service&quot;],[72,5,&quot;TLS record header&quot;,&quot;0x17 application data, version 3.3, 105 bytes&quot;],[77,8,&quot;TLS nonce&quot;,&quot;explicit nonce for AES-GCM, counts up per record&quot;],[85,81,&quot;TLS ciphertext&quot;,&quot;the JSON message under AES-128-GCM; 81 bytes of noise without the key&quot;],[166,16,&quot;TLS auth tag&quot;,&quot;GCM tag; a flipped bit fails this before the app ever sees the message&quot;],[182,4,&quot;FCS&quot;,&quot;CRC-32 over everything before it&quot;]],[[0,2,&quot;Frame Control&quot;,&quot;0x0802: type Data, From DS = 1 (AP to client)&quot;],[2,2,&quot;Duration&quot;,&quot;44 microseconds reserved for the ACK&quot;],[4,6,&quot;Address 1&quot;,&quot;receiver, the client 02:00:00:00:00:02&quot;],[10,6,&quot;Address 2&quot;,&quot;transmitter, the AP&#x27;s BSSID 02:00:00:00:00:01&quot;],[16,6,&quot;Address 3&quot;,&quot;original source 02:00:00:00:00:03, the wired side&quot;],[22,2,&quot;Sequence Control&quot;,&quot;sequence number 403, fragment 0&quot;],[24,8,&quot;LLC / SNAP&quot;,&quot;AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4&quot;],[32,20,&quot;IPv4 header&quot;,&quot;203.0.113.40 to 192.0.2.10, TTL 64, protocol 6 = TCP&quot;],[52,20,&quot;TCP header&quot;,&quot;port 443 to 51234, PSH+ACK, the chat session to the Teams service&quot;],[72,5,&quot;TLS record header&quot;,&quot;0x17 application data, version 3.3, 90 bytes&quot;],[77,8,&quot;TLS nonce&quot;,&quot;explicit nonce for AES-GCM, counts up per record&quot;],[85,66,&quot;TLS ciphertext&quot;,&quot;the JSON message under AES-128-GCM; 66 bytes of noise without the key&quot;],[151,16,&quot;TLS auth tag&quot;,&quot;GCM tag; a flipped bit fails this before the app ever sees the message&quot;],[167,4,&quot;FCS&quot;,&quot;CRC-32 over everything before it&quot;]]],&quot;keys&quot;:{&quot;tls_key&quot;:&quot;f212a1118f6497355967acb82f2d6b05&quot;,&quot;tls_iv&quot;:&quot;8224adff&quot;},&quot;check&quot;:{&quot;0&quot;:&quot;09681e520e47dd74&quot;,&quot;1&quot;:&quot;e8d14bbc73df1d34&quot;,&quot;2&quot;:&quot;4cffcc9599d3b206&quot;,&quot;3&quot;:&quot;96d4191a0b4f6242&quot;,&quot;4&quot;:&quot;9d1292fbdd6500ef&quot;,&quot;5&quot;:&quot;2006a39156b5ece8&quot;,&quot;6&quot;:&quot;aae9414bbcadaafe&quot;,&quot;7&quot;:&quot;b0204ab76bc6872c&quot;,&quot;8&quot;:&quot;d6187a63a958bc22&quot;,&quot;9&quot;:&quot;7645ebf2bfd63750&quot;,&quot;10&quot;:&quot;d20d9ae3f1829a7d&quot;,&quot;11&quot;:&quot;bb08a3a6df510ab2&quot;,&quot;12&quot;:&quot;b69e533013c66ea6&quot;,&quot;13&quot;:&quot;5e22415a7b5dde54&quot;,&quot;14&quot;:&quot;80bf63c8b3cffe22&quot;,&quot;15&quot;:&quot;f7c6ad6c792a65eb&quot;,&quot;16&quot;:&quot;4f83af59954279d2&quot;,&quot;17&quot;:&quot;f93a82cf5f6e04bd&quot;,&quot;18&quot;:&quot;5a19d7ba7381db63&quot;,&quot;19&quot;:&quot;36173c34f6e5a2a1&quot;,&quot;20&quot;:&quot;e720be561db1c94e&quot;,&quot;21&quot;:&quot;a4e3b8f6a5d49a6d&quot;,&quot;22&quot;:&quot;3bd377f3e8616db5&quot;,&quot;23&quot;:&quot;ea01ea8e3c10bedc&quot;,&quot;24&quot;:&quot;f5834b549f17dd81&quot;,&quot;25&quot;:&quot;6c6bffbd5ee38443&quot;,&quot;26&quot;:&quot;6af8e844b860aced&quot;,&quot;27&quot;:&quot;ca296f526ac722ca&quot;,&quot;28&quot;:&quot;628ae7384cd45432&quot;,&quot;29&quot;:&quot;0a58cb340afc468f&quot;,&quot;30&quot;:&quot;b74fbc74643c609a&quot;,&quot;31&quot;:&quot;f2c48195ef656499&quot;,&quot;32&quot;:&quot;348053527b5afaa4&quot;,&quot;33&quot;:&quot;98d073d42832db8f&quot;,&quot;34&quot;:&quot;604eea7531d75607&quot;,&quot;35&quot;:&quot;818c5607c3229297&quot;},&quot;note&quot;:&quot;36 messages over five minutes, one TLS record each; TCP, so a lost frame is retransmitted and the message arrives late&quot;}}" data-rise aria-label="Live modulation demo: a real 118-byte Wi-Fi frame from a packet capture sent over the air from a Yagi antenna to a QAM constellation, from real time down to single photons">
+<section class="qam g-card" id="qam" data-title="Which ClearPass Node Is Actually Polling Your Switch" data-traffic="{&quot;ping&quot;:{&quot;name&quot;:&quot;Ping (ICMP, cleartext)&quot;,&quot;pcap&quot;:&quot;demo/nfn-ping.pcap&quot;,&quot;kind&quot;:&quot;ping&quot;,&quot;frames&quot;:[&quot;08012c000200000000010200000000020200000000030001aaaa030000000800450000521d4b400040019954c000020ac0000201080028344e4600014e6574776f726b204669656c64204e6f7465733a2074686973206973207768617420636c65617274657874206c6f6f6b73206c696b65cc4e176a&quot;],&quot;fields&quot;:[[[0,2,&quot;Frame Control&quot;,&quot;0x0801: type Data, To DS = 1 (client to AP)&quot;],[2,2,&quot;Duration&quot;,&quot;44 microseconds reserved for the ACK&quot;],[4,6,&quot;Address 1&quot;,&quot;receiver, the AP&#x27;s BSSID 02:00:00:00:00:01&quot;],[10,6,&quot;Address 2&quot;,&quot;transmitter, the client 02:00:00:00:00:02&quot;],[16,6,&quot;Address 3&quot;,&quot;final destination 02:00:00:00:00:03, the wired side&quot;],[22,2,&quot;Sequence Control&quot;,&quot;sequence number 16, fragment 0&quot;],[24,8,&quot;LLC / SNAP&quot;,&quot;AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4&quot;],[32,20,&quot;IPv4 header&quot;,&quot;192.0.2.10 to 192.0.2.1, TTL 64, protocol 1 = ICMP&quot;],[52,8,&quot;ICMP header&quot;,&quot;type 8 echo request, id 0x4e46, sequence 1&quot;],[60,54,&quot;ICMP payload&quot;,&quot;the text, as bytes, in cleartext&quot;],[114,4,&quot;FCS&quot;,&quot;CRC-32 over everything before it; one flipped bit anywhere and this no longer matches&quot;]]],&quot;app&quot;:[{&quot;seq&quot;:1,&quot;to&quot;:&quot;192.0.2.1&quot;}],&quot;note&quot;:&quot;one echo request; the reply would come back the same way&quot;},&quot;voice&quot;:{&quot;name&quot;:&quot;Teams voice (SRTP over UDP)&quot;,&quot;pcap&quot;:&quot;demo/nfn-teams-voice.pcap&quot;,&quot;kind&quot;:&quot;voice&quot;,&quot;count&quot;:15000,&quot;sample&quot;:[&quot;08012c00020000000001020000000002020000000003800caaaa0300000008004500006e3000400040110c4cc000020acb007128c3680d96005a0000806f0c1c0a2f7c404e464e31cccd8589daef2b5b6451f43e1c6ace20e1d3485baa616d3ce30df84f1438bcc66d53d835ddac0597e163f7b096e920fe1c95e039d8f1852b18a435c8fed532c605188202ae2e35a54c87&quot;,&quot;08012c00020000000001020000000002020000000003900caaaa0300000008004500006e3001400040110c4bc000020acb007128c3680d96005a0000806f0c1d0a2f80004e464e31bf3d3ffaf13be8e7eb82eba7daf933807538c2006ecc2d6499e1393a4d809b2154b62b1e32af53c4d605938d8378f449c99d8abd816a5e03de1f35fec9cf009a9f5c61c6a158849bca79&quot;,&quot;08012c00020000000001020000000002020000000003a00caaaa0300000008004500006e3002400040110c4ac000020acb007128c3680d96005a0000806f0c1e0a2f83c04e464e31b84f23947cde84231185e76b354123213e808ccb11ab844b0076b93072db5a8e74cb5a50e3663c0b2d1ec8564f047a49f316e7c4be98a7034dfa0fdb0af883bc440f57c3739b6b90cd18&quot;,&quot;08012c00020000000001020000000002020000000003b00caaaa0300000008004500006e3003400040110c49c000020acb007128c3680d96005a0000806f0c1f0a2f87804e464e31f05513e57e103e8975687e8598055fbefb35de3ca4551a9dfe4ddb7354ebcf0304d6d8d4a89961b80fee6344f263519f0e7f6ecd1c0a57bdbe005e082020a4ec50f365a426324af8f87d&quot;,&quot;08012c00020000000001020000000002020000000003c00caaaa0300000008004500006e3004400040110c48c000020acb007128c3680d96005a0000806f0c200a2f8b404e464e3150f065a51644400377c032df7c45e87c7372a5619e2eaf63199825eff852ea399133c96ac1892588f818d1ea69f1f5410c130461a29ee543683535f657469b80ed45084db6a1e7bc037c&quot;,&quot;08012c00020000000001020000000002020000000003d00caaaa0300000008004500006e3005400040110c47c000020acb007128c3680d96005a0000806f0c210a2f8f004e464e314652fc5adf81a7dd4b252572c4fb8f345cbd3dca714d9c20fe2317446c398d847c6c942d073393a440dfd856057012a18df1076e3b6aa8f0a5cd235802dc0cb60f1827ce9c9a075852b6&quot;,&quot;08012c00020000000001020000000002020000000003e00caaaa0300000008004500006e3006400040110c46c000020acb007128c3680d96005a0000806f0c220a2f92c04e464e3197014e8014d03ff91dbdd1dbc51dbeb2b35fbdc15ae03dcfbbb059b84ce69e21319cd238912583a985eca8c5ae95d50146a74414c3b721d2ed24857a7ed0a44b02c971f534aacb0ef4ba&quot;,&quot;08012c00020000000001020000000002020000000003f00caaaa0300000008004500006e3007400040110c45c000020acb007128c3680d96005a0000806f0c230a2f96804e464e31fc63fe4e72926ccf62a1ee74de460a94e1c3430c0f6e3b67db0671af8eb05adf125b0af928905e7ca6efa75f9dcd360c65d44c7ce17b016ec18c8d8bcb53fa97fc77a8c45f15b59e3385&quot;],&quot;fields&quot;:[[[0,2,&quot;Frame Control&quot;,&quot;0x0801: type Data, To DS = 1 (client to AP)&quot;],[2,2,&quot;Duration&quot;,&quot;44 microseconds reserved for the ACK&quot;],[4,6,&quot;Address 1&quot;,&quot;receiver, the AP&#x27;s BSSID 02:00:00:00:00:01&quot;],[10,6,&quot;Address 2&quot;,&quot;transmitter, the client 02:00:00:00:00:02&quot;],[16,6,&quot;Address 3&quot;,&quot;final destination 02:00:00:00:00:03, the wired side&quot;],[22,2,&quot;Sequence Control&quot;,&quot;sequence number 200 and up, one per packet&quot;],[24,8,&quot;LLC / SNAP&quot;,&quot;AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4&quot;],[32,20,&quot;IPv4 header&quot;,&quot;192.0.2.10 to 203.0.113.40, TTL 64, protocol 17 = UDP&quot;],[52,8,&quot;UDP header&quot;,&quot;port 50024 to 3478, the media relay&quot;],[60,12,&quot;RTP header&quot;,&quot;version 2, payload type 111 (SILK/Opus), sequence, timestamp (48 kHz clock, +960 per 20 ms), SSRC 0x4e464e31&quot;],[72,60,&quot;SRTP payload&quot;,&quot;20 ms of encoded speech under AES-128-CTR; without the key it is noise&quot;],[132,10,&quot;SRTP auth tag&quot;,&quot;HMAC-SHA1-80 over the RTP header and ciphertext; a flipped bit fails this too&quot;],[142,4,&quot;FCS&quot;,&quot;CRC-32 over everything before it&quot;]]],&quot;app&quot;:[{&quot;seq&quot;:3100,&quot;ts&quot;:170884160,&quot;wave&quot;:[0.041,0.064,0.194,0.301,0.132,-0.182,-0.283,-0.158,-0.076,-0.058,0.1,0.32,0.284,-0.007,-0.201,-0.173,-0.147,-0.183,-0.057,0.237,0.353,0.156,-0.064,-0.104,-0.136,-0.256,-0.224,0.072,0.317,0.253,0.072,0.015]},{&quot;seq&quot;:3101,&quot;ts&quot;:170885120,&quot;wave&quot;:[-0.042,-0.238,-0.341,-0.122,0.189,0.254,0.152,0.13,0.104,-0.123,-0.36,-0.281,0.014,0.165,0.145,0.187,0.243,0.057,-0.27,-0.352,-0.143,0.028,0.055,0.153,0.318,0.244,-0.095,-0.314,-0.229,-0.098,-0.078,0.03]},{&quot;seq&quot;:3102,&quot;ts&quot;:170886080,&quot;wave&quot;:[0.289,0.371,0.108,-0.183,-0.216,-0.158,-0.196,-0.142,0.154,0.393,0.271,-0.01,-0.116,-0.125,-0.242,-0.299,-0.048,0.296,0.339,0.138,0.024,-0.008,-0.184,-0.378,-0.252,0.114,0.295,0.207,0.141,0.146,-0.031,-0.342]},{&quot;seq&quot;:3103,&quot;ts&quot;:170887040,&quot;wave&quot;:[-0.389,-0.093,0.16,0.174,0.18,0.271,0.169,-0.191,-0.411,-0.254,-0.009,0.056,0.116,0.307,0.346,0.03,-0.311,-0.315,-0.144,-0.091,-0.033,0.227,0.432,0.249,-0.123,-0.26,-0.19,-0.201,-0.211,0.045,0.39,0.392]},{&quot;seq&quot;:3104,&quot;ts&quot;:170888000,&quot;wave&quot;:[0.084,-0.118,-0.129,-0.217,-0.347,-0.183,0.226,0.412,0.235,0.048,0.011,-0.12,-0.377,-0.379,-0.009,0.306,0.28,0.165,0.17,0.063,-0.277,-0.472,-0.236,0.116,0.208,0.183,0.275,0.269,-0.069,-0.425,-0.379,-0.084]},{&quot;seq&quot;:3105,&quot;ts&quot;:170888960,&quot;wave&quot;:[0.056,0.089,0.269,0.417,0.183,-0.252,-0.392,-0.219,-0.106,-0.081,0.139,0.444,0.394,-0.01,-0.279,-0.24,-0.204,-0.255,-0.079,0.329,0.491,0.216,-0.089,-0.144,-0.189,-0.356,-0.312,0.1,0.44,0.351,0.1,0.021]},{&quot;seq&quot;:3106,&quot;ts&quot;:170889920,&quot;wave&quot;:[-0.058,-0.33,-0.472,-0.169,0.262,0.351,0.21,0.181,0.143,-0.17,-0.498,-0.388,0.02,0.228,0.2,0.258,0.335,0.079,-0.371,-0.485,-0.197,0.039,0.076,0.21,0.435,0.334,-0.13,-0.429,-0.313,-0.134,-0.107,0.041]},{&quot;seq&quot;:3107,&quot;ts&quot;:170890880,&quot;wave&quot;:[0.393,0.505,0.147,-0.248,-0.294,-0.215,-0.266,-0.192,0.209,0.53,0.365,-0.014,-0.157,-0.168,-0.325,-0.401,-0.064,0.397,0.454,0.184,0.032,-0.011,-0.245,-0.503,-0.334,0.151,0.39,0.273,0.186,0.192,-0.041,-0.449]}],&quot;seq0&quot;:3100,&quot;ts0&quot;:170884160,&quot;ssrc&quot;:1313230385,&quot;keys&quot;:{&quot;srtp_key&quot;:&quot;659c611029666f4c075d78397bfe528e&quot;,&quot;srtp_salt&quot;:&quot;24295975e03dfb6ed4e0bac0c808&quot;,&quot;srtp_auth&quot;:&quot;3ba7bd16577577125ceb7276e6d6095c9c7a80b5&quot;},&quot;check&quot;:{&quot;0&quot;:&quot;6487f42a138e1ccb&quot;,&quot;1&quot;:&quot;5620965fe7501ba3&quot;,&quot;7&quot;:&quot;6828e40757d59b26&quot;,&quot;100&quot;:&quot;51932677c5628032&quot;,&quot;1000&quot;:&quot;33153e431066a7d1&quot;,&quot;14999&quot;:&quot;90c4ecd5ca72396e&quot;},&quot;note&quot;:&quot;15,000 packets, 20 ms apart, five minutes of a call; UDP, so a lost packet is a gap&quot;},&quot;chat&quot;:{&quot;name&quot;:&quot;Teams chat (TLS over TCP)&quot;,&quot;pcap&quot;:&quot;demo/nfn-teams-chat.pcap&quot;,&quot;kind&quot;:&quot;chat&quot;,&quot;script&quot;:[{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:21:04&quot;,&quot;text&quot;:&quot;Can you hear me? You keep cutting out.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:21:11&quot;,&quot;text&quot;:&quot;Barely. Is that the warehouse AP again?&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:21:19&quot;,&quot;text&quot;:&quot;Microwave in the break room. Watch the retries.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:21:27&quot;,&quot;text&quot;:&quot;Moving to the next channel now.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:21:38&quot;,&quot;text&quot;:&quot;Better. Crystal clear.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:21:49&quot;,&quot;text&quot;:&quot;Radio is on 149 now, 80 wide. Old channel had utilisation pegged for an hour.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:21:58&quot;,&quot;text&quot;:&quot;Retry rate?&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:22:06&quot;,&quot;text&quot;:&quot;38 percent on 2.4. The 5 GHz radio was clean the whole time.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:22:15&quot;,&quot;text&quot;:&quot;Then why were the scanners on 2.4?&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:22:26&quot;,&quot;text&quot;:&quot;Band steering is off on that SSID. Somebody turned it off for the label printers.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:22:36&quot;,&quot;text&quot;:&quot;Printers are 2.4 only, fine. Scanners do 5. Turn steering back on and exclude the printer OUI.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:22:49&quot;,&quot;text&quot;:&quot;Done. Steering on, printer OUI in the 2.4 only list.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:22:57&quot;,&quot;text&quot;:&quot;Note it in the change log so nobody flips it again.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:23:05&quot;,&quot;text&quot;:&quot;Logged.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:23:12&quot;,&quot;text&quot;:&quot;Roam a scanner across the dock doors and watch the client page.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:23:22&quot;,&quot;text&quot;:&quot;Walking it now. Hold on.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:23:48&quot;,&quot;text&quot;:&quot;Roamed at -67, landed on 5 GHz, MCS 7 at the far door.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:23:56&quot;,&quot;text&quot;:&quot;Good. Still no drops on our call?&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:24:03&quot;,&quot;text&quot;:&quot;None since the channel change.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:24:12&quot;,&quot;text&quot;:&quot;Pull the RF health graph for the ticket before it rolls off.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:24:25&quot;,&quot;text&quot;:&quot;Exported. Also the break room is not on the map, it is behind the racks.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:24:34&quot;,&quot;text&quot;:&quot;Add it to the survey notes. That microwave is a permanent interferer.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:24:44&quot;,&quot;text&quot;:&quot;Want a channel exclusion on 2.4 for that AP?&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:24:53&quot;,&quot;text&quot;:&quot;No. Let the RF management handle it now that steering is on. Watch it tomorrow.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:25:02&quot;,&quot;text&quot;:&quot;Will do. Anything else while I am on the floor?&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:25:11&quot;,&quot;text&quot;:&quot;The mezzanine AP showed 3 dB lower Tx power in the audit. Check its port.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:25:31&quot;,&quot;text&quot;:&quot;It is on a 15 W port. PoE budget again.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:25:39&quot;,&quot;text&quot;:&quot;Of course it is. Log it, we move it to a 30 W port on the refresh.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:25:48&quot;,&quot;text&quot;:&quot;Logged. Heading back to the closet.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:25:55&quot;,&quot;text&quot;:&quot;Send me the screenshots and I will write it up.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:26:02&quot;,&quot;text&quot;:&quot;On the way.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:26:09&quot;,&quot;text&quot;:&quot;Great call quality now, by the way.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:26:16&quot;,&quot;text&quot;:&quot;Told you it was the microwave.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:26:22&quot;,&quot;text&quot;:&quot;You said warehouse AP.&quot;},{&quot;who&quot;:&quot;tech&quot;,&quot;t&quot;:&quot;10:26:28&quot;,&quot;text&quot;:&quot;I said it was the warehouse AP&#x27;s problem.&quot;},{&quot;who&quot;:&quot;you&quot;,&quot;t&quot;:&quot;10:26:35&quot;,&quot;text&quot;:&quot;Sure you did.&quot;}],&quot;sample&quot;:[&quot;08012c000200000000010200000000020200000000030019aaaa0300000008004500008d400040004006fc37c000020acb007128c82201bb1a2b3c005e6f7a005018ffff94d800001703030060000000000000000192a6fdec9e27f627e48ab4963543464abb6dcc7f037ac29df062f332813be87485638260ba817a72d396d920eb48f3fcdd921db37a3d3c6530a9621634239cc5a6aa7a148109811340f8f4330650eeabb3d79e0ce828a57215f329b9&quot;,&quot;08022c000200000000020200000000010200000000031019aaaa0300000008004500008f400140004006fc34cb007128c000020a01bbc8225e6f7a001a2b3c655018fffff8c50000170303006200000000000000021e365d9ae1a0efb72e7d12e44dac3acc08bbe9ee43809444ad6a20f2d5d5b2f495fdfb24a0e6b007f6687dfcb32417a25e1c9c9551e32dc642399ab33655584be3600464beb7697da88b3f6dee8f82f94fa7aed4a3ad6812d7c9005970ab&quot;,&quot;08012c000200000000010200000000020200000000032019aaaa03000000080045000096400240004006fc2cc000020acb007128c82201bb1a2b3c655e6f7a675018ffffae70000017030300690000000000000003b67d4f29e6130acde369516a1f6d29ffd9f9f3a179f5aad1d91697bc5244a50cad8df8054167021121ca51ea9632fd8245aeb0b147df6795efd77251116e274cdf9e6dcfa989e2d9e83ea20da3cce94c2f61bcbafd325fe41cf1737b784be2e14c8dcd5482&quot;,&quot;08022c000200000000020200000000010200000000033019aaaa03000000080045000087400340004006fc3acb007128c000020a01bbc8225e6f7a671a2b3cd35018ffff8daf0000170303005a0000000000000004b775d170deaf2784278dca4911c7cd4d9ab67fe5db8cb3559f2379f3285104585253c7ddaf96fa4ae049efea2e89bd37e0be1fe048f44323617de953a07a4d5f71dee213f7e5b6f61d78eb7eaa99dbfeada3186d72d9&quot;],&quot;fields&quot;:[[[0,2,&quot;Frame Control&quot;,&quot;0x0801: type Data, To DS = 1 (client to AP)&quot;],[2,2,&quot;Duration&quot;,&quot;44 microseconds reserved for the ACK&quot;],[4,6,&quot;Address 1&quot;,&quot;receiver, the AP&#x27;s BSSID 02:00:00:00:00:01&quot;],[10,6,&quot;Address 2&quot;,&quot;transmitter, the client 02:00:00:00:00:02&quot;],[16,6,&quot;Address 3&quot;,&quot;final destination 02:00:00:00:00:03, the wired side&quot;],[22,2,&quot;Sequence Control&quot;,&quot;sequence number 400, fragment 0&quot;],[24,8,&quot;LLC / SNAP&quot;,&quot;AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4&quot;],[32,20,&quot;IPv4 header&quot;,&quot;192.0.2.10 to 203.0.113.40, TTL 64, protocol 6 = TCP&quot;],[52,20,&quot;TCP header&quot;,&quot;port 51234 to 443, PSH+ACK, the chat session to the Teams service&quot;],[72,5,&quot;TLS record header&quot;,&quot;0x17 application data, version 3.3, 96 bytes&quot;],[77,8,&quot;TLS nonce&quot;,&quot;explicit nonce for AES-GCM, counts up per record&quot;],[85,72,&quot;TLS ciphertext&quot;,&quot;the JSON message under AES-128-GCM; 72 bytes of noise without the key&quot;],[157,16,&quot;TLS auth tag&quot;,&quot;GCM tag; a flipped bit fails this before the app ever sees the message&quot;],[173,4,&quot;FCS&quot;,&quot;CRC-32 over everything before it&quot;]],[[0,2,&quot;Frame Control&quot;,&quot;0x0802: type Data, From DS = 1 (AP to client)&quot;],[2,2,&quot;Duration&quot;,&quot;44 microseconds reserved for the ACK&quot;],[4,6,&quot;Address 1&quot;,&quot;receiver, the client 02:00:00:00:00:02&quot;],[10,6,&quot;Address 2&quot;,&quot;transmitter, the AP&#x27;s BSSID 02:00:00:00:00:01&quot;],[16,6,&quot;Address 3&quot;,&quot;original source 02:00:00:00:00:03, the wired side&quot;],[22,2,&quot;Sequence Control&quot;,&quot;sequence number 401, fragment 0&quot;],[24,8,&quot;LLC / SNAP&quot;,&quot;AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4&quot;],[32,20,&quot;IPv4 header&quot;,&quot;203.0.113.40 to 192.0.2.10, TTL 64, protocol 6 = TCP&quot;],[52,20,&quot;TCP header&quot;,&quot;port 443 to 51234, PSH+ACK, the chat session to the Teams service&quot;],[72,5,&quot;TLS record header&quot;,&quot;0x17 application data, version 3.3, 98 bytes&quot;],[77,8,&quot;TLS nonce&quot;,&quot;explicit nonce for AES-GCM, counts up per record&quot;],[85,74,&quot;TLS ciphertext&quot;,&quot;the JSON message under AES-128-GCM; 74 bytes of noise without the key&quot;],[159,16,&quot;TLS auth tag&quot;,&quot;GCM tag; a flipped bit fails this before the app ever sees the message&quot;],[175,4,&quot;FCS&quot;,&quot;CRC-32 over everything before it&quot;]],[[0,2,&quot;Frame Control&quot;,&quot;0x0801: type Data, To DS = 1 (client to AP)&quot;],[2,2,&quot;Duration&quot;,&quot;44 microseconds reserved for the ACK&quot;],[4,6,&quot;Address 1&quot;,&quot;receiver, the AP&#x27;s BSSID 02:00:00:00:00:01&quot;],[10,6,&quot;Address 2&quot;,&quot;transmitter, the client 02:00:00:00:00:02&quot;],[16,6,&quot;Address 3&quot;,&quot;final destination 02:00:00:00:00:03, the wired side&quot;],[22,2,&quot;Sequence Control&quot;,&quot;sequence number 402, fragment 0&quot;],[24,8,&quot;LLC / SNAP&quot;,&quot;AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4&quot;],[32,20,&quot;IPv4 header&quot;,&quot;192.0.2.10 to 203.0.113.40, TTL 64, protocol 6 = TCP&quot;],[52,20,&quot;TCP header&quot;,&quot;port 51234 to 443, PSH+ACK, the chat session to the Teams service&quot;],[72,5,&quot;TLS record header&quot;,&quot;0x17 application data, version 3.3, 105 bytes&quot;],[77,8,&quot;TLS nonce&quot;,&quot;explicit nonce for AES-GCM, counts up per record&quot;],[85,81,&quot;TLS ciphertext&quot;,&quot;the JSON message under AES-128-GCM; 81 bytes of noise without the key&quot;],[166,16,&quot;TLS auth tag&quot;,&quot;GCM tag; a flipped bit fails this before the app ever sees the message&quot;],[182,4,&quot;FCS&quot;,&quot;CRC-32 over everything before it&quot;]],[[0,2,&quot;Frame Control&quot;,&quot;0x0802: type Data, From DS = 1 (AP to client)&quot;],[2,2,&quot;Duration&quot;,&quot;44 microseconds reserved for the ACK&quot;],[4,6,&quot;Address 1&quot;,&quot;receiver, the client 02:00:00:00:00:02&quot;],[10,6,&quot;Address 2&quot;,&quot;transmitter, the AP&#x27;s BSSID 02:00:00:00:00:01&quot;],[16,6,&quot;Address 3&quot;,&quot;original source 02:00:00:00:00:03, the wired side&quot;],[22,2,&quot;Sequence Control&quot;,&quot;sequence number 403, fragment 0&quot;],[24,8,&quot;LLC / SNAP&quot;,&quot;AA AA 03, OUI 00 00 00, EtherType 0x0800 = IPv4&quot;],[32,20,&quot;IPv4 header&quot;,&quot;203.0.113.40 to 192.0.2.10, TTL 64, protocol 6 = TCP&quot;],[52,20,&quot;TCP header&quot;,&quot;port 443 to 51234, PSH+ACK, the chat session to the Teams service&quot;],[72,5,&quot;TLS record header&quot;,&quot;0x17 application data, version 3.3, 90 bytes&quot;],[77,8,&quot;TLS nonce&quot;,&quot;explicit nonce for AES-GCM, counts up per record&quot;],[85,66,&quot;TLS ciphertext&quot;,&quot;the JSON message under AES-128-GCM; 66 bytes of noise without the key&quot;],[151,16,&quot;TLS auth tag&quot;,&quot;GCM tag; a flipped bit fails this before the app ever sees the message&quot;],[167,4,&quot;FCS&quot;,&quot;CRC-32 over everything before it&quot;]]],&quot;keys&quot;:{&quot;tls_key&quot;:&quot;f212a1118f6497355967acb82f2d6b05&quot;,&quot;tls_iv&quot;:&quot;8224adff&quot;},&quot;check&quot;:{&quot;0&quot;:&quot;09681e520e47dd74&quot;,&quot;1&quot;:&quot;e8d14bbc73df1d34&quot;,&quot;2&quot;:&quot;4cffcc9599d3b206&quot;,&quot;3&quot;:&quot;96d4191a0b4f6242&quot;,&quot;4&quot;:&quot;9d1292fbdd6500ef&quot;,&quot;5&quot;:&quot;2006a39156b5ece8&quot;,&quot;6&quot;:&quot;aae9414bbcadaafe&quot;,&quot;7&quot;:&quot;b0204ab76bc6872c&quot;,&quot;8&quot;:&quot;d6187a63a958bc22&quot;,&quot;9&quot;:&quot;7645ebf2bfd63750&quot;,&quot;10&quot;:&quot;d20d9ae3f1829a7d&quot;,&quot;11&quot;:&quot;bb08a3a6df510ab2&quot;,&quot;12&quot;:&quot;b69e533013c66ea6&quot;,&quot;13&quot;:&quot;5e22415a7b5dde54&quot;,&quot;14&quot;:&quot;80bf63c8b3cffe22&quot;,&quot;15&quot;:&quot;f7c6ad6c792a65eb&quot;,&quot;16&quot;:&quot;4f83af59954279d2&quot;,&quot;17&quot;:&quot;f93a82cf5f6e04bd&quot;,&quot;18&quot;:&quot;5a19d7ba7381db63&quot;,&quot;19&quot;:&quot;36173c34f6e5a2a1&quot;,&quot;20&quot;:&quot;e720be561db1c94e&quot;,&quot;21&quot;:&quot;a4e3b8f6a5d49a6d&quot;,&quot;22&quot;:&quot;3bd377f3e8616db5&quot;,&quot;23&quot;:&quot;ea01ea8e3c10bedc&quot;,&quot;24&quot;:&quot;f5834b549f17dd81&quot;,&quot;25&quot;:&quot;6c6bffbd5ee38443&quot;,&quot;26&quot;:&quot;6af8e844b860aced&quot;,&quot;27&quot;:&quot;ca296f526ac722ca&quot;,&quot;28&quot;:&quot;628ae7384cd45432&quot;,&quot;29&quot;:&quot;0a58cb340afc468f&quot;,&quot;30&quot;:&quot;b74fbc74643c609a&quot;,&quot;31&quot;:&quot;f2c48195ef656499&quot;,&quot;32&quot;:&quot;348053527b5afaa4&quot;,&quot;33&quot;:&quot;98d073d42832db8f&quot;,&quot;34&quot;:&quot;604eea7531d75607&quot;,&quot;35&quot;:&quot;818c5607c3229297&quot;},&quot;note&quot;:&quot;36 messages over five minutes, one TLS record each; TCP, so a lost frame is retransmitted and the message arrives late&quot;}}" data-rise aria-label="Live modulation demo: a real 118-byte Wi-Fi frame from a packet capture sent over the air from a Yagi antenna to a QAM constellation, from real time down to single photons">
   <div class="qam-top">
     <span class="eyebrow">On the air right now</span>
     <div class="qam-ctl" role="group" aria-label="Demo controls">
@@ -5076,6 +5146,9 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <details class="m-more"><summary>Measured on site</summary>
           <p class="t-hint">Stand at this mast, read the RSSI from a neighbour off the AP, and type it. The model steps aside for that link and learns from the gap.</p>
           <div id="m-meas"></div>
+          <p class="t-hint" style="margin-top:10px">Or ask the AP where it is: paste the output of <code>show ap gps ellipse</code> (or <code>show ap gps summary</code>) from its console. The fix stays in this browser and never goes into the link; "Place masts from GPS" under Verify turns the fixes into positions, and the error ellipse draws on the map.</p>
+          <textarea class="t-out" id="m-gps" rows="3" placeholder="latitude   42.0…  longitude  -71.0…  major-axis  6.49  minor-axis  4.29  angle  160.8" aria-label="Paste the AP's GPS output" style="min-height:64px;font-size:11px"></textarea>
+          <p class="t-hint" id="m-gpsnote"></p>
         </details>
       </div>
       <div id="m-selob" hidden>
@@ -5166,6 +5239,14 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <div class="t-row" style="margin-top:8px"><label for="m-imgop">Image opacity</label>
           <input type="range" id="m-imgop" min="0" max="100" step="5" value="55"><output id="m-imgop-v">55%</output></div>
         <p class="t-hint" id="m-scalenote"></p>
+      </details>
+      <details class="m-more"><summary>From the APs themselves</summary>
+        <p class="t-hint">An AOS 10 AP with a GNSS receiver knows where it is (<code>show ap gps ellipse</code> on its console; read on an AP-635 on 10.8.1.0). Paste each AP's output under its own "Measured on site" fold, then place the masts from those fixes. FTM: <code>show ap range scanning-results</code> lists round trips to the neighbours the AP has ranged, in picoseconds; paste one AP's table here and pick which AP it came from, and each row becomes a measured distance against the planned one. Peers are matched to APs by radio MAC from a Verify import; unmatched BSSIDs are listed as they are.</p>
+        <div class="t-acts"><button class="t-btn" id="m-geoplace" type="button">Place masts from GPS</button><span class="t-hint" id="m-geonote" style="margin:0"></span></div>
+        <div class="t-row" style="margin-top:10px"><label for="m-ftmfrom">Ranged from</label><select id="m-ftmfrom"></select></div>
+        <textarea class="t-out" id="m-ftm" rows="3" placeholder="Peer-bssid  Average RTT (ps)  Average rssi (dbm)  Average std (ps)  Channel  …" aria-label="Paste show ap range scanning-results" style="min-height:64px;font-size:11px"></textarea>
+        <div class="t-scroll" id="m-ftmwrap" hidden><table class="t-table m-table"><thead><tr><th>From</th><th>To</th><th>FTM distance</th><th>Planned</th><th>Gap</th><th>RSSI</th></tr></thead><tbody id="m-ftmrows"></tbody></table></div>
+        <p class="t-hint" id="m-ftmnote"></p>
       </details>
       <details class="m-more"><summary>From an Ekahau project</summary>
         <p class="t-hint">Open an .esx file: the floor plan and its scale become the field, the access points you own become masts with their heights, aims and power. Antennas are matched by name where they can be.</p>
@@ -5538,6 +5619,12 @@ Tap anything to change it. The big number is what gets off the site, and the not
         return (X(a.x + q.r * Math.cos(q.az * Math.PI / 180))).toFixed(1) + "," + (Y(a.y + q.r * Math.sin(q.az * Math.PI / 180))).toFixed(1);
       }).join(" ");
       parts.push('<polygon points="' + pp + '" fill="url(#m-cell)" stroke="rgba(140,224,94,0.28)" stroke-dasharray="3 5"/>');
+    });
+    /* where each AP says it is: the GNSS error ellipse in metres, major axis along the
+       reported angle taken as degrees clockwise from north */
+    aps.forEach(function (a) {
+      var g = a.geo; if (!g || !isFinite(g.major)) return;
+      parts.push('<ellipse cx="' + X(a.x).toFixed(1) + '" cy="' + Y(a.y).toFixed(1) + '" rx="' + Math.max(3, g.minor * L.s).toFixed(1) + '" ry="' + Math.max(3, g.major * L.s).toFixed(1) + '" transform="rotate(' + (g.angle || 0).toFixed(1) + ' ' + X(a.x).toFixed(1) + ' ' + Y(a.y).toFixed(1) + ')" fill="rgba(79,189,234,0.10)" stroke="rgba(79,189,234,0.7)" stroke-width="1" stroke-dasharray="2 3" pointer-events="none"><title>GNSS error ellipse ' + g.major.toFixed(1) + ' by ' + g.minor.toFixed(1) + ' m</title></ellipse>');
     });
     /* crowds */
     crowds.forEach(function (cr, k) {
@@ -6154,6 +6241,9 @@ Tap anything to change it. The big number is what gets off the site, and the not
         var isPl = ms[key] && typeof ms[key] === "object";
         html += '<div class="t-row"><label>AP ' + (j + 1) + '</label><input type="number" data-meas="' + key + '" min="-100" max="-20" step="1" value="' + (ms[key] !== undefined && !isPl ? ms[key] : "") + '" placeholder="' + (isPl ? "Central: " + Math.round(ms[key].pl) + " dB loss" : (L2 && L2.ok ? Math.round(L2.model) : "model " + (L2 ? Math.round(L2.model) : "?"))) + '" aria-label="measured RSSI from AP ' + (j + 1) + '"><span style="font:11px var(--mono);color:var(--text-muted)">dBm</span></div>';
       });
+      var g0 = aps[sel.i].geo;
+      $("m-gps").value = g0 ? ("latitude " + g0.lat.toFixed(6) + "\nlongitude " + g0.lon.toFixed(6) + (isFinite(g0.major) ? "\nmajor-axis " + g0.major + "\nminor-axis " + g0.minor + "\nangle " + (g0.angle || 0) : "")) : "";
+      $("m-gpsnote").textContent = g0 ? "Fix held for this AP" + (isFinite(g0.alt) ? ", " + g0.alt.toFixed(0) + " m altitude" : "") + (isFinite(g0.major) ? ", error ellipse " + g0.major.toFixed(1) + " by " + g0.minor.toFixed(1) + " m" : "") + (g0.time ? ", read " + g0.time : "") + "." : "";
       $("m-meas").innerHTML = html;
       Array.prototype.forEach.call($("m-meas").querySelectorAll("input"), function (inp) {
         inp.addEventListener("change", function () {
@@ -6284,6 +6374,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
       return '<div class="m-cb"><span>' + b[0] + '</span><div class="m-cbar"><i style="width:' + (b[1] / top * 100) + '%;background:' + colr + ';color:' + colr + '"><b></b><b></b><b></b><b></b><b></b><b></b></i></div><b style="color:' + (bind ? "#ffd28a" : b[2]) + '">' + mbs(b[1]) + (bind ? " · the ceiling" : "") + "</b></div>";
     }).join("");
 
+    ftmTargets(); ftmRender();
     $("m-story").innerHTML = M.narrate(model(), p, st.get("ap").map(function (a, k) { return apName(k); })).steps.map(function (q) {
       return '<li class="m-st-' + q.kind + '"><b>' + esc(q.title) + "</b>" + esc(q.text) + "</li>";
     }).join("");
@@ -6471,6 +6562,57 @@ Tap anything to change it. The big number is what gets off the site, and the not
     window.open("kit.html#plan=" + encodeURIComponent(kitPlan(lastP)), "_blank", "noopener");
   });
   root._kitPlan = function () { return kitPlan(lastP || M.plan(model())); };
+
+  /* ── the APs' own fixes and ranges ─────────────────────────────────── */
+  $("m-gps").addEventListener("change", function () {
+    if (!sel || sel.kind !== "ap") return;
+    var aps2 = st.get("ap"), g = M.gpsParse(this.value);
+    if (!this.value.trim()) { delete aps2[sel.i].geo; $("m-gpsnote").textContent = ""; run(); return; }
+    if (!g) { $("m-gpsnote").textContent = "No fix in that text: it wants the latitude and longitude lines from show ap gps ellipse, or a $GNGGA line from show ap gps summary."; return; }
+    var old = aps2[sel.i].geo || {}; aps2[sel.i].geo = Object.assign({}, old, g);   /* summary then ellipse, either order, both kept */
+    run();
+  });
+  $("m-geoplace").addEventListener("click", function () {
+    var aps2 = st.get("ap"), have = aps2.filter(function (a) { return a.geo; });
+    if (have.length < 2) { $("m-geonote").textContent = "Paste a fix under at least two APs first (Measured on site, on each)."; return; }
+    var G = M.geoPlace(aps2.map(function (a) { return a.geo || null; }));
+    if (!G) return;
+    var k = 0;
+    aps2.forEach(function (a) { if (a.geo) { a.x = G.points[k].x; a.y = G.points[k].y; k++; } else { a.x = NFN.clamp(a.x, 2, G.fw - 2); a.y = NFN.clamp(a.y, 2, G.fd - 2); } });
+    st.get("ob").forEach(function (o) { o.x = NFN.clamp(o.x, 0, G.fw); o.y = NFN.clamp(o.y, 0, G.fd); });
+    st.set("fw", G.fw).set("fd", G.fd).set("north", 0); $("m-fw").value = G.fw; $("m-fd").value = G.fd;
+    $("m-geonote").textContent = have.length + " mast" + (have.length === 1 ? "" : "s") + " placed from GNSS fixes on a " + G.fw + " by " + G.fd + " m field, north up" + (aps2.length > have.length ? "; " + (aps2.length - have.length) + " without a fix left where they were" : "") + ". The ellipses are the fixes' own error.";
+    run();
+  });
+  function ftmTargets() {
+    var sel2 = $("m-ftmfrom"), cur = sel2.value; sel2.innerHTML = "";
+    st.get("ap").forEach(function (a, k) { sel2.add(new Option(apName(k), String(k))); });
+    if (cur !== "" && st.get("ap")[+cur]) sel2.value = cur;
+  }
+  var ftmRows = [];
+  function ftmMatch(bssid) {
+    /* a BSSID is the radio's MAC with the low nibble counting VAPs: match on everything above it */
+    var key = bssid.slice(0, 16), rad = (central && central.radios) || [];
+    for (var i = 0; i < rad.length; i++) for (var j = 0; j < rad[i].length; j++) if (rad[i][j].slice(0, 16) === key) return i;
+    return -1;
+  }
+  function ftmRender() {
+    var p = lastP; if (!p) return;
+    $("m-ftmwrap").hidden = !ftmRows.length;
+    $("m-ftmrows").innerHTML = ftmRows.map(function (r) {
+      var to = r.to >= 0 ? apName(r.to) : r.bssid + " (not one of these APs)", a = st.get("ap")[r.from], b = r.to >= 0 ? st.get("ap")[r.to] : null;
+      var planned = b ? Math.hypot(a.x - b.x, a.y - b.y) : null, gap = planned !== null ? r.metres - planned : null;
+      return "<tr><td>" + esc(apName(r.from)) + "</td><td>" + esc(to) + "</td><td>" + r.metres.toFixed(1) + " m ±" + r.plusMinus.toFixed(1) + "</td><td>" + (planned !== null ? planned.toFixed(1) + " m" : "") + "</td><td" + (gap !== null && Math.abs(gap) > 5 ? ' style="color:#ffd28a"' : "") + ">" + (gap !== null ? (gap >= 0 ? "+" : "") + gap.toFixed(1) + " m" : "") + "</td><td>" + r.rssi + " dBm</td></tr>";
+    }).join("");
+  }
+  $("m-ftm").addEventListener("change", function () {
+    var rows = M.ftmParse(this.value), from = +$("m-ftmfrom").value || 0;
+    if (!rows.length) { $("m-ftmnote").textContent = this.value.trim() ? "No ranging rows in that text; the table has Peer-bssid, Average RTT (ps), rssi, std, channel and the counts. Total:0 means nobody answered: the FTM responder is off on every SSID by default." : ""; return; }
+    ftmRows = ftmRows.filter(function (r) { return r.from !== from; }).concat(rows.map(function (r) { return { from: from, to: ftmMatch(r.bssid), bssid: r.bssid, metres: r.metres, plusMinus: r.plusMinus, rssi: r.rssi, validRtts: r.validRtts }; }));
+    $("m-ftmnote").textContent = rows.length + " range" + (rows.length === 1 ? "" : "s") + " from " + apName(from) + ", " + rows.filter(function (r) { return ftmMatch(r.bssid) >= 0; }).length + " matched to an AP here" + ((central && central.radios) ? "" : " (open a Central site.json under Verify to match BSSIDs to APs)") + ". A round trip of 6.67 ns is a metre.";
+    ftmRender();
+  });
+  root._ftm = function () { return ftmRows; };
   var lastIntent = null;
   $("m-intentcopy").addEventListener("click", function () { if (lastIntent) copy(NFN.emit.text(lastIntent), this); });
   $("m-central-dl").addEventListener("click", function () { if (lastIntent) download("mesh-central-config.json", JSON.stringify(NFN.emit.central(lastIntent), null, 1), "application/json"); });
@@ -6677,7 +6819,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
         var nfRead = null;
         if (floors.length) { floors.sort(function (x, y) { return x - y; }); nfRead = NFN.clamp(Math.round(floors[floors.length >> 1]), 0, 12); st.set("nf", nfRead); }
         st.set("ap", aps).set("ms", ms);
-        central = { pulled: doc.pulled, group: doc.group, names: aps.map(function (a) { return a.name; }) };
+        central = { pulled: doc.pulled, group: doc.group, names: aps.map(function (a) { return a.name; }),
+                    radios: src.map(function (a) { return (a.radios || []).map(function (r) { return String(r.mac || "").toLowerCase(); }).filter(Boolean); }) };
         try { localStorage.setItem("nfn-mesh-central", JSON.stringify(central)); } catch (e) {}
         var pairs = Object.keys(ms).length;
         $("m-centralnote").textContent = n + " AP" + (n === 1 ? "" : "s") + " from " + (doc.source === "juniper-mist" ? "Mist site " : "group ") + (doc.group || "?") + (placed ? ", placed from the floor plan" : cur.length === n ? ", kept where you had them" : ", in a row to drag into place") + "; " + pairs + " pair" + (pairs === 1 ? "" : "s") + " with a measure" + (Object.keys(seenR).length && !Object.keys(seen).length ? "d RSSI" : "d loss") + (pairs ? "" : " (a controller reports neighbours it can hear; APs on different channels or too far apart never appear)") + ". Models, power, channel and width came from the radios" + (nfRead !== null ? ", and so did the noise floor (figure " + nfRead + " dB)" : "") + ".";
@@ -7327,6 +7470,170 @@ Tap anything to change it. The big number is what gets off the site, and the not
   }
   window.addEventListener('hashchange', fromHash);
   fromHash();
+})();
+</script>
+<script>/* Network Field Notes: the topographic ground.
+   A hypsometric elevation map on a canvas behind every page, drifting on a clock-derived
+   phase so it resumes mid-motion on a reload instead of restarting. Settings are fixed
+   here; the tuning surface lives in the preview, not on the live site.
+   Falls back to the .ground gradients when WebGL is missing, and renders one still frame
+   under prefers-reduced-motion. */
+(function () {
+  var cv = document.getElementById("nfn-fx");
+  if (!cv) return;
+
+  var TINT = 0.44,    // how far the flat elevation classes pull away from the site gradients
+      SCALE = 1.20,   // terrain scale: low means big sweeping landforms
+      BANDS = 13,     // contour interval, and every fifth boundary is an index contour
+      AMT = 0.75,     // contour brightness
+      WT = 0.70,      // line weight, in screen pixels
+      SPEED = 3.00,   // drift multiplier
+      CYCLE = 600;    // seconds; every term in the terrain is a whole multiple of this
+
+  function off() { cv.style.display = "none"; }
+
+  var gl = null;
+  try {
+    gl = cv.getContext("webgl", { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: "low-power" });
+  } catch (e) { gl = null; }
+  if (!gl) { off(); return; }
+
+  var deriv = gl.getExtension("OES_standard_derivatives");
+
+  var VERT = "attribute vec2 a;void main(){gl_Position=vec4(a,0.0,1.0);}";
+
+  var FRAG = [
+    deriv ? "#extension GL_OES_standard_derivatives : enable\n#define HAS_FW 1" : "",
+    "precision highp float;",
+    "uniform vec2 uRes;uniform float uPh;",
+    "const float TINT=" + TINT.toFixed(3) + ",SCALE=" + SCALE.toFixed(3) + ",BANDS=" + BANDS.toFixed(1) +
+      ",AMT=" + AMT.toFixed(3) + ",WT=" + WT.toFixed(3) + ";",
+
+    "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}",
+    "float vn(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.0-2.0*f);",
+    " return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x),u.y);}",
+    "float fbm(vec2 p){float s=0.0,a=0.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);",
+    " for(int i=0;i<5;i++){s+=a*vn(p);p=m*p;a*=0.5;}return s;}",
+
+    /* terrain: two-stage domain warp, so contours curl like a survey rather than lying in stripes */
+    "float H(vec2 p,vec2 dr){vec2 q=vec2(fbm(p+dr),fbm(p+dr+vec2(5.2,1.3)));",
+    " return fbm(p+(1.35+0.22*sin(uPh*2.0))*q+dr*0.55);}",
+
+    /* the site's own three radial gradients, so the map sits on the ground the site already has */
+    "float rg(vec2 px,vec2 c,vec2 r,float stop){return clamp(1.0-length((px-c)/r)/stop,0.0,1.0);}",
+    "vec3 ground(vec2 px,vec2 res){vec3 col=vec3(0.0235,0.0627,0.0980);",
+    " col=mix(col,vec3(0.1843,0.6588,0.8784),0.42*rg(px,vec2(res.x*0.12,res.y*-0.06),res.y*vec2(1.10,0.76),0.62));",
+    " col=mix(col,vec3(0.5490,0.8784,0.3686),0.26*rg(px,vec2(res.x*0.88,res.y*0.08),res.y*vec2(0.93,0.68),0.60));",
+    " col=mix(col,vec3(0.0902,0.5412,0.6588),0.34*rg(px,vec2(res.x*0.60,res.y*1.08),res.y*vec2(1.22,0.86),0.62));",
+    " return col;}",
+
+    /* hypsometric ramp, sampled at the CLASS so every band is one flat tone */
+    "vec3 hyps(float t){",
+    " vec3 c0=vec3(0.014,0.038,0.062);",
+    " vec3 c1=vec3(0.028,0.112,0.176);",
+    " vec3 c2=vec3(0.050,0.212,0.262);",
+    " vec3 c3=vec3(0.112,0.300,0.232);",
+    " vec3 c=mix(c0,c1,smoothstep(0.00,0.36,t));",
+    " c=mix(c,c2,smoothstep(0.32,0.70,t));",
+    " return mix(c,c3,smoothstep(0.66,1.00,t));}",
+
+    "void main(){",
+    " vec2 px=vec2(gl_FragCoord.x,uRes.y-gl_FragCoord.y);",
+    " vec2 uv=px/uRes.y;",
+    /* both harmonics are whole multiples of the cycle, so the wrap is invisible */
+    " vec2 dr=vec2(cos(uPh),sin(uPh))*0.30+vec2(cos(3.0*uPh+1.7),sin(2.0*uPh+0.6))*0.11;",
+    " float h=H(uv*SCALE,dr);",
+    /* fbm lands around 0.48 give or take 0.12, never 0 to 1, so remap before classing it */
+    " h=clamp((h-0.26)*2.05,0.0,1.0);",
+    " float e=h*BANDS;",
+    "#ifdef HAS_FW",
+    " float w=max(fwidth(e),1e-4);",
+    "#else",
+    " float ep=1.6/uRes.y;",
+    " float w=max(abs(H((uv+vec2(ep,0.0))*SCALE,dr)-h)+abs(H((uv+vec2(0.0,ep))*SCALE,dr)-h),1e-4)*BANDS;",
+    "#endif",
+
+    /* flat elevation classes: floor() before the ramp is what makes the step hard */
+    " float lvl=clamp(floor(e)/BANDS,0.0,1.0);",
+    " vec3 col=mix(ground(px,uRes),hyps(lvl),TINT);",
+
+    /* contours on the integer crossings, widths in screen pixels, every fifth one an index line */
+    " float fr=fract(e);float d=min(fr,1.0-fr);",
+    " float idx=step(mod(floor(e+0.5),5.0),0.5);",
+    " float wdt=w*WT*mix(1.0,2.6,idx);",
+    " float line=1.0-smoothstep(wdt,wdt+w*1.15,d);",
+    " vec3 lcol=mix(vec3(0.252,0.560,0.652),vec3(0.560,0.830,0.878),idx);",
+    " col+=lcol*line*(0.07+0.36*AMT)*mix(0.70,1.0,idx);",
+
+    " col+=(hash(gl_FragCoord.xy+uPh)-0.5)/255.0;",
+    " gl_FragColor=vec4(col,1.0);}"
+  ].join("\n") + "\n";
+
+  function sh(type, src) {
+    var s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+  }
+  var vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, FRAG);
+  if (!vs || !fs) { off(); return; }
+  var pr = gl.createProgram();
+  gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { off(); return; }
+  gl.useProgram(pr);
+
+  var buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  var loc = gl.getAttribLocation(pr, "a");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  var uRes = gl.getUniformLocation(pr, "uRes"), uPh = gl.getUniformLocation(pr, "uPh");
+  var W = 0, H = 0;
+
+  function resize() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var s = (window.innerWidth < 760 ? 0.66 : 0.92) - 6 * 0.013;
+    var w = Math.max(2, Math.round(window.innerWidth * dpr * s));
+    var h = Math.max(2, Math.round(window.innerHeight * dpr * s));
+    var cap = 1600, m = Math.max(w, h);
+    if (m > cap) { w = Math.round(w * cap / m); h = Math.round(h * cap / m); }
+    if (w === W && h === H) return;
+    W = w; H = h; cv.width = w; cv.height = h;
+    gl.viewport(0, 0, w, h);
+    gl.uniform2f(uRes, w, h);
+  }
+
+  function draw() {
+    gl.uniform1f(uPh, (((Date.now() / 1000) * SPEED % CYCLE) / CYCLE) * Math.PI * 2);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var last = 0, running = false;
+
+  function frame(now) {
+    if (!running) return;
+    requestAnimationFrame(frame);
+    if (now - last < 33) return;      /* 30 fps is plenty for something this slow */
+    last = now;
+    resize(); draw();
+  }
+  function still() { resize(); draw(); }
+  function start() {
+    if (reduced.matches) { running = false; still(); return; }
+    if (running) return;
+    running = true; last = 0; requestAnimationFrame(frame);
+  }
+  function stop() { running = false; }
+
+  window.addEventListener("resize", function () { if (!running) still(); });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stop(); else start();   /* resumes at the clock's phase, not where it paused */
+  });
+  if (reduced.addEventListener) reduced.addEventListener("change", function () { stop(); start(); });
+
+  start();
 })();
 </script>
 </body></html>
