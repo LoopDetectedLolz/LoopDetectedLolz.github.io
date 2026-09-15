@@ -9,6 +9,7 @@
   --ease:cubic-bezier(0.32,0.72,0,1);
   --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
   --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --gb:6px; --veil:0.80;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -20,6 +21,17 @@ body{min-height:100vh;min-height:100svh;background:var(--ink);color:var(--text);
   radial-gradient(900px 620px at 12% -6%,rgba(47,168,224,0.42),transparent 62%),
   radial-gradient(760px 560px at 88% 8%,rgba(140,224,94,0.26),transparent 60%),
   radial-gradient(1000px 700px at 60% 108%,rgba(23,138,168,0.34),transparent 62%),var(--ink)}
+/* topographic ground: .ground is the fallback floor, the canvas is the map, .gx-pane is the
+   glass, .gx-grain is the frost. Frost stays sharp on purpose; scatter lives on the pane. */
+#nfn-fx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block;
+  filter:blur(var(--gb));transform:scale(1.10);transform-origin:center}
+.gx-pane{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--veil);
+  background:linear-gradient(158deg,rgba(255,255,255,0.038) 0%,rgba(255,255,255,0.010) 36%,rgba(255,255,255,0) 60%),
+             radial-gradient(1500px 950px at 50% 122%,rgba(3,10,16,0.22),transparent 72%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(255,255,255,0.04)}
+.gx-grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:calc(var(--veil) * 0.46);
+  mix-blend-mode:overlay;background-size:170px 170px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23n)'/%3E%3C/svg%3E")}
 .page{position:relative;z-index:1}
 .wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(var(--gutter),env(safe-area-inset-left));padding-right:max(var(--gutter),env(safe-area-inset-right))}
 .narrow{max-width:900px;margin:0 auto}
