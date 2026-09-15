@@ -461,13 +461,6 @@ tools += f'''
 </section>
 <script>{SIM_JS}</script>
 ''' + widget("tools").replace("<!-- qam:here (the build and the lab put the simulator widget here) -->", qam, 1) + '''
-<section class="sim-intro" style="padding-top:8px">
-  <span class="tag orange"><span class="dot"></span>From the Academy</span>
-  <h2 class="h-hero" style="font-size:clamp(22px,3vw,30px)">Fit the Band</h2>
-  <p class="lede">The channel planning game from Academy lesson 2. Real bonding rules, real DFS, and a level that
-  cannot be solved, which is the point of it.</p>
-</section>
-''' + widget("fitband") + '''
 <section class="band g-card" data-rise>
   <div>
     <h3>Why a mesh has to be provisioned over the wire</h3>
