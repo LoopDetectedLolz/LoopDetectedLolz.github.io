@@ -89,6 +89,10 @@ The card pill comes from the first tag via `CAT_MAP` in `build-blog.py` (clearpa
 
 No red, amber or orange in a hero. A failure state is a dimmed or dashed element, not a red one. Fonts: `Instrument Sans,-apple-system,Helvetica,sans-serif`, mono `JetBrains Mono,ui-monospace,Menlo,monospace`. Green ALL-CAPS eyebrow at y=36, one white headline at y=66 under about 70 characters, the diagram, muted caption near y=320. The graphic carries the one diagram the post needs. Not decoration. Give the root `<svg>` a `role="img"` and an `aria-label` that describes the diagram.
 
+## Games stay in the Academy
+
+A game belongs to the lesson that teaches it and appears nowhere else: not on Tools, not on the index, not on a post. Tools is for planning tools an engineer uses on a job; the Academy is where something is being taught, and a game is a teaching device. `theme/widgets/fitband.html` is inlined only by lesson 2 through its `interactive:` front matter key. If a game starts appearing on other pages, that is drift, take it off.
+
 ## Wireless Academy
 
 Lessons are posts with `academy: N` in the front matter. That alone makes the post category "Academy" (orange), puts it in the "Wireless Academy" reading path at position N, gives it Rig's think pose, and switches the page to the orange theme (`body.acad`: orange ground, near-black glass, orange accents). The landing page `academy.html` is generated from the `ACADEMY` list in `build-blog.py` (title, blurb, lab) with `ACADEMY_START` as lesson 1's date and one lesson a week after; published lessons link, planned ones are greyed with their week. The index hero stays the latest field note; lessons still appear as cards. Academy heroes may use orange `#F5A524` as the accent. Drafts arrive weekly in the Cowork project under `academy/drafts/lesson-NN.md` with their audit; publishing means copying the markdown into `posts/`, the SVG into `graphics/`, running the gates, building and pushing. The syllabus lives in the project (`academy/syllabus.md`) and in `ACADEMY`; change both.
