@@ -918,6 +918,9 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <details class="m-more"><summary>Measured on site</summary>
           <p class="t-hint">Stand at this mast, read the RSSI from a neighbour off the AP, and type it. The model steps aside for that link and learns from the gap.</p>
           <div id="m-meas"></div>
+          <p class="t-hint" style="margin-top:10px">Or ask the AP where it is: paste the output of <code>show ap gps ellipse</code> (or <code>show ap gps summary</code>) from its console. The fix stays in this browser and never goes into the link; "Place masts from GPS" under Verify turns the fixes into positions, and the error ellipse draws on the map.</p>
+          <textarea class="t-out" id="m-gps" rows="3" placeholder="latitude   42.0…  longitude  -71.0…  major-axis  6.49  minor-axis  4.29  angle  160.8" aria-label="Paste the AP's GPS output" style="min-height:64px;font-size:11px"></textarea>
+          <p class="t-hint" id="m-gpsnote"></p>
         </details>
       </div>
       <div id="m-selob" hidden>
@@ -1008,6 +1011,14 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <div class="t-row" style="margin-top:8px"><label for="m-imgop">Image opacity</label>
           <input type="range" id="m-imgop" min="0" max="100" step="5" value="55"><output id="m-imgop-v">55%</output></div>
         <p class="t-hint" id="m-scalenote"></p>
+      </details>
+      <details class="m-more"><summary>From the APs themselves</summary>
+        <p class="t-hint">An AOS 10 AP with a GNSS receiver knows where it is (<code>show ap gps ellipse</code> on its console; read on an AP-635 on 10.8.1.0). Paste each AP's output under its own "Measured on site" fold, then place the masts from those fixes. FTM: <code>show ap range scanning-results</code> lists round trips to the neighbours the AP has ranged, in picoseconds; paste one AP's table here and pick which AP it came from, and each row becomes a measured distance against the planned one. Peers are matched to APs by radio MAC from a Verify import; unmatched BSSIDs are listed as they are.</p>
+        <div class="t-acts"><button class="t-btn" id="m-geoplace" type="button">Place masts from GPS</button><span class="t-hint" id="m-geonote" style="margin:0"></span></div>
+        <div class="t-row" style="margin-top:10px"><label for="m-ftmfrom">Ranged from</label><select id="m-ftmfrom"></select></div>
+        <textarea class="t-out" id="m-ftm" rows="3" placeholder="Peer-bssid  Average RTT (ps)  Average rssi (dbm)  Average std (ps)  Channel  …" aria-label="Paste show ap range scanning-results" style="min-height:64px;font-size:11px"></textarea>
+        <div class="t-scroll" id="m-ftmwrap" hidden><table class="t-table m-table"><thead><tr><th>From</th><th>To</th><th>FTM distance</th><th>Planned</th><th>Gap</th><th>RSSI</th></tr></thead><tbody id="m-ftmrows"></tbody></table></div>
+        <p class="t-hint" id="m-ftmnote"></p>
       </details>
       <details class="m-more"><summary>From an Ekahau project</summary>
         <p class="t-hint">Open an .esx file: the floor plan and its scale become the field, the access points you own become masts with their heights, aims and power. Antennas are matched by name where they can be.</p>
@@ -1380,6 +1391,12 @@ Tap anything to change it. The big number is what gets off the site, and the not
         return (X(a.x + q.r * Math.cos(q.az * Math.PI / 180))).toFixed(1) + "," + (Y(a.y + q.r * Math.sin(q.az * Math.PI / 180))).toFixed(1);
       }).join(" ");
       parts.push('<polygon points="' + pp + '" fill="url(#m-cell)" stroke="rgba(140,224,94,0.28)" stroke-dasharray="3 5"/>');
+    });
+    /* where each AP says it is: the GNSS error ellipse in metres, major axis along the
+       reported angle taken as degrees clockwise from north */
+    aps.forEach(function (a) {
+      var g = a.geo; if (!g || !isFinite(g.major)) return;
+      parts.push('<ellipse cx="' + X(a.x).toFixed(1) + '" cy="' + Y(a.y).toFixed(1) + '" rx="' + Math.max(3, g.minor * L.s).toFixed(1) + '" ry="' + Math.max(3, g.major * L.s).toFixed(1) + '" transform="rotate(' + (g.angle || 0).toFixed(1) + ' ' + X(a.x).toFixed(1) + ' ' + Y(a.y).toFixed(1) + ')" fill="rgba(79,189,234,0.10)" stroke="rgba(79,189,234,0.7)" stroke-width="1" stroke-dasharray="2 3" pointer-events="none"><title>GNSS error ellipse ' + g.major.toFixed(1) + ' by ' + g.minor.toFixed(1) + ' m</title></ellipse>');
     });
     /* crowds */
     crowds.forEach(function (cr, k) {
@@ -1996,6 +2013,9 @@ Tap anything to change it. The big number is what gets off the site, and the not
         var isPl = ms[key] && typeof ms[key] === "object";
         html += '<div class="t-row"><label>AP ' + (j + 1) + '</label><input type="number" data-meas="' + key + '" min="-100" max="-20" step="1" value="' + (ms[key] !== undefined && !isPl ? ms[key] : "") + '" placeholder="' + (isPl ? "Central: " + Math.round(ms[key].pl) + " dB loss" : (L2 && L2.ok ? Math.round(L2.model) : "model " + (L2 ? Math.round(L2.model) : "?"))) + '" aria-label="measured RSSI from AP ' + (j + 1) + '"><span style="font:11px var(--mono);color:var(--text-muted)">dBm</span></div>';
       });
+      var g0 = aps[sel.i].geo;
+      $("m-gps").value = g0 ? ("latitude " + g0.lat.toFixed(6) + "\nlongitude " + g0.lon.toFixed(6) + (isFinite(g0.major) ? "\nmajor-axis " + g0.major + "\nminor-axis " + g0.minor + "\nangle " + (g0.angle || 0) : "")) : "";
+      $("m-gpsnote").textContent = g0 ? "Fix held for this AP" + (isFinite(g0.alt) ? ", " + g0.alt.toFixed(0) + " m altitude" : "") + (isFinite(g0.major) ? ", error ellipse " + g0.major.toFixed(1) + " by " + g0.minor.toFixed(1) + " m" : "") + (g0.time ? ", read " + g0.time : "") + "." : "";
       $("m-meas").innerHTML = html;
       Array.prototype.forEach.call($("m-meas").querySelectorAll("input"), function (inp) {
         inp.addEventListener("change", function () {
@@ -2126,6 +2146,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
       return '<div class="m-cb"><span>' + b[0] + '</span><div class="m-cbar"><i style="width:' + (b[1] / top * 100) + '%;background:' + colr + ';color:' + colr + '"><b></b><b></b><b></b><b></b><b></b><b></b></i></div><b style="color:' + (bind ? "#ffd28a" : b[2]) + '">' + mbs(b[1]) + (bind ? " · the ceiling" : "") + "</b></div>";
     }).join("");
 
+    ftmTargets(); ftmRender();
     $("m-story").innerHTML = M.narrate(model(), p, st.get("ap").map(function (a, k) { return apName(k); })).steps.map(function (q) {
       return '<li class="m-st-' + q.kind + '"><b>' + esc(q.title) + "</b>" + esc(q.text) + "</li>";
     }).join("");
@@ -2313,6 +2334,57 @@ Tap anything to change it. The big number is what gets off the site, and the not
     window.open("kit.html#plan=" + encodeURIComponent(kitPlan(lastP)), "_blank", "noopener");
   });
   root._kitPlan = function () { return kitPlan(lastP || M.plan(model())); };
+
+  /* ── the APs' own fixes and ranges ─────────────────────────────────── */
+  $("m-gps").addEventListener("change", function () {
+    if (!sel || sel.kind !== "ap") return;
+    var aps2 = st.get("ap"), g = M.gpsParse(this.value);
+    if (!this.value.trim()) { delete aps2[sel.i].geo; $("m-gpsnote").textContent = ""; run(); return; }
+    if (!g) { $("m-gpsnote").textContent = "No fix in that text: it wants the latitude and longitude lines from show ap gps ellipse, or a $GNGGA line from show ap gps summary."; return; }
+    var old = aps2[sel.i].geo || {}; aps2[sel.i].geo = Object.assign({}, old, g);   /* summary then ellipse, either order, both kept */
+    run();
+  });
+  $("m-geoplace").addEventListener("click", function () {
+    var aps2 = st.get("ap"), have = aps2.filter(function (a) { return a.geo; });
+    if (have.length < 2) { $("m-geonote").textContent = "Paste a fix under at least two APs first (Measured on site, on each)."; return; }
+    var G = M.geoPlace(aps2.map(function (a) { return a.geo || null; }));
+    if (!G) return;
+    var k = 0;
+    aps2.forEach(function (a) { if (a.geo) { a.x = G.points[k].x; a.y = G.points[k].y; k++; } else { a.x = NFN.clamp(a.x, 2, G.fw - 2); a.y = NFN.clamp(a.y, 2, G.fd - 2); } });
+    st.get("ob").forEach(function (o) { o.x = NFN.clamp(o.x, 0, G.fw); o.y = NFN.clamp(o.y, 0, G.fd); });
+    st.set("fw", G.fw).set("fd", G.fd).set("north", 0); $("m-fw").value = G.fw; $("m-fd").value = G.fd;
+    $("m-geonote").textContent = have.length + " mast" + (have.length === 1 ? "" : "s") + " placed from GNSS fixes on a " + G.fw + " by " + G.fd + " m field, north up" + (aps2.length > have.length ? "; " + (aps2.length - have.length) + " without a fix left where they were" : "") + ". The ellipses are the fixes' own error.";
+    run();
+  });
+  function ftmTargets() {
+    var sel2 = $("m-ftmfrom"), cur = sel2.value; sel2.innerHTML = "";
+    st.get("ap").forEach(function (a, k) { sel2.add(new Option(apName(k), String(k))); });
+    if (cur !== "" && st.get("ap")[+cur]) sel2.value = cur;
+  }
+  var ftmRows = [];
+  function ftmMatch(bssid) {
+    /* a BSSID is the radio's MAC with the low nibble counting VAPs: match on everything above it */
+    var key = bssid.slice(0, 16), rad = (central && central.radios) || [];
+    for (var i = 0; i < rad.length; i++) for (var j = 0; j < rad[i].length; j++) if (rad[i][j].slice(0, 16) === key) return i;
+    return -1;
+  }
+  function ftmRender() {
+    var p = lastP; if (!p) return;
+    $("m-ftmwrap").hidden = !ftmRows.length;
+    $("m-ftmrows").innerHTML = ftmRows.map(function (r) {
+      var to = r.to >= 0 ? apName(r.to) : r.bssid + " (not one of these APs)", a = st.get("ap")[r.from], b = r.to >= 0 ? st.get("ap")[r.to] : null;
+      var planned = b ? Math.hypot(a.x - b.x, a.y - b.y) : null, gap = planned !== null ? r.metres - planned : null;
+      return "<tr><td>" + esc(apName(r.from)) + "</td><td>" + esc(to) + "</td><td>" + r.metres.toFixed(1) + " m ±" + r.plusMinus.toFixed(1) + "</td><td>" + (planned !== null ? planned.toFixed(1) + " m" : "") + "</td><td" + (gap !== null && Math.abs(gap) > 5 ? ' style="color:#ffd28a"' : "") + ">" + (gap !== null ? (gap >= 0 ? "+" : "") + gap.toFixed(1) + " m" : "") + "</td><td>" + r.rssi + " dBm</td></tr>";
+    }).join("");
+  }
+  $("m-ftm").addEventListener("change", function () {
+    var rows = M.ftmParse(this.value), from = +$("m-ftmfrom").value || 0;
+    if (!rows.length) { $("m-ftmnote").textContent = this.value.trim() ? "No ranging rows in that text; the table has Peer-bssid, Average RTT (ps), rssi, std, channel and the counts. Total:0 means nobody answered: the FTM responder is off on every SSID by default." : ""; return; }
+    ftmRows = ftmRows.filter(function (r) { return r.from !== from; }).concat(rows.map(function (r) { return { from: from, to: ftmMatch(r.bssid), bssid: r.bssid, metres: r.metres, plusMinus: r.plusMinus, rssi: r.rssi, validRtts: r.validRtts }; }));
+    $("m-ftmnote").textContent = rows.length + " range" + (rows.length === 1 ? "" : "s") + " from " + apName(from) + ", " + rows.filter(function (r) { return ftmMatch(r.bssid) >= 0; }).length + " matched to an AP here" + ((central && central.radios) ? "" : " (open a Central site.json under Verify to match BSSIDs to APs)") + ". A round trip of 6.67 ns is a metre.";
+    ftmRender();
+  });
+  root._ftm = function () { return ftmRows; };
   var lastIntent = null;
   $("m-intentcopy").addEventListener("click", function () { if (lastIntent) copy(NFN.emit.text(lastIntent), this); });
   $("m-central-dl").addEventListener("click", function () { if (lastIntent) download("mesh-central-config.json", JSON.stringify(NFN.emit.central(lastIntent), null, 1), "application/json"); });
@@ -2519,7 +2591,8 @@ Tap anything to change it. The big number is what gets off the site, and the not
         var nfRead = null;
         if (floors.length) { floors.sort(function (x, y) { return x - y; }); nfRead = NFN.clamp(Math.round(floors[floors.length >> 1]), 0, 12); st.set("nf", nfRead); }
         st.set("ap", aps).set("ms", ms);
-        central = { pulled: doc.pulled, group: doc.group, names: aps.map(function (a) { return a.name; }) };
+        central = { pulled: doc.pulled, group: doc.group, names: aps.map(function (a) { return a.name; }),
+                    radios: src.map(function (a) { return (a.radios || []).map(function (r) { return String(r.mac || "").toLowerCase(); }).filter(Boolean); }) };
         try { localStorage.setItem("nfn-mesh-central", JSON.stringify(central)); } catch (e) {}
         var pairs = Object.keys(ms).length;
         $("m-centralnote").textContent = n + " AP" + (n === 1 ? "" : "s") + " from " + (doc.source === "juniper-mist" ? "Mist site " : "group ") + (doc.group || "?") + (placed ? ", placed from the floor plan" : cur.length === n ? ", kept where you had them" : ", in a row to drag into place") + "; " + pairs + " pair" + (pairs === 1 ? "" : "s") + " with a measure" + (Object.keys(seenR).length && !Object.keys(seen).length ? "d RSSI" : "d loss") + (pairs ? "" : " (a controller reports neighbours it can hear; APs on different channels or too far apart never appear)") + ". Models, power, channel and width came from the radios" + (nfRead !== null ? ", and so did the noise floor (figure " + nfRead + " dB)" : "") + ".";

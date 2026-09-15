@@ -101,8 +101,14 @@ real ones were 35 px fold summaries and a channel list with 169 to 177 at 20 MHz
    day: "Send to the field kit" in the planner's share fold writes `kit.html#plan=...`, the kit
    merges it by name (role follows the plan; a plan line rides beside the placement into the
    table, CSV, JSON and card; unscanned planned APs get a row). The QA bot walks both directions.
-3. **GPS and FTM**, once the lab answers the questions below. Positions are already
-   recorded per AP in the kit and ride in the CSV and the plan, so the groundwork is done.
+3. **GPS and FTM.** The lab answered on 2026-09-14 (below): the AP has a GNSS fix with an
+   error ellipse and reports it to the cloud, and the FTM ranging table exists with the
+   responder off. The planner now reads both from pasted console text (`gpsParse`,
+   `ftmParse`, "From the APs themselves"): fixes place the masts with their ellipses drawn,
+   ranges sit beside planned distances. Still to do: the FTM responder switched on so the
+   table fills (a WLAN setting on each AP); whether the Classic API exposes the fix
+   (`central-pull.py --keys`); and a `--gps` pull if it does, so Verify places the masts
+   without a paste.
 
 Everything on the list of twenty from 2026-09-11 is in the lab, the interface was folded
 into progressive disclosure on 2026-09-12, `simsweep.js` baselines the model (80,761 checks

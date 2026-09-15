@@ -1053,6 +1053,61 @@
     return { steps: steps, hops: T.maxDepth, portals: portals.length, orphans: plan.unreachable };
   };
 
+  /* ── what the AP knows about where it is ──────────────────────────────
+     Read from an AP-635 on AOS 10.8.1.0 over Central's remote console, 2026-09-14.
+     `show ap gps summary` carries the fix as NMEA sentences ($GNGGA, $GNGNS,
+     $GNRMC: latitude, longitude, altitude), `show ap gps ellipse` the error
+     ellipse (major and minor axis in metres, angle in degrees) and a `hop` and
+     `distance` for a position inherited over a ranged neighbour, `show ap range
+     scanning-results` the FTM table (peer BSSID, average RTT in picoseconds,
+     RSSI, standard deviation in ps, channel, valid RTTs). These parse the pasted
+     text; nothing here talks to an AP. */
+  M.gpsParse = function (text) {
+    var t = String(text || ""), out = {}, m;
+    m = /\$GN(?:GGA|GNS|RMC)\s+(-?\d+\.\d+),\s*(-?\d+\.\d+)\s+(-?\d+(?:\.\d+)?)?\s*M?/i.exec(t);
+    if (m) { out.lat = +m[1]; out.lon = +m[2]; if (m[3] !== undefined) out.alt = +m[3]; }
+    var kv = function (k) { var r = new RegExp("^\\s*" + k + "\\s+(-?\\d+(?:\\.\\d+)?)", "mi").exec(t); return r ? +r[1] : undefined; };
+    if (out.lat === undefined && kv("latitude") !== undefined) { out.lat = kv("latitude"); out.lon = kv("longitude"); }
+    if (kv("major-axis") !== undefined) { out.major = kv("major-axis"); out.minor = kv("minor-axis"); out.angle = kv("angle"); }
+    if (kv("hop") !== undefined) out.hop = kv("hop");
+    if (kv("distance") !== undefined) out.viaDistance = kv("distance");
+    m = /^\s*time\s+(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)/mi.exec(t); if (m) out.time = m[1];
+    m = /GPS Firmware\s+(\w+)/i.exec(t); if (m) out.chip = m[1];
+    var cons = []; t.replace(/^\s*(\w+) Constellation\s+Enable/gmi, function (_, c) { cons.push(c); return _; });
+    if (cons.length) out.constellations = cons;
+    return isFinite(out.lat) && isFinite(out.lon) ? out : null;
+  };
+
+  /* an FTM round trip in picoseconds is a distance: light covers 0.29979 mm per
+     picosecond and the trip is there and back */
+  M.ftmMetres = function (rttPs) { return rttPs * 299792458e-12 / 2; };
+  M.ftmParse = function (text) {
+    var rows = [];
+    String(text || "").split("\n").forEach(function (line) {
+      var m = /^\s*([0-9a-f]{2}(?::[0-9a-f]{2}){5})\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(\S+)\s+(\d+)\s+(\d+)/i.exec(line);
+      if (!m) return;
+      var rtt = +m[2], sd = +m[4];
+      rows.push({ bssid: m[1].toLowerCase(), rttPs: rtt, rssi: +m[3], sdPs: sd, channel: m[5], validRtts: +m[6], ftms: +m[7],
+                  metres: M.ftmMetres(rtt), plusMinus: M.ftmMetres(sd) });
+    });
+    return rows;
+  };
+
+  /* fixes to a field: equirectangular about the centroid, north up, width and depth
+     from their own spans, the same projection the kit and the KML reader use. Returns
+     the field size and a point per fix, plus the error ellipses in metres. */
+  M.geoPlace = function (fixes) {
+    var pts = fixes.filter(function (f) { return f && isFinite(f.lat) && isFinite(f.lon); });
+    if (pts.length < 1) return null;
+    var lat0 = 0, lon0 = 0;
+    pts.forEach(function (f) { lat0 += f.lat; lon0 += f.lon; }); lat0 /= pts.length; lon0 /= pts.length;
+    var kx = Math.cos(lat0 * Math.PI / 180) * 111320, ky = 110574, sx = 60, sy = 40;
+    var rel = pts.map(function (f) { var x = (f.lon - lon0) * kx, y = -(f.lat - lat0) * ky; sx = Math.max(sx, Math.abs(x) * 2.6 + 2 * (f.major || 0)); sy = Math.max(sy, Math.abs(y) * 2.6 + 2 * (f.major || 0)); return { x: x, y: y, f: f }; });
+    var fw = NFN.clamp(Math.round(sx / 10) * 10, 60, 1200), fd = NFN.clamp(Math.round(sy / 10) * 10, 40, 800);
+    return { fw: fw, fd: fd, lat0: lat0, lon0: lon0, kx: kx, ky: ky,
+             points: rel.map(function (q) { return { x: NFN.clamp(fw / 2 + q.x, 2, fw - 2), y: NFN.clamp(fd / 2 + q.y, 2, fd - 2), fix: q.f }; }) };
+  };
+
   /* ── picking the antennas ──────────────────────────────────────────────
      The customer knows where a mast can go and how tall it is. What goes on top
      is the question, and it has a search-shaped answer: start everyone on an
