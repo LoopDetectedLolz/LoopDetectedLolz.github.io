@@ -331,9 +331,12 @@ The morning of the 13th, what happened and what it taught:
   (`show ap mesh link`, `show ap mesh neighbours`, `show ap mesh cluster topology`, `show ap
   monitor ap-list` all there). It is the way to read a mesh point without a console session.
 
-State at the end of the morning: cluster Burns-Mesh; 505H a portal, automatic, on 149; 735 a
-portal, 5 GHz pinned to 149E, power back to Automatic; 635 a point on the 505H, wire down
-(1/1/12 shutdown, PoE on). Undo, in order: `no shutdown` on 1/1/12 (the 635 comes back wired
+Undone on the evening of the 14th by Dustin: all three APs back to ordinary wired APs, the
+mesh settings deleted from the group. The cluster would have to be recreated (`lab-mesh.py
+cluster`) for the move test. The state that stood before that, for the record: cluster
+Burns-Mesh; 505H a portal, automatic, on 149; 735 a portal, 5 GHz pinned to 149E, power back
+to Automatic; 635 a point on the 505H, wire down (1/1/12 shutdown, PoE on). The undo order
+that applied: `no shutdown` on 1/1/12 (the 635 comes back wired
 and stays a point in name; set its Mesh Role to None and reboot it to make it an ordinary AP);
 735 channel back to Automatic; portals' roles to None and reboot if the cluster should go;
 `lab-mesh.py restore` for the group config. Not done: a throughput test through the point
@@ -345,17 +348,31 @@ MCS 7 on 80 MHz says 200 to 250 Mb/s down if the ISP is not the ceiling), and th
 
 Both are plumbing questions, not physics ones, and both gate the GPS work.
 
-- Does Central return a latitude and longitude for it? Checked 2026-09-12 on a home
-  tenant with an AP-735 indoors: New Central's AP Location page shows only the site's
-  geocoded pin and "no floors", and nothing in the Classic API carries an AP GNSS
-  position. VisualRF returns AP latitude and longitude only for APs placed on a floor
-  plan, and the site itself has coordinates. So today the anchor for terrain has to be
-  the site, the first phone fix, Ekahau's reference points or a KML centroid, not the AP.
-  An outdoor AP with a sky view may report differently; that reading is still open.
-- Does anything expose AP-to-AP FTM ranging in a form you can read out? Best guess is no:
-  Aruba has used FTM for client ranging, and inter-AP measurements may only live inside the
-  mesh or location engine. If it is there, GPS anchors the map and FTM tightens it, which
-  beats either alone.
+- Does the AP know where it is? **Yes.** Read 2026-09-14 on an AP-635 by a window, over
+  Central's remote console on 10.8.1.0: `show ap gps summary` gives a fix (latitude,
+  longitude, altitude from `$GNGGA`, `$GNGNS`, `$GNRMC`), the chip state and the
+  constellations in use (GPS, SBAS, Galileo, QZSS, NavIC on; Beidou and Glonass off);
+  `show ap gps ellipse` gives the error ellipse (6.5 by 4.3 m here) with `hop` and `distance`
+  fields for a position inherited over a ranged neighbour; `show ap gps report-history` lists
+  the "AFC location" reports sent to the cloud, one every five minutes with the sample count
+  and the GPS height. The 630 series carries the receiver, not only the 700s. The fix sat a
+  few metres from the site's geocoded pin. The AP also has `show ap accelerometer-info`,
+  `barometer` and `magnetometer-info`. None of the GPS commands are in Tools > Commands'
+  canned list; the remote console runs them. Still open: whether the Classic API exposes the
+  position back out (`central-pull.py --keys` prints every AP field the tenant returns, run
+  it with the token), and New Central's AP location page against the same AP.
+- Does anything expose AP-to-AP FTM ranging? **The machinery, not yet the numbers.**
+  `show ap range status`: FTM initiator yes, enabled on 5 and 6 GHz; FTM responder capable on
+  every SSID and disabled on every SSID by default. `show ap range scanning-results` has the
+  table (peer BSSID, average RTT in picoseconds, RSSI, standard deviation, valid RTTs, 11mc or
+  11az, aged out after 20 minutes) and zero rows, and `show log stats-to-cloud ftmscan` is
+  empty, both because nobody answers. Next: turn the FTM responder on for one SSID on all
+  three APs (a WLAN setting), wait, read the results table on each, and compare the ranges
+  with the planner's distances. If it fills, GPS anchors the map and FTM tightens it.
+- With the explicit `point` role and the cable plugged back in (2026-09-14), the 635 came up
+  with `Current Uplink: Ethernet` and an empty `show ap mesh cluster topology`: neither point
+  nor portal, a wired AP. It power-cycled when the link returned ("Cold HW reset (Power
+  loss)" at 21:38); whether the switch or the AP did that is not settled.
 - The mesh profiles are shaped from the vendor documents (AOS 8 `ap mesh-radio-profile` and
   "Understanding Mesh Links"; Cisco mesh design guide 8.8 "Ease Calculation"; Mist "Wireless
   Mesh Network Configuration"), read 2026-09-11 and cited in `mesh.js`. Still unverified:
