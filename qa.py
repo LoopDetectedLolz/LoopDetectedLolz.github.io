@@ -239,6 +239,30 @@ def qa_mesh(b, base, page_url):
     check("math", "Mist config: template, site, mesh, one device per AP", len(mist["calls"]) == 3 + len(p3["aps"]), len(mist["calls"]), 3 + len(p3["aps"]))
     intent = pg.inner_text("#m-intent")
     check("use", "the intent names the band, width and every AP", "GHz" in intent and intent.count("\n") >= 4 + len(p3["aps"]), intent.count("\n"), f">= {4 + len(p3['aps'])}")
+    # what the AP says about where it is: paste a fix under two APs, place, FTM ranges against the plan
+    pg.evaluate("""async () => {
+      const tap = (i) => { const n = document.querySelector(`#m-map g[data-kind='ap'][data-i='${i}']`); const r = n.getBoundingClientRect();
+        const tgt = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) || n;
+        const ev = (t, x, y) => (t === 'pointerdown' ? tgt : document.getElementById('m-map')).dispatchEvent(new PointerEvent(t, {bubbles: true, cancelable: true, clientX: x, clientY: y, pointerId: 1, pointerType: 'mouse', isPrimary: true, button: 0, buttons: t === 'pointerup' ? 0 : 1}));
+        ev('pointerdown', r.x + r.width / 2, r.y + r.height / 2); ev('pointerup', r.x + r.width / 2, r.y + r.height / 2); };
+      const paste = (t) => { const g = document.getElementById('m-gps'); g.value = t; g.dispatchEvent(new Event('change')); };
+      const wait = (ms) => new Promise(r => setTimeout(r, ms));
+      tap(0); await wait(200); paste('latitude 40.000000\\nlongitude -75.000000\\nmajor-axis 6.49\\nminor-axis 4.29\\nangle 160.8'); await wait(200);
+      tap(1); await wait(200); paste('$GNGGA 40.000900, -75.001200 212.1 M'); await wait(200);
+      document.getElementById('m-geoplace').click(); await wait(400);
+    }""")
+    gst = pg.evaluate("document.getElementById('tools')._meshState")
+    gaps = pg.evaluate("document.getElementById('tools')._meshState.get('ap').map(a => [Math.round(a.x), Math.round(a.y), !!a.geo])")
+    check("use", "two pasted fixes place two masts on a north-up field and keep the rest inside it", all(2 <= x <= gst["v"]["fw"] - 2 and 2 <= y <= gst["v"]["fd"] - 2 for x, y, _ in gaps) and sum(1 for g in gaps if g[2]) == 2, gaps, "all inside, two with a fix")
+    check("math", "the two fixes sit 0.0009 degrees of latitude apart, which is 100 m on the field", abs((gaps[0][1] - gaps[1][1]) - 0.0009 * 110574) < 2, gaps[0][1] - gaps[1][1], round(0.0009 * 110574))
+    check("use", "the error ellipse draws for the fix that had one", pg.locator("#m-map ellipse").count() == 1, pg.locator("#m-map ellipse").count(), 1)
+    check("use", "no coordinate reaches the link", "40.00" not in urllib.parse.unquote(pg.evaluate("location.hash")) and "-75.0" not in urllib.parse.unquote(pg.evaluate("location.hash")), None, True)
+    pg.select_option("#m-ftmfrom", "0")
+    pg.fill("#m-ftm", "Peer-bssid  Average RTT (ps)  Average rssi (dbm)  Average std (ps)  Channel  Number of valid RTTs  Number of FTMs\naa:bb:cc:dd:ee:01   400000   -62   3000   149E   18   20   0\nTotal:1")
+    pg.dispatch_event("#m-ftm", "change"); pg.wait_for_timeout(300)
+    ftm = pg.evaluate("document.getElementById('tools')._ftm()")
+    check("math", "an FTM round trip of 400,000 ps reads as 60 m", len(ftm) == 1 and abs(ftm[0]["metres"] - 59.96) < 0.05, ftm[0]["metres"] if ftm else None, 59.96)
+    check("use", "an unmatched peer is named as a stranger, not dropped", ftm and ftm[0]["to"] == -1 and "not one of these APs" in pg.evaluate("document.getElementById('m-ftmrows').textContent"), None, True)
     # the story of the tree, read from the tree
     story = pg.evaluate("document.getElementById('tools')._narrate()")
     kinds = [q["kind"] for q in story["steps"]]

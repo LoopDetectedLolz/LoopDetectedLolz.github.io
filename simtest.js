@@ -233,6 +233,23 @@ near("a 91 dB path at 21 dBm over a -92 floor is SNR 22 plus the antenna", MLm.s
 eq("and runs at the rate its SNR earns, MCS 7 not 4", MLm.mcs, 7);
 var MLw = NFN.mesh.link({ x: 0, y: 0, h: 3, tx: 21, ant: "omni", bw: 80, std: "ax" }, { x: 30, y: 0, h: 3, tx: 21, ant: "omni", bw: 80, std: "ax" }, { tworay: false, nf: 3, margin: 6 }, [], [], { pl: 114 });
 eq("while a link under the lowest rate plus the margin is refused", MLw.ok, false);
+/* what the AP says about where it is, parsed from its console output */
+var GE = NFN.mesh.gpsParse("indoor-sp-location  Disabled\nlatitude   40.000010\nlongitude  -75.000020\nmajor-axis  6.492393\nminor-axis  4.291025\nangle       160.789324\nhop         0\ndistance    0.000000\ntime        2026-09-15 02:17:19");
+near("show ap gps ellipse: the latitude", GE.lat, 40.00001, 1e-9);
+near("and the error ellipse's major axis in metres", GE.major, 6.492393, 1e-9);
+var GS = NFN.mesh.gpsParse("$GNGGA  40.000000, -75.000000           208.7 M\n$GNRMC  40.000000, -75.000000           N/A\nGPS Firmware   Initialized\nGalileo Constellation Enable");
+near("show ap gps summary: the NMEA altitude", GS.alt, 208.7, 1e-9);
+eq("and the constellations in use", GS.constellations.join(","), "Galileo");
+eq("no fix in prose is null", NFN.mesh.gpsParse("GPS Firmware Initialized"), null);
+near("an FTM round trip of 6.67 ns is one metre", NFN.mesh.ftmMetres(6671), 1, 0.001);
+var FR = NFN.mesh.ftmParse("Peer-bssid  Average RTT (ps)  Average rssi (dbm)  Average std (ps)  Channel  Number of valid RTTs  Number of FTMs\naa:bb:cc:dd:ee:01   400000   -62   3000   149E   18   20   0\nTotal:1");
+eq("show ap range scanning-results: one row parsed", FR.length, 1);
+near("and 400,000 ps is 60 m", FR[0].metres, 59.96, 0.01);
+var GP = NFN.mesh.geoPlace([{ lat: 40, lon: -75, major: 6 }, { lat: 40.0009, lon: -75.0012 }, { lat: 39.9992, lon: -75.0015 }]);
+near("three fixes 100 m apart north to south make a field deep enough for them", GP.fd, 250, 20);
+eq("and every point lands inside it", GP.points.every(function (q) { return q.x >= 2 && q.x <= GP.fw - 2 && q.y >= 2 && q.y <= GP.fd - 2; }), true);
+near("a fix 0.0009 degrees north of the centroid is 100 m up the field", GP.points[0].y - GP.points[1].y, 0.0009 * 110574, 1);
+
 /* the story of the tree is read from the tree */
 var NS = { aps: [{ x: 20, y: 60, h: 4, gw: true, ant: "omni" }, { x: 200, y: 60, h: 4, ant: "omni" }, { x: 380, y: 60, h: 4, ant: "omni" }, { x: 2600, y: 2600, h: 4, ant: "omni" }], w: 3000, d: 3000, uplink: 100, clients: 30, tworay: false },
     NP = NFN.mesh.plan(NS), NN = NFN.mesh.narrate(NS, NP, [null, "Barn", null, null]);
