@@ -308,6 +308,37 @@ def qa_venue(b, base, page_url):
     pg.close()
 
 # ── the simulator ──────────────────────────────────────────────────────────
+# ── the field kit and the planner, both directions ──────────────────────────
+# the kit is the built kit.html at the repo root (build-blog.py writes it), served by
+# the same server; the planner side is the built tools.html for the same reason
+KIT_APS = [{"serial": "A", "mac": "", "role": "portal", "place": "north gate, 6 m pole", "lat": 42.0, "lon": -71.0},
+           {"serial": "B", "mac": "", "role": "point", "place": "beer tent", "lat": 42.0009, "lon": -71.0012},
+           {"serial": "C", "mac": "", "role": "point", "place": "stage 4 m", "lat": 41.9992, "lon": -71.0015},
+           {"serial": "D", "mac": "", "role": "wired", "place": "no fix yet", "lat": None, "lon": None}]
+def qa_kit(b, base):
+    section("The field kit and the planner")
+    if not os.path.exists(os.path.join(ROOT, "kit.html")) or not os.path.exists(os.path.join(ROOT, "tools.html")):
+        check("use", "kit.html and tools.html are built (run build-blog.py)", False, None, "both present"); return
+    pg, errs = open_lab(b, base + "/kit.html")
+    pg.evaluate("aps => { const k='nfn-kit-v1'; let c={}; try { c = JSON.parse(localStorage.getItem(k) || '{}'); } catch (e) {} c.aps = aps; localStorage.setItem(k, JSON.stringify(c)); }", KIT_APS)
+    pg.reload(wait_until="load"); pg.wait_for_timeout(600)
+    href = pg.evaluate("(document.querySelector('#k-planner a') || {getAttribute(){return null}}).getAttribute('href')")
+    check("use", "three fixed APs give the kit a planner link, the unfixed one left out", bool(href) and href.startswith("tools.html#mesh/v1?") and "3 positions" in pg.inner_text("#k-planner"), (href or "")[:60], "tools.html#mesh/v1?... for 3")
+    pg.goto(base + "/" + href, wait_until="load"); pg.wait_for_timeout(900)
+    ka = pg.evaluate("document.getElementById('tools')._meshState.get('ap')")
+    check("use", "the planner opens them as named masts with roles and heights", [(a.get("name"), a["gw"], a["h"]) for a in ka] == [("north gate 6 m pole", True, 6), ("beer tent", False, 3), ("stage 4 m", False, 4)], [(a.get("name"), a["gw"], a["h"]) for a in ka], "names, one portal, 6/3/4 m")
+    plan = pg.evaluate("document.getElementById('tools')._kitPlan()")
+    check("use", "the planner writes a plan line per AP with role, mast and parent", plan.count(";") == 2 and "|portal|6|" in plan and "attaches" not in plan and plan.split(";")[1].split("|")[5] == "north gate 6 m pole", plan[:80], "name|role|mast|az|ch|parent x3")
+    pg.goto(base + "/kit.html#plan=" + urllib.parse.quote(plan), wait_until="load"); pg.wait_for_timeout(700)
+    rows = pg.evaluate("[...document.querySelectorAll('#k-rows tr')].map(r => ({place: (r.querySelector('[data-f=place]')||{}).value, role: (r.querySelector('[data-f=role]')||{}).value, plan: (r.querySelector('.k-plan')||{}).textContent}))")
+    check("use", "the plan merges onto the kit's APs by name, adding none", len(rows) == 4 and rows[0]["plan"].startswith("portal, 6 m mast") and "attaches to north gate 6 m pole" in (rows[1]["plan"] or "") and not rows[3].get("plan"), [(r["place"], (r.get("plan") or "")[:30]) for r in rows], "4 rows, plans on the first three")
+    check("use", "and the note says so", "applied to 3 APs" in pg.inner_text("#k-planner") and "added" not in pg.inner_text("#k-planner"), pg.inner_text("#k-planner")[:80], "applied to 3 APs")
+    csv = pg.evaluate("window._kit.csv()")
+    check("use", "the CSV carries the plan column", csv.split("\n")[0] == "serial,mac,role,placement,plan,latitude,longitude,site,group" and "attaches to" in csv, csv.split("\n")[0], "plan column present")
+    text_hygiene(pg, "#p2", "kit"); tap_targets(pg, "#p2", "kit")
+    check("use", "no page errors", not errs, errs[:3], [])
+    pg.close()
+
 def qa_qam(b, base, page_url):
     section("The simulator")
     pg, errs = open_lab(b, base + page_url)
@@ -502,6 +533,7 @@ def main():
             if a.only in (None, "story"): qa_story(b, base, pages["tools"])
             if a.only in (None, "games"): qa_games(b, base, pages["games"])
             if a.only in (None, "qam"): qa_qam(b, base, pages["qam"])
+            if a.only in (None, "kit"): qa_kit(b, base)
         except Exception as e:
             check("use", "the bot itself ran to the end", False, repr(e)[:300], "no exception")
         b.close()

@@ -1081,6 +1081,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <div class="t-acts" style="margin-top:6px">
           <button class="t-btn" id="m-copy" type="button">Copy the install sheet</button>
           <button class="t-btn" id="m-link" type="button">Copy the link</button>
+          <button class="t-btn" id="m-kit" type="button">Send to the field kit</button>
           <button class="t-btn" id="m-json" type="button">Download JSON</button>
           <button class="t-btn" id="m-csv" type="button">Download CSV</button>
           <label class="t-btn" style="display:inline-flex;align-items:center;cursor:pointer">Import<input type="file" id="m-import" accept=".json,.csv,application/json,text/csv" hidden></label>
@@ -2292,6 +2293,26 @@ Tap anything to change it. The big number is what gets off the site, and the not
     else { $("m-sheet").select(); try { document.execCommand("copy"); } catch (e) {} done(); }
   }
   $("m-copy").addEventListener("click", function () { copy($("m-sheet").value, this); });
+
+  /* the plan back into the kit: one line per AP, name|role|mast|azimuth|channel|parent, the
+     placement text as the key the kit merges on. Nothing here the install sheet does not
+     already say; this is the same rows in a shape the kit can read off the hash. */
+  function kitPlan(p) {
+    var aps = st.get("ap"), north = st.get("north");
+    var clean = function (t) { return String(t || "").replace(/[|;&=#%]/g, " ").replace(/\s+/g, " ").trim().slice(0, 24); };
+    return p.aps.map(function (r, k) {
+      var a = aps[k], res = p.tree.aps[k];
+      return [clean(apName(k)), a.gw ? "portal" : r.serves ? "point" : "bridge", a.h,
+              r.antenna.h < 360 && isFinite(res.aim) ? Math.round(M.compass(res.aim, north)) : "",
+              r.channel !== null && r.depth >= 0 ? r.channel : "",
+              !a.gw && r.parent >= 0 ? clean(apName(r.parent)) : ""].join("|");
+    }).join(";");
+  }
+  $("m-kit").addEventListener("click", function () {
+    if (!lastP) return;
+    window.open("kit.html#plan=" + encodeURIComponent(kitPlan(lastP)), "_blank", "noopener");
+  });
+  root._kitPlan = function () { return kitPlan(lastP || M.plan(model())); };
   var lastIntent = null;
   $("m-intentcopy").addEventListener("click", function () { if (lastIntent) copy(NFN.emit.text(lastIntent), this); });
   $("m-central-dl").addEventListener("click", function () { if (lastIntent) download("mesh-central-config.json", JSON.stringify(NFN.emit.central(lastIntent), null, 1), "application/json"); });

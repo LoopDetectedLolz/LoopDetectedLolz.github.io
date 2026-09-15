@@ -97,8 +97,10 @@ real ones were 35 px fold summaries and a channel list with 169 to 177 at 20 MHz
 2. **Fold the RF planning into the kit.** Done 2026-09-14: phase two carries "Open these N
    positions in the mesh planner" once two APs have a fix; the kit builds the `#mesh/v1` hash
    itself (roles, heights from the placement text, placement as the AP name), the planner's
-   table and story use the names, and the QA bot holds the round trip. Not yet done: the
-   reverse, a plan's install sheet back into the kit's placement column.
+   table and story use the names, and the QA bot holds the round trip. The reverse landed the same
+   day: "Send to the field kit" in the planner's share fold writes `kit.html#plan=...`, the kit
+   merges it by name (role follows the plan; a plan line rides beside the placement into the
+   table, CSV, JSON and card; unscanned planned APs get a row). The QA bot walks both directions.
 3. **GPS and FTM**, once the lab answers the questions below. Positions are already
    recorded per AP in the kit and ride in the CSV and the plan, so the groundwork is done.
 
