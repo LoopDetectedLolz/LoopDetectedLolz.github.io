@@ -93,7 +93,7 @@
             return '<option value="' + r + '"' + (a.role === r ? " selected" : "") + ">" +
               { portal: "Portal", point: "Mesh point", wired: "Wired" }[r] + "</option>"; }).join("") +
         "</select></td>" +
-        '<td><input type="text" data-f="place" data-i="' + i + '" value="' + esc(a.place) + '" placeholder="north gate, 4 m pole"></td>' +
+        '<td><input type="text" data-f="place" data-i="' + i + '" value="' + esc(a.place) + '" placeholder="north gate, 4 m pole">' + (a.plan ? '<small class="k-plan">' + esc(a.plan) + "</small>" : "") + "</td>" +
         '<td><button class="k-mini" data-gps="' + i + '" type="button">' +
           (a.lat == null ? "fix" : a.lat.toFixed(4) + ", " + a.lon.toFixed(4)) + "</button></td>" +
         '<td><button class="k-mini k-x" data-del="' + i + '" type="button" aria-label="remove">&times;</button></td></tr>';
@@ -101,6 +101,7 @@
     var portals = S.aps.filter(function (a) { return a.role === "portal"; }).length;
     $("k-apcount").textContent = S.aps.length + " recorded, " + portals + " portal" + (portals === 1 ? "" : "s");
     plannerLink();
+    if (planNote) { $("k-planner").insertAdjacentHTML("afterbegin", '<span class="k-plannote">' + esc(planNote) + "</span>"); }
   }
 
   /* ── the handoff to the mesh planner ────────────────────────────────────
@@ -174,8 +175,8 @@
 
   /* ── outputs ───────────────────────────────────────────────────────────── */
   function csv() {
-    return "serial,mac,role,placement,latitude,longitude,site,group\n" + S.aps.map(function (a) {
-      return [a.serial, a.mac, a.role, '"' + (a.place || "").replace(/"/g, '""') + '"',
+    return "serial,mac,role,placement,plan,latitude,longitude,site,group\n" + S.aps.map(function (a) {
+      return [a.serial, a.mac, a.role, '"' + (a.place || "").replace(/"/g, '""') + '"', '"' + (a.plan || "").replace(/"/g, '""') + '"',
               a.lat == null ? "" : a.lat.toFixed(6), a.lon == null ? "" : a.lon.toFixed(6),
               '"' + S.site.replace(/"/g, '""') + '"', S.group].join(",");
     }).join("\n");
@@ -187,7 +188,7 @@
               latitude: S.lat, longitude: S.lon, accuracy_m: S.acc },
       group: S.group,
       devices: S.aps.map(function (a) {
-        return { serial: a.serial, mac: a.mac, role: a.role, placement: a.place, latitude: a.lat, longitude: a.lon };
+        return { serial: a.serial, mac: a.mac, role: a.role, placement: a.place, plan: a.plan || "", latitude: a.lat, longitude: a.lon };
       }),
       ssids: S.ssids, guest: { ssid: S.guest.ssid, vlan: S.guest.vlan },
       actions: queue().filter(function (a) { return !S.skip[a.id]; }).map(function (a) { return a.id; })
@@ -322,7 +323,7 @@
   function card() {
     var rows = S.aps.map(function (a) {
       return "<tr><td>" + esc(a.serial) + "</td><td>" + esc(a.mac) + "</td><td>" +
-        { portal: "Portal", point: "Mesh point", wired: "Wired" }[a.role] + "</td><td>" + esc(a.place) +
+        { portal: "Portal", point: "Mesh point", wired: "Wired" }[a.role] + "</td><td>" + esc(a.place) + (a.plan ? "<br><small>" + esc(a.plan) + "</small>" : "") +
         "</td><td>" + (a.lat == null ? "" : a.lat.toFixed(5) + ", " + a.lon.toFixed(5)) + "</td></tr>";
     }).join("");
     $("k-card").innerHTML =
@@ -561,6 +562,38 @@
     if (e.key === "ArrowRight") showPage(S.page + 1);
     if (e.key === "ArrowLeft") showPage(S.page - 1);
   });
+
+  /* ── a plan arriving from the mesh planner ─────────────────────────────
+     kit.html#plan=name|role|mast|azimuth|channel|parent;... The name is the
+     placement text the kit sent out (or the planner's own "AP n"), so the plan
+     merges onto the AP it was made for: the role follows the plan and a plan
+     line (what to mount, how high, where to aim, which channel, who it should
+     attach to) rides beside the placement into the table, the CSV and the card.
+     A planned AP the kit has not scanned yet gets a row of its own, so the
+     person on site knows one is expected there. */
+  function applyPlan(text) {
+    /* the same scrub the outgoing name got, so "north gate, 6 m pole" meets "north gate 6 m pole" */
+    var key = function (t) { return String(t || "").replace(/[,|;&=#%]/g, " ").replace(/\s+/g, " ").trim().slice(0, 24).toLowerCase(); };
+    var got = 0, added = 0;
+    String(text || "").split(";").forEach(function (line) {
+      var f = line.split("|"); if (f.length < 3 || !f[0]) return;
+      var name = f[0].trim(), role = /portal/.test(f[1]) ? "portal" : "point", h = parseFloat(f[2]), az = f[3], ch = f[4], parent = f[5];
+      var plan = role + (isFinite(h) ? ", " + h + " m mast" : "") + (az !== "" && az !== undefined ? ", aim " + az + " deg" : "") + (ch ? ", channel " + ch : "") + (parent ? ", attaches to " + parent : "");
+      var hit = S.aps.filter(function (a) { return key(a.place) === key(name) || (!a.place && key(a.serial) === key(name)); })[0];
+      if (!hit) { hit = { serial: "", mac: "", role: role, place: name, lat: null, lon: null }; S.aps.push(hit); added++; }
+      if (hit.role !== "wired") hit.role = role;
+      hit.plan = plan; got++;
+    });
+    save();
+    return { got: got, added: added };
+  }
+  var planNote = "", mp = /^#plan=(.*)$/.exec(location.hash || "");
+  if (mp) {
+    var applied = applyPlan(decodeURIComponent(mp[1]));
+    try { history.replaceState(null, "", "#2"); } catch (e) {}
+    S.page = 1;
+    planNote = "Plan from the mesh planner applied to " + applied.got + " AP" + (applied.got === 1 ? "" : "s") + (applied.added ? ", " + applied.added + " added that the kit had not recorded" : "") + ".";
+  }
 
   ssidRows(); gpsMsg(); render();
   var m0 = /^#([1-4])$/.exec(location.hash || "");
