@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-label="Two Android timers started by a lift ride: the scan backoff schedule and the ten minute no internet disable, neither of which measures signal">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .n{fill:#8BA2AE;font-size:10.5px;font-family:JetBrains Mono,ui-monospace,Menlo,monospace;letter-spacing:1.5px}
+    .note{fill:#B0C4CF;font-size:12px}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:11px;fill:#5ED2DA}
+    .tick{fill:#B0C4CF;font-size:11px}
+  </style></defs>
+
+  <text x="15" y="26" class="t hd">Both timers start in the lift. Neither of them looks at your RF again.</text>
+
+  <text x="15" y="58" class="t n">SCAN BACKOFF WHILE DISCONNECTED</text>
+  <g class="t">
+    <line x1="30" y1="96" x2="700" y2="96" stroke="#ffffff" stroke-opacity="0.16"/>
+    <g fill="#5ED2DA">
+      <circle cx="30" cy="96" r="4"/><circle cx="90" cy="96" r="4"/><circle cx="200" cy="96" r="4"/><circle cx="410" cy="96" r="4"/><circle cx="700" cy="96" r="4"/>
+    </g>
+    <text x="30" y="84" class="tick" text-anchor="middle">0</text>
+    <text x="90" y="84" class="tick" text-anchor="middle">20s</text>
+    <text x="200" y="84" class="tick" text-anchor="middle">40s</text>
+    <text x="410" y="84" class="tick" text-anchor="middle">80s</text>
+    <text x="700" y="84" class="tick" text-anchor="middle">160s</text>
+    <text x="30" y="122" class="note">Each gap doubles. By the time the doors open the phone may be looking once every 160 seconds.</text>
+    <text x="30" y="142" class="t mono">DEFAULT_SCANNING_SCHEDULE_SEC · WifiConnectivityManager.java</text>
+  </g>
+
+  <text x="15" y="184" class="t n">NETWORK MARKED NO INTERNET</text>
+  <g class="t">
+    <rect x="30" y="196" width="670" height="26" rx="6" fill="#F5A524" fill-opacity="0.14" stroke="#F5A524" stroke-opacity="0.5"/>
+    <text x="365" y="214" class="note" fill="#F5A524" text-anchor="middle">ten minutes, regardless of how good the signal gets</text>
+    <text x="30" y="244" class="t mono">DISABLED_NO_INTERNET_TEMPORARY · WifiConfiguration.NetworkSelectionStatus</text>
+  </g>
+
+  <rect x="15" y="258" width="870" height="36" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+  <text x="32" y="282" class="t note">Opening the Wi-Fi screen resets neither. Settings simply scans every ten seconds, and the selection logic uses the result.</text>
+</svg>

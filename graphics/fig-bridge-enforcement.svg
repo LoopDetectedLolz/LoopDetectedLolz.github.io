@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 320" role="img" aria-label="The same captive portal in tunnel mode and in bridge mode, showing which device builds the redirect in each case">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .n{fill:#8BA2AE;font-size:10.5px;font-family:JetBrains Mono,ui-monospace,Menlo,monospace;letter-spacing:1.5px}
+    .box{font-size:12.5px;font-weight:600}
+    .note{fill:#B0C4CF;font-size:12px}
+    .sm{fill:#B0C4CF;font-size:11.5px}
+  </style>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8BA2AE"/></marker>
+  </defs>
+
+  <text x="15" y="26" class="t hd">Bridge mode does not remove the work. It relocates it onto the ceiling.</text>
+
+  <text x="15" y="58" class="t n">TUNNEL</text>
+  <g class="t">
+    <rect x="15" y="70" width="104" height="52" rx="9" fill="rgba(3,10,16,0.5)" stroke="rgba(255,255,255,0.14)"/>
+    <text x="67" y="101" class="box" fill="#B0C4CF" text-anchor="middle">Client</text>
+    <path d="M119 96 L153 96" stroke="#8BA2AE" stroke-width="1.6" marker-end="url(#ab)"/>
+    <rect x="161" y="70" width="128" height="52" rx="9" fill="rgba(3,10,16,0.5)" stroke="rgba(255,255,255,0.14)"/>
+    <text x="225" y="94" class="box" fill="#B0C4CF" text-anchor="middle">AP</text>
+    <text x="225" y="111" class="sm" text-anchor="middle" font-size="10.5">radio and tunnel</text>
+    <path d="M289 96 L323 96" stroke="#8BA2AE" stroke-width="1.6" marker-end="url(#ab)"/>
+    <rect x="331" y="70" width="190" height="52" rx="9" fill="#5ED2DA" fill-opacity="0.16" stroke="#5ED2DA"/>
+    <text x="426" y="94" class="box" fill="#5ED2DA" text-anchor="middle">Gateway</text>
+    <text x="426" y="111" class="sm" fill="#9FE4E9" text-anchor="middle" font-size="10.5">role, ACL, portal redirect</text>
+    <text x="541" y="100" class="t note" fill="#8BA2AE">The long string lives here and never leaves.</text>
+  </g>
+
+  <text x="15" y="166" class="t n">BRIDGE</text>
+  <g class="t">
+    <rect x="15" y="178" width="104" height="52" rx="9" fill="rgba(3,10,16,0.5)" stroke="rgba(255,255,255,0.14)"/>
+    <text x="67" y="209" class="box" fill="#B0C4CF" text-anchor="middle">Client</text>
+    <path d="M119 204 L153 204" stroke="#8BA2AE" stroke-width="1.6" marker-end="url(#ab)"/>
+    <rect x="161" y="178" width="190" height="52" rx="9" fill="#F5A524" fill-opacity="0.14" stroke="#F5A524"/>
+    <text x="256" y="202" class="box" fill="#F5A524" text-anchor="middle">AP</text>
+    <text x="256" y="219" class="sm" fill="#F7C574" text-anchor="middle" font-size="10.5">role, ACL, portal redirect</text>
+    <path d="M351 204 L385 204" stroke="#8BA2AE" stroke-width="1.6" marker-end="url(#ab)"/>
+    <rect x="393" y="178" width="128" height="52" rx="9" fill="rgba(3,10,16,0.5)" stroke="rgba(255,255,255,0.14)"/>
+    <text x="457" y="209" class="box" fill="#B0C4CF" text-anchor="middle">Local VLAN</text>
+    <text x="541" y="198" class="t note" fill="#F5A524">The long string is now on a device with a</text>
+    <text x="541" y="216" class="t note" fill="#F5A524">fraction of the memory and no console you watch.</text>
+  </g>
+
+  <rect x="15" y="252" width="870" height="56" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+  <text x="32" y="276" class="t note">"When bridge forwarding is selected in a profile, the APs operate as the sole policy enforcement point."</text>
+  <text x="32" y="296" class="t note" fill="#8BA2AE">HPE, AOS 10 bridge forwarding design page. The incident described here was on 8.12; the principle holds on both.</text>
+</svg>

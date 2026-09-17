@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>I Held the Mesh Planner Against a Real Point and It Was Wrong About One Thing</title>
-<meta name="description" content="Three APs, two floors, one point booted with its cable pulled. The planner called both link budgets within two dB of what the AP measured, then missed the rate by three MCS steps for a reason that took an hour to find. Plus the mesh table column you should not trust and the command you should.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/mesh-planner-held-against-a-real-point.html">
+<title>A Captive Portal Page Name Long Enough to Reboot Your APs</title>
+<meta name="description" content="A 605H in bridge mode kernel panicked every two to three minutes and nothing in the WLAN config looked wrong. The cause was the length of the captive portal page name, not the page, not the policy, not the AP. Here is why bridge mode is what exposed it, and why tunnel mode would have hidden it.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/portal-page-name-panics-the-ap.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="I Held the Mesh Planner Against a Real Point and It Was Wrong About One Thing">
-<meta property="og:description" content="Three APs, two floors, one point booted with its cable pulled. The planner called both link budgets within two dB of what the AP measured, then missed the rate by three MCS steps for a reason that took an hour to find. Plus the mesh table column you should not trust and the command you should.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/mesh-planner-held-against-a-real-point.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/mesh-planner-held-against-a-real-point.png">
+<meta property="og:title" content="A Captive Portal Page Name Long Enough to Reboot Your APs">
+<meta property="og:description" content="A 605H in bridge mode kernel panicked every two to three minutes and nothing in the WLAN config looked wrong. The cause was the length of the captive portal page name, not the page, not the policy, not the AP. Here is why bridge mode is what exposed it, and why tunnel mode would have hidden it.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/portal-page-name-panics-the-ap.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/portal-page-name-panics-the-ap.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="I Held the Mesh Planner Against a Real Point and It Was Wrong About One Thing">
-<meta name="twitter:description" content="Three APs, two floors, one point booted with its cable pulled. The planner called both link budgets within two dB of what the AP measured, then missed the rate by three MCS steps for a reason that took an hour to find. Plus the mesh table column you should not trust and the command you should.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/mesh-planner-held-against-a-real-point.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-14"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "I Held the Mesh Planner Against a Real Point and It Was Wrong About One Thing", "description": "Three APs, two floors, one point booted with its cable pulled. The planner called both link budgets within two dB of what the AP measured, then missed the rate by three MCS steps for a reason that took an hour to find. Plus the mesh table column you should not trust and the command you should.", "datePublished": "2026-09-14", "image": "https://networkfieldnotes.com/og/mesh-planner-held-against-a-real-point.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/mesh-planner-held-against-a-real-point.html", "keywords": "Wireless, Mesh, AOS-10, Planning"}</script>
+<meta name="twitter:title" content="A Captive Portal Page Name Long Enough to Reboot Your APs">
+<meta name="twitter:description" content="A 605H in bridge mode kernel panicked every two to three minutes and nothing in the WLAN config looked wrong. The cause was the length of the captive portal page name, not the page, not the policy, not the AP. Here is why bridge mode is what exposed it, and why tunnel mode would have hidden it.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/portal-page-name-panics-the-ap.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-16"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "A Captive Portal Page Name Long Enough to Reboot Your APs", "description": "A 605H in bridge mode kernel panicked every two to three minutes and nothing in the WLAN config looked wrong. The cause was the length of the captive portal page name, not the page, not the policy, not the AP. Here is why bridge mode is what exposed it, and why tunnel mode would have hidden it.", "datePublished": "2026-09-16", "image": "https://networkfieldnotes.com/og/portal-page-name-panics-the-ap.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/portal-page-name-panics-the-ap.html", "keywords": "Wireless, AOS-8, Captive Portal"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -516,231 +516,139 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
     <header class="post-head g-hero cat-Wireless" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Sep 14, 2026 &#183; 8 min</span></div>
-      <h1 class="h-hero">I Held the Mesh Planner Against a Real Point and It Was Wrong About One Thing</h1>
+      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Sep 16, 2026 &#183; 5 min</span></div>
+      <h1 class="h-hero">A Captive Portal Page Name Long Enough to Reboot Your APs</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Three rows comparing what the mesh planner predicted with what the access point measured: received power on the good link, path loss on the marginal link, and the rate, where the planner said MCS 4 and the radio ran MCS 7">
-  <defs>
-    <style>
-      .eb{font:700 13px "Instrument Sans",-apple-system,Helvetica,sans-serif;letter-spacing:3px;fill:#8CE05E}
-      .hl{font:600 20px "Instrument Sans",-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
-      .lb{font:500 13px "Instrument Sans",-apple-system,Helvetica,sans-serif;fill:#B0C4CF}
-      .sm{font:400 11px "Instrument Sans",-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
-      .mo{font:500 12px "JetBrains Mono",ui-monospace,Menlo,monospace;fill:#EAF2F6}
-      .mod{font:500 12px "JetBrains Mono",ui-monospace,Menlo,monospace;fill:#8BA2AE}
-      .cap{font:400 12px "Instrument Sans",-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
-      .trk{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
-    </style>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A 72 character captive portal page name travels to the access point in bridge mode and panics it into a reboot loop">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .lbl{fill:#B0C4CF;font-size:11px}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:10px;fill:#5ED2DA}
+    .hd{font-size:13px;font-weight:700}
+  </style>
+  <marker id="pa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="pm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
   </defs>
-  <text x="40" y="36" class="eb">MESH PLANNER, MEASURED</text>
-  <text x="40" y="66" class="hl">Two link budgets right to 2 dB, one rate wrong by three MCS steps</text>
 
-  <!-- legend -->
-  <rect x="612" y="80" width="12" height="12" rx="2" fill="none" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="3 2"/>
-  <text x="630" y="90" class="sm">planner said</text>
-  <rect x="722" y="80" width="12" height="12" rx="2" fill="#8CE05E"/>
-  <text x="740" y="90" class="sm">the AP measured</text>
+  <text x="30" y="36" class="t eyebrow">"THE ACCESS POINTS ARE FAULTY"</text>
+  <text x="30" y="66" class="t big">Seventy two characters in a field nobody ever reads again.</text>
 
-  <!-- row 1: received power on the good link -->
-  <text x="40" y="126" class="lb">Point to the 505H portal</text>
-  <text x="40" y="144" class="sm">received power</text>
-  <rect x="290" y="112" width="560" height="26" rx="6" class="trk"/>
-  <text x="290" y="156" class="sm">-90 dBm</text>
-  <text x="850" y="156" class="sm" text-anchor="end">-50 dBm</text>
-  <!-- scale: -90 at x=290, -50 at x=850, 14 px per dB -->
-  <rect x="570" y="116" width="70" height="18" rx="4" fill="#8CE05E" fill-opacity="0.85"/>
-  <text x="562" y="129" class="mo" text-anchor="end">-70 to -65 measured</text>
-  <line x1="654" y1="108" x2="654" y2="142" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="3 2"/>
-  <text x="662" y="122" class="mod">-64 predicted</text>
+  <g class="t">
+    <rect x="28" y="112" width="250" height="118" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.14)"/>
+    <text x="46" y="138" class="lbl" fill="#8BA2AE">CAPTIVE PORTAL PROFILE</text>
+    <text x="46" y="166" class="hd" fill="#EAF2F6">Page name</text>
+    <rect x="46" y="178" width="214" height="20" rx="4" fill="#5ED2DA" fill-opacity="0.18" stroke="#5ED2DA" stroke-opacity="0.45"/>
+    <text x="153" y="192" class="t mono" text-anchor="middle">72 characters</text>
+    <text x="46" y="218" class="lbl">Typed once. Never looked at again.</text>
 
-  <!-- row 2: path loss on the marginal link -->
-  <text x="40" y="196" class="lb">Point to the 735 portal</text>
-  <text x="40" y="214" class="sm">path loss</text>
-  <rect x="290" y="182" width="560" height="26" rx="6" class="trk"/>
-  <text x="290" y="226" class="sm">80 dB</text>
-  <text x="850" y="226" class="sm" text-anchor="end">110 dB</text>
-  <!-- scale: 80 at x=290, 110 at x=850, 18.67 px per dB -->
-  <rect x="616" y="186" width="18" height="18" rx="4" fill="#8CE05E" fill-opacity="0.85"/>
-  <text x="608" y="199" class="mo" text-anchor="end">98 measured</text>
-  <line x1="663" y1="178" x2="663" y2="212" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="3 2"/>
-  <text x="671" y="192" class="mod">100 budgeted</text>
+    <path d="M278 171 L338 171" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#pa)"/>
+    <text x="308" y="160" class="lbl" font-size="10.5" text-anchor="middle" fill="#5ED2DA">bridge</text>
 
-  <!-- row 3: the rate -->
-  <text x="40" y="266" class="lb">Point to the 505H portal</text>
-  <text x="40" y="284" class="sm">rate, 80 MHz, two streams</text>
-  <g>
-    <!-- twelve MCS cells from x=290, 46 px each with 2 px gaps -->
-    <rect x="290" y="252" width="44" height="26" rx="5" class="trk"/><text x="312" y="270" class="mod" text-anchor="middle">0</text>
-    <rect x="336" y="252" width="44" height="26" rx="5" class="trk"/><text x="358" y="270" class="mod" text-anchor="middle">1</text>
-    <rect x="382" y="252" width="44" height="26" rx="5" class="trk"/><text x="404" y="270" class="mod" text-anchor="middle">2</text>
-    <rect x="428" y="252" width="44" height="26" rx="5" class="trk"/><text x="450" y="270" class="mod" text-anchor="middle">3</text>
-    <rect x="474" y="252" width="44" height="26" rx="5" fill="none" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="3 2"/><text x="496" y="270" class="mo" text-anchor="middle" style="fill:#5ED2DA">4</text>
-    <rect x="520" y="252" width="44" height="26" rx="5" class="trk"/><text x="542" y="270" class="mod" text-anchor="middle">5</text>
-    <rect x="566" y="252" width="44" height="26" rx="5" class="trk"/><text x="588" y="270" class="mod" text-anchor="middle">6</text>
-    <rect x="612" y="252" width="44" height="26" rx="5" fill="#4FBDEA"/><text x="634" y="270" class="mo" text-anchor="middle" style="fill:#06202A">7</text>
-    <rect x="658" y="252" width="44" height="26" rx="5" class="trk"/><text x="680" y="270" class="mod" text-anchor="middle">8</text>
-    <rect x="704" y="252" width="44" height="26" rx="5" class="trk"/><text x="726" y="270" class="mod" text-anchor="middle">9</text>
-    <rect x="750" y="252" width="44" height="26" rx="5" class="trk"/><text x="772" y="270" class="mod" text-anchor="middle">10</text>
-    <rect x="796" y="252" width="44" height="26" rx="5" class="trk"/><text x="818" y="270" class="mod" text-anchor="middle">11</text>
+    <rect x="346" y="112" width="236" height="118" rx="12" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA"/>
+    <text x="364" y="138" class="lbl" fill="#8BA2AE">FORWARDING MODE</text>
+    <text x="364" y="166" class="hd" fill="#5ED2DA">Bridge</text>
+    <text x="364" y="188" class="lbl" fill="#EAF2F6">The AP is the sole policy</text>
+    <text x="364" y="206" class="lbl" fill="#EAF2F6">enforcement point</text>
+    <text x="364" y="224" class="lbl">so the AP holds the string</text>
+
+    <path d="M582 171 L642 171" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#pa)"/>
+
+    <rect x="650" y="112" width="222" height="118" rx="12" fill="none" stroke="#8BA2AE" stroke-width="1.6" stroke-dasharray="7 5"/>
+    <text x="668" y="138" class="lbl" fill="#8BA2AE">ACCESS POINT</text>
+    <text x="668" y="166" class="hd" fill="#B0C4CF">Kernel panic</text>
+    <text x="668" y="188" class="lbl">Two to three minutes of life,</text>
+    <text x="668" y="206" class="lbl">then round again</text>
+    <path d="M846 214 a 16 16 0 1 1 -12 -15" stroke="#8BA2AE" stroke-width="1.6" fill="none"/>
+    <path d="M828 192 L836 199 L827 204" stroke="#8BA2AE" stroke-width="1.6" fill="none"/>
   </g>
-  <text x="496" y="296" class="sm" text-anchor="middle">432 Mb/s said</text>
-  <text x="634" y="296" class="sm" text-anchor="middle" style="fill:#4FBDEA">720 Mb/s ran</text>
 
-  <text x="40" y="322" class="cap">The miss was policy, not physics: a 6 dB margin taken off the rate as well as gating the link, and a 7 dB noise figure where the radios report 3.</text>
+  <text x="30" y="290" class="t lbl" fill="#8BA2AE">Tunnel mode would never have found it, because the string never reaches the AP.</text>
+  <text x="30" y="312" class="t lbl" fill="#8BA2AE">One engineer's field finding on 8.12.0.6 and 8.12.0.7. No defect ID exists.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>A morning at home with a switch console, Central&#x27;s Commands tool and a point that would not become a point</div>
-      <div class="prose"><p>I built a mesh planner. It sits on the <a href="../tools.html#mesh/v1">Tools page</a> now, it draws the tree a mesh should form, it says what each hop will carry, and until this weekend nobody had checked it against a radio. A planner that has never been wrong in public is a planner nobody has tested. So I put the three APs in my house into a mesh cluster and made one of them earn its keep over the air.</p>
-<p>The short version: the link budgets held, the rate did not, and the reasons for both are worth writing down.</p>
-<h2>The setup</h2>
-<p>Two floors, three access points. An AP-505H and an AP-735 stayed on the wire as portals. An AP-635 was told it was a point, then had its switch port shut with the PoE left on, so it booted with power and no link, the way a point on a pole boots.</p>
-<p>Before any of that, the planner had a prediction. It reads the neighbour path loss AirMatch measures between radios, which is a better number than a client RSSI because it does not care what power anyone was running, and it turned those losses into a budget for each candidate link. The 635 to the 505H: about 90 to 92 dB of loss, so around -64 dBm at the point. The 635 to the 735: 100 dB, which is a marginal link at 80 MHz. Prediction: the 635 attaches to the 505H at MCS 4.</p>
-<h2>Getting the point to be a point took most of the morning</h2>
-<p>None of this is about RF. All of it cost time.</p>
-<p><strong>A role saved while the AP is offline is never delivered.</strong> I set the 635's mesh role to point in Central while it was already unreachable, and then spent an hour wondering why it kept coming up as a plain AP. The AP has to be online on the wire to receive the role. The tell in Central is the "last config changed" stamp on the device page: if it predates the save, the AP does not have it. Bring it back on the wire, watch the stamp update and the status read Synchronized, and only then pull the link.</p>
-<p><strong>Pulling the link is not pulling the power.</strong> On my AOS-CX switch, <code>shutdown</code> on the port dropped the link and kept delivering PoE; <code>show power-over-ethernet</code> on the port still read delivering at nine watts. That is exactly what a mesh test wants, an AP with power and no Ethernet, but only if the AP reboots into that state. <code>no power-over-ethernet</code> then <code>power-over-ethernet</code> on the port is the remote power button. Central's MultiEdit editor would not save the PoE line for me; the console did.</p>
-<p><strong>The device page in Central lies until you hard reload it.</strong> After the point came up over the air, the summary page kept showing the wired uplink, the old uptime, ETH0 up. Navigating around the app did not clear it. A browser reload did: WiFi Mesh, ETH0 Down, uptime four minutes. Learned that one the slow way.</p>
-<h2>Then it attached to the wrong portal, for a reason that was not signal</h2>
-<p>The 635 came up and joined the 735, the marginal link, at a rate of 72 Mb/s down and single digits up. The 505H, the link the planner wanted, was nowhere in its neighbour list.</p>
-<p>The reason was channels. Overnight, AirMatch had put the 735 on channel 120 and the 505H on 149. The 635's own monitor table, which lists every BSSID its radio has heard, had no entry at all for the 505H's 5 GHz radios in the twenty minutes it sat on the marginal link. The docs say a point does scan: every channel while it has no uplink, and topology scans in its first nine minutes and again whenever the link drops under threshold. Whatever the schedule, it had not found the 505H on 149. The 505H was not losing the selection. It was not in the race.</p>
-<p>So I pinned the 735 to 149E, the same 80 MHz channel as the 505H. Three and a half minutes later the 635 had reselected: parent 505H, 720 Mb/s down, 400 to 650 up, the 735 demoted to neighbour. If you want two portals to be each other's fallback, put them on one channel: the second portal is then a candidate at every reselection rather than waiting on a rescan, and I would not leave that to the channel planner.</p>
-<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-label="Before and after: with the portals on different channels the point sat on the marginal link and its monitor table never listed the other portal; with both portals on one channel it heard both and reselected the strong one">
-  <defs>
-    <style>
-      .t{font:600 14px "Instrument Sans",-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
-      .lb{font:500 12px "Instrument Sans",-apple-system,Helvetica,sans-serif;fill:#B0C4CF}
-      .sm{font:400 11px "Instrument Sans",-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
-      .mo{font:500 11px "JetBrains Mono",ui-monospace,Menlo,monospace;fill:#8BA2AE}
-      .box{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
-      .ap{fill:rgba(3,10,16,0.55);stroke:#5ED2DA;stroke-width:1.5}
-      .apdim{fill:rgba(3,10,16,0.35);stroke:rgba(255,255,255,0.18);stroke-width:1.5;stroke-dasharray:4 3}
-    </style>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>An Airheads thread where the engineer read the AP console logs himself after a week of waiting on a case</div>
+      <div class="prose"><p>Somebody on the forums had access points falling over in a loop. A 605H in bridge mode, two to three minutes of life, kernel panic, reboot, repeat. Only on one WLAN. Move a client to a different SSID on the same AP and everything behaved.</p>
+<p>He opened a case. A week later, with the case no further along, he read the AP console logs himself and found it. The captive portal page <strong>name</strong> was 72 characters long. Not the page, not the HTML, not anything a user would ever see. The name of the object.</p>
+<p>Shorten the name, the APs stop panicking.</p>
+<p>I have not reproduced this, and I want to be straight about what that means before you read any further. This is a field finding from one engineer's environment, reproduced by him on 8.12.0.6 and 8.12.0.7, and I checked the 8.13.0.0 resolved issues list and it is not there. There is no defect ID. Treat it as a thing to check rather than a thing that is documented.</p>
+<h2>Why nobody would look there</h2>
+<p>Think about the shape of the fault. An AP kernel panics, which is about as low-level as a failure gets, and the thing that fixes it is the length of a string in a configuration object three layers up. Nothing about the symptom points at the cause.</p>
+<p>The instincts are all wrong here, and they are wrong in an expensive way:</p>
+<p>A panicking AP looks like hardware, so you swap it. The replacement panics too, so you decide it is the firmware and you plan an upgrade window. The upgrade does not fix it, so you open a case and wait. Meanwhile the actual fault is a field you typed once, months ago, and never thought about again.</p>
+<p>The reason it lands on the AP at all is the forwarding mode, and that is the part worth taking away from this even if you never touch a 605H.</p>
+<h2>What bridge mode actually moves</h2>
+<p>In tunnel mode the AP is doing very little thinking. Client traffic goes into a GRE tunnel and comes out at the controller or gateway, and that is where the role lives, where the ACLs are evaluated, and where a captive portal redirect gets built and injected. The AP is a radio with a tunnel endpoint attached.</p>
+<p>Bridge mode hands all of that back to the AP. HPE says it plainly on the AOS 10 bridge forwarding design page: when bridge forwarding is selected in a profile, the APs operate as the sole policy enforcement point. The incident above was on 8.12 rather than AOS 10, but the principle is the same on both, and that one sentence explains a whole category of reports that read "works in tunnel, breaks in bridge."</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 320" role="img" aria-label="The same captive portal in tunnel mode and in bridge mode, showing which device builds the redirect in each case">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .n{fill:#8BA2AE;font-size:10.5px;font-family:JetBrains Mono,ui-monospace,Menlo,monospace;letter-spacing:1.5px}
+    .box{font-size:12.5px;font-weight:600}
+    .note{fill:#B0C4CF;font-size:12px}
+    .sm{fill:#B0C4CF;font-size:11.5px}
+  </style>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8BA2AE"/></marker>
   </defs>
 
-  <!-- before -->
-  <rect x="30" y="20" width="410" height="250" rx="14" class="box"/>
-  <text x="50" y="48" class="t">Before: portals on two channels</text>
-  <rect x="60" y="80" width="130" height="44" rx="10" class="ap"/>
-  <text x="125" y="98" class="lb" text-anchor="middle">735 portal</text>
-  <text x="125" y="115" class="mo" text-anchor="middle">channel 120</text>
-  <rect x="270" y="80" width="130" height="44" rx="10" class="apdim"/>
-  <text x="335" y="98" class="lb" text-anchor="middle" style="fill:#8BA2AE">505H portal</text>
-  <text x="335" y="115" class="mo" text-anchor="middle">channel 149</text>
-  <rect x="165" y="196" width="140" height="44" rx="10" class="ap"/>
-  <text x="235" y="214" class="lb" text-anchor="middle">635 point</text>
-  <text x="235" y="231" class="mo" text-anchor="middle">on 120 with the 735</text>
-  <line x1="150" y1="124" x2="215" y2="196" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 4"/>
-  <text x="128" y="170" class="sm" text-anchor="end">SNR 9, 72 Mb/s</text>
-  <text x="335" y="165" class="sm" text-anchor="middle">not in its monitor table</text>
-  <text x="50" y="250" class="sm">Its monitor table had no entry for the 505H.</text>
-  <text x="50" y="264" class="sm">Not losing, not in the race.</text>
+  <text x="15" y="26" class="t hd">Bridge mode does not remove the work. It relocates it onto the ceiling.</text>
 
-  <!-- arrow -->
-  <line x1="448" y1="145" x2="482" y2="145" stroke="#8CE05E" stroke-width="2"/>
-  <polygon points="482,139 494,145 482,151" fill="#8CE05E"/>
+  <text x="15" y="58" class="t n">TUNNEL</text>
+  <g class="t">
+    <rect x="15" y="70" width="104" height="52" rx="9" fill="rgba(3,10,16,0.5)" stroke="rgba(255,255,255,0.14)"/>
+    <text x="67" y="101" class="box" fill="#B0C4CF" text-anchor="middle">Client</text>
+    <path d="M119 96 L153 96" stroke="#8BA2AE" stroke-width="1.6" marker-end="url(#ab)"/>
+    <rect x="161" y="70" width="128" height="52" rx="9" fill="rgba(3,10,16,0.5)" stroke="rgba(255,255,255,0.14)"/>
+    <text x="225" y="94" class="box" fill="#B0C4CF" text-anchor="middle">AP</text>
+    <text x="225" y="111" class="sm" text-anchor="middle" font-size="10.5">radio and tunnel</text>
+    <path d="M289 96 L323 96" stroke="#8BA2AE" stroke-width="1.6" marker-end="url(#ab)"/>
+    <rect x="331" y="70" width="190" height="52" rx="9" fill="#5ED2DA" fill-opacity="0.16" stroke="#5ED2DA"/>
+    <text x="426" y="94" class="box" fill="#5ED2DA" text-anchor="middle">Gateway</text>
+    <text x="426" y="111" class="sm" fill="#9FE4E9" text-anchor="middle" font-size="10.5">role, ACL, portal redirect</text>
+    <text x="541" y="100" class="t note" fill="#8BA2AE">The long string lives here and never leaves.</text>
+  </g>
 
-  <!-- after -->
-  <rect x="500" y="20" width="370" height="250" rx="14" class="box"/>
-  <text x="520" y="48" class="t">After: the 735 pinned to 149E</text>
-  <rect x="530" y="80" width="130" height="44" rx="10" class="ap"/>
-  <text x="595" y="98" class="lb" text-anchor="middle">735 portal</text>
-  <text x="595" y="115" class="mo" text-anchor="middle">channel 149</text>
-  <rect x="710" y="80" width="130" height="44" rx="10" class="ap"/>
-  <text x="775" y="98" class="lb" text-anchor="middle">505H portal</text>
-  <text x="775" y="115" class="mo" text-anchor="middle">channel 149</text>
-  <rect x="615" y="196" width="140" height="44" rx="10" class="ap"/>
-  <text x="685" y="214" class="lb" text-anchor="middle">635 point</text>
-  <text x="685" y="231" class="mo" text-anchor="middle">hears both</text>
-  <line x1="620" y1="124" x2="665" y2="196" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <line x1="750" y1="124" x2="705" y2="196" stroke="#8CE05E" stroke-width="3"/>
-  <text x="606" y="168" class="sm" text-anchor="end">neighbour, SNR 8</text>
-  <text x="742" y="168" class="sm">SNR 30, 720 Mb/s</text>
-  <text x="520" y="250" class="sm">Reselected in three and a half minutes.</text>
-  <text x="520" y="264" class="sm">On one channel the second portal is a candidate at every reselection.</text>
-</svg><figcaption>While it sat on the marginal link, the point's monitor table listed only the portal on its own channel. Putting both portals on one channel is what made the second one a candidate.</figcaption></figure>
-<h2>What measured, against what was predicted</h2>
-<p>Now the part I was actually there for.</p>
-<table>
-<thead>
-<tr>
-<th>Link</th>
-<th>Planner said</th>
-<th>AP measured</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>635 to 505H, received power</td>
-<td>about -64 dBm</td>
-<td>-65 and -70 dBm on the radio's two BSSIDs</td>
-</tr>
-<tr>
-<td>635 to 735, path loss</td>
-<td>100 dB budgeted</td>
-<td>98 dB by the AP's own pathloss column</td>
-</tr>
-<tr>
-<td>635 to 505H, rate</td>
-<td>MCS 4, 432 Mb/s</td>
-<td>MCS 7 down (720 Mb/s), MCS 4 to 6 up (400 to 650), at SNR 25 to 30</td>
-</tr>
-</tbody>
-</table>
-<p>Two budgets right to within the spread of the measurement. One rate wrong by three MCS steps, which on 80 MHz with two streams is 432 Mb/s against 720. For a tool whose whole output is a capacity ceiling, reading two thirds of the truth is a real miss, and it came from two conservative choices stacked on top of each other.</p>
-<p>The first was a margin doing two jobs. The planner has a 6 dB gate: a link counts once its SNR clears the lowest rate by that much, so a link that would barely hold MCS 0 is not drawn as a link. Sensible. But the same 6 dB was also being subtracted before the rate lookup, so every link was rated as if its SNR were 6 dB lower than it was. A gate and a handicap are different things. The AP's rate adaptation works on the SNR it has, not the SNR minus a safety factor, so the planner should too.</p>
-<p>The second was the noise floor. The planner assumed a 7 dB receiver noise figure, which puts the 80 MHz floor at -88 dBm. All three radios report -92. Thermal noise in 80 MHz is -95, so these receivers are running about 3 dB above it, and the planner was throwing away four dB of SNR that the hardware actually has. Central reports the floor per radio, so the fix was to read it instead of guessing: the Verify fold now takes the noise figure from the radios along with everything else.</p>
-<p>With both fixed, the planner says MCS 7 for that link. Which is what was running.</p>
-<h2>The column you should not trust, and the one you should</h2>
-<p>While the 635 was on the marginal link, <code>show ap mesh link</code> reported the parent at RSSI 46. After it moved to the good link, it reported the new parent at RSSI 46. The 735 at a real SNR of 9 and the 505H at a real SNR of 30 got the same number. The CLI reference defines that column as the signal to noise ratio. On the build I was running, 10.8.1.0, it is not that, or not one that moves. What I do know is that the rates in the same row told the truth both times, and that nobody should put that RSSI into a link budget.</p>
-<p>The honest read is <code>show ap monitor ap-list</code>. It lists every BSSID the radio hears with a current and average RSSI (printed as a positive number; the dBm figure is the negative of it), a current and average SNR, and a <code>pathloss</code> column. That pathloss is the number the planner budgets, reported by the device on the far end of the link, and it agreed with AirMatch's figure to within 2 dB.</p>
-<p>Two smaller ones from the same hour. AOS 10 spells the command <code>show ap mesh neighbours</code>; <code>neighbors</code> is a parse error. And Central's Tools page has a Commands tab that runs a few hundred canned show commands on an AP and returns the output in the browser, with no device login and no console session. Both mesh commands and the monitor table are in the list. It is the fastest way I know to read a mesh point that is only reachable over the mesh.</p>
-<h2>What to do with this</h2>
-<p>If you are planning a mesh, on my tool or on the back of an envelope:</p>
-<table>
-<thead>
-<tr>
-<th>Do this</th>
-<th>Because</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Budget from the controller's measured path loss, not from a client RSSI</td>
-<td>It is independent of the power anybody was running</td>
-</tr>
-<tr>
-<td>Read the noise floor from the radios</td>
-<td>A 7 dB assumption cost this link 4 dB of SNR that it actually had</td>
-</tr>
-<tr>
-<td>Use your margin as a gate, not as a rate handicap</td>
-<td>The AP rates the link on the SNR it has; so should the plan</td>
-</tr>
-<tr>
-<td>Put portals that are meant to back each other up on one channel</td>
-<td>The second portal is a candidate at every reselection instead of waiting on a rescan; mine went unheard for twenty minutes on the other channel</td>
-</tr>
-<tr>
-<td>Deliver the point role while the AP is on the wire, and check the config stamp</td>
-<td>A role saved to an offline AP is never received</td>
-</tr>
-<tr>
-<td>Read <code>show ap monitor ap-list</code>, not the mesh table's RSSI</td>
-<td>On 10.8.1.0 the mesh table's RSSI did not change between a 9 dB link and a 30 dB link</td>
-</tr>
-<tr>
-<td>Hard reload Central's device page before believing it</td>
-<td>The summary cached the wired state for minutes after the AP was on the mesh</td>
-</tr>
-</tbody>
-</table>
-<h2>Bottom line</h2>
-<p>The physics in the planner was right and the policy on top of it was too careful, twice. That is the kind of wrong that a test against one real radio finds in an hour and no amount of staring at the code would have. The planner now reads what the radios report, rates a link on the SNR it has, and tells the tree as a story in the fold under the map, including the channel lesson. Next test is the same point moved to the other end of the house, with the prediction written down first.</p>
-<p>If you have not read it, the <a href="mesh-conversion-strands-the-points.html">conversion post</a> is the other half of this: why a mesh gets provisioned over the wire, and what happens when the roles never reach the points. This weekend I got to watch that one happen on purpose.</p></div>
+  <text x="15" y="166" class="t n">BRIDGE</text>
+  <g class="t">
+    <rect x="15" y="178" width="104" height="52" rx="9" fill="rgba(3,10,16,0.5)" stroke="rgba(255,255,255,0.14)"/>
+    <text x="67" y="209" class="box" fill="#B0C4CF" text-anchor="middle">Client</text>
+    <path d="M119 204 L153 204" stroke="#8BA2AE" stroke-width="1.6" marker-end="url(#ab)"/>
+    <rect x="161" y="178" width="190" height="52" rx="9" fill="#F5A524" fill-opacity="0.14" stroke="#F5A524"/>
+    <text x="256" y="202" class="box" fill="#F5A524" text-anchor="middle">AP</text>
+    <text x="256" y="219" class="sm" fill="#F7C574" text-anchor="middle" font-size="10.5">role, ACL, portal redirect</text>
+    <path d="M351 204 L385 204" stroke="#8BA2AE" stroke-width="1.6" marker-end="url(#ab)"/>
+    <rect x="393" y="178" width="128" height="52" rx="9" fill="rgba(3,10,16,0.5)" stroke="rgba(255,255,255,0.14)"/>
+    <text x="457" y="209" class="box" fill="#B0C4CF" text-anchor="middle">Local VLAN</text>
+    <text x="541" y="198" class="t note" fill="#F5A524">The long string is now on a device with a</text>
+    <text x="541" y="216" class="t note" fill="#F5A524">fraction of the memory and no console you watch.</text>
+  </g>
+
+  <rect x="15" y="252" width="870" height="56" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+  <text x="32" y="276" class="t note">"When bridge forwarding is selected in a profile, the APs operate as the sole policy enforcement point."</text>
+  <text x="32" y="296" class="t note" fill="#8BA2AE">HPE, AOS 10 bridge forwarding design page. The incident described here was on 8.12; the principle holds on both.</text>
+</svg><figcaption>The same captive portal on the same WLAN, in the two forwarding modes. Bridge does not simplify the path, it relocates the work onto a device with a fraction of the memory.</figcaption></figure>
+<p>So in bridge mode the AP is the box that has to hold the portal configuration, assemble the redirect, and hand it to the client. A fixed-size buffer somewhere in that path plus a name longer than whoever wrote it expected is a classic overflow, and the AP is the thing that pays for it.</p>
+<p>That is also why a lab in tunnel mode would never have found this. The string never reaches the AP.</p>
+<h2>The general lesson, which is bigger than one bug</h2>
+<p>Bridge mode is sold as the simple option. No tunnel, no controller in the data path, traffic goes straight onto the local VLAN. All true, and it is the right call for plenty of designs.</p>
+<p>What gets left out is that you have not removed the work. You have moved it onto a device that has a fraction of the CPU, a fraction of the memory, and a fraction of the operational visibility of the gateway you took it off. Every role, every ACL, every policy the client hits is now being evaluated on an access point stuck to a ceiling.</p>
+<p>Most of the time that is fine. When it is not fine, it fails as an AP problem rather than as a policy problem, and you spend your first day looking in completely the wrong place.</p>
+<h2>What to actually do</h2>
+<p><strong>Check your portal page names now, not after something breaks.</strong> It costs nothing. Anything approaching 60 characters is worth shortening on general principle, and you may as well settle on a short naming convention for portal objects while you are in there.</p>
+<p><strong>Read the AP console before you open a case.</strong> This is the part of the story that matters most. The engineer who found this got there because he stopped waiting and read the logs off the AP himself. A kernel panic leaves a trace, and that trace named the string. A case sat on it for a week; console output took an afternoon.</p>
+<p><strong>When something works in tunnel and dies in bridge, look at what the AP is now holding.</strong> Roles, ACLs, portal configuration, anything with a string in it. That is your suspect list, and it is short.</p>
+<p><strong>If you can, test the WLAN in the mode you will deploy it in.</strong> Validating a captive portal in tunnel and shipping it in bridge tests a different code path than the one your users will hit.</p>
+<h2>The honest boundary</h2>
+<p>Everything above is one engineer's finding, reproduced on two maintenance releases, plus a documented statement about what bridge forwarding does. Those are two different grades of evidence and I am not going to blur them.</p>
+<p>What is documented: bridge forwarding makes the AP the sole policy enforcement point.</p>
+<p>What is a field report: a 72 character portal page name panics a 605H in bridge mode on 8.12.0.6 and 8.12.0.7, and shortening it stops the panic.</p>
+<p>If you hit this, the useful thing you can do for everyone else is get a defect ID attached to it, because right now there is not one.</p></div>
     </div>
     
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="mesh-planner-held-against-a-real-point" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="portal-page-name-panics-the-ap" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -900,7 +808,7 @@ html.qam-fs .rig{display:none}
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="academy-02-bands-channels-widths.html"><span class="eyebrow">Older</span>Bands, Channels and Widths</a><a class="pn g-card" href="which-clearpass-node-polls-your-switch.html"><span class="eyebrow">Newer</span>Which ClearPass Node Is Actually Polling Your Switch</a></div>
+      <div class="postnav"><a class="pn g-card" href="which-clearpass-node-polls-your-switch.html"><span class="eyebrow">Older</span>Which ClearPass Node Is Actually Polling Your Switch</a><a class="pn g-card" href="your-ap-is-not-moving-that-client.html"><span class="eyebrow">Newer</span>Your AP Is Not Moving That Client</a></div>
     </section>
   </article>
 </div>
