@@ -518,7 +518,7 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 22, 2026 &#183; 10 min</span></div>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 22, 2026 &#183; 11 min</span></div>
       <h1 class="h-hero">The Link Budget</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -848,8 +848,12 @@ Juniper, both chains                                      24.0 dBm
 <figcaption>Two vendors, one shelf, one noise floor, both radios transmitting at the same instant. Look at how they're lying. That's the problem.</figcaption>
 </figure>
 
-<p>Both APs are on their backs, four feet up. The 730 datasheet says these antennas are optimised for horizontal ceiling mount, with peak gain thirty to forty degrees off the AP's axis. Flip the AP over and that peak points above horizontal; my receiver sat twenty degrees below it. The Sidekick was fifty to sixty degrees off the main lobe, and I had put zero in that slot. The same slot I'd spent a whole section telling you never to put zero in.</p>
-<p>At sixty degrees off the main lobe of a 5.5 dBi antenna, five or six dB down is the ordinary answer and zero down is the strange one. Read plainly, the measurement leans mildly the other way. It doesn't settle anything. Two unmeasured shapes, one equation, and an answer that landed on the number I was hoping for.</p>
+<p>I'm leaving this one in on purpose, because it's the best worked example of the lesson I'm ever going to get, and it happened to me.</p>
+<p>Both APs were lying on their backs, radome up, on a shelf four feet off the floor. The Sidekick was on the floor ten feet away. Now think about where the antenna was actually pointing.</p>
+<p>The 730 datasheet says the built-in antennas are made for ceiling mount, with peak gain thirty to forty degrees below horizontal, so a ceiling AP aims at the floor. Turn that AP onto its back and the peak swings the other way: it now points thirty to forty degrees above horizontal, at the ceiling. My receiver, on the floor ten feet out, was about twenty degrees below horizontal. Add the two and the Sidekick was fifty to sixty degrees away from where the antenna was pointing hardest.</p>
+<p>My derivation put zero in that slot. EIRP = RSSI + FSPL only works if the receiver saw the antenna's peak. It didn't, and sixty degrees off the peak of a 5.5 dBi antenna is usually worth five or six decibels. Put that loss back in and the derived EIRP comes out near 30 dBm, not 25. Which is exactly the number you'd get if 25 were conducted power with the antenna added on top, the reading I'd spent two days arguing against.</p>
+<p>So read plainly, the bench leaned mildly toward the answer I didn't want. It settles nothing either way, because I never measured the off-lobe loss or the Sidekick's own antenna, and those two unknowns are bigger than the difference I was trying to see. Two unmeasured shapes, one equation, and an answer that happened to land on the number I was hoping for.</p>
+<p>File the posture problem away. It comes back in lesson 11, when we put an AP on a survey stick and every reading it gives you is off a pattern the datasheet never measured.</p>
 <p><strong>The documentation is the answer.</strong> Both code generations say it, and a live CLI header has said it for a decade. That was always the strong evidence, and it owes nothing to my shelf.</p>
 <h2>The lab</h2>
 <p>One AP, one laptop, about forty minutes.</p>
