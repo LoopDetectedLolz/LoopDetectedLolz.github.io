@@ -467,6 +467,8 @@ body.acad .callout.origin .eyebrow{color:#ffd28a}
 /* a dense figure stays legible on a phone by scrolling sideways, the way the tables do. the caption stays put. */
 .post-body figure.wide>.pan{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-radius:var(--r-inner)}
 .post-body figure.wide img{min-width:620px}
+/* a tall photo would run a thousand pixels down the page at full column width */
+.post-body figure.portrait{max-width:420px;margin-inline:auto}
 .qam-app{display:grid;grid-template-columns:minmax(240px,2fr) 3fr;gap:10px;margin-top:8px;cursor:default}
 @media (max-width:760px){.qam-app{grid-template-columns:1fr}}
 .qam-tile{padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);font-size:12.5px;color:var(--text-dim);line-height:1.5;min-height:110px}
@@ -532,7 +534,7 @@ html.qam-fs .rig{display:none}
   </div>
 </section>
 
-<div class="filter"><span class="eyebrow">Filter</span><span class="chip on" data-cat="all">All</span><span class="chip c-green" data-cat="Wireless">Wireless</span><span class="chip c-red" data-cat="Lab">Lab</span><span class="chip c-orange" data-cat="Academy">Academy</span><span class="chip " data-cat="RF survey">RF survey</span><span class="chip c-blue" data-cat="NAC">NAC</span><span class="chip " data-cat="Switching">Switching</span><span class="chip " data-cat="Docs">Docs</span></div>
+<div class="filter"><span class="eyebrow">Filter</span><span class="chip on" data-cat="all">All</span><span class="chip c-green" data-cat="Wireless">Wireless</span><span class="chip c-orange" data-cat="Academy">Academy</span><span class="chip c-red" data-cat="Lab">Lab</span><span class="chip " data-cat="RF survey">RF survey</span><span class="chip c-blue" data-cat="NAC">NAC</span><span class="chip " data-cat="Switching">Switching</span><span class="chip " data-cat="Docs">Docs</span></div>
 
 <section>
   <div class="grid" id="posts">
@@ -541,6 +543,11 @@ html.qam-fs .rig{display:none}
   <h3 class="h-card">Your AP Is Not Moving That Client</h3>
   <p>Roaming is a client decision, band steering is a suggestion, and the phone that sits disconnected after an elevator is running a documented backoff timer. Opening the Wi-Fi settings screen does not wake it up, and the popular explanation of why it seems to is mechanically wrong.</p>
   <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Airheads thread</span><b>5 min</b></div>
+</a><a class="card g-card" href="p/academy-03-the-link-budget.html" data-origin="zoom" data-rise data-cat="Academy" data-text="the link budget four numbers tell you how loud your signal will be when it arrives. i wrote the budget for my own lab, walked thirty two feet, and came up fifteen decibels short with nothing in the way. the gap was real. it was hiding in the one term everybody sets to zero. wireless academy rf">
+  <div class="card-top"><span class="tag c-orange">Academy</span><span class="meta">Sep 22</span></div>
+  <h3 class="h-card">The Link Budget</h3>
+  <p>Four numbers tell you how loud your signal will be when it arrives. I wrote the budget for my own lab, walked thirty two feet, and came up fifteen decibels short with nothing in the way. The gap was real. It was hiding in the one term everybody sets to zero.</p>
+  <div class="card-foot"><span class="src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>Wireless Academy</span><b>10 min</b></div>
 </a><a class="card g-card" href="p/portal-page-name-panics-the-ap.html" data-origin="zoom" data-rise data-cat="Wireless" data-text="a captive portal page name long enough to reboot your aps a 605h in bridge mode kernel panicked every two to three minutes and nothing in the wlan config looked wrong. the cause was the length of the captive portal page name, not the page, not the policy, not the ap. here is why bridge mode is what exposed it, and why tunnel mode would have hidden it. wireless aos-8 captive portal">
   <div class="card-top"><span class="tag c-green">Wireless</span><span class="meta">Sep 16</span></div>
   <h3 class="h-card">A Captive Portal Page Name Long Enough to Reboot Your APs</h3>

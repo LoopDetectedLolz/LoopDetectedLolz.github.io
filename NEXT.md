@@ -86,6 +86,17 @@ real ones were 35 px fold summaries and a channel list with 169 to 177 at 20 MHz
   through it. Whether it does is a property of the AP kind, set per AP, not a global
   assumption.
 
+## Parked from Academy lesson 3 (2026-09-22)
+
+Lesson 3 was cut to lesson length for publishing. The barn door section came out whole and is
+held for a field note of its own, working title "The door that measured nothing": a frosted glass
+door that cost at most 1.2 dB, the ITU-R P.2040 slab model showing uncoated glass never reaches
+4 dB at any thickness up to an inch, and the finding that survey tables quoting three to six
+decibels are describing a low-e coating, which P.2040 cannot represent. Photo
+`media/lesson-03-barn-door.jpg` is already in the repo. Every claim is audited in
+`audit/academy-03-the-link-budget.md`, items 32 to 40 and 47 to 51. Add the row to
+`blog-ideas-from-community.md` in the Cowork project next time it is open.
+
 ## Next, in the order agreed
 
 1. **Put the mesh planner on the site.** Done 2026-09-14: `tools.html` holds all four tools
