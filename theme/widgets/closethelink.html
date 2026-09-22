@@ -1,0 +1,240 @@
+<section class="ctl" id="closethelink" data-rise>
+  <style>
+  .ctl{--ctl-line:rgba(255,255,255,0.12)}
+  .ctl-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .ctl-head h3{font-size:19px;letter-spacing:-0.02em}
+  .ctl-lv{font:11px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--orange)}
+  .ctl-score{margin-left:auto;font:12px var(--mono);color:var(--text-muted)}
+  .ctl-goal{margin:0 0 16px;font-size:14px;line-height:1.65;color:var(--text-dim)}
+  .ctl-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:start}
+  @media (max-width:640px){.ctl-grid{grid-template-columns:minmax(0,1fr);gap:16px}}
+  .ctl-knobs{display:flex;flex-direction:column;gap:16px}
+  .ctl-knob>span{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+    font:10.5px var(--mono);letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase;margin-bottom:7px}
+  .ctl-knob>span b{color:var(--teal);font-size:13.5px;letter-spacing:0;text-transform:none;white-space:nowrap}
+  /* Chromium gives a range input 2px of side margin, which overflows a width:100% parent by 4px */
+  .ctl-knob input[type=range]{display:block;width:100%;margin:0;box-sizing:border-box;accent-color:var(--teal);min-height:38px}
+  .ctl-fixed{margin-top:4px;padding-top:14px;border-top:1px solid var(--ctl-line);
+    font:11px/1.9 var(--mono);color:var(--text-muted)}
+  .ctl-fixed b{color:var(--text-dim);font-weight:400}
+  .ctl-sheet{border:1px solid var(--ctl-line);border-radius:12px;background:rgba(3,10,16,0.6);
+    padding:14px 16px;font:12.5px/1.85 var(--mono)}
+  .ctl-row{display:flex;gap:10px;align-items:baseline}
+  .ctl-row i{font-style:normal;color:var(--text-muted);flex:1 1 auto;min-width:0}
+  .ctl-row b{color:var(--text);font-weight:600;flex:0 0 auto;text-align:right;white-space:nowrap}
+  .ctl-row.big b{font-size:15px}
+  .ctl-note{font:10.5px/1.6 var(--mono);color:var(--text-muted);margin:2px 0 6px;padding-left:1px}
+  .ctl-rule{border-top:1px solid var(--ctl-line);margin:8px 0}
+  .ctl-good b{color:var(--green)}
+  .ctl-warn b{color:var(--orange)}
+  .ctl-bar{height:8px;border-radius:5px;background:rgba(255,255,255,0.07);overflow:hidden;margin:14px 0 2px}
+  .ctl-bar i{display:block;height:100%;width:0;background:var(--green);transition:width 160ms linear}
+  .ctl.short .ctl-bar i,.ctl.over .ctl-bar i{background:var(--orange)}
+  .ctl-say{min-height:46px;font-size:13.5px;line-height:1.65;color:var(--text-dim);margin:16px 0 12px}
+  .ctl-say b{color:var(--orange)}
+  .ctl-say i{color:var(--green);font-style:normal}
+  .ctl-acts{display:flex;gap:9px;flex-wrap:wrap}
+  .ctl-btn{min-height:42px;padding:0 15px;border-radius:11px;border:1px solid var(--ctl-line);
+    background:rgba(255,255,255,0.06);color:var(--text);font:600 13px var(--sans);cursor:pointer}
+  .ctl-btn:disabled{opacity:0.35;cursor:default}
+  .ctl-btn.go{border-color:rgba(140,224,94,0.55);background:rgba(140,224,94,0.14);color:#bdf29c}
+  </style>
+
+  <div class="ctl-head">
+    <span class="ctl-lv" id="ctl-lv">Level 1</span>
+    <h3 id="ctl-title">Close the Link</h3>
+    <span class="ctl-score" id="ctl-score">0 of 3 called right</span>
+  </div>
+  <p class="ctl-goal" id="ctl-goal"></p>
+
+  <div class="ctl-grid">
+    <div class="ctl-knobs">
+      <label class="ctl-knob"><span>Radio power, conducted <b id="ctl-pv">9 dBm</b></span>
+        <input id="ctl-p" type="range" min="3" max="23" step="1" value="9"></label>
+      <label class="ctl-knob"><span>Antenna gain <b id="ctl-gv">3 dBi</b></span>
+        <input id="ctl-g" type="range" min="0" max="23" step="1" value="3"></label>
+      <label class="ctl-knob"><span>Cable and connectors <b id="ctl-cv">1.0 dB</b></span>
+        <input id="ctl-c" type="range" min="0" max="60" step="5" value="10"></label>
+      <div class="ctl-fixed" id="ctl-fixed"></div>
+    </div>
+
+    <div class="ctl-sheet" aria-live="polite">
+      <div class="ctl-row"><i>radio, conducted</i><b id="ctl-r-p">+9.0 dBm</b></div>
+      <div class="ctl-row"><i>antenna gain</i><b id="ctl-r-g">+3.0 dBi</b></div>
+      <div class="ctl-row"><i>cable and connectors</i><b id="ctl-r-c">-1.0 dB</b></div>
+      <div class="ctl-rule"></div>
+      <div class="ctl-row big" id="ctl-r-eirp-row"><i>EIRP, what leaves</i><b id="ctl-r-eirp">11.0 dBm</b></div>
+      <div class="ctl-note" id="ctl-r-cap"></div>
+      <div class="ctl-row"><i>free space loss</i><b id="ctl-r-fspl">-75.6 dB</b></div>
+      <div class="ctl-note" id="ctl-r-geom"></div>
+      <div class="ctl-rule"></div>
+      <div class="ctl-row big"><i>arrives at</i><b id="ctl-r-rssi">-64.6 dBm</b></div>
+      <div class="ctl-row"><i>needs</i><b id="ctl-r-need">-57.0 dBm</b></div>
+      <div class="ctl-note" id="ctl-r-needwhy"></div>
+      <div class="ctl-rule"></div>
+      <div class="ctl-row big" id="ctl-r-margin-row"><i>margin</i><b id="ctl-r-margin">-7.6 dB</b></div>
+      <div class="ctl-bar" aria-hidden="true"><i id="ctl-fill"></i></div>
+    </div>
+  </div>
+
+  <p class="ctl-say" id="ctl-say"></p>
+  <div class="ctl-acts">
+    <button class="ctl-btn go" id="ctl-close" type="button">It closes</button>
+    <button class="ctl-btn" id="ctl-never" type="button">It cannot close inside the cap</button>
+    <button class="ctl-btn" id="ctl-reset" type="button">Reset level</button>
+    <button class="ctl-btn" id="ctl-next" type="button" disabled>Next level</button>
+  </div>
+
+  <script>
+  (function () {
+    var root = document.getElementById("closethelink");
+    if (!root) return;
+    var $ = function (s) { return root.querySelector(s); };
+    function fspl(d, f) { return 20 * Math.log10(d) + 20 * Math.log10(f) - 27.55; }
+    function sg(v, u) { return (v >= 0 ? "+" : "") + v.toFixed(1) + (u ? " " + u : ""); }
+
+    var LEVELS = [
+      { name: "The corridor",
+        brief: "An office AP and a laptop 25 m down the corridor, line of sight, nothing in the way. You want a rate worth having, so the laptop needs -67 dBm, and you want 10 dB of fade margin on top because people walk through the path all day.",
+        d: 25, f: 5745, band: "5 GHz, channel 149", floor: -67, margin: 10, cap: 30,
+        start: { p: 9, g: 3, c: 10 },
+        open: "Start with the arithmetic on the right. Three sliders, one question: does the signal arrive with margin to spare?",
+        won: "<i>Closed, with room.</i> Most indoor links look like this, which is why indoor design is almost never about power. You had 10 dB of slack before you touched anything that costs money." },
+
+      { name: "Out of knob",
+        brief: "Covering a courtyard from a wall-mounted AP, 150 m across, clear line of sight. The far end is a phone, so -72 dBm is the floor, and you still want 10 dB of margin.",
+        d: 150, f: 5745, band: "5 GHz, channel 149", floor: -72, margin: 10, cap: 36,
+        start: { p: 14, g: 3, c: 20 },
+        open: "Try the power slider first. Run it all the way up and see how far short you still are.",
+        won: "<i>Closed, and not by turning it up.</i> Maxing the radio still left you short. Path loss is logarithmic, so a few decibels of radio buys you almost no distance. The antenna is the lever, because gain is free once you have bought it and it works in both directions." },
+
+      { name: "It does not close",
+        brief: "6 GHz indoors, an 80 MHz channel, and a client 40 m away that needs -62 dBm to hold the rate you promised in the design, plus the usual 10 dB of margin. Your regulatory cap for an indoor low power AP at this width is 24 dBm EIRP, and nothing you do in this panel changes it.",
+        d: 40, f: 6255, band: "6 GHz, 80 MHz wide", floor: -62, margin: 10, cap: 24,
+        start: { p: 12, g: 5, c: 10 },
+        open: "Same three sliders. Before you start dragging, work out what the best legal answer is, then see whether it is good enough.",
+        won: "<i>Right call.</i> At the cap you are still about 4 dB short, and no combination of radio, antenna and cable inside that cap gets there. That is not a failure of the budget, it is the budget doing its job: the answer is a closer AP, a narrower channel, or a lower rate in the design. Knowing a link cannot close is worth more than closing it." }
+    ];
+
+    var lv = 0, done = [false, false, false], p, g, c;
+
+    function L() { return LEVELS[lv]; }
+
+    function read() {
+      p = +$("#ctl-p").value;
+      g = +$("#ctl-g").value;
+      c = +$("#ctl-c").value / 10;
+    }
+
+    function calc() {
+      var l = L(), eirp = p + g - c, loss = fspl(l.d, l.f);
+      var rssi = eirp - loss, need = l.floor + l.margin;
+      return {
+        eirp: eirp, loss: loss, rssi: rssi, need: need,
+        margin: rssi - need,
+        over: eirp > l.cap + 1e-9,
+        best: (l.cap - loss) - need
+      };
+    }
+
+    function upd() {
+      read();
+      var l = L(), s = calc();
+      $("#ctl-pv").textContent = p.toFixed(0) + " dBm";
+      $("#ctl-gv").textContent = g.toFixed(0) + " dBi";
+      $("#ctl-cv").textContent = c.toFixed(1) + " dB";
+
+      $("#ctl-r-p").textContent = sg(p, "dBm");
+      $("#ctl-r-g").textContent = sg(g, "dBi");
+      $("#ctl-r-c").textContent = sg(-c, "dB");
+      $("#ctl-r-eirp").textContent = s.eirp.toFixed(1) + " dBm";
+      $("#ctl-r-fspl").textContent = (-s.loss).toFixed(1) + " dB";
+      $("#ctl-r-rssi").textContent = s.rssi.toFixed(1) + " dBm";
+      $("#ctl-r-need").textContent = s.need.toFixed(1) + " dBm";
+      $("#ctl-r-margin").textContent = sg(s.margin, "dB");
+
+      $("#ctl-r-cap").textContent = s.over
+        ? "over your regulatory cap of " + l.cap + " dBm by " + (s.eirp - l.cap).toFixed(1) + " dB"
+        : "your regulatory cap is " + l.cap + " dBm, " + (l.cap - s.eirp).toFixed(1) + " dB of headroom";
+      $("#ctl-r-geom").textContent = l.d + " m at " + l.f + " MHz";
+      $("#ctl-r-needwhy").textContent = "floor " + l.floor + " dBm plus " + l.margin + " dB of fade margin";
+
+      $("#ctl-r-eirp-row").className = "ctl-row big" + (s.over ? " ctl-warn" : "");
+      $("#ctl-r-margin-row").className = "ctl-row big" + (s.margin >= 0 ? " ctl-good" : " ctl-warn");
+      root.classList.toggle("short", s.margin < 0);
+      root.classList.toggle("over", s.over);
+      $("#ctl-fill").style.width = Math.max(0, Math.min(100, (s.margin + 10) / 30 * 100)) + "%";
+    }
+
+    function say(html) { $("#ctl-say").innerHTML = html; }
+
+    function score() {
+      var n = done.filter(Boolean).length;
+      $("#ctl-score").textContent = n + " of 3 called right";
+    }
+
+    function load() {
+      var l = L();
+      $("#ctl-p").value = l.start.p;
+      $("#ctl-g").value = l.start.g;
+      $("#ctl-c").value = l.start.c;
+      $("#ctl-lv").textContent = "Level " + (lv + 1);
+      $("#ctl-title").textContent = l.name;
+      $("#ctl-goal").textContent = l.brief;
+      $("#ctl-fixed").innerHTML =
+        "fixed for this level<br>distance <b>" + l.d + " m</b><br>band <b>" + l.band +
+        "</b><br>receiver floor <b>" + l.floor + " dBm</b><br>fade margin <b>" + l.margin +
+        " dB</b><br>your regulatory cap <b>" + l.cap + " dBm EIRP</b>";
+      $("#ctl-next").disabled = !done[lv] || lv >= LEVELS.length - 1;
+      say(done[lv] ? l.won : l.open);
+      upd();
+      score();
+    }
+
+    function finish() {
+      done[lv] = true;
+      score();
+      $("#ctl-next").disabled = lv >= LEVELS.length - 1;
+      if (lv >= LEVELS.length - 1 && done.filter(Boolean).length === LEVELS.length) {
+        say(L().won + " That is all three. The budget is four numbers and a subtraction; the skill is knowing which of the four you actually measured.");
+      } else {
+        say(L().won);
+      }
+    }
+
+    $("#ctl-close").addEventListener("click", function () {
+      var s = calc();
+      if (s.over) {
+        say("It arrives loud enough, and it is <b>" + (s.eirp - L().cap).toFixed(1) +
+            " dB over your regulatory cap</b>. Turn the radio down until the EIRP is legal. The antenna gain stays: a cap limits what you transmit, not what you hear.");
+      } else if (s.margin < 0) {
+        say("Not yet. It arrives at " + s.rssi.toFixed(1) + " dBm and you need " + s.need.toFixed(1) +
+            " dBm, so you are <b>" + (-s.margin).toFixed(1) + " dB short</b>.");
+      } else {
+        finish();
+      }
+    });
+
+    $("#ctl-never").addEventListener("click", function () {
+      var s = calc();
+      if (s.best >= 0) {
+        say("Not so fast. At the cap of " + L().cap + " dBm this link arrives with <b>" +
+            s.best.toFixed(1) + " dB of margin</b> to spare. Something in the panel still gets you there.");
+      } else {
+        finish();
+      }
+    });
+
+    $("#ctl-reset").addEventListener("click", function () { load(); });
+    $("#ctl-next").addEventListener("click", function () {
+      if (lv < LEVELS.length - 1) { lv += 1; load(); }
+    });
+    ["#ctl-p", "#ctl-g", "#ctl-c"].forEach(function (id) {
+      $(id).addEventListener("input", upd);
+      $(id).addEventListener("change", upd);
+    });
+
+    load();
+  })();
+  </script>
+</section>
