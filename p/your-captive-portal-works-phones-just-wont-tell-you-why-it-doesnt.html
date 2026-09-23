@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>The Link Budget</title>
-<meta name="description" content="Four numbers tell you how loud your signal will be when it arrives. I wrote the budget for my own lab, walked thirty two feet, and came up fifteen decibels short with nothing in the way. The gap was real. It was hiding in the one term everybody sets to zero.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/academy-03-the-link-budget.html">
+<title>Your Captive Portal Works, Phones Just Won&#x27;t Tell You Why It Doesn&#x27;t</title>
+<meta name="description" content="Laptops pass a ClearPass Guest login and phones sit in pre auth. The page is fine; the phone&#x27;s popup rejects the AP or gateway&#x27;s portal cert on the post back, and one openssl command plus Access Tracker shows which of three places it died.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="The Link Budget">
-<meta property="og:description" content="Four numbers tell you how loud your signal will be when it arrives. I wrote the budget for my own lab, walked thirty two feet, and came up fifteen decibels short with nothing in the way. The gap was real. It was hiding in the one term everybody sets to zero.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/academy-03-the-link-budget.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/academy-03-the-link-budget.png">
+<meta property="og:title" content="Your Captive Portal Works, Phones Just Won&#x27;t Tell You Why It Doesn&#x27;t">
+<meta property="og:description" content="Laptops pass a ClearPass Guest login and phones sit in pre auth. The page is fine; the phone&#x27;s popup rejects the AP or gateway&#x27;s portal cert on the post back, and one openssl command plus Access Tracker shows which of three places it died.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="The Link Budget">
-<meta name="twitter:description" content="Four numbers tell you how loud your signal will be when it arrives. I wrote the budget for my own lab, walked thirty two feet, and came up fifteen decibels short with nothing in the way. The gap was real. It was hiding in the one term everybody sets to zero.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-03-the-link-budget.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-22"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "The Link Budget", "description": "Four numbers tell you how loud your signal will be when it arrives. I wrote the budget for my own lab, walked thirty two feet, and came up fifteen decibels short with nothing in the way. The gap was real. It was hiding in the one term everybody sets to zero.", "datePublished": "2026-09-22", "image": "https://networkfieldnotes.com/og/academy-03-the-link-budget.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-03-the-link-budget.html", "keywords": "Wireless, Academy, RF"}</script>
+<meta name="twitter:title" content="Your Captive Portal Works, Phones Just Won&#x27;t Tell You Why It Doesn&#x27;t">
+<meta name="twitter:description" content="Laptops pass a ClearPass Guest login and phones sit in pre auth. The page is fine; the phone&#x27;s popup rejects the AP or gateway&#x27;s portal cert on the post back, and one openssl command plus Access Tracker shows which of three places it died.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-23"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your Captive Portal Works, Phones Just Won't Tell You Why It Doesn't", "description": "Laptops pass a ClearPass Guest login and phones sit in pre auth. The page is fine; the phone's popup rejects the AP or gateway's portal cert on the post back, and one openssl command plus Access Tracker shows which of three places it died.", "datePublished": "2026-09-23", "image": "https://networkfieldnotes.com/og/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.html", "keywords": "ClearPass, Captive Portal, Aruba Central, Certificates"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -537,7 +537,7 @@ body.acad .callout.origin .eyebrow{color:#ffd28a}
 html.qam-fs,html.qam-fs body{overflow:hidden}
 html.qam-fs .rig{display:none}
 </style></head>
-<body class="acad">
+<body>
 <div class="ground"></div>
 <canvas id="nfn-fx" aria-hidden="true"></canvas>
 <div class="gx-pane" aria-hidden="true"></div>
@@ -545,388 +545,196 @@ html.qam-fs .rig{display:none}
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
   <a class="brand" href="../"><span class="mk"><img src="../logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
-  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill on" href="../academy.html">Academy</a><a class="pill" href="../tools.html">Tools</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill" href="../academy.html">Academy</a><a class="pill" href="../tools.html">Tools</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
   
 </div></div></header>
 <main class="wrap">
 <div class="narrow">
-  <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
+  <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
-    <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 22, 2026 &#183; 11 min</span></div>
-      <h1 class="h-hero">The Link Budget</h1>
+    <header class="post-head g-hero cat-NAC" data-view="zoom">
+      <div class="row" style="margin:0"><a class="tag c-blue" href="../index.html#cat=NAC" title="All NAC posts">NAC</a><span class="meta">Sep 23, 2026 &#183; 8 min</span></div>
+      <h1 class="h-hero">Your Captive Portal Works, Phones Just Won&#x27;t Tell You Why It Doesn&#x27;t</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" width="900" height="340" role="img" aria-label="Aruba Central prints 25 dBm and Juniper Mist prints 15 dBm per chain. The Aruba figure is already EIRP with the antenna in it. The Mist figure needs the antenna added, and the second chain's 3 dB only if the frame uses it, so it lands between 21 and 24 dBm. Ten decibels apart on screen, one to four in the air." font-family="Instrument Sans, -apple-system, Helvetica, Arial, sans-serif">
-<title>Two screens, two different quantities</title>
-<desc>Aruba Central prints 25 dBm, which already includes the antenna, so it stays 25. Juniper Mist prints 15 dBm per chain, which needs 6 dBi of antenna added and no MIMO gain on a beacon, reaching 21 dBm.</desc>
-<defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#8BA2AE"/></marker></defs>
-<text x="56.0" y="40.0" font-size="11" fill="#8BA2AE" text-anchor="start" font-weight="700" font-family="JetBrains Mono, ui-monospace, Menlo, monospace" letter-spacing="2.0">WHAT THE SCREEN SAYS</text>
-<text x="316.0" y="40.0" font-size="11" fill="#8BA2AE" text-anchor="start" font-weight="700" font-family="JetBrains Mono, ui-monospace, Menlo, monospace" letter-spacing="2.0">WHAT IT MEANS</text>
-<text x="700.0" y="40.0" font-size="11" fill="#8BA2AE" text-anchor="start" font-weight="700" font-family="JetBrains Mono, ui-monospace, Menlo, monospace" letter-spacing="2.0">WHAT THE AIR SEES</text>
-<text x="56.0" y="88.0" font-size="13" fill="#B0C4CF" text-anchor="start" font-weight="400">Aruba Central  &#183;  AP-735</text>
-<rect x="52" y="98" width="4" height="48" rx="2" fill="#4FBDEA"/>
-<text x="70.0" y="132.0" font-size="34" fill="#4FBDEA" text-anchor="start" font-weight="700" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">25</text>
-<text x="122.0" y="132.0" font-size="13" fill="#8BA2AE" text-anchor="start" font-weight="400" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">dBm</text>
-<text x="316.0" y="116.0" font-size="14" fill="#B0C4CF" text-anchor="start" font-weight="400">already EIRP. the 5.5 dBi antenna</text>
-<text x="316.0" y="138.0" font-size="14" fill="#B0C4CF" text-anchor="start" font-weight="400">is inside the number. add nothing.</text>
-<line x1="636" y1="122" x2="686" y2="122" stroke="#8BA2AE" stroke-width="2" marker-end="url(#ar)"/>
-<text x="700.0" y="132.0" font-size="34" fill="#EAF2F6" text-anchor="start" font-weight="700" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">25</text>
-<text x="752.0" y="132.0" font-size="13" fill="#8BA2AE" text-anchor="start" font-weight="400" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">dBm</text>
-<line x1="52" y1="174" x2="848" y2="174" stroke="#FFFFFF" stroke-opacity="0.10"/>
-<text x="56.0" y="196.0" font-size="13" fill="#B0C4CF" text-anchor="start" font-weight="400">Juniper Mist  &#183;  AP34</text>
-<rect x="52" y="206" width="4" height="48" rx="2" fill="#F5A524"/>
-<text x="70.0" y="240.0" font-size="34" fill="#F5A524" text-anchor="start" font-weight="700" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">15</text>
-<text x="122.0" y="240.0" font-size="13" fill="#8BA2AE" text-anchor="start" font-weight="400" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">dBm/chain</text>
-<text x="316.0" y="212.0" font-size="14" fill="#B0C4CF" text-anchor="start" font-weight="400">one chain, no antenna, no MIMO.</text>
-<text x="316.0" y="234.0" font-size="14" fill="#B0C4CF" text-anchor="start" font-weight="400">add +6.0 dBi of antenna. the second</text>
-<text x="316.0" y="256.0" font-size="14" fill="#B0C4CF" text-anchor="start" font-weight="400">chain&#8217;s 3 dB only if the frame uses it.</text>
-<line x1="636" y1="230" x2="686" y2="230" stroke="#8BA2AE" stroke-width="2" marker-end="url(#ar)"/>
-<text x="700.0" y="240.0" font-size="28" fill="#EAF2F6" text-anchor="start" font-weight="700" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">21 to 24</text>
-<text x="842.0" y="240.0" font-size="13" fill="#8BA2AE" text-anchor="start" font-weight="400" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">dBm</text>
-<text x="700.0" y="262.0" font-size="12" fill="#8BA2AE" text-anchor="start" font-weight="400" font-family="JetBrains Mono, ui-monospace, Menlo, monospace">nobody documents which.</text>
-<rect x="686" y="82" width="162" height="194" rx="12" fill="#8CE05E" fill-opacity="0.08" stroke="#8CE05E" stroke-opacity="0.30"/>
-<text x="56.0" y="306.0" font-size="16" fill="#8CE05E" text-anchor="start" font-weight="600">Ten decibels apart on screen. One to four in the air.</text>
-<text x="56.0" y="328.0" font-size="13" fill="#8BA2AE" text-anchor="start" font-weight="400">Both screens say dBm. Neither one says which dBm it means.</text>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" width="900" height="340" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" role="img" aria-label="ClearPass guest login in four legs: the AP or gateway redirects the phone to ClearPass, ClearPass serves the form over cert A, the phone posts the login back to the AP portal name over cert B, and only then does the AP send RADIUS to ClearPass. Leg three, the post back, is dashed and dimmed because phones stop there.">
+  <defs>
+    <marker id="arGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8BA2AE"/></marker>
+    <marker id="arBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#5ED2DA"/></marker>
+    <marker id="arPass" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8CE05E"/></marker>
+  </defs>
+  <text x="40" y="36" fill="#8CE05E" font-size="12" font-weight="700" letter-spacing="2">CLEARPASS GUEST LOGIN, LEG BY LEG</text>
+  <text x="40" y="66" fill="#EAF2F6" font-size="20" font-weight="700">The page loads fine. Phones stop on the post back.</text>
+
+  <rect x="40" y="100" width="160" height="192" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+  <text x="120" y="128" fill="#EAF2F6" font-size="15" font-weight="700" text-anchor="middle">Phone</text>
+  <text x="120" y="146" fill="#8BA2AE" font-size="11" text-anchor="middle">captive portal popup</text>
+  <rect x="100" y="160" width="40" height="72" rx="7" fill="none" stroke="#8BA2AE" stroke-width="1.5"/>
+  <rect x="105" y="168" width="30" height="52" rx="2" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+  <rect x="109" y="176" width="22" height="5" rx="1" fill="rgba(255,255,255,0.12)"/>
+  <rect x="109" y="186" width="22" height="5" rx="1" fill="rgba(255,255,255,0.12)"/>
+  <rect x="109" y="200" width="22" height="9" rx="2" fill="#5ED2DA"/>
+  <circle cx="120" cy="226" r="2" fill="#8BA2AE"/>
+  <text x="120" y="258" fill="#EAF2F6" font-size="11" font-weight="700" text-anchor="middle">stuck in pre auth</text>
+  <text x="120" y="276" fill="#8BA2AE" font-size="11" text-anchor="middle">no RADIUS sent</text>
+
+  <rect x="700" y="100" width="160" height="88" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+  <text x="780" y="126" fill="#EAF2F6" font-size="15" font-weight="700" text-anchor="middle">ClearPass</text>
+  <text x="780" y="143" fill="#8BA2AE" font-size="11" text-anchor="middle">Guest Web Login</text>
+  <rect x="742" y="154" width="76" height="22" rx="11" fill="#5ED2DA" fill-opacity="0.12" stroke="#5ED2DA"/>
+  <text x="780" y="169" fill="#5ED2DA" font-size="11" font-weight="700" letter-spacing="1" text-anchor="middle">CERT A</text>
+
+  <rect x="390" y="204" width="180" height="88" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+  <text x="480" y="230" fill="#EAF2F6" font-size="15" font-weight="700" text-anchor="middle">AP or gateway</text>
+  <text x="480" y="247" fill="#8BA2AE" font-size="11" text-anchor="middle">portal name, the NAS</text>
+  <rect x="442" y="258" width="76" height="22" rx="11" fill="#4FBDEA" fill-opacity="0.12" stroke="#4FBDEA"/>
+  <text x="480" y="273" fill="#4FBDEA" font-size="11" font-weight="700" letter-spacing="1" text-anchor="middle">CERT B</text>
+
+  <line x1="698" y1="140" x2="204" y2="140" stroke="#5ED2DA" stroke-width="2" marker-end="url(#arBlue)"/>
+  <text x="450" y="131" fill="#5ED2DA" font-size="12" text-anchor="middle">leg 2: form served over cert A</text>
+
+  <line x1="388" y1="222" x2="204" y2="222" stroke="#8BA2AE" stroke-width="2" marker-end="url(#arGrey)"/>
+  <text x="295" y="213" fill="#8BA2AE" font-size="11" text-anchor="middle">leg 1: redirect to ClearPass</text>
+
+  <line x1="202" y1="266" x2="386" y2="266" stroke="#8BA2AE" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arGrey)"/>
+  <text x="295" y="257" fill="#EAF2F6" font-size="11" font-weight="700" text-anchor="middle">leg 3: POST to portal name</text>
+  <rect x="243" y="276" width="104" height="20" rx="10" fill="none" stroke="#8BA2AE" stroke-dasharray="4 3"/>
+  <text x="295" y="290" fill="#B0C4CF" font-size="11" font-weight="700" text-anchor="middle">phones stop here</text>
+
+  <path d="M572 248 H780 V191" fill="none" stroke="#8CE05E" stroke-width="2" marker-end="url(#arPass)"/>
+  <text x="588" y="240" fill="#8CE05E" font-size="11">leg 4: RADIUS, role back</text>
+
+  <text x="860" y="290" fill="#8BA2AE" font-size="11" text-anchor="end">A and B: public CA, full chain, name in the SANs</text>
+  <text x="40" y="326" fill="#8BA2AE" font-size="12">The page loading proves cert A. Only leg 3 meets cert B, and the popup won't click past it.</text>
 </svg></div>
-      <section class="ctl" id="closethelink" data-rise>
-  <style>
-  .ctl{--ctl-line:rgba(255,255,255,0.12)}
-  .ctl-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-  .ctl-head h3{font-size:19px;letter-spacing:-0.02em}
-  .ctl-lv{font:11px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--orange)}
-  .ctl-score{margin-left:auto;font:12px var(--mono);color:var(--text-muted)}
-  .ctl-goal{margin:0 0 16px;font-size:14px;line-height:1.65;color:var(--text-dim)}
-  .ctl-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:start}
-  @media (max-width:640px){.ctl-grid{grid-template-columns:minmax(0,1fr);gap:16px}}
-  .ctl-knobs{display:flex;flex-direction:column;gap:16px}
-  .ctl-knob>span{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
-    font:10.5px var(--mono);letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase;margin-bottom:7px}
-  .ctl-knob>span b{color:var(--teal);font-size:13.5px;letter-spacing:0;text-transform:none;white-space:nowrap}
-  /* Chromium gives a range input 2px of side margin, which overflows a width:100% parent by 4px */
-  .ctl-knob input[type=range]{display:block;width:100%;margin:0;box-sizing:border-box;accent-color:var(--teal);min-height:38px}
-  .ctl-fixed{margin-top:4px;padding-top:14px;border-top:1px solid var(--ctl-line);
-    font:11px/1.9 var(--mono);color:var(--text-muted)}
-  .ctl-fixed b{color:var(--text-dim);font-weight:400}
-  .ctl-sheet{border:1px solid var(--ctl-line);border-radius:12px;background:rgba(3,10,16,0.6);
-    padding:14px 16px;font:12.5px/1.85 var(--mono)}
-  .ctl-row{display:flex;gap:10px;align-items:baseline}
-  .ctl-row i{font-style:normal;color:var(--text-muted);flex:1 1 auto;min-width:0}
-  .ctl-row b{color:var(--text);font-weight:600;flex:0 0 auto;text-align:right;white-space:nowrap}
-  .ctl-row.big b{font-size:15px}
-  .ctl-note{font:10.5px/1.6 var(--mono);color:var(--text-muted);margin:2px 0 6px;padding-left:1px}
-  .ctl-rule{border-top:1px solid var(--ctl-line);margin:8px 0}
-  .ctl-good b{color:var(--green)}
-  .ctl-warn b{color:var(--orange)}
-  .ctl-bar{height:8px;border-radius:5px;background:rgba(255,255,255,0.07);overflow:hidden;margin:14px 0 2px}
-  .ctl-bar i{display:block;height:100%;width:0;background:var(--green);transition:width 160ms linear}
-  .ctl.short .ctl-bar i,.ctl.over .ctl-bar i{background:var(--orange)}
-  .ctl-say{min-height:46px;font-size:13.5px;line-height:1.65;color:var(--text-dim);margin:16px 0 12px}
-  .ctl-say b{color:var(--orange)}
-  .ctl-say i{color:var(--green);font-style:normal}
-  .ctl-acts{display:flex;gap:9px;flex-wrap:wrap}
-  .ctl-btn{min-height:42px;padding:0 15px;border-radius:11px;border:1px solid var(--ctl-line);
-    background:rgba(255,255,255,0.06);color:var(--text);font:600 13px var(--sans);cursor:pointer}
-  .ctl-btn:disabled{opacity:0.35;cursor:default}
-  .ctl-btn.go{border-color:rgba(140,224,94,0.55);background:rgba(140,224,94,0.14);color:#bdf29c}
-  </style>
-
-  <div class="ctl-head">
-    <span class="ctl-lv" id="ctl-lv">Level 1</span>
-    <h3 id="ctl-title">Close the Link</h3>
-    <span class="ctl-score" id="ctl-score">0 of 3 called right</span>
-  </div>
-  <p class="ctl-goal" id="ctl-goal"></p>
-
-  <div class="ctl-grid">
-    <div class="ctl-knobs">
-      <label class="ctl-knob"><span>Radio power, conducted <b id="ctl-pv">9 dBm</b></span>
-        <input id="ctl-p" type="range" min="3" max="23" step="1" value="9"></label>
-      <label class="ctl-knob"><span>Antenna gain <b id="ctl-gv">3 dBi</b></span>
-        <input id="ctl-g" type="range" min="0" max="23" step="1" value="3"></label>
-      <label class="ctl-knob"><span>Cable and connectors <b id="ctl-cv">1.0 dB</b></span>
-        <input id="ctl-c" type="range" min="0" max="60" step="5" value="10"></label>
-      <div class="ctl-fixed" id="ctl-fixed"></div>
-    </div>
-
-    <div class="ctl-sheet" aria-live="polite">
-      <div class="ctl-row"><i>radio, conducted</i><b id="ctl-r-p">+9.0 dBm</b></div>
-      <div class="ctl-row"><i>antenna gain</i><b id="ctl-r-g">+3.0 dBi</b></div>
-      <div class="ctl-row"><i>cable and connectors</i><b id="ctl-r-c">-1.0 dB</b></div>
-      <div class="ctl-rule"></div>
-      <div class="ctl-row big" id="ctl-r-eirp-row"><i>EIRP, what leaves</i><b id="ctl-r-eirp">11.0 dBm</b></div>
-      <div class="ctl-note" id="ctl-r-cap"></div>
-      <div class="ctl-row"><i>free space loss</i><b id="ctl-r-fspl">-75.6 dB</b></div>
-      <div class="ctl-note" id="ctl-r-geom"></div>
-      <div class="ctl-rule"></div>
-      <div class="ctl-row big"><i>arrives at</i><b id="ctl-r-rssi">-64.6 dBm</b></div>
-      <div class="ctl-row"><i>needs</i><b id="ctl-r-need">-57.0 dBm</b></div>
-      <div class="ctl-note" id="ctl-r-needwhy"></div>
-      <div class="ctl-rule"></div>
-      <div class="ctl-row big" id="ctl-r-margin-row"><i>margin</i><b id="ctl-r-margin">-7.6 dB</b></div>
-      <div class="ctl-bar" aria-hidden="true"><i id="ctl-fill"></i></div>
-    </div>
-  </div>
-
-  <p class="ctl-say" id="ctl-say"></p>
-  <div class="ctl-acts">
-    <button class="ctl-btn go" id="ctl-close" type="button">It closes</button>
-    <button class="ctl-btn" id="ctl-never" type="button">It cannot close inside the cap</button>
-    <button class="ctl-btn" id="ctl-reset" type="button">Reset level</button>
-    <button class="ctl-btn" id="ctl-next" type="button" disabled>Next level</button>
-  </div>
-
-  <script>
-  (function () {
-    var root = document.getElementById("closethelink");
-    if (!root) return;
-    var $ = function (s) { return root.querySelector(s); };
-    function fspl(d, f) { return 20 * Math.log10(d) + 20 * Math.log10(f) - 27.55; }
-    function sg(v, u) { return (v >= 0 ? "+" : "") + v.toFixed(1) + (u ? " " + u : ""); }
-
-    var LEVELS = [
-      { name: "The corridor",
-        brief: "An office AP and a laptop 25 m down the corridor, line of sight, nothing in the way. You want a rate worth having, so the laptop needs -67 dBm, and you want 10 dB of fade margin on top because people walk through the path all day.",
-        d: 25, f: 5745, band: "5 GHz, channel 149", floor: -67, margin: 10, cap: 30,
-        start: { p: 9, g: 3, c: 10 },
-        open: "Start with the arithmetic on the right. Three sliders, one question: does the signal arrive with margin to spare?",
-        won: "<i>Closed, with room.</i> Most indoor links look like this, which is why indoor design is almost never about power. You had 10 dB of slack before you touched anything that costs money." },
-
-      { name: "Out of knob",
-        brief: "Covering a courtyard from a wall-mounted AP, 150 m across, clear line of sight. The far end is a phone, so -72 dBm is the floor, and you still want 10 dB of margin.",
-        d: 150, f: 5745, band: "5 GHz, channel 149", floor: -72, margin: 10, cap: 36,
-        start: { p: 14, g: 3, c: 20 },
-        open: "Try the power slider first. Run it all the way up and see how far short you still are.",
-        won: "<i>Closed, and not by turning it up.</i> Maxing the radio still left you short. Path loss is logarithmic, so a few decibels of radio buys you almost no distance. The antenna is the lever, because gain is free once you have bought it and it works in both directions." },
-
-      { name: "It does not close",
-        brief: "6 GHz indoors, an 80 MHz channel, and a client 40 m away that needs -62 dBm to hold the rate you promised in the design, plus the usual 10 dB of margin. Your regulatory cap for an indoor low power AP at this width is 24 dBm EIRP, and nothing you do in this panel changes it.",
-        d: 40, f: 6255, band: "6 GHz, 80 MHz wide", floor: -62, margin: 10, cap: 24,
-        start: { p: 12, g: 5, c: 10 },
-        open: "Same three sliders. Before you start dragging, work out what the best legal answer is, then see whether it is good enough.",
-        won: "<i>Right call.</i> At the cap you are still about 4 dB short, and no combination of radio, antenna and cable inside that cap gets there. That is not a failure of the budget, it is the budget doing its job: the answer is a closer AP, a narrower channel, or a lower rate in the design. Knowing a link cannot close is worth more than closing it." }
-    ];
-
-    var lv = 0, done = [false, false, false], p, g, c;
-
-    function L() { return LEVELS[lv]; }
-
-    function read() {
-      p = +$("#ctl-p").value;
-      g = +$("#ctl-g").value;
-      c = +$("#ctl-c").value / 10;
-    }
-
-    function calc() {
-      var l = L(), eirp = p + g - c, loss = fspl(l.d, l.f);
-      var rssi = eirp - loss, need = l.floor + l.margin;
-      return {
-        eirp: eirp, loss: loss, rssi: rssi, need: need,
-        margin: rssi - need,
-        over: eirp > l.cap + 1e-9,
-        best: (l.cap - loss) - need
-      };
-    }
-
-    function upd() {
-      read();
-      var l = L(), s = calc();
-      $("#ctl-pv").textContent = p.toFixed(0) + " dBm";
-      $("#ctl-gv").textContent = g.toFixed(0) + " dBi";
-      $("#ctl-cv").textContent = c.toFixed(1) + " dB";
-
-      $("#ctl-r-p").textContent = sg(p, "dBm");
-      $("#ctl-r-g").textContent = sg(g, "dBi");
-      $("#ctl-r-c").textContent = sg(-c, "dB");
-      $("#ctl-r-eirp").textContent = s.eirp.toFixed(1) + " dBm";
-      $("#ctl-r-fspl").textContent = (-s.loss).toFixed(1) + " dB";
-      $("#ctl-r-rssi").textContent = s.rssi.toFixed(1) + " dBm";
-      $("#ctl-r-need").textContent = s.need.toFixed(1) + " dBm";
-      $("#ctl-r-margin").textContent = sg(s.margin, "dB");
-
-      $("#ctl-r-cap").textContent = s.over
-        ? "over your regulatory cap of " + l.cap + " dBm by " + (s.eirp - l.cap).toFixed(1) + " dB"
-        : "your regulatory cap is " + l.cap + " dBm, " + (l.cap - s.eirp).toFixed(1) + " dB of headroom";
-      $("#ctl-r-geom").textContent = l.d + " m at " + l.f + " MHz";
-      $("#ctl-r-needwhy").textContent = "floor " + l.floor + " dBm plus " + l.margin + " dB of fade margin";
-
-      $("#ctl-r-eirp-row").className = "ctl-row big" + (s.over ? " ctl-warn" : "");
-      $("#ctl-r-margin-row").className = "ctl-row big" + (s.margin >= 0 ? " ctl-good" : " ctl-warn");
-      root.classList.toggle("short", s.margin < 0);
-      root.classList.toggle("over", s.over);
-      $("#ctl-fill").style.width = Math.max(0, Math.min(100, (s.margin + 10) / 30 * 100)) + "%";
-    }
-
-    function say(html) { $("#ctl-say").innerHTML = html; }
-
-    function score() {
-      var n = done.filter(Boolean).length;
-      $("#ctl-score").textContent = n + " of 3 called right";
-    }
-
-    function load() {
-      var l = L();
-      $("#ctl-p").value = l.start.p;
-      $("#ctl-g").value = l.start.g;
-      $("#ctl-c").value = l.start.c;
-      $("#ctl-lv").textContent = "Level " + (lv + 1);
-      $("#ctl-title").textContent = l.name;
-      $("#ctl-goal").textContent = l.brief;
-      $("#ctl-fixed").innerHTML =
-        "fixed for this level<br>distance <b>" + l.d + " m</b><br>band <b>" + l.band +
-        "</b><br>receiver floor <b>" + l.floor + " dBm</b><br>fade margin <b>" + l.margin +
-        " dB</b><br>your regulatory cap <b>" + l.cap + " dBm EIRP</b>";
-      $("#ctl-next").disabled = !done[lv] || lv >= LEVELS.length - 1;
-      say(done[lv] ? l.won : l.open);
-      upd();
-      score();
-    }
-
-    function finish() {
-      done[lv] = true;
-      score();
-      $("#ctl-next").disabled = lv >= LEVELS.length - 1;
-      if (lv >= LEVELS.length - 1 && done.filter(Boolean).length === LEVELS.length) {
-        say(L().won + " That is all three. The budget is four numbers and a subtraction; the skill is knowing which of the four you actually measured.");
-      } else {
-        say(L().won);
-      }
-    }
-
-    $("#ctl-close").addEventListener("click", function () {
-      var s = calc();
-      if (s.over) {
-        say("It arrives loud enough, and it is <b>" + (s.eirp - L().cap).toFixed(1) +
-            " dB over your regulatory cap</b>. Turn the radio down until the EIRP is legal. The antenna gain stays: a cap limits what you transmit, not what you hear.");
-      } else if (s.margin < 0) {
-        say("Not yet. It arrives at " + s.rssi.toFixed(1) + " dBm and you need " + s.need.toFixed(1) +
-            " dBm, so you are <b>" + (-s.margin).toFixed(1) + " dB short</b>.");
-      } else {
-        finish();
-      }
-    });
-
-    $("#ctl-never").addEventListener("click", function () {
-      var s = calc();
-      if (s.best >= 0) {
-        say("Not so fast. At the cap of " + L().cap + " dBm this link arrives with <b>" +
-            s.best.toFixed(1) + " dB of margin</b> to spare. Something in the panel still gets you there.");
-      } else {
-        finish();
-      }
-    });
-
-    $("#ctl-reset").addEventListener("click", function () { load(); });
-    $("#ctl-next").addEventListener("click", function () {
-      if (lv < LEVELS.length - 1) { lv += 1; load(); }
-    });
-    ["#ctl-p", "#ctl-g", "#ctl-c"].forEach(function (id) {
-      $(id).addEventListener("input", upd);
-      $(id).addEventListener("change", upd);
-    });
-
-    load();
-  })();
-  </script>
-</section>
-
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 3. Predicted it, measured it, went looking for the gap in the wrong place, then built a bench that couldn&#x27;t answer the question either, for the same reason</div>
-      <div class="prose"><p>Last week was the room the radio lives in. This week is whether the signal actually gets across it.</p>
-<p>A link budget is the arithmetic that tells you how loud your signal will be when it arrives. It takes about thirty seconds to write. I wrote one for my own lab, put an AP on a shelf, walked thirty two feet, and measured what my laptop actually heard. I was off by fifteen decibels, and the physics never moved. What moved was my understanding of what the number on my screen was measuring, and then of what my own measurement could prove. That's the lesson, and it isn't the arithmetic.</p>
-<h2>Four numbers on a napkin</h2>
-<p>RSSI is what arrives. It's what you sent, plus what the antennas did at both ends, minus what the distance took away.</p>
-<p><strong>Transmit power</strong> is what the radio pushes into the antenna, before the antenna does anything to it. That's the textbook definition. Hold onto it, because your management platform may not be using it.</p>
-<p><strong>Antenna gain</strong> isn't amplification. Nothing passive adds energy. Gain is shape: the same power aimed more one way and less another. The datasheet prints the peak, and peak means the best direction, mounted the way they meant you to mount it. Power plus gain is EIRP, which is what the regulator cares about and what actually leaves the AP.</p>
-<p><strong>The client's antenna</strong> is the one nobody talks about. There's no datasheet for the antenna in your laptop. It's a strip of metal in a hinge, next to a battery, held by a hand. We put zero in that slot because we've got nothing else to put there, and then we forget that we guessed.</p>
-<p><strong>Receive sensitivity</strong> is the other end. Every radio has a table: this rate needs this much signal. The budget tells you what arrives, sensitivity tells you whether it's enough, and the difference is your margin.</p>
-<p>Two of those terms are shapes nobody published. Both of them cost me a conclusion before this post was done.</p>
-<h2>The number that matters</h2>
-<p>Free space path loss. It's the only term in the budget you can't argue with.</p>
-<pre><code>FSPL(dB) = 20·log10(d) + 20·log10(f) - 27.55
-</code></pre>
-<p>Distance in metres, frequency in megahertz. Worked once, for my lab: 32 ft is 9.75 m, and the primary channel is 149, which is 5745 MHz.</p>
-<pre><code>20·log10(9.75)  = 19.78
-20·log10(5745)  = 75.19
-19.78 + 75.19 - 27.55 = 67.4 dB
-</code></pre>
-<p>Nothing is absorbed in that formula and nothing is blocked. It's the wave spreading over the surface of a bigger and bigger sphere, and the sphere doesn't care what your building is made of.</p>
-<p>Two things fall out of it on site. It's logarithmic, so the early metres are the expensive ones: one metre to ten costs 20 dB, ten to a hundred costs another 20, and doubling the distance always costs 6. And it has a minimum valid distance. Put the client on top of the AP and you're inside the near field, roughly 80 cm for a typical AP at 5 GHz, and the formula isn't inaccurate, it's meaningless. Ask me how I know. I threw away ten beautiful samples.</p>
-<h2>What the gear shows you</h2>
-<p>Aruba Central showed <code>POWER 25 dBm</code> on the 5 GHz radio. My first instinct was to add the 5.5 dBi of published antenna gain and call it 30.5 dBm of EIRP. That's counting the antenna twice. Aruba's number already has it in.</p>
-<p>The configuration docs say so in both generations: the AOS 10 radio profile calls the power range minimum and maximum EIRP, and the AOS 8 ARM profile says outright that it includes antenna gain. If you'd rather see it live, ask a controller what a radio is doing right now:</p>
-<pre><code>(controller) #show ap active
-Radio 0 Band Ch/EIRP/MaxEIRP/Clients
-AP:5GHz-HE:153/15.0/26.8/0
-</code></pre>
-<p>The column header says EIRP. Not power. It's been in that header for the better part of a decade, and it was the first place I should have looked. That's the answer, and it's an answer on paper. Hold that thought.</p>
-<p>Juniper sits at the opposite end of the same quantity. Mist documents transmit power <strong>per transmit chain</strong>. Not total, not with the antenna, not with MIMO. One chain. The page hands you the arithmetic: add 10log of the chain count, then the antenna gain. For the AP34 on my bench, two by two with 6.0 dBi published, that's 15 plus 3 plus 6.0, or 24.0 dBm.</p>
-<p>Except you'll hear it repeated everywhere that a beacon goes out on a single chain, and your survey tool's signal column is beacon derived. If that's true, the beacon is 15 + 6.0 = 21.0 and the MIMO term never belonged in the sum. I can't tell you whether it's true. Neither vendor says how many chains carry a beacon, and Aruba's own definition of MIMO gain includes cyclic delay diversity, which is exactly how a radio puts one stream out of every chain it owns. So the honest table is a range:</p>
-<pre><code>                    the screen     what it already has    what you add
-
-Aruba AP-735        25 dBm         radio + antenna        nothing. it is EIRP.
-
-Juniper AP34        15 dBm/chain   one chain, bare        +6.0 dBi antenna
-                                                          +3 dB for the second chain,
-                                                          if the frame uses it
-
-Aruba, in the air                                         25.0 dBm
-Juniper, one chain                                        21.0 dBm
-Juniper, both chains                                      24.0 dBm
-</code></pre>
-<p>Ten decibels apart on the screens. One to four in the air.</p>
-<p><strong>If you take one habit from this lesson, take that one.</strong> Before you compare two APs, or feed a number into a survey tool, find out what the vendor means by power: EIRP, conducted, or per chain. The two screens are never comparable as printed, and between them sits six to nine decibels of pure notation before any physics has happened.</p>
-<h2>The bench that couldn't answer</h2>
-<p>I didn't take the documentation on faith, which was right. Then I built an experiment that couldn't check it, which wasn't.</p>
-<p>Both APs side by side on a shelf, a Sidekick ten feet away on the floor with line of sight, twelve readings, swapped left for right and averaged. At a known distance the path loss is known, so EIRP should fall straight out of a reading, and for the AP-735 it landed on 24.8 dBm against 25 displayed. Two tenths of a decibel. I very nearly published that as proof.</p>
-<figure>
-<img src="../media/lesson-03-two-aps.jpg" alt="An HPE Aruba AP-735 and a Juniper AP34 lying side by side on a wooden shelf, both flat on their backs with their radomes facing up and status lights lit" width="1400" height="1050" loading="lazy">
-<figcaption>Two vendors, one shelf, one noise floor, both radios transmitting at the same instant. Look at how they're lying. That's the problem.</figcaption>
-</figure>
-
-<p>I'm leaving this one in on purpose, because it's the best worked example of the lesson I'm ever going to get, and it happened to me.</p>
-<p>Both APs were lying on their backs, radome up, on a shelf four feet off the floor. The Sidekick was on the floor ten feet away. Now think about where the antenna was actually pointing.</p>
-<p>The 730 datasheet says the built-in antennas are made for ceiling mount, with peak gain thirty to forty degrees below horizontal, so a ceiling AP aims at the floor. Turn that AP onto its back and the peak swings the other way: it now points thirty to forty degrees above horizontal, at the ceiling. My receiver, on the floor ten feet out, was about twenty degrees below horizontal. Add the two and the Sidekick was fifty to sixty degrees away from where the antenna was pointing hardest.</p>
-<p>My derivation put zero in that slot. EIRP = RSSI + FSPL only works if the receiver saw the antenna's peak. It didn't, and sixty degrees off the peak of a 5.5 dBi antenna is usually worth five or six decibels. Put that loss back in and the derived EIRP comes out near 30 dBm, not 25. Which is exactly the number you'd get if 25 were conducted power with the antenna added on top, the reading I'd spent two days arguing against.</p>
-<p>So read plainly, the bench leaned mildly toward the answer I didn't want. It settles nothing either way, because I never measured the off-lobe loss or the Sidekick's own antenna, and those two unknowns are bigger than the difference I was trying to see. Two unmeasured shapes, one equation, and an answer that happened to land on the number I was hoping for.</p>
-<p>File the posture problem away. It comes back in lesson 11, when we put an AP on a survey stick and every reading it gives you is off a pattern the datasheet never measured.</p>
-<p><strong>The documentation is the answer.</strong> Both code generations say it, and a live CLI header has said it for a decade. That was always the strong evidence, and it owes nothing to my shelf.</p>
-<h2>The lab</h2>
-<p>One AP, one laptop, about forty minutes.</p>
+      
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>One Airheads thread this week where laptops logged in and phones sat in the pre auth role on the VC.</div>
+      <div class="prose"><h2>Why I'm writing this</h2>
+<p>Somebody on the forums had ClearPass Guest on a Central managed Instant cluster. Laptops log in. Phones load the page, fill it in, tap Log In, and sit in the pre auth role on the VC. DHCP, DNS and the redirect were already checked.</p>
+<p>That list of things that work is the diagnosis. When one kind of client passes, the config is mostly right and the difference is the client. Put the service rules down.</p>
+<p>I answered it. Then an HPE engineer on the thread added the missing intermediates angle, plus the line this post is built on: work out where in the guest workflow the login aborts, and the fix is usually trivial.</p>
+<p>The phone isn't broken. It's the only client in the building that won't click Proceed.</p>
+<h2>Where the login actually dies</h2>
+<p>It's four legs, not one page:</p>
 <ol>
-<li>Read the AP's power figure, and find out what that field means before you use it. Note the channel centre frequency, not the channel number.</li>
-<li>Measure a distance and mark <strong>the client spot</strong> on the floor with tape. Mark the AP spot too, and label them differently. I marked only the AP position, told myself to stand on the tape, and took nine samples from two feet away before I noticed.</li>
-<li>Predict. EIRP minus FSPL. Write it down before you measure, because a prediction you write afterwards isn't a prediction.</li>
-<li>Measure. At least twenty samples from the client spot, standing still. Take the mean and the standard deviation.</li>
-<li>Compare.</li>
+<li>The AP or gateway redirects the phone to ClearPass.</li>
+<li>ClearPass serves the form over its own cert.</li>
+<li>The form posts the credentials back to the AP or gateway's captive portal name, over the AP side cert.</li>
+<li>Only then does the AP or gateway send RADIUS to ClearPass and get a role back.</li>
 </ol>
-<p><strong>What you should see.</strong> A gap. Mine: 25 dBm of EIRP minus 67.4 dB of path loss predicts <strong>-42.4 dBm</strong>. I measured a mean of <strong>-57.4</strong> with a standard deviation of 2.0 across 22 samples. That's <strong>15.0 dB</strong>, and a standard deviation of 2 is far too tight for it to be noise.</p>
-<p><strong>What it means.</strong> Don't go hunting for what you forgot. Rearrange and solve for the term you guessed:</p>
-<pre><code>client antenna + off-lobe loss = RSSI - EIRP + FSPL
-                               = -57.4 - 25 + 67.4
-                               = -15.0 dB
+<p>The page loading proves the ClearPass cert is fine. It proves nothing about the second cert, because the phone doesn't meet that one until leg three.</p>
+<p>Leg three dies four ways. The AP is still on its default cert, the cert has expired, it's served without its intermediates, or the name the Web Login posts to isn't on it.</p>
+<p>Laptops get away with it. Somebody clicks past the warning, or the browser already holds the missing intermediate (Firefox preloads them) and quietly fills the gap. The login works and nobody learns anything.</p>
+<p>Phones don't:</p>
+<ul>
+<li><strong>Android</strong> at least tells you. The sign in screen swaps in a security warning, "The network you're trying to join has security issues," with the reason under it. The only way on is Continue anyway via browser, which closes the sign in screen. If the cert error is on a sub resource rather than the page itself, it gets cancelled without a word.</li>
+<li><strong>iOS</strong> doesn't document what the popup does with a bad cert on the post back. My own read, and I'll flag it as mine rather than Apple's: there's no Proceed, and the post just doesn't land.</li>
+</ul>
+<p>Either way no RADIUS fires, and as far as ClearPass knows the phone never tried.</p>
+<h2>What good looks like: two certs, two names, one chain each</h2>
+<ul>
+<li><strong>Two certs, both publicly trusted.</strong> One on ClearPass for the page, one on the AP or gateway for the post back. The phone checks each connection on its own, so they don't need the same CA.</li>
+<li><strong>Each one uploaded with its intermediates.</strong> Central wants one PEM file: the server cert, then the chain in order, then the private key. What counts is the chain the device serves, not the chain your laptop can build for it.</li>
+<li><strong>The Web Login Address is a SAN on the AP side cert.</strong> Not just the CN. iOS 13 stopped trusting names that only sit in the CN. Change the cert and the Address in the same change window. If you upload a wildcard, gateways and AOS 8 controllers swap the asterisk for <code>captiveportal-login</code>, so post to that name. The device is supposed to answer DNS for its own portal name (HPE has a support article for when a controller doesn't), and a pre auth client has to get that answer.</li>
+<li><strong>The ClearPass portal FQDN matches the ClearPass cert and resolves in pre auth.</strong> The pre auth role allows DNS, plus 443 to ClearPass and to the captive portal address. Nothing more.</li>
+</ul>
+<h2>Instant on Central, AOS 10, and AOS 8 in a paragraph</h2>
+<ul>
+<li><strong>Instant under Central</strong> is the thread's case, hence "VC". Upload the cert under Maintain, Organization, Certificates, then map it as Captive Portal under Certificate Usage in the group's Security settings. If nothing's mapped, Instant's own guide says the AP makes a self signed portal cert at first boot, and no phone trusts that. Central has a trusted securelogin.hpe.com cert for its own Cloud Guest, but I wouldn't assume it covers an external ClearPass SSID. <code>show cpcert</code> on the VC tells you what's actually there.</li>
+<li><strong>The Instant NAS.</strong> Each AP sends its own RADIUS unless Dynamic RADIUS Proxy is on, and then it's the VC address. ClearPass needs a network device entry for whichever one it is. A subnet entry is fine.</li>
+<li><strong>AOS 10.</strong> On a tunneled SSID the APs hand RADIUS to the gateway, which proxies it, so the gateway goes into ClearPass and the APs don't. On a bridged SSID the AP talks to ClearPass itself. Current code uses securelogin.hpe.com as the portal name, and gateways run a demo self signed cert until you install yours.</li>
+<li><strong>AOS 8.</strong> The portal cert is <code>captive-portal-cert</code> in the web server profile. Legacy builds used securelogin.arubanetworks.com, so check the Address on migrated Web Login pages. That's the whole paragraph.</li>
+<li><strong>Gotcha: the role name.</strong> The role ClearPass returns has to exist where the client lands: in the SSID's roles on Instant, in the group on AOS 10. I haven't found it written down what the AP does with a role it doesn't know, so this is my read. The client doesn't get the role you meant, and you'll blame the cert again.</li>
+<li><strong>Gotcha: Prevent CNA.</strong> It's a bypass, not a fix. ClearPass describes it as bypassing the Apple Captive Network Assistant and warns it may not work with every vendor. With the popup out of the way, Apple users finish in Safari and click past the cert. That's the same laptop habit that hid the problem in the first place.</li>
+</ul>
+<h2>Test it or it doesn't count</h2>
+<p>Start with the cert the phone sees. From a laptop on the guest SSID, still in pre auth:</p>
+<pre><code>openssl s_client -connect &lt;PORTAL-FQDN&gt;:443 -servername &lt;PORTAL-FQDN&gt; -showcerts &lt;/dev/null
 </code></pre>
-<p>I had put zero in that slot, the way everyone does. The real answer was -15.</p>
-<p>My first guess was the laptop. Aluminium lid, right between the antenna and the AP, has to be worth ten. I turned the laptop around and took ten more samples. <strong>1.4 dB.</strong> Wrong by an order of magnitude. Here's where it actually went.</p>
-<figure>
-<img src="../media/lesson-03-ap-on-shelf.jpg" alt="The AP-735 lying flat on its back on a wooden shelf inside a bookcase, radome facing up, with another wooden shelf directly above it" width="1400" height="1026" loading="lazy">
-<figcaption>Fifteen decibels, most of them right here. The radome is aimed at the underside of the next shelf up, about eighteen inches away. The datasheet says these antennas are optimised for horizontal ceiling mount, with peak gain thirty to forty degrees below the AP.</figcaption>
-</figure>
-
-<p>That 5.5 dBi is real, and it's already inside Central's 25 dBm. It was just earned in a direction I wasn't using. The AP was on its back with its main lobe pointed at a plank, and my client was off to one side and slightly below. You don't get the peak by owning the datasheet.</p>
-<p>Same term that wrecked the bench, same AP, same posture, different instrument. Off-lobe loss is the most reliable way a link budget lies to you, and it never shows up as an error. It shows up as a number.</p>
-<p><strong>What means it's broken.</strong> If the standard deviation across twenty stationary samples is more than about 3 dB, something is moving: a person, a microwave, or RRM changing power under you. Pin the channel and power before you measure, then read the Channel Changes and Power Changes counters on the AP in Central afterwards and confirm neither moved. Cheapest control in the building, and almost nobody uses it.</p>
-<p><strong>So here's the habit.</strong> Before you trust a measurement, write down every term you assumed rather than measured, and put a number on how big each one could be. If any of them is the size of the thing you're measuring, you don't have an experiment yet. You have a hope.</p>
-<h2>Three questions</h2>
-<ol>
-<li>Central shows a radio at 25 dBm and Mist shows one at 15 dBm. Which is radiating harder, and what do you need to know about each platform, and about your own measurement, before you can answer?</li>
-<li>Your predicted RSSI is -45 and you measure -65 with a 2 dB standard deviation. Which term do you solve for, and why not path loss?</li>
-<li>You compare two APs against a calibrated receiver and they come back 5 dB apart. Name two explanations that have nothing to do with transmit power. Then say which of the two you could rule out without moving either AP, and which one you could not, because that second answer is the whole of this lesson.</li>
-</ol>
-<h2>Next week</h2>
-<p>Modulation and data rates: why "speed" is a table, not a number, and why RSSI stops being the thing that matters.</p></div>
+<p><code>-showcerts</code> prints only the certs the server sent, in the order it sent them. Browsers help. openssl doesn't, and that's the point.</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div><pre><code><span class="ln">Certificate chain</span><span class="ln"> 0 s:CN = &lt;PORTAL-FQDN&gt;</span><span class="ln">   i:C = US, O = &lt;PUBLIC-CA&gt;, CN = &lt;INTERMEDIATE-CA&gt;</span></code></pre></div>
+<p>A lone <code>0</code> means no intermediates. Pipe the same command into <code>openssl x509 -noout -text</code> and read the SANs and the dates.</p>
+<p>Then open Access Tracker and filter on the guest username or the phone's private Wi-Fi address (the one on that network's info screen, not the hardware address under About). Log in from the popup.</p>
+<p>Watch the source. With a Pre-Auth Check on, ClearPass checks the credentials itself through its Guest Access Web Login service, before the phone posts anything to the AP. That entry isn't the NAS. You want a RADIUS request from the AP, VC or gateway address.</p>
+<ul>
+<li><strong>Nothing from the NAS:</strong> the post back never landed, so it's the cert or the name. Check Event Viewer before you commit to that. RADIUS from a device that isn't in Network Devices ends up there instead of Access Tracker, and from the phone it looks exactly the same.</li>
+<li><strong>An accept with a role, phone still in pre auth:</strong> it's the role name or the NAS side.</li>
+<li><strong>A reject:</strong> you're in policy land after all, and this isn't your post.</li>
+</ul>
+<p>Cross check on the phone. On Android, take Continue anyway via browser. On iOS, join from Settings through the info button, tap Cancel on the popup and pick Without Internet, which Apple documents as keeping you on the network. Log in by hand. A warning you can click past, then a login that works: that's the cert.</p>
+<p>Good looks like this: the popup logs in and closes, the role changes on the AP, and Access Tracker shows one accept per attempt.</p>
+<h2>What changed in my base config</h2>
+<ul>
+<li>The guest build sheet has an AP side cert row (names, CA, expiry, chain as served) right under the ClearPass cert row.</li>
+<li>Handover includes the openssl chain check against the portal name, pasted into the as built.</li>
+<li>Acceptance means one login from an iPhone popup and one from an Android sign in screen, with Access Tracker open. A laptop pass doesn't count.</li>
+<li>New Central groups get the portal cert mapped before the SSID is pushed. Both expiries go into monitoring the day the portal goes live.</li>
+</ul>
+<h2>Checklist</h2>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Where to look</th>
+<th>What broken looks like</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AP side portal cert is public and in date</td>
+<td>openssl from a pre auth client</td>
+<td>self signed, factory default, or expired</td>
+</tr>
+<tr>
+<td>Chain served with intermediates</td>
+<td><code>-showcerts</code></td>
+<td>one cert only</td>
+</tr>
+<tr>
+<td>Web Login Address is a SAN on the AP side cert</td>
+<td>Web Login vendor settings against the cert</td>
+<td>the name is only in the CN, or missing</td>
+</tr>
+<tr>
+<td>Portal name resolves in pre auth</td>
+<td>nslookup from a pre auth client</td>
+<td>no answer</td>
+</tr>
+<tr>
+<td>ClearPass cert is public and matches the portal FQDN</td>
+<td>the portal page in a browser</td>
+<td>a warning on the form itself</td>
+</tr>
+<tr>
+<td>Pre auth role allows DNS and 443 to ClearPass and the portal address</td>
+<td>the role in Central</td>
+<td>page or post back times out</td>
+</tr>
+<tr>
+<td>The NAS in ClearPass is the device that sends RADIUS</td>
+<td>Network Devices, Event Viewer</td>
+<td>unknown NAS events</td>
+</tr>
+<tr>
+<td>The returned role exists</td>
+<td>Access Tracker output against the SSID or group roles</td>
+<td>accept, still pre auth</td>
+</tr>
+<tr>
+<td>Tested from a phone popup</td>
+<td>Access Tracker during the test</td>
+<td>only laptops were ever tested</td>
+</tr>
+</tbody>
+</table>
+<h2>Bottom line</h2>
+<ul>
+<li>Laptops pass and phones sit in pre auth: read the AP side cert before you touch a ClearPass service. If the cert's clean, check the role name next.</li>
+<li>Two public certs, matching names, full chains. Then test from the phone popup, because it's the only client that fails honestly.</li>
+</ul></div>
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 3 of 3</span></h3><div class="ser-steps"><a class="ser-step" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span></a><a class="ser-step" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span></a><a class="ser-step here" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span><span class="ser-tag">You are here</span></a></div></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-03-the-link-budget" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -1086,12 +894,12 @@ Juniper, both chains                                      24.0 dBm
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="your-ap-is-not-moving-that-client.html"><span class="eyebrow">Older</span>Your AP Is Not Moving That Client</a><a class="pn g-card" href="a-radius-timeout-means-somebody-dropped-it-not-that-it-never-left.html"><span class="eyebrow">Newer</span>A RADIUS Timeout Means Somebody Dropped It, Not That It Never Left</a></div>
+      <div class="postnav"><a class="pn g-card" href="a-radius-timeout-means-somebody-dropped-it-not-that-it-never-left.html"><span class="eyebrow">Older</span>A RADIUS Timeout Means Somebody Dropped It, Not That It Never Left</a></div>
     </section>
   </article>
 </div>
 </main>
-<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-think.svg" alt="" width="104" height="104"></a>
+<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-lab.svg" alt="" width="104" height="104"></a>
 <footer><div class="wrap">
   <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
   <span><a href="/rss.xml">RSS</a></span>
