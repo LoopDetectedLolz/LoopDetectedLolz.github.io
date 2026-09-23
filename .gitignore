@@ -30,3 +30,7 @@ lab-qa-*.html
 .wrangler/
 comments/.wrangler/
 node_modules/
+
+# editor backups
+.*.bak-*
+*.bak-*

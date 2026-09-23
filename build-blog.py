@@ -261,17 +261,7 @@ cards = card(featured, featured=True) + "".join(card(p) for p in posts if p is n
 _tj = open(os.path.join(ROOT, "demo", "traffic.json"), encoding="utf-8").read().strip()
 qam = widget("qam").replace('<section class="qam g-card" id="qam"',
     '<section class="qam g-card" id="qam" data-title="%s" data-traffic="%s"' % (E(featured["title"]), E(_tj)), 1)
-teaser = f'''
-<a class="sim-teaser g-card" href="simulator.html" data-rise data-view="pop">
-  <img src="media/banner-walkthrough.jpg" alt="The simulator: a Yagi sending symbols down a beam to a constellation" width="1600" height="900" loading="lazy">
-  <div class="sim-copy">
-    <span class="eyebrow">On the air right now</span>
-    <h3>A Wi-Fi link you can break</h3>
-    <p>A real frame from a packet capture, one particle per symbol, through a link budget with walls you can drag, a reflection, spatial streams and a Teams call. Add interference and watch the voice drop packets while the chat just runs late.</p>
-    <span class="btn">Open the simulator</span>
-  </div>
-</a>'''
-index += teaser + f'''
+index += f'''
 <section class="hero g-hero rise" data-view="pop">
   <div class="sheen"></div><div class="glow"></div>
   <span class="tag green"><span class="dot"></span>Latest field note</span>
