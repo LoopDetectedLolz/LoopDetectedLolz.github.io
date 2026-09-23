@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" width="900" height="340" font-family="Inter,Segoe UI,system-ui,sans-serif">
+  <defs>
+    <marker id="aRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#F0705F"/></marker>
+    <marker id="aGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7EE08A"/></marker>
+    <marker id="aBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7AB8E8"/></marker>
+  </defs>
+  <rect x="0" y="0" width="900" height="340" fill="#0B0F14"/>
+  <text x="30" y="36" fill="#8FDB69" font-size="12" font-weight="700" letter-spacing="2">CLEARPASS GUEST · THE THREE HOP LOGIN</text>
+  <text x="30" y="66" fill="#fff" font-size="20" font-weight="700">Laptops click past the cert. Phones just stop.</text>
+
+  <rect x="30" y="88" width="170" height="130" rx="8" fill="#141C26" stroke="#243040"/>
+  <text x="115" y="116" fill="#fff" font-size="15" font-weight="700" text-anchor="middle">Phone</text>
+  <text x="115" y="136" fill="#8A99AB" font-size="12" text-anchor="middle">captive popup</text>
+  <rect x="97" y="150" width="36" height="52" rx="6" fill="none" stroke="#8A99AB" stroke-width="1.5"/>
+  <line x1="109" y1="196" x2="121" y2="196" stroke="#8A99AB" stroke-width="1.5"/>
+  <text x="115" y="214" fill="#8A99AB" font-size="11" text-anchor="middle">nothing to click past</text>
+
+  <rect x="365" y="88" width="170" height="130" rx="8" fill="#141C26" stroke="#F0705F"/>
+  <text x="450" y="116" fill="#fff" font-size="15" font-weight="700" text-anchor="middle">AP or gateway</text>
+  <text x="450" y="140" fill="#E0B34E" font-size="12" text-anchor="middle">portal cert on the</text>
+  <text x="450" y="157" fill="#E0B34E" font-size="11" font-family="ui-monospace,Menlo,Consolas,monospace" text-anchor="middle">securelogin name</text>
+  <text x="450" y="180" fill="#8A99AB" font-size="11" text-anchor="middle">CN must equal the</text>
+  <text x="450" y="196" fill="#8A99AB" font-size="11" text-anchor="middle">Web Login address</text>
+  <rect x="503" y="94" width="24" height="18" rx="2" fill="none" stroke="#E0B34E" stroke-width="1.5"/>
+  <line x1="507" y1="100" x2="518" y2="100" stroke="#E0B34E" stroke-width="1.2"/>
+  <line x1="507" y1="105" x2="515" y2="105" stroke="#E0B34E" stroke-width="1.2"/>
+  <circle cx="523" cy="110" r="3.5" fill="#E0B34E"/>
+
+  <rect x="700" y="88" width="170" height="130" rx="8" fill="#141C26" stroke="#243040"/>
+  <text x="785" y="116" fill="#fff" font-size="15" font-weight="700" text-anchor="middle">ClearPass</text>
+  <text x="785" y="140" fill="#E0B34E" font-size="12" text-anchor="middle">HTTPS cert on the</text>
+  <text x="785" y="157" fill="#E0B34E" font-size="12" text-anchor="middle">portal FQDN</text>
+  <text x="785" y="180" fill="#8A99AB" font-size="11" text-anchor="middle">public CA,</text>
+  <text x="785" y="196" fill="#8A99AB" font-size="11" text-anchor="middle">full chain</text>
+  <rect x="838" y="94" width="24" height="18" rx="2" fill="none" stroke="#E0B34E" stroke-width="1.5"/>
+  <line x1="842" y1="100" x2="853" y2="100" stroke="#E0B34E" stroke-width="1.2"/>
+  <line x1="842" y1="105" x2="850" y2="105" stroke="#E0B34E" stroke-width="1.2"/>
+  <circle cx="858" cy="110" r="3.5" fill="#E0B34E"/>
+
+  <text x="282" y="140" fill="#F0705F" font-size="11" font-weight="700" text-anchor="middle">3 POST credentials</text>
+  <line x1="202" y1="152" x2="361" y2="152" stroke="#F0705F" stroke-width="3" marker-end="url(#aRed)"/>
+  <rect x="222" y="164" width="120" height="22" rx="11" fill="#141C26" stroke="#F0705F"/>
+  <text x="282" y="179" fill="#F0705F" font-size="11" font-weight="700" text-anchor="middle">phones stop here</text>
+
+  <text x="617" y="140" fill="#7EE08A" font-size="11" font-weight="700" text-anchor="middle">4 RADIUS request</text>
+  <line x1="537" y1="152" x2="696" y2="152" stroke="#7EE08A" stroke-width="2" marker-end="url(#aGreen)"/>
+  <text x="617" y="178" fill="#8A99AB" font-size="11" text-anchor="middle">only if 3 lands</text>
+
+  <path d="M115 220 V232 H785 V224" fill="none" stroke="#7AB8E8" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#aBlue)"/>
+  <text x="450" y="248" fill="#7AB8E8" font-size="11" text-anchor="middle">1 redirect to ClearPass, 2 form served over HTTPS (the part everyone checks)</text>
+
+  <rect x="30" y="258" width="270" height="48" rx="6" fill="#141C26" stroke="#243040"/>
+  <text x="44" y="277" fill="#F0705F" font-size="12" font-weight="700">No request in Access Tracker</text>
+  <text x="44" y="296" fill="#8A99AB" font-size="11">cert or name, or an unknown NAD</text>
+  <rect x="315" y="258" width="270" height="48" rx="6" fill="#141C26" stroke="#243040"/>
+  <text x="329" y="277" fill="#E0B34E" font-size="12" font-weight="700">Accept with a role</text>
+  <text x="329" y="296" fill="#8A99AB" font-size="11">role missing on the SSID, or wrong NAS</text>
+  <rect x="600" y="258" width="270" height="48" rx="6" fill="#141C26" stroke="#243040"/>
+  <text x="614" y="277" fill="#7AB8E8" font-size="12" font-weight="700">Reject</text>
+  <text x="614" y="296" fill="#8A99AB" font-size="11">policy after all, a different post</text>
+
+  <text x="30" y="326" fill="#8A99AB" font-size="12">Filter Access Tracker on the phone's MAC and it tells you which box to fix.</text>
+</svg>
