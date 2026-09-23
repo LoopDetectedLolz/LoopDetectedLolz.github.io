@@ -76,18 +76,29 @@
   /* index only: category filter + search */
   var grid = $('#posts');
   if (!grid) return;
-  var cards = $$('.card[data-cat]', grid), chips = $$('.chip[data-cat]'), empty = $('.empty');
+  var cards = $$('.card[data-cat]', grid), chips = $$('.cat[data-cat]'), empty = $('.empty');
   var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
   var cat = 'all', q = '';
 
   function apply() {
     var shown = 0;
     cards.forEach(function (c) {
-      var okCat = cat === 'all' || c.getAttribute('data-cat') === cat;
-      var okQ = !q || (c.getAttribute('data-text') || '').indexOf(q) !== -1;
-      /* the featured post lives in the hero; only surface its card while a filter or search is active */
-      var okFeat = !c.hasAttribute('data-featured') || cat !== 'all' || !!q;
-      var on = okCat && okQ && okFeat; c.classList.toggle('hidden', !on); if (on) shown++;
+      /* data-cat is pipe separated: a series tile sits in every category its parts do */
+      var okCat = cat === 'all' ||
+        ('|' + (c.getAttribute('data-cat') || '') + '|').indexOf('|' + cat + '|') !== -1;
+      var on;
+      if (c.hasAttribute('data-series')) {
+        /* a series tile stands in for its parts, but a search wants the parts themselves */
+        on = okCat && !q;
+      } else {
+        var okQ = !q || (c.getAttribute('data-text') || '').indexOf(q) !== -1;
+        /* the featured post lives in the hero; only surface its card while a filter or search is active */
+        var okFeat = !c.hasAttribute('data-featured') || cat !== 'all' || !!q;
+        /* a post inside a series hides behind its tile until someone searches */
+        var okSeries = !c.hasAttribute('data-inseries') || !!q;
+        on = okCat && okQ && okFeat && okSeries;
+      }
+      c.classList.toggle('hidden', !on); if (on) shown++;
     });
     chips.forEach(function (ch) { ch.classList.toggle('on', ch.getAttribute('data-cat') === cat); });
     if (empty) empty.classList.toggle('show', shown === 0);
@@ -100,6 +111,12 @@
       var h = cat === 'all' ? '' : '#cat=' + encodeURIComponent(cat);
       if (history.replaceState) history.replaceState(null, '', location.pathname + h); else location.hash = h;
       apply();
+      /* the tab takes you to the posts, but only when they are not already in view */
+      var r = grid.getBoundingClientRect();
+      if (r.top > window.innerHeight * 0.4) {
+        var soft = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: window.scrollY + r.top - 92, behavior: soft ? 'smooth' : 'auto' });
+      }
     });
   });
   if (toggle && box && input) {

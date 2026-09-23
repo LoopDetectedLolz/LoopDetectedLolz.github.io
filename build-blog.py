@@ -180,7 +180,7 @@ ICO_CHAT = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 ICO_BACK = ('<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
             '<path d="M14 6l-6 6 6 6"/></svg>')
 
-def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False, theme=""):
+def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False, theme="", wide=False):
     root = up or "/"
     nav = ('<a class="pill%s" href="%s">Posts</a>' % (" on" if active == "posts" else "", root))
     nav += '<a class="pill%s" href="%sacademy.html">Academy</a>' % (" on" if active == "academy" else "", up)
@@ -221,17 +221,17 @@ def head(title, desc, url, ogimg, up="", extra="", active="posts", search=False,
 <div class="gx-pane" aria-hidden="true"></div>
 <div class="gx-grain" aria-hidden="true"></div>
 <div class="page">
-<header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
+<header class="hdr"><div class="wrap{" wide" if wide else ""}"><div class="hdr-in g-chrome">
   <a class="brand" href="{root}"><span class="mk"><img src="{up}logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">{E(SITE["name"])}</span></a>
   <nav class="nav">{nav}</nav>
   {searchbox}
 </div></div></header>
-<main class="wrap">'''
+<main class="wrap{" wide" if wide else ""}">'''
 
-def foot(bot, up=""):
+def foot(bot, up="", wide=False):
     return f'''</main>
 <a class="rig" href="{up}socials.html" data-origin="genie" aria-label="Where else to find me"><img src="{up}character/{bot}" alt="" width="104" height="104"></a>
-<footer><div class="wrap">
+<footer><div class="wrap{" wide" if wide else ""}">
   <span>&copy; {year} {E(SITE["author"])}. Personal site. Configs are placeholders; customers are never named.</span>
   <span><a href="/rss.xml">RSS</a></span>
 </div></footer>
@@ -243,19 +243,52 @@ def foot(bot, up=""):
 
 def card(p, featured=False):
     text = (p["title"] + " " + p["summary"] + " " + " ".join(p["tags"])).lower()
+    ins = " data-inseries" if p["slug"] in IN_SERIES else ""
     # the featured post already sits in the hero; its card only appears once a filter or search is active
-    return f'''<a class="card g-card{" hidden" if featured else ""}" href="p/{p["slug"]}.html" data-origin="zoom" data-rise data-cat="{E(p["cat"])}" data-text="{E(text)}"{" data-featured" if featured else ""}>
+    return f'''<a class="card g-card{" hidden" if featured else ""}" href="p/{p["slug"]}.html" data-origin="zoom" data-rise data-cat="{E(p["cat"])}" data-text="{E(text)}"{ins}{" data-featured" if featured else ""}>
   <div class="card-top"><span class="tag {p["ccls"]}">{E(p["cat"])}</span><span class="meta">{E(p["date_obj"].strftime("%b %d").replace(" 0"," "))}</span></div>
   <h3 class="h-card">{E(p["title"])}</h3>
   <p>{E(p["summary"])}</p>
   <div class="card-foot"><span class="src">{ICO_CHAT}{E(p["src"])}</span><b>{p["readtime"]} min</b></div>
 </a>'''
 
+# ── series grouping ─────────────────────────────────────────────────────────
+# A series with two or more posts collapses into one tile. Every post still gets
+# its own card so search can find it; the card just hides until a query is typed.
+_by_series = {}
+for _p in posts:
+    _s = (_p.get("series") or "").strip()
+    if _s:
+        _by_series.setdefault(_s, []).append(_p)
+SERIES = {k: sorted(v, key=lambda x: int(x.get("series_order") or 0))
+          for k, v in _by_series.items() if len(v) >= 2}
+IN_SERIES = {q["slug"] for v in SERIES.values() for q in v}
+RAIL_C = {"Wireless": "#8CE05E", "NAC": "#2FA8E0", "Lab": "#F0705F", "Academy": "#F5A524"}
+
+def series_tile(name, parts):
+    cat = Counter(q["cat"] for q in parts).most_common(1)[0][0]
+    cats = "|".join(sorted({q["cat"] for q in parts}))
+    items = "".join(
+        '<li><a href="p/%s.html" data-origin="zoom"><b>%d</b><span>%s</span></a></li>'
+        % (q["slug"], i + 1, E(q["title"])) for i, q in enumerate(parts))
+    tile = ('<div class="card g-card series-card" data-rise data-cat="%s" data-series>'
+            '<div class="card-top"><span class="tag %s">%s</span>'
+            '<span class="parts">%d parts</span></div>'
+            '<h3 class="h-card">%s</h3><ol class="series-list">%s</ol></div>'
+            % (E(cats), CAT_CLASS.get(cat, ""), E(cat), len(parts), E(name), items))
+    return max(q["date_obj"] for q in parts), tile
+
 # ── index ───────────────────────────────────────────────────────────────────
-index = head(SITE["name"], SITE["tagline"], BASE_URL + "/", BASE_URL + "/og/home.png", search=True)
-chips = '<span class="chip on" data-cat="all">All</span>' + "".join(
-    '<span class="chip %s" data-cat="%s">%s</span>' % (CAT_CLASS.get(c, ""), E(c), E(c)) for c in CATS)
-cards = card(featured, featured=True) + "".join(card(p) for p in posts if p is not featured)
+index = head(SITE["name"], SITE["tagline"], BASE_URL + "/", BASE_URL + "/og/home.png", search=True, wide=True)
+rail = ('<button class="cat on" type="button" data-cat="all">'
+        '<i></i><span>All</span><b>%d</b></button>' % len(posts)) + "".join(
+    '<button class="cat" type="button" data-cat="%s" style="--c:%s">'
+    '<i></i><span>%s</span><b>%d</b></button>'
+    % (E(c), RAIL_C.get(c, "rgba(255,255,255,0.30)"), E(c), _cnt[c]) for c in CATS)
+_tiles = [series_tile(k, v) for k, v in SERIES.items()]
+_tiles += [(p["date_obj"], card(p, featured=(p is featured))) for p in posts]
+_tiles.sort(key=lambda t: t[0], reverse=True)
+cards = "".join(h for _, h in _tiles)
 # the banner sends demo/nfn-ping.pcap frame 1 bit for bit; make-pcap.py regenerates the hex and field map
 # demo/traffic.json (from make-pcap.py) carries every flow the banner can send: frames as hex, field maps, app-layer view, demo keys
 _tj = open(os.path.join(ROOT, "demo", "traffic.json"), encoding="utf-8").read().strip()
@@ -273,14 +306,15 @@ index += f'''
   </div>
 </section>
 
-<div class="filter"><span class="eyebrow">Filter</span>{chips}</div>
-
-<section>
-  <div class="grid" id="posts">
-    {cards}
-  </div>
-  <div class="empty">Nothing matches that. Try a broader word, or clear the filter.</div>
-</section>
+<div class="browse">
+  <nav class="cat-rail" aria-label="Filter posts by category"><span class="eyebrow">Filter</span>{rail}</nav>
+  <section class="browse-main">
+    <div class="grid" id="posts">
+      {cards}
+    </div>
+    <div class="empty">Nothing matches that. Try a broader word, or clear the filter.</div>
+  </section>
+</div>
 
 <section class="band g-card" data-rise>
   <div>
@@ -288,7 +322,7 @@ index += f'''
     <p>{E(SITE["tagline"])}</p>
   </div>
 </section>
-''' + foot("nfn-bot-wave.svg")
+''' + foot("nfn-bot-wave.svg", wide=True)
 open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8").write(index)
 
 # ── post pages ──────────────────────────────────────────────────────────────
