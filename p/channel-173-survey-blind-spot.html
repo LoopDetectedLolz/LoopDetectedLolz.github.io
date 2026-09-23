@@ -148,6 +148,45 @@ a.tag:hover{transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(0,0,0,0.7
 .btn.cta:hover{color:#06202A}
 
 /* filter */
+/* the home page runs wider than an article, because it carries the rail */
+.wrap.wide{max-width:1320px}
+
+/* browse: category rail beside the grid above 1180, a scroller below it */
+.browse{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s4);margin-top:var(--s6)}
+@media (min-width:1180px){.browse{grid-template-columns:190px minmax(0,1fr);gap:var(--s6);align-items:start}}
+.browse-main .grid{margin-top:0}
+.cat-rail{display:flex;gap:var(--s2);overflow-x:auto;padding:2px 2px var(--s2);scrollbar-width:none}
+.cat-rail::-webkit-scrollbar{display:none}
+.cat-rail .eyebrow{display:none}
+@media (min-width:1180px){
+  .cat-rail{position:sticky;top:92px;flex-direction:column;gap:5px;overflow:visible;padding:0}
+  .cat-rail .eyebrow{display:block;margin:0 0 var(--s2) 13px}
+}
+.cat{--c:rgba(255,255,255,0.30);display:inline-flex;align-items:center;gap:10px;flex:none;min-height:40px;
+  padding:0 var(--s3);border:1px solid rgba(255,255,255,0.16);border-radius:var(--r-pill);
+  background:rgba(255,255,255,0.05);color:var(--text-muted);font:600 13.5px var(--sans);
+  white-space:nowrap;cursor:pointer;-webkit-appearance:none;appearance:none;
+  transition:background 220ms var(--ease),color 220ms var(--ease),transform 180ms var(--ease)}
+.cat i{width:3px;height:16px;border-radius:2px;background:var(--c);flex:none}
+.cat b{margin-left:auto;padding-left:8px;font:600 11.5px var(--mono);color:var(--text-muted);font-variant-numeric:tabular-nums}
+.cat:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.cat:active{transform:scale(0.96)}
+.cat.on{background:rgba(255,255,255,0.13);color:var(--text);border-color:rgba(255,255,255,0.26)}
+.cat.on i{box-shadow:0 0 10px var(--c)}
+.cat.on b{color:var(--text-dim)}
+@media (min-width:1180px){.cat{width:100%;border-radius:12px;min-height:42px}.cat i{height:18px}}
+
+/* a series collapses into one tile: name, part count, the parts as links */
+.series-card{gap:var(--s2)}
+.series-card:active{transform:none}
+.series-card .parts{font:600 11.5px var(--mono);color:var(--text-muted)}
+.series-list{list-style:none;margin:var(--s2) 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.series-list a{display:flex;gap:10px;align-items:baseline;padding:7px 9px;margin:0 -9px;border-radius:10px;
+  color:var(--text-dim);font-size:14.5px;line-height:1.45;text-decoration:none;
+  transition:background 200ms var(--ease),color 200ms var(--ease)}
+.series-list a:hover{background:rgba(255,255,255,0.07);color:var(--text)}
+.series-list b{font:600 11px var(--mono);color:var(--text-muted);min-width:13px;flex:none}
+
 .filter{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;margin:0 0 var(--s5)}
 .filter .eyebrow{margin-right:var(--s1)}
 .chip{display:inline-flex;align-items:center;min-height:38px;padding:0 var(--s3);border-radius:var(--r-pill);border:1px solid rgba(255,255,255,0.16);
@@ -867,18 +906,29 @@ html.qam-fs .rig{display:none}
   /* index only: category filter + search */
   var grid = $('#posts');
   if (!grid) return;
-  var cards = $$('.card[data-cat]', grid), chips = $$('.chip[data-cat]'), empty = $('.empty');
+  var cards = $$('.card[data-cat]', grid), chips = $$('.cat[data-cat]'), empty = $('.empty');
   var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
   var cat = 'all', q = '';
 
   function apply() {
     var shown = 0;
     cards.forEach(function (c) {
-      var okCat = cat === 'all' || c.getAttribute('data-cat') === cat;
-      var okQ = !q || (c.getAttribute('data-text') || '').indexOf(q) !== -1;
-      /* the featured post lives in the hero; only surface its card while a filter or search is active */
-      var okFeat = !c.hasAttribute('data-featured') || cat !== 'all' || !!q;
-      var on = okCat && okQ && okFeat; c.classList.toggle('hidden', !on); if (on) shown++;
+      /* data-cat is pipe separated: a series tile sits in every category its parts do */
+      var okCat = cat === 'all' ||
+        ('|' + (c.getAttribute('data-cat') || '') + '|').indexOf('|' + cat + '|') !== -1;
+      var on;
+      if (c.hasAttribute('data-series')) {
+        /* a series tile stands in for its parts, but a search wants the parts themselves */
+        on = okCat && !q;
+      } else {
+        var okQ = !q || (c.getAttribute('data-text') || '').indexOf(q) !== -1;
+        /* the featured post lives in the hero; only surface its card while a filter or search is active */
+        var okFeat = !c.hasAttribute('data-featured') || cat !== 'all' || !!q;
+        /* a post inside a series hides behind its tile until someone searches */
+        var okSeries = !c.hasAttribute('data-inseries') || !!q;
+        on = okCat && okQ && okFeat && okSeries;
+      }
+      c.classList.toggle('hidden', !on); if (on) shown++;
     });
     chips.forEach(function (ch) { ch.classList.toggle('on', ch.getAttribute('data-cat') === cat); });
     if (empty) empty.classList.toggle('show', shown === 0);
@@ -891,6 +941,12 @@ html.qam-fs .rig{display:none}
       var h = cat === 'all' ? '' : '#cat=' + encodeURIComponent(cat);
       if (history.replaceState) history.replaceState(null, '', location.pathname + h); else location.hash = h;
       apply();
+      /* the tab takes you to the posts, but only when they are not already in view */
+      var r = grid.getBoundingClientRect();
+      if (r.top > window.innerHeight * 0.4) {
+        var soft = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: window.scrollY + r.top - 92, behavior: soft ? 'smooth' : 'auto' });
+      }
     });
   });
   if (toggle && box && input) {
