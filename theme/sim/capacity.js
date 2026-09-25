@@ -59,7 +59,7 @@
     var opt = { bw: st.bw, retry: st.retry, agg: st.agg },
         groups = (st.groups || []).filter(function (g) { return g.n > 0; }).map(function (g) { return CAP.group(g, opt); }),
         client = groups.reduce(function (t, g) { return t + g.airtime; }, 0),
-        beacons = NFN.mac.beaconOverhead(st.ssids, st.beaconMs, "ax"),
+        beacons = NFN.mac.beaconOverhead(st.ssids, st.beaconMs, "a"),   /* beacons go out at 6 Mb/s whatever the clients can do */
         total = client + beacons,
         target = NFN.clamp(st.target || 0.5, 0.1, 0.95),
         perRadio = st.maxPerRadio || 60,
@@ -124,6 +124,7 @@
         "a radio hears " + Math.round(overlap * 100) + "% of what its co-channel neighbours transmit",
         "downlink and uplink counted together",
         "at most " + perRadio + " clients per radio",
+        "beacons at 6 Mb/s, 250 bytes; every data frame wears 54 bytes of 802.11, LLC/SNAP and CCMP",
         "no MU-MIMO or OFDMA gain, and no interference from anybody else's network"
       ]
     };
