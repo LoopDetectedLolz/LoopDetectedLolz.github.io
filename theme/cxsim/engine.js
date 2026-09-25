@@ -925,9 +925,9 @@
   function lastHeader(arr, i) { while (i >= 0 && /^    /.test(arr[i])) i--; return arr[i] || ""; }
   cmd("*", "show startup-config", function () { return this.startup; });
   cmd("*", "show version", function () {
-    return ["-----------------------------------------------------------------------------", "ArubaOS-CX", "(c) Copyright 2017-2026 Hewlett Packard Enterprise Development LP", "-----------------------------------------------------------------------------",
-      "Version      : " + this.version, "Build Date   : 2026-06-02 10:14:22 PDT", "Build ID     : ArubaOS-CX:" + this.version + ":modelled", "Build SHA    : 0000000000000000000000000000000000000000",
-      "Hot Patches  : ", "Active Image : primary", "", "Service OS Version : FL.01.15.0004", "BIOS Version       : FL.01.0002", "", "(This is the CX Sandbox: a modelled switch, not the real one.)"].join("\n");
+    return ["-----------------------------------------------------------------------------", "CX Sandbox (a model of an AOS-CX switch, not HPE software)", "-----------------------------------------------------------------------------",
+      "Version      : " + this.version + " (modelled)", "Build ID     : cx-sandbox:" + this.version, "Active Image : primary", "",
+      "This is the Network Field Notes CX Sandbox. It imitates the shape of the CX CLI for", "teaching; the software, the wording and the bugs are its own. Not affiliated with or", "endorsed by Hewlett Packard Enterprise."].join("\n");
   });
   cmd("*", "show system", function () {
     var up = Math.floor((this.now() - this.boot) / 1000);
