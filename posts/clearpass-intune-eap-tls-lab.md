@@ -39,7 +39,7 @@ The fix is two moves. Make the authentication real, and key the authorization to
 
 ## Intune's first job: hand out a certificate
 
-Intune doesn't have a CA either. What it has is SCEP, which is a way of telling a device to go get a certificate from your CA. With an on-premises Microsoft CA that means NDES plus the Certificate Connector for Intune, on a domain-joined box that is not the CA and not a domain controller. The connector is unsupported on the issuing CA, and putting your CA one hop from the internet is a bad idea on its own merits anyway.
+Intune doesn't have to be a CA either. Microsoft will sell you one inside it now, Cloud PKI, which this post does not cover. What the rest of us have is SCEP, which is a way of telling a device to go get a certificate from your CA. With an on-premises Microsoft CA that means NDES plus the Certificate Connector for Intune, on a domain-joined box that is not the CA and not a domain controller. The connector is unsupported on the issuing CA, and putting your CA one hop from the internet is a bad idea on its own merits anyway.
 
 Two permissions bite people here and neither one tells you when it's missing. The NDES service account needs Read and Enroll on the template. And the NDES machine or service account needs **Issue and Manage Certificates** on the CA itself, or Intune will happily tell you it revoked a certificate and the CA will never hear about it. Ask me how I know.
 
@@ -65,7 +65,7 @@ Last, the Wi-Fi or wired profile that tells the device to actually use the certi
 
 Import the root and the issuing CA into the trust list and mark them for EAP. Don't import the client certificate. I've watched somebody do it and then wonder why one laptop worked.
 
-ClearPass ships an authentication method called `[EAP TLS with OCSP Enabled]`. Copy it, name the copy, and work on that. Two settings on it decide whether this is real.
+ClearPass ships an authentication method called `[EAP TLS With OCSP Enabled]`. Copy it, name the copy, and work on that. Two settings on it decide whether this is real.
 
 **Certificate Comparison.** The options are do not compare, compare CN, compare SAN, compare CN or SAN, and compare binary (which matches the presented certificate against one stored on the account in AD or LDAP). With no comparison, the identity in the certificate is never checked against anything, so any certificate from a CA you trust satisfies the EAP method. Authorization Required is on by default, so the identity still has to resolve in a source; what you lose is the check that this certificate belongs to that identity. If your issuing CA also signs web servers, VPN, or anything else, all of those are now valid Wi-Fi credentials. Pick a comparison, and pick the same field you're going to key the Intune lookup on.
 

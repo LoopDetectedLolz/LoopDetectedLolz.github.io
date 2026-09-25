@@ -16,7 +16,7 @@ SITE = {
     "name": "Network Field Notes",
     "tagline": "Campus networks, wireless, NAC, and the forum threads that keep asking the same question.",
     "author": "Dustin Burns",
-    "role": "Lead Mobility Engineer · HPE Aruba Networking and HPE Juniper",
+    "role": "Lead Mobility Engineer · HPE Aruba Networking and HPE Juniper Networking",
     "airheads": "https://airheads.hpe.com/profile?UserKey=94e7a1d9-a7e0-4e9f-abbc-faa06c06b759",
     "linkedin": "https://www.linkedin.com/in/dustinburns3020/",
     "email": "dustin.burns@networkfieldnotes.com",   # socials page only; keep out of feeds and metadata

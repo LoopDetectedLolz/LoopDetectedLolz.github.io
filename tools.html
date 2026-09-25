@@ -734,7 +734,7 @@ html.qam-fs .rig{display:none}
             ["64-QAM 2/3", 6, 2 / 3], ["64-QAM 3/4", 6, 3 / 4]];
 
   PHY.STD = {
-    a:  { name: "802.11a/g", wifi: "Wi-Fi 3", tsym: 4,    nsd: { 20: 48 },
+    a:  { name: "802.11a/g", wifi: "", tsym: 4,    nsd: { 20: 48 },
           widths: [20], mcs: PHY.AG, ssMax: 1, pre: function () { return 20; } },
     n:  { name: "802.11n",   wifi: "Wi-Fi 4", tsym: 4,    nsd: { 20: 52, 40: 108 },
           widths: [20, 40], mcs: PHY.MCS.slice(0, 8), ssMax: 4, pre: function (s) { return 32 + 4 * s; } },
@@ -852,8 +852,10 @@ html.qam-fs .rig{display:none}
     },
     "5": {
       label: "5 GHz", def: 80, widths: [20, 40, 80, 160],
-      /* UNII-1 (4), UNII-3 (5), UNII-4 (3) need no radar detection */
-      clear: { 20: 12, 40: 5, 80: 2, 160: 0 },
+      /* UNII-1 (4), UNII-3 (5), UNII-4 (3) need no radar detection; UNII-4 is
+         indoor only in the US, so these counts are the indoor set and the outdoor
+         planner takes its numbers from the outdoor list below */
+      clear: { 20: 12, 40: 6, 80: 3, 160: 1 },
       /* UNII-2A (4) and UNII-2C (12) do */
       dfs: { 20: 16, 40: 8, 80: 4, 160: 2 },
       note: "most of the width is behind DFS"
@@ -872,11 +874,20 @@ html.qam-fs .rig{display:none}
   CH.LISTS = {
     us: {
       "2.4": { 20: { clear: [1, 6, 11], dfs: [] }, 40: { clear: [3], dfs: [] } },
+      /* indoors. 169 to 177 (and 167, 175, 171 and the 160 MHz channel 163 that
+         spans them) are U-NII-4, from the 2020 FCC order, and 47 CFR 15.407
+         allows them for indoor access points only */
       "5": {
         20:  { clear: [36, 40, 44, 48, 149, 153, 157, 161, 165, 169, 173, 177], dfs: range(52, 64, 4).concat(range(100, 144, 4)) },
-        /* 167, 175 and 171 are U-NII-4's share at 40 and 80, the same 2020 FCC order that gave 169 to 177 */
         40:  { clear: [38, 46, 151, 159, 167, 175], dfs: [54, 62, 102, 110, 118, 126, 134, 142] },
         80:  { clear: [42, 155, 171], dfs: [58, 106, 122, 138] },
+        160: { clear: [163], dfs: [50, 114] }
+      },
+      /* outdoors, for masts: no U-NII-4 at all */
+      "5out": {
+        20:  { clear: [36, 40, 44, 48, 149, 153, 157, 161, 165], dfs: range(52, 64, 4).concat(range(100, 144, 4)) },
+        40:  { clear: [38, 46, 151, 159], dfs: [54, 62, 102, 110, 118, 126, 134, 142] },
+        80:  { clear: [42, 155], dfs: [58, 106, 122, 138] },
         160: { clear: [], dfs: [50, 114] }
       },
       "6": {
@@ -894,6 +905,15 @@ html.qam-fs .rig{display:none}
         80:  { clear: [42], dfs: [58, 106, 122] },
         160: { clear: [], dfs: [50, 114] }
       },
+      /* outdoors under Decision (EU) 2022/179: 5150 to 5350 MHz is indoor or
+         limited outdoor with no fixed antennas, so a mast gets only 5470 to 5725
+         and every channel in it carries radar detection */
+      "5out": {
+        20:  { clear: [], dfs: range(100, 140, 4) },
+        40:  { clear: [], dfs: [102, 110, 118, 126, 134] },
+        80:  { clear: [], dfs: [106, 122] },
+        160: { clear: [], dfs: [114] }
+      },
       "6": {
         20: { clear: range(1, 93, 4), dfs: [] }, 40: { clear: range(3, 91, 8), dfs: [] },
         80: { clear: range(7, 87, 16), dfs: [] }, 160: { clear: range(15, 79, 32), dfs: [] }, 320: { clear: [31], dfs: [] }
@@ -904,19 +924,19 @@ html.qam-fs .rig{display:none}
 
   CH.band = function (b) { return CH.BANDS[b] || CH.BANDS["5"]; };
 
-  CH.list = function (band, bw, useDfs, domain) {
-    var L = (CH.LISTS[domain] || CH.LISTS.us)[band] || (CH.LISTS[domain] || CH.LISTS.us)["5"],
-        w = L[bw] ? bw : Object.keys(L)[0], e = L[w];
+  /* outdoor is true for the mesh planner: masts get the outdoor 5 GHz table */
+  CH.list = function (band, bw, useDfs, domain, outdoor) {
+    var D = CH.LISTS[domain] || CH.LISTS.us, key = outdoor && band === "5" && D["5out"] ? "5out" : band,
+        L = D[key] || D["5"], w = L[bw] ? bw : Object.keys(L)[0], e = L[w];
     return e.clear.concat(useDfs ? e.dfs : []);
   };
 
   /* how many channels a plan actually has to play with */
-  CH.count = function (band, bw, useDfs, domain) {
-    if (domain && domain !== "us") return CH.list(band, bw, useDfs, domain).length;
-    var b = CH.band(band), w = b.widths.indexOf(bw) >= 0 ? bw : b.widths[0];
-    /* can be zero, and that is a real answer: there is no 160 MHz channel in
-       5 GHz outside DFS, so a site that turns DFS off has none at all */
-    return (b.clear[w] || 0) + (useDfs ? (b.dfs[w] || 0) : 0);
+  /* counted from the same list a plan would name, so the two never disagree.
+     Can be zero, and that is a real answer: an outdoor US site with DFS off has
+     no 160 MHz channel at all */
+  CH.count = function (band, bw, useDfs, domain, outdoor) {
+    return CH.list(band, bw, useDfs, domain, outdoor).length;
   };
 
   CH.widths = function (band) { return CH.band(band).widths; };
@@ -1370,12 +1390,17 @@ html.qam-fs .rig{display:none}
      for 6 GHz standard power under AFC; ETSI 20 dBm at 2.4 GHz, 30 dBm EIRP in
      5470 to 5725 MHz, and 14 dBm very low power outdoors at 6 GHz. Point to
      point links get more in both domains and are not modelled. Verify. */
+  /* 5 GHz is not one number: FCC 15.407 gives UNII-1 and UNII-3 access points
+     36 dBm EIRP but holds UNII-2A and UNII-2C (the DFS channels) to 30; ETSI
+     gives 5150 to 5350 MHz 23 dBm and 5470 to 5725 MHz 30 dBm */
   M.DOMAINS = {
-    us: { label: "United States, FCC", eirp: { "2.4": 36, "5": 36, "6": 36 }, note: "36 dBm EIRP; 6 GHz outdoors needs AFC" },
-    eu: { label: "Europe, ETSI",       eirp: { "2.4": 20, "5": 30, "6": 14 }, note: "30 dBm EIRP in 5470 to 5725 MHz; 6 GHz outdoors is very low power" }
+    us: { label: "United States, FCC", eirp: { "2.4": 36, "5": 36, "5dfs": 30, "6": 36 }, note: "36 dBm EIRP (30 on DFS channels); 6 GHz outdoors needs AFC" },
+    eu: { label: "Europe, ETSI",       eirp: { "2.4": 20, "5": 23, "5dfs": 30, "6": 14 }, note: "23 dBm EIRP in 5150 to 5350 MHz, 30 dBm in 5470 to 5725 MHz; 6 GHz outdoors is very low power" }
   };
   M.domain = function (id) { return M.DOMAINS[id] || M.DOMAINS.us; };
   M.bandOf = function (fGHz) { return fGHz < 3 ? "2.4" : fGHz < 5.9 ? "5" : "6"; };
+  /* the EIRP sub-band a frequency falls in: 5.25 to 5.725 GHz is the DFS block in both domains */
+  M.eirpBandOf = function (fGHz) { var b = M.bandOf(fGHz); return b === "5" && fGHz >= 5.25 && fGHz < 5.725 ? "5dfs" : b; };
 
   /* defaults for an outdoor AP: a 5 GHz two stream backhaul at 40 MHz, an omni
      with a few dBi, a mast a few metres up. Change them in the tool. */
@@ -1492,7 +1517,7 @@ html.qam-fs .rig{display:none}
     var want = ap.tx === undefined ? C.tx : ap.tx;
     if (ap.txCap !== undefined && ap.txCap !== null) want = Math.min(want, ap.txCap);
     if (gainDbi === undefined) return want;
-    var lim = M.domain(C.domain).eirp[M.bandOf(fGHz === undefined ? M.apBand(ap, C) : fGHz)];
+    var lim = M.domain(C.domain).eirp[M.eirpBandOf(fGHz === undefined ? M.apBand(ap, C) : fGHz)];
     return lim === undefined ? want : Math.min(want, lim - gainDbi);
   };
   M.eirpClamped = function (ap, C, gainDbi, fGHz) { return M.apTx(ap, C, gainDbi, fGHz) < (ap.tx === undefined ? C.tx : ap.tx) - 1e-9; };
@@ -1632,7 +1657,7 @@ html.qam-fs .rig{display:none}
     return 20 * Math.log10(Math.max(1e-3, Math.hypot(re, im)));
   };
 
-  /* foliage, ITU-R P.833 style: 0.2 f^0.3 d^0.6 dB with f in MHz and d metres
+  /* foliage, the early ITU (CCIR Report 236-2) model: 0.2 f^0.3 d^0.6 dB with f in MHz and d metres
      through the canopy, the short path form. 12 m of trees at 5 GHz is 12 dB. */
   M.foliage = function (dM, fGHz) { return dM <= 0 ? 0 : 0.2 * Math.pow(fGHz * 1000, 0.3) * Math.pow(dM, 0.6); };
 
@@ -2004,7 +2029,7 @@ html.qam-fs .rig{display:none}
      Portals take distinct channels round robin from what the domain allows,
      unless one is pinned. */
   M.assignChannels = function (T, aps, C, st) {
-    var list = NFN.channels.list(M.bandOf(C.fGHz), C.bw, !!st.dfs, C.domain), used = {}, chan = [], i, next = 0;
+    var list = NFN.channels.list(M.bandOf(C.fGHz), C.bw, !!st.dfs, C.domain, true), used = {}, chan = [], i, next = 0;
     for (i = 0; i < aps.length; i++) chan.push(null);
     for (i = 0; i < aps.length; i++) if (T.depth[i] === 0) {
       var c = aps[i].ch !== undefined && aps[i].ch !== null ? aps[i].ch : null;
@@ -2178,7 +2203,7 @@ html.qam-fs .rig{display:none}
         "a link counts once its SNR sits " + C.margin + " dB above the lowest rate, " + (C.fade ? C.fade + " dB of fade margin held back on every link, " : "no fade margin held back, ") + "and the weaker transmitter sets its rate",
         (measured ? measured + " link" + (measured === 1 ? "" : "s") + " measured on site; the gap teaches a correction to the other links at those APs" : "no measured links; every budget is the model"),
         (C.tworay ? "ground reflection at " + C.rho + " of the direct ray in every budget, so mast height moves the fade and the tree" : "no ground reflection in the budgets; switch it on to see how far a metre of mast moves each link"),
-        "rain is under 0.1 dB/km at 5 GHz and is not modelled; a tree line costs ITU-R P.833 foliage loss through the canopy or a knife edge over it, whichever is kinder",
+        "rain is under 0.1 dB/km at 5 GHz and is not modelled; a tree line costs the early ITU (CCIR 236-2) foliage loss through the canopy or a knife edge over it, whichever is kinder",
         T.profile.label + ": " + T.profile.note + (T.profile.maxHops === null ? ", ceiling " + T.maxHops + " hops" : "") + (T.profile.thr ? ", links under " + T.profile.thr + " dB SNR taken last" : "") + " (shape from the vendor's documents, numbers a sketch, 2026-09; verify against your release)",
         "a point holds one parent at a time; a second portal is failover and a split of the points, not a bonded link",
         (function () {
@@ -2352,7 +2377,7 @@ html.qam-fs .rig{display:none}
      $GNRMC: latitude, longitude, altitude), `show ap gps ellipse` the error
      ellipse (major and minor axis in metres, angle in degrees) and a `hop` and
      `distance` for a position inherited over a ranged neighbour, `show ap range
-     scanning-results` the FTM table (peer BSSID, average RTT in picoseconds,
+     scanning-results` the FTM table (peer BSSID, average RTT in nanoseconds,
      RSSI, standard deviation in ps, channel, valid RTTs). These parse the pasted
      text; nothing here talks to an AP. */
   M.gpsParse = function (text) {
@@ -2371,17 +2396,19 @@ html.qam-fs .rig{display:none}
     return isFinite(out.lat) && isFinite(out.lon) ? out : null;
   };
 
-  /* an FTM round trip in picoseconds is a distance: light covers 0.29979 mm per
-     picosecond and the trip is there and back */
-  M.ftmMetres = function (rttPs) { return rttPs * 299792458e-12 / 2; };
+  /* an FTM round trip is a distance: HPE prints the average RTT in nanoseconds
+     (0.15 m of range per nanosecond, there and back) and the standard deviation
+     in units of 100 ps. Open Locate, "AP testing and verification". */
+  M.ftmMetres = function (rttNs) { return rttNs * 299792458e-9 / 2; };
+  M.ftmSdMetres = function (sd100ps) { return sd100ps * 299792458e-10 / 2; };
   M.ftmParse = function (text) {
     var rows = [];
     String(text || "").split("\n").forEach(function (line) {
       var m = /^\s*([0-9a-f]{2}(?::[0-9a-f]{2}){5})\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(\S+)\s+(\d+)\s+(\d+)/i.exec(line);
       if (!m) return;
       var rtt = +m[2], sd = +m[4];
-      rows.push({ bssid: m[1].toLowerCase(), rttPs: rtt, rssi: +m[3], sdPs: sd, channel: m[5], validRtts: +m[6], ftms: +m[7],
-                  metres: M.ftmMetres(rtt), plusMinus: M.ftmMetres(sd) });
+      rows.push({ bssid: m[1].toLowerCase(), rttNs: rtt, rssi: +m[3], sd100ps: sd, channel: m[5], validRtts: +m[6], ftms: +m[7],
+                  metres: M.ftmMetres(rtt), plusMinus: M.ftmSdMetres(sd) });
     });
     return rows;
   };
@@ -5278,7 +5305,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <p class="t-hint" id="m-scalenote"></p>
       </details>
       <details class="m-more"><summary>From the APs themselves</summary>
-        <p class="t-hint">An AOS 10 AP with a GNSS receiver knows where it is (<code>show ap gps ellipse</code> on its console; read on an AP-635 on 10.8.1.0). Paste each AP's output under its own "Measured on site" fold, then place the masts from those fixes. FTM: <code>show ap range scanning-results</code> lists round trips to the neighbours the AP has ranged, in picoseconds; paste one AP's table here and pick which AP it came from, and each row becomes a measured distance against the planned one. Peers are matched to APs by radio MAC from a Verify import; unmatched BSSIDs are listed as they are.</p>
+        <p class="t-hint">An AOS 10 AP with a GNSS receiver knows where it is (<code>show ap gps ellipse</code> on its console; read on an AP-635 on 10.8.1.0). Paste each AP's output under its own "Measured on site" fold, then place the masts from those fixes. FTM: <code>show ap range scanning-results</code> lists round trips to the neighbours the AP has ranged, in nanoseconds; paste one AP's table here and pick which AP it came from, and each row becomes a measured distance against the planned one. Peers are matched to APs by radio MAC from a Verify import; unmatched BSSIDs are listed as they are.</p>
         <div class="t-acts"><button class="t-btn" id="m-geoplace" type="button">Place masts from GPS</button><span class="t-hint" id="m-geonote" style="margin:0"></span></div>
         <div class="t-row" style="margin-top:10px"><label for="m-ftmfrom">Ranged from</label><select id="m-ftmfrom"></select></div>
         <textarea class="t-out" id="m-ftm" rows="3" placeholder="Peer-bssid  Average RTT (ps)  Average rssi (dbm)  Average std (ps)  Channel  …" aria-label="Paste show ap range scanning-results" style="min-height:64px;font-size:11px"></textarea>

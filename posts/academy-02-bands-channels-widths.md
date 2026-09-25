@@ -23,7 +23,7 @@ In the US there are three bands worth your time, and they are wildly different s
 
 The catch is DFS. Everything from 52 to 144 is shared with radar, mostly weather and military, and the rules are not negotiable: your AP has to listen before it transmits there, and if it hears a radar pattern it must leave that channel and stay off it for thirty minutes. That is real capacity, and you should use it, but it is borrowed rather than owned.
 
-**6 GHz** is the new room, and it is enormous: 5.925 to 7.125 GHz, fifty nine 20 MHz channels, and no DFS anywhere in it. Seven of those channels are 160 MHz wide, which is six more than 5 GHz can offer. Outdoors at standard power you need AFC to tell you what you may use, and only Wi-Fi 6E and Wi-Fi 7 clients can see any of it at all.
+**6 GHz** is the new room, and it is enormous: 5.925 to 7.125 GHz, fifty nine 20 MHz channels, and no DFS anywhere in it. Seven of those channels are 160 MHz wide, five more than 5 GHz can offer, and none of them need DFS. Outdoors at standard power you need AFC to tell you what you may use, and only Wi-Fi 6E and Wi-Fi 7 clients can see any of it at all.
 
 ## The number that matters
 
@@ -43,7 +43,7 @@ Drop the access points onto legal channels. The rules are the real ones: 40 MHz 
 
 Width is a radio setting, not an SSID setting, and that trips people up on both platforms.
 
-In **Aruba Central**, width lives in the RF profile alongside the channel list and transmit power, and nowhere in the WLAN wizard. The important part is that the profile is an object you assign rather than a switch you flip: you choose which APs get which profile, so the group is a convenient default and not the only unit, and a single AP can be handed its own. An override on one AP beats what the group says. That is how you fix one bad room, and it is also how somebody's fix from eight months ago is still quietly in force on an AP nobody has looked at since.
+In **Aruba Central**, width lives in the radio profile, inside the Allowed Channels pop-up, alongside the channel list and transmit power, and nowhere in the WLAN wizard. The important part is that the profile is an object you assign rather than a switch you flip: you choose which APs get which profile, so the group is a convenient default and not the only unit, and a single AP can be handed its own. An override on one AP beats what the group says. That is how you fix one bad room, and it is also how somebody's fix from eight months ago is still quietly in force on an AP nobody has looked at since.
 
 To see what an AP actually ended up on, rather than what you asked for, `show ap bss-table` gives you the BSSID, the channel and the width in use. That column is where you find out your 80 MHz plan quietly became 40 because a neighbour was already sitting there.
 
@@ -74,7 +74,7 @@ Two things in that table are worth more than the numbers themselves.
 
 The first is that throughput never keeps up with the PHY rate, and the gap widens as the rate climbs: 82 percent of the PHY rate at 20 MHz close in, 70 percent at 80 MHz. Preamble, interframe spaces, backoff and the acknowledgement do not get smaller when the data gets faster, so the faster you go, the larger a share of your airtime is spent not carrying data. That is lesson 5 arriving early.
 
-The second is the one I had wrong before I ran the numbers. **Wider is still faster at the edge.** At -72 dBm the 80 MHz link sits three MCS steps lower than the 20 MHz link and still moves twice the data, because four times the subcarriers beats a few steps of modulation. The cost of width is not that it is slower out there. The cost is where the link gives up entirely: in this model a 20 MHz link holds on to about -91 dBm and an 80 MHz link quits around -85, six decibels earlier, which by the rule from lesson one is half the distance. Width does not make the far edge slow, it moves the far edge closer.
+The second is the one I had wrong before I ran the numbers. **Wider is still faster at the edge.** At -72 dBm the 80 MHz link sits two MCS steps lower than the 20 MHz link and still moves twice the data, because four times the subcarriers beats a few steps of modulation. The cost of width is not that it is slower out there. The cost is where the link gives up entirely: in this model a 20 MHz link holds on to about -91 dBm and an 80 MHz link quits around -85, six decibels earlier, which by the rule from lesson one is half the distance. Width does not make the far edge slow, it moves the far edge closer.
 
 And none of that counts the cost the game shows you, which is that you have fewer cells to place. In a real room the noise floor is not thermal either, it is other people, and a wider channel scoops up more of them.
 

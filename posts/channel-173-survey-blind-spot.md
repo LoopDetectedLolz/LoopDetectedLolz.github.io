@@ -21,7 +21,7 @@ The AP had two 5 GHz radios. The second one was on channel 173, and my survey ha
 
 ## What U-NII-4 actually is
 
-The FCC opened 5.850 to 5.895 GHz for unlicensed use in 2020, which added channels 169, 173 and 177 at the top of the 5 GHz band. It's a small slice, three channels, and it's real spectrum that modern APs will use if you let them.
+The FCC opened 5.850 to 5.895 GHz for unlicensed use in 2020, which added channels 169, 173 and 177 at the top of the 5 GHz band. It's a small slice, three channels, indoor APs only in the US with clients under an indoor AP's control, and it's real spectrum that modern APs will use if you let them.
 
 The important part for us: it's on by default in some auto-channel pools. Nobody sat down and decided to put a radio on 173. The AP picked it, because it was allowed to, and because up there it's quiet.
 

@@ -51,7 +51,7 @@ Which means the two settings everybody reaches for are the wrong ones.
 
 **Drop Broadcast and Multicast** is `broadcast-filter all` in the virtual-ap profile, not the SSID profile, and the documentation specifically tells you not to use it on bridge mode VAPs, because the filtering happens on a box that isn't in the path. Same story for Convert Broadcast ARP Requests to Unicast.
 
-**DMO** is the other reflex, and here I'll correct something I got wrong in an earlier version of this. On AOS-8 it needs PEFNG, so people assume the license is the blocker and go get a quote. I used to say the docs were silent on whether DMO works in bridge mode. They aren't. The AOS-8 user guide's mode-support table, under Behavior and Defaults, lists DMO by name as supported in bridge mode, right alongside AirGroup, broadcast filter and rate limiting. So DMO is on the table in bridge mode if you have PEF. Whether it helps with this specific mDNS flood is a different question, because it converts multicast to unicast per subscribed client rather than filtering, and mDNS has no proper group membership to speak of. If you already have PEF, test it. If you'd be buying it specifically for this, test it in a lab first.
+**DMO** is the other reflex, and here I'll correct something I got wrong in an earlier version of this. On AOS-8 it needs PEFNG, so people assume the license is the blocker and go get a quote. The license is not the blocker. The AOS-8 user guide's mode-support table, under Behavior and Defaults, is a table of features that are *not* supported in each forwarding mode, and the bridge mode row lists DMO by name, right alongside AirGroup, broadcast filter and rate limiting for broadcast and multicast. So DMO is off the table on a bridge mode VAP, PEF or no PEF. Even where it is available it would be the wrong tool for this flood, because it converts multicast to unicast per subscribed client rather than filtering, and mDNS has no proper group membership to speak of. If somebody is quoting you a PEF license to fix mDNS on bridge mode SSIDs, they have not read the table.
 
 ## What AOS-10 and Central change
 
@@ -69,7 +69,7 @@ This is the one that catches experienced people, so it's worth being precise abo
 
 mDNS is 224.0.0.251. LLMNR is 224.0.0.252. Both live in 224.0.0.0/24, the link-local control block, which switches flood by design and never constrain through snooping. That isn't a bug or a vendor gap, it's the entire point of that range. It also carries OSPF hellos on 224.0.0.5 and .6, VRRP on 224.0.0.18, HSRP, and IGMP itself on 224.0.0.1 and .2. A switch that suppressed 224.0.0.0/24 based on group membership would take your routing protocols down with it.
 
-IPv6 mDNS at ff02::fb is the same story for MLD snooping. SSDP and WS-Discovery at 239.255.255.250 are technically snoopable, but almost nothing joins the group properly, so in practice they flood too.
+IPv6 mDNS at ff02::fb is nearly the same story. RFC 4541 only exempts ff02::1 from MLD snooping, so ff02::fb is technically snoopable, but every mDNS host joins it, so the frames still reach almost every port. SSDP and WS-Discovery at 239.255.255.250 are technically snoopable, but almost nothing joins the group properly, so in practice they flood too.
 
 Turn IGMP snooping on anyway. It's the right thing for real application multicast. Just don't expect it to touch your top talkers.
 
@@ -162,7 +162,7 @@ For the wireless side, capture at the AP's own wired port, not on the controller
 ap packet-capture open-port <port>
 ap packet-capture wired-start ap-name <ap> <your-pc-ip> <port>
 show ap packet-capture status ap-name <ap>
-ap packet-capture stop ap-name <ap> <pcap-id>
+ap packet-capture wired-stop ap-name <ap> <your-pc-ip> <port>
 ```
 
 And the supporting show commands:

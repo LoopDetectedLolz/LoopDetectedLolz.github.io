@@ -16,8 +16,10 @@
     },
     "5": {
       label: "5 GHz", def: 80, widths: [20, 40, 80, 160],
-      /* UNII-1 (4), UNII-3 (5), UNII-4 (3) need no radar detection */
-      clear: { 20: 12, 40: 5, 80: 2, 160: 0 },
+      /* UNII-1 (4), UNII-3 (5), UNII-4 (3) need no radar detection; UNII-4 is
+         indoor only in the US, so these counts are the indoor set and the outdoor
+         planner takes its numbers from the outdoor list below */
+      clear: { 20: 12, 40: 6, 80: 3, 160: 1 },
       /* UNII-2A (4) and UNII-2C (12) do */
       dfs: { 20: 16, 40: 8, 80: 4, 160: 2 },
       note: "most of the width is behind DFS"
@@ -36,11 +38,20 @@
   CH.LISTS = {
     us: {
       "2.4": { 20: { clear: [1, 6, 11], dfs: [] }, 40: { clear: [3], dfs: [] } },
+      /* indoors. 169 to 177 (and 167, 175, 171 and the 160 MHz channel 163 that
+         spans them) are U-NII-4, from the 2020 FCC order, and 47 CFR 15.407
+         allows them for indoor access points only */
       "5": {
         20:  { clear: [36, 40, 44, 48, 149, 153, 157, 161, 165, 169, 173, 177], dfs: range(52, 64, 4).concat(range(100, 144, 4)) },
-        /* 167, 175 and 171 are U-NII-4's share at 40 and 80, the same 2020 FCC order that gave 169 to 177 */
         40:  { clear: [38, 46, 151, 159, 167, 175], dfs: [54, 62, 102, 110, 118, 126, 134, 142] },
         80:  { clear: [42, 155, 171], dfs: [58, 106, 122, 138] },
+        160: { clear: [163], dfs: [50, 114] }
+      },
+      /* outdoors, for masts: no U-NII-4 at all */
+      "5out": {
+        20:  { clear: [36, 40, 44, 48, 149, 153, 157, 161, 165], dfs: range(52, 64, 4).concat(range(100, 144, 4)) },
+        40:  { clear: [38, 46, 151, 159], dfs: [54, 62, 102, 110, 118, 126, 134, 142] },
+        80:  { clear: [42, 155], dfs: [58, 106, 122, 138] },
         160: { clear: [], dfs: [50, 114] }
       },
       "6": {
@@ -58,6 +69,15 @@
         80:  { clear: [42], dfs: [58, 106, 122] },
         160: { clear: [], dfs: [50, 114] }
       },
+      /* outdoors under Decision (EU) 2022/179: 5150 to 5350 MHz is indoor or
+         limited outdoor with no fixed antennas, so a mast gets only 5470 to 5725
+         and every channel in it carries radar detection */
+      "5out": {
+        20:  { clear: [], dfs: range(100, 140, 4) },
+        40:  { clear: [], dfs: [102, 110, 118, 126, 134] },
+        80:  { clear: [], dfs: [106, 122] },
+        160: { clear: [], dfs: [114] }
+      },
       "6": {
         20: { clear: range(1, 93, 4), dfs: [] }, 40: { clear: range(3, 91, 8), dfs: [] },
         80: { clear: range(7, 87, 16), dfs: [] }, 160: { clear: range(15, 79, 32), dfs: [] }, 320: { clear: [31], dfs: [] }
@@ -68,19 +88,19 @@
 
   CH.band = function (b) { return CH.BANDS[b] || CH.BANDS["5"]; };
 
-  CH.list = function (band, bw, useDfs, domain) {
-    var L = (CH.LISTS[domain] || CH.LISTS.us)[band] || (CH.LISTS[domain] || CH.LISTS.us)["5"],
-        w = L[bw] ? bw : Object.keys(L)[0], e = L[w];
+  /* outdoor is true for the mesh planner: masts get the outdoor 5 GHz table */
+  CH.list = function (band, bw, useDfs, domain, outdoor) {
+    var D = CH.LISTS[domain] || CH.LISTS.us, key = outdoor && band === "5" && D["5out"] ? "5out" : band,
+        L = D[key] || D["5"], w = L[bw] ? bw : Object.keys(L)[0], e = L[w];
     return e.clear.concat(useDfs ? e.dfs : []);
   };
 
   /* how many channels a plan actually has to play with */
-  CH.count = function (band, bw, useDfs, domain) {
-    if (domain && domain !== "us") return CH.list(band, bw, useDfs, domain).length;
-    var b = CH.band(band), w = b.widths.indexOf(bw) >= 0 ? bw : b.widths[0];
-    /* can be zero, and that is a real answer: there is no 160 MHz channel in
-       5 GHz outside DFS, so a site that turns DFS off has none at all */
-    return (b.clear[w] || 0) + (useDfs ? (b.dfs[w] || 0) : 0);
+  /* counted from the same list a plan would name, so the two never disagree.
+     Can be zero, and that is a real answer: an outdoor US site with DFS off has
+     no 160 MHz channel at all */
+  CH.count = function (band, bw, useDfs, domain, outdoor) {
+    return CH.list(band, bw, useDfs, domain, outdoor).length;
   };
 
   CH.widths = function (band) { return CH.band(band).widths; };

@@ -97,8 +97,11 @@ n++;
 
 /* ── channels and reuse ───────────────────────────────────────────────── */
 eq("2.4 GHz has three channels at 20 MHz", NFN.channels.count("2.4", 20, true), 3);
-eq("5 GHz at 80 MHz without DFS", NFN.channels.count("5", 80, false), 2);
-eq("5 GHz at 80 MHz with DFS", NFN.channels.count("5", 80, true), 6);
+eq("5 GHz at 80 MHz without DFS, indoors, counts UNII-4", NFN.channels.count("5", 80, false), 3);
+eq("5 GHz at 80 MHz with DFS", NFN.channels.count("5", 80, true), 7);
+eq("outdoors UNII-4 is off the table", NFN.channels.count("5", 80, false, "us", true), 2);
+eq("and ETSI masts get nothing without DFS", NFN.channels.count("5", 80, false, "eu", true), 0);
+eq("the count is the length of the list it names", NFN.channels.count("5", 40, true, "us"), NFN.channels.list("5", 40, true, "us").length);
 eq("6 GHz at 80 MHz", NFN.channels.count("6", 80, false), 14);
 eq("nine radios on three channels is three deep", NFN.channels.reuse(9, 3), 3);
 near("one neighbour at half volume adds half a load", NFN.channels.occupancy(0.2, 2, 1, 0.5), 0.3, 1e-9);
@@ -138,12 +141,13 @@ var withDfs = NFN.capacity.plan({ band: "5", bw: 80, dfs: true, retry: 0.1, ssid
 eq("without DFS this does not fit on 80 MHz", noDfs.fits, false);
 eq("with DFS it does", withDfs.fits, true);
 
-/* there is no 160 MHz channel outside DFS, and saying so beats pretending there is one */
-eq("no non-DFS 160 MHz channel exists", NFN.channels.count("5", 160, false), 0);
+/* indoors there is exactly one non-DFS 160 MHz channel (163, across UNII-3 and UNII-4); outdoors there is none, and saying so beats pretending */
+eq("one non-DFS 160 MHz channel exists indoors", NFN.channels.count("5", 160, false), 1);
+eq("and none outdoors", NFN.channels.count("5", 160, false, "us", true), 0);
 var none = NFN.capacity.plan({ band: "5", bw: 160, dfs: false, retry: 0.1, ssids: 1, target: 0.5,
-  maxPerRadio: 60, overlap: 0.5, groups: [{ n: 20, dev: "ax2e", app: "web" }] });
-eq("so the plan refuses rather than inventing one", none.fits, false);
-eq("and blames the channels", none.binds, "channels");
+  maxPerRadio: 60, overlap: 0.5, groups: [{ n: 200, dev: "ax2e", app: "web" }] });
+eq("so an indoor plan gets that one channel", none.channels, 1);
+eq("and every radio in the plan reuses it", none.fits, true);
 
 /* ── aiming at a block of seats ────────────────────────────────────────── */
 var sec = NFN.venue.section(20, 30, 20, "arena");
@@ -241,10 +245,11 @@ var GS = NFN.mesh.gpsParse("$GNGGA  40.000000, -75.000000           208.7 M\n$GN
 near("show ap gps summary: the NMEA altitude", GS.alt, 208.7, 1e-9);
 eq("and the constellations in use", GS.constellations.join(","), "Galileo");
 eq("no fix in prose is null", NFN.mesh.gpsParse("GPS Firmware Initialized"), null);
-near("an FTM round trip of 6.67 ns is one metre", NFN.mesh.ftmMetres(6671), 1, 0.001);
-var FR = NFN.mesh.ftmParse("Peer-bssid  Average RTT (ps)  Average rssi (dbm)  Average std (ps)  Channel  Number of valid RTTs  Number of FTMs\naa:bb:cc:dd:ee:01   400000   -62   3000   149E   18   20   0\nTotal:1");
+near("an FTM round trip of 6.671 ns is one metre", NFN.mesh.ftmMetres(6.671), 1, 0.001);
+var FR = NFN.mesh.ftmParse("Peer-bssid  Average RTT  Average rssi (dbm)  Average std (100ps)  Channel  Number of valid RTTs  Number of FTMs\naa:bb:cc:dd:ee:01   400   -62   30   149E   18   20   0\nTotal:1");
 eq("show ap range scanning-results: one row parsed", FR.length, 1);
-near("and 400,000 ps is 60 m", FR[0].metres, 59.96, 0.01);
+near("and 400 ns is 60 m", FR[0].metres, 59.96, 0.01);
+near("with a spread of 30 hundred-picosecond units, 45 cm", FR[0].plusMinus, 0.45, 0.001);
 var GP = NFN.mesh.geoPlace([{ lat: 40, lon: -75, major: 6 }, { lat: 40.0009, lon: -75.0012 }, { lat: 39.9992, lon: -75.0015 }]);
 near("three fixes 100 m apart north to south make a field deep enough for them", GP.fd, 250, 20);
 eq("and every point lands inside it", GP.points.every(function (q) { return q.x >= 2 && q.x <= GP.fw - 2 && q.y >= 2 && q.y <= GP.fd - 2; }), true);
@@ -387,8 +392,10 @@ eq("the narrower end sets the width", LW.bw, 20);
 near("and 20 MHz buys 6 dB of SNR over 80", LW.snr - NFN.mesh.link(A0, B0, { tworay: false, bw: 80 }).snr, 6.02, 0.05);
 near("fade margin comes straight off the budget", NFN.mesh.link(A0, B0, { tworay: false }).prx - NFN.mesh.link(A0, B0, { tworay: false, fade: 6 }).prx, 6, 0.001);
 var LE = NFN.mesh.link(Object.assign({}, A0, { ant: "dish", tx: 30 }), Object.assign({}, B0, { ant: "dish", aim: 180, tx: 30 }), { tworay: false, domain: "eu" });
-eq("ETSI caps a dish at 30 dBm EIRP", LE.clamped, true);
-near("so 30 dBm into 18 dBi becomes 12 dBm", LE.tx, 12, 0.001);
+eq("ETSI caps a dish below 5350 MHz at 23 dBm EIRP", LE.clamped, true);
+near("so 30 dBm into 18 dBi becomes 5 dBm", LE.tx, 5, 0.001);
+near("and 30 dBm on a DFS channel becomes 12 dBm", NFN.mesh.link(Object.assign({}, A0, { ant: "dish", tx: 30, band: 5.5 }), Object.assign({}, B0, { ant: "dish", aim: 180, tx: 30, band: 5.5 }), { tworay: false, domain: "eu" }).tx, 12, 0.001);
+near("FCC holds a DFS channel to 30 dBm EIRP too", NFN.mesh.link(Object.assign({}, A0, { ant: "dish", tx: 30, band: 5.5 }), Object.assign({}, B0, { ant: "dish", aim: 180, tx: 30, band: 5.5 }), { tworay: false, domain: "us" }).tx, 12, 0.001);
 eq("FCC leaves 23 dBm into an omni alone", NFN.mesh.link(A0, B0, { tworay: false, domain: "us" }).clamped, false);
 near("foliage: 12 m of trees at 5 GHz is about 12 dB", NFN.mesh.foliage(12, 5.2), 0.2 * Math.pow(5200, 0.3) * Math.pow(12, 0.6), 0.001);
 var LT = NFN.mesh.link(A0, B0, { tworay: false }, [{ x: 100, y: 0, h: 9, r: 6, type: "tree" }]),

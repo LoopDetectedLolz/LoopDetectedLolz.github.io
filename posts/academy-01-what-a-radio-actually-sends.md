@@ -24,7 +24,7 @@ Amplitude is how strong the wave is, and that's the one we spend our lives measu
 
 We use decibels relative to one milliwatt, dBm. The definition is 10 times the log of the power in milliwatts, and you don't need to remember that. You need to remember three anchors and two rules.
 
-Anchors: 0 dBm is 1 mW. 20 dBm is 100 mW, roughly what an enterprise AP radio transmits. 30 dBm is 1 W. In the US that's the FCC ceiling at 2.4 GHz and in U-NII-3, while U-NII-2A and 2C cap you at 24 dBm, and 6 GHz indoor is 30 dBm EIRP rather than conducted. Treat 30 dBm as the outer wall, not a number you're entitled to.
+Anchors: 0 dBm is 1 mW. 20 dBm is 100 mW, roughly what an enterprise AP radio transmits. 30 dBm is 1 W. In the US that's the FCC ceiling for an AP at 2.4 GHz and in U-NII-1 and U-NII-3, while U-NII-2A and 2C cap you at 24 dBm. Indoor 6 GHz is a different kind of limit, 5 dBm per MHz of EIRP, so a 20 MHz channel tops out around 18 dBm EIRP and only a 320 MHz one gets near 30. Treat 30 dBm as the outer wall, not a number you're entitled to.
 
 Rule one: 3 dB doubles or halves the power. Rule two: 10 dB is ten times or a tenth. Everything else is those two combined. 23 dBm is 20 plus 3, so 200 mW. 13 dBm is 10 plus 3, so 20 mW. Going down, -70 dBm is seven tens below 1 mW, which is one ten-millionth of a milliwatt. That's a workable data signal, although most designs want -67 dBm or better once voice or density is involved, and it's why we don't write it in milliwatts.
 
@@ -36,7 +36,7 @@ One rule for free space that you'll use constantly: every time you double the di
 
 Every platform reports received signal strength for a connected client, and they mostly agree on the unit even when they disagree on the name.
 
-In Aruba Central, open the client from the Clients list and watch the labels. The client detail gives you Signal Quality as SNR in dB, Device Health as a percentage, and the actual dBm figure as RSSI in the connectivity detail. Three names, one power level. On the AP itself, `show ap debug client-table` lists every associated client, but its signal columns are `Last_ACK_SNR` and `Last_Rx_SNR`: SNR, dB above the noise floor, not dBm, and that's true on AOS 8, Instant and AOS 10 alike. On an AOS 8 controller the command also takes an `ap-name`. So don't be surprised when it's a small positive number, and if you want a dBm figure you're going back to Central for it. Same physics, different reference.
+In Aruba Central, open the client from the Clients list and watch the labels. The client detail gives you Signal Quality as SNR in dB, Device Health as a signal strength percentage, and the actual dBm figure as RSSI in the Roaming Experience table further down. Two of those are the received power in different clothes; SNR is that power measured against the noise floor. On the AP itself, `show ap debug client-table` lists every associated client, but its signal columns are `Last_ACK_SNR` and `Last_Rx_SNR`: SNR, dB above the noise floor, not dBm, and that's true on AOS 8, Instant and AOS 10 alike. On an AOS 8 controller the command also takes an `ap-name`. So don't be surprised when it's a small positive number, and if you want a dBm figure you're going back to Central for it. Same physics, different reference.
 
 In Mist, open the client from the Clients list and follow its Client Insights link. The status block gives you RSSI and SNR as current values; the charts of both over time need the Marvis for Wireless subscription. The graphed form is the useful one, because a single reading lies and a trend doesn't.
 
@@ -55,7 +55,7 @@ What you should see: each step drops by something close to 6 dB. Not exactly. Re
 
 <figure class="wide">
 <div class="pan"><img src="../media/academy-01-six-db.png" alt="Four link budget strips at 2, 4, 8 and 16 metres reading minus 27, minus 33, minus 39 and minus 45 dBm, each step 6 dB below the one above" width="1204" height="1176" loading="lazy"></div>
-<figcaption>The same link modelled in free space at your four distances: -27, -33, -39, -45 dBm, and 6.02 dB between each one. That is the whole rule. Your room will read lower than these and the steps will be bigger, which is next week's lesson and not a bad measurement.</figcaption>
+<figcaption>The same link modelled in free space at your four distances, for a 26 dBm EIRP radio on 5 GHz: -27, -33, -39, -45 dBm, and 6.02 dB between each one. A 20 dBm radio starts 6 dB lower and steps the same. That is the whole rule. Your room will read lower than these and the steps will be bigger, which is next week's lesson and not a bad measurement.</figcaption>
 </figure>
 
 <figure>

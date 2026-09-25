@@ -5,20 +5,20 @@ date: 2026-09-13
 tags: Wireless, Migration, AOS-10, Mesh
 hero: hero-mesh-strand.svg
 bot: nfn-bot-signal.svg
-summary: Conversion keeps the uplink parameters and throws away everything else, and Central wants a mesh provisioned over the wire the first time. Put those two sentences together before you convert anything on a pole.
+summary: HPE says the mesh profile survives conversion, and the same doc set says a mesh must be provisioned over the wire the first time. Nobody has reconciled those two sentences, and the one that is wrong is the one that costs you a lift. Plan for the wire.
 origin: A migrating-mesh-to-Central thread, and the sinking feeling that came with reading the plan
 series: Moving to AOS 10
 series_order: 3
 ---
 Somebody on Reddit was moving a mesh network to Central and laid out the plan. Convert the APs, let them come up in AOS 10, carry on. Reasonable plan, and it would have worked fine if every one of those APs had a cable in it.
 
-Two facts kill it, and neither of them is hiding. HPE's own migration page says that after an AP converts, Central cleans up any old configuration on it except for the uplink parameters. The Central mesh page says the mesh network must be provisioned for the first time by plugging into the wired network. Read those one after the other and the outcome writes itself: the conversion takes away the thing that lets a mesh point join the network, and the only way to give it back is the one thing a mesh point does not have.
+Two sentences in HPE's own docs decide it, and they do not agree with each other. The migration page says that after an AP converts, Central cleans up any old configuration on it except for the uplink parameters, and its list of what is kept ends with mesh. The Central mesh page says the mesh network must be provisioned for the first time by plugging into the wired network. Read those one after the other and you have a profile that is supposed to survive, on an AP that is supposed to need a cable anyway. One of those sentences is going to be the one that matters on the day, and you do not get to pick which.
 
-## What actually gets erased
+## What the profile is, and what the docs promise
 
-A mesh point does not find its portal by magic. It authenticates to it using the mesh cluster profile it was provisioned with: the cluster name that goes out as the MSSID, the key, the priority. That profile is why a point associates to your portal and not to the one across the car park. It is config, it lives on the AP, and it is not an uplink parameter.
+A mesh point does not find its portal by magic. It authenticates to it using the mesh cluster profile it was provisioned with: the cluster name that goes out as the MSSID, the key, the priority. That profile is why a point associates to your portal and not to the one across the car park. It is config, and it lives on the AP.
 
-So when the AP reboots into AOS 10 and Central does its cleanup, the point comes back with an AOS 10 image, its uplink settings, and no idea that your mesh exists. It sits there advertising nothing and joining nothing.
+HPE's migration guide says that profile is kept through conversion, and says why: "the existing mesh profile will be retained on the AP for the purpose of allowing reconnection to a mesh network." Good. Now hold that next to the mesh page, which says a mesh is provisioned the first time over the wire, and ask what a converted point is. It is an AP that has just booted a new operating system into a group it has never seen, carrying a profile from the old one. Whether AOS 10 treats that as a reconnection or a first time is the whole question, and neither page answers it. Until one of them does, the plan that survives being wrong is the one with a cable in it.
 
 ## And the wire is not optional
 
@@ -52,21 +52,19 @@ On mesh-auto, nobody assigns the role. The AP works it out at boot. Ethernet lin
 
 {{figure: fig-mesh-role.svg | Role detection at boot, plus the bit that catches people: a live Ethernet link on a point is a reboot into a portal, not a convenience.}}
 
-The running-time version is the one that bites. A point that later sees Ethernet 0 come up runs loop detection, and if the link is real it reboots as a portal. So plugging into a mesh point to have a look at something is not a passive act. Neither is unplugging a portal, which reboots five minutes after it loses its wired uplink.
+The running-time version is the one that bites. The page says a point that later sees its Ethernet link come up keeps running loop protection, reboots if it detects a loop, and otherwise stays a mesh point. What it does not say is when a point with a live, loop-free cable ever becomes a portal without a reboot you triggered. So plugging into a mesh point to have a look at something is not a passive act. Neither is unplugging a portal, which reboots five minutes after it loses its wired uplink. Plan for the reboot, because that is the assumption that costs you nothing if you are wrong, and put it on the lab list if you need to know for certain.
 
-Fair warning that the page argues with itself on this one. The Automatic Mesh Role Assignment section says a point that finds Ethernet 0 available reboots as a portal. The running time section, a few paragraphs later, says the AP checks for a loop and, if it does not find one, does not reboot and carries on as a point. Same page, two answers. Plan for the reboot, because that is the assumption that costs you nothing if you are wrong, and put it on the lab list if you need to know for certain.
-
-## Everything else on that page worth taking with you
+## Everything else in the docs worth taking with you
 
 A short list of things that are all documented and all cost somebody a day at some point.
 
 Reverse conversion is not symmetrical. Forward, you add an AP group to the conversion list and convert the lot at once. Backward, from AOS 10 to AOS 8, it is one AP at a time from that AP's console, and the doc says so plainly. Plan the rollback as a per-device job, not a group job.
 
-ADP discovery is off in AOS 10, so a converted AP ignores the DHCP and DNS options you have been using to point APs at things. If that was part of your bring-up, it is not part of it any more.
+A converted AP does not do controller discovery at all. ADP, DHCP option 43 and DNS are three different mechanisms and it ignores all three, because an AOS 10 AP gets its provisioning rule from Activate and goes to Central. If option 43 or an aruba-master record was part of your bring-up, it is not part of it any more.
 
-A mesh point cannot be converted to a Remote AP at all, because mesh does not do VPN. If your plan had a RAP in it somewhere, that is the sentence to find first.
+If you are still on Instant and a RAP is somewhere in the plan, the Instant guide is blunt: a mesh point cannot be converted to a Remote AP, because mesh APs do not support a VPN connection. AOS 10 has no RAP role at all; the equivalent is Microbranch, and that is a different conversation.
 
-Eight mesh points per portal is the documented ceiling.
+Eight mesh points per portal is the ceiling the Instant mesh doc gives. The AOS 10 mesh page does not state one, which is not the same as there not being one. Treat eight as the number until HPE writes down a different one.
 
 And if 6 GHz backhaul is in the plan, check the opmode before you commit to the band. The mesh notes say 6 GHz supports only wpa3-sae-aes, and that a cluster configured for wpa2-psk-aes gets switched to SAE on that band. Worth knowing that this text sits inside the AP-615 section rather than the general mesh guidance, so treat it as model specific until you have confirmed it for the hardware in your hand.
 
@@ -76,11 +74,11 @@ And if 6 GHz backhaul is in the plan, check the opmode before you commit to the 
 |---|---|
 | Every AP has a wired port available, even a temporary one | First provisioning after conversion is wired, no exceptions |
 | Portals converted, provisioned and verified before any point | A point with no portal advertising has nothing to join |
-| Mesh cluster name and key recorded off the APs first | The AP's copy does not survive the cleanup |
+| Mesh cluster name and key recorded off the APs first | HPE says the AP's copy is retained; if it is not, you want it on paper, not in a lift bucket |
 | Group in Central holds the mesh config before the AP arrives | So the profile is waiting rather than being built while you stand there |
 | Rollback planned per AP | AOS 10 back to AOS 8 is not a group operation |
-| DHCP or DNS option-based discovery removed from the plan | ADP is disabled in AOS 10 |
-| Points per portal at eight or fewer | Documented ceiling |
+| DHCP or DNS option-based discovery removed from the plan | A converted AP does not do controller discovery; it finds Central through Activate |
+| Points per portal at eight or fewer | The ceiling in the Instant mesh doc; the AOS 10 mesh page states no limit, so treat eight as the safe number |
 | 6 GHz backhaul, confirm the opmode for your model | The 6 GHz WPA3-SAE requirement is written in the AP-615 section, not the general guidance |
 
 ## Bottom line

@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Your New AP Isn&#x27;t Broken, It&#x27;s Hungry: PoE Budgets in the Wi-Fi 7 Era</title>
-<meta name="description" content="Wi-Fi 7 APs don&#x27;t fail when they&#x27;re underpowered. They negotiate, shrug, and come up in a reduced mode with the 6 GHz radio dark. Nothing turns red.">
+<meta name="description" content="Wi-Fi 7 APs don&#x27;t fail when they&#x27;re underpowered. They negotiate, shrug, and come up in a reduced mode: USB off, second port off, 2x2 instead of 4x4. Nothing turns red.">
 <link rel="canonical" href="https://networkfieldnotes.com/p/poe-budgets-wifi7-aps.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
@@ -10,15 +10,15 @@
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
 <meta property="og:title" content="Your New AP Isn&#x27;t Broken, It&#x27;s Hungry: PoE Budgets in the Wi-Fi 7 Era">
-<meta property="og:description" content="Wi-Fi 7 APs don&#x27;t fail when they&#x27;re underpowered. They negotiate, shrug, and come up in a reduced mode with the 6 GHz radio dark. Nothing turns red.">
+<meta property="og:description" content="Wi-Fi 7 APs don&#x27;t fail when they&#x27;re underpowered. They negotiate, shrug, and come up in a reduced mode: USB off, second port off, 2x2 instead of 4x4. Nothing turns red.">
 <meta property="og:url" content="https://networkfieldnotes.com/p/poe-budgets-wifi7-aps.html">
 <meta property="og:image" content="https://networkfieldnotes.com/og/poe-budgets-wifi7-aps.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Your New AP Isn&#x27;t Broken, It&#x27;s Hungry: PoE Budgets in the Wi-Fi 7 Era">
-<meta name="twitter:description" content="Wi-Fi 7 APs don&#x27;t fail when they&#x27;re underpowered. They negotiate, shrug, and come up in a reduced mode with the 6 GHz radio dark. Nothing turns red.">
+<meta name="twitter:description" content="Wi-Fi 7 APs don&#x27;t fail when they&#x27;re underpowered. They negotiate, shrug, and come up in a reduced mode: USB off, second port off, 2x2 instead of 4x4. Nothing turns red.">
 <meta name="twitter:image" content="https://networkfieldnotes.com/og/poe-budgets-wifi7-aps.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-07-29"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your New AP Isn't Broken, It's Hungry: PoE Budgets in the Wi-Fi 7 Era", "description": "Wi-Fi 7 APs don't fail when they're underpowered. They negotiate, shrug, and come up in a reduced mode with the 6 GHz radio dark. Nothing turns red.", "datePublished": "2026-07-29", "image": "https://networkfieldnotes.com/og/poe-budgets-wifi7-aps.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/poe-budgets-wifi7-aps.html", "keywords": "Wireless, PoE, Wi-Fi 7"}</script>
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-07-29"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your New AP Isn't Broken, It's Hungry: PoE Budgets in the Wi-Fi 7 Era", "description": "Wi-Fi 7 APs don't fail when they're underpowered. They negotiate, shrug, and come up in a reduced mode: USB off, second port off, 2x2 instead of 4x4. Nothing turns red.", "datePublished": "2026-07-29", "image": "https://networkfieldnotes.com/og/poe-budgets-wifi7-aps.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/poe-budgets-wifi7-aps.html", "keywords": "Wireless, PoE, Wi-Fi 7"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -641,7 +641,7 @@ html.qam-fs .rig{display:none}
 <p>Spend ten minutes on Airheads and you'll find the same thread wearing five different titles. "New AP, 6 GHz radio stays down." "Radio disabled due to low power." "Wi-Fi 7 AP slower than the AP it replaced." The poster has usually already swapped the AP, opened a TAC case, and started doubting the firmware. And in most of these threads the AP is fine. It's plugged into a switch port that can't feed it, so it quietly turned off the features that make it worth the money.</p>
 <p>This is the most common misconception of the Wi-Fi 7 hardware era: that an AP either works or it doesn't. Modern APs don't fail when they're underpowered. They negotiate, shrug, and come up in a reduced mode. Nothing turns red. If you don't know to look for it, it looks exactly like a bad AP.</p>
 <h2>The 60-second PoE primer</h2>
-<p>PoE comes in tiers: 802.3af (15.4W at the switch port, 13W to the device), 802.3at/PoE+ (30W at the port, 25.5W to the device), 802.3bt/PoE++ (51W for Class 6, 71.3W for Class 8, and note AOS-CX PoE switches don't do Class 7 or 8 at all). The switch and device negotiate, first by hardware classification, then refined over LLDP after link-up.</p>
+<p>PoE comes in tiers: 802.3af (15.4W at the switch port, 13W to the device), 802.3at/PoE+ (30W at the port, 25.5W to the device), 802.3bt/PoE++ (Class 6 is 60W at the port and 51W to the device, Class 8 is 90W at the port and 71.3W to the device). Most AOS-CX PoE models stop at Class 4 or Class 6; Class 8 is only on specific 6300M SKUs such as the R8S90A, so check the model number, not the family. The switch and device negotiate, first by hardware classification, then refined over LLDP after link-up.</p>
 <p>What changed: the previous couple of AP generations mostly fit inside PoE+. A Wi-Fi 7 enterprise AP has three Wi-Fi radios plus IoT radios, more chains, faster CPUs, and on the mid-range and flagship models a multi-gig PHY, USB and a second Ethernet port, and the flagships want well north of 30W for all of it (the 750 Series datasheet says 40W or 51W). That's 802.3bt territory. Plug one into the 802.3at closet switch that's been faithfully powering APs for eight years and the AP does math, decides what it can afford, and starts turning things off.</p>
 <h2>What "underfed" looks like</h2>
 <ul>
