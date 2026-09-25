@@ -1064,9 +1064,9 @@
      $GNRMC: latitude, longitude, altitude), `show ap gps ellipse` the error
      ellipse (major and minor axis in metres, angle in degrees) and a `hop` and
      `distance` for a position inherited over a ranged neighbour, `show ap range
-     scanning-results` the FTM table (peer BSSID, average RTT in nanoseconds,
-     RSSI, standard deviation in ps, channel, valid RTTs). These parse the pasted
-     text; nothing here talks to an AP. */
+     scanning-results` the FTM table (peer BSSID, average RTT in picoseconds,
+     RSSI, standard deviation in picoseconds, channel, valid RTTs). These parse
+     the pasted text; nothing here talks to an AP. */
   M.gpsParse = function (text) {
     var t = String(text || ""), out = {}, m;
     m = /\$GN(?:GGA|GNS|RMC)\s+(-?\d+\.\d+),\s*(-?\d+\.\d+)\s+(-?\d+(?:\.\d+)?)?\s*M?/i.exec(t);
@@ -1083,18 +1083,20 @@
     return isFinite(out.lat) && isFinite(out.lon) ? out : null;
   };
 
-  /* an FTM round trip is a distance: HPE prints the average RTT in nanoseconds
-     (0.15 m of range per nanosecond, there and back) and the standard deviation
-     in units of 100 ps. Open Locate, "AP testing and verification". */
-  M.ftmMetres = function (rttNs) { return rttNs * 299792458e-9 / 2; };
-  M.ftmSdMetres = function (sd100ps) { return sd100ps * 299792458e-10 / 2; };
+  /* an FTM round trip is a distance: light covers 0.29979 mm per picosecond
+     and the trip is there and back. The AP-635 on 10.8.1.0 heads its columns
+     "Average RTT (ps)" and "Average std (ps)", read 2026-09-25; the Open Locate
+     guide's "AP testing and verification" page says nanoseconds, and the AP
+     wins over the doc. If a later release prints ns, this factor moves by 1000. */
+  M.ftmMetres = function (rttPs) { return rttPs * 299792458e-12 / 2; };
+  M.ftmSdMetres = M.ftmMetres;
   M.ftmParse = function (text) {
     var rows = [];
     String(text || "").split("\n").forEach(function (line) {
       var m = /^\s*([0-9a-f]{2}(?::[0-9a-f]{2}){5})\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(\S+)\s+(\d+)\s+(\d+)/i.exec(line);
       if (!m) return;
       var rtt = +m[2], sd = +m[4];
-      rows.push({ bssid: m[1].toLowerCase(), rttNs: rtt, rssi: +m[3], sd100ps: sd, channel: m[5], validRtts: +m[6], ftms: +m[7],
+      rows.push({ bssid: m[1].toLowerCase(), rttPs: rtt, rssi: +m[3], sdPs: sd, channel: m[5], validRtts: +m[6], ftms: +m[7],
                   metres: M.ftmMetres(rtt), plusMinus: M.ftmSdMetres(sd) });
     });
     return rows;

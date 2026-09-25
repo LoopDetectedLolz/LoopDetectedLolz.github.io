@@ -737,19 +737,40 @@ html.qam-fs .rig{display:none}
     a:  { name: "802.11a/g", wifi: "", tsym: 4,    nsd: { 20: 48 },
           widths: [20], mcs: PHY.AG, ssMax: 1, pre: function () { return 20; } },
     n:  { name: "802.11n",   wifi: "Wi-Fi 4", tsym: 4,    nsd: { 20: 52, 40: 108 },
-          widths: [20, 40], mcs: PHY.MCS.slice(0, 8), ssMax: 4, pre: function (s) { return 32 + 4 * s; } },
+          widths: [20, 40], mcs: PHY.MCS.slice(0, 8), ssMax: 4, pre: function (s) { return 32 + 4 * PHY.nLtf(s); } },
     ac: { name: "802.11ac",  wifi: "Wi-Fi 5", tsym: 4,    nsd: { 20: 52, 40: 108, 80: 234, 160: 468 },
-          widths: [20, 40, 80, 160], mcs: PHY.MCS.slice(0, 10), ssMax: 8, pre: function (s) { return 36 + 4 * s; } },
+          widths: [20, 40, 80, 160], mcs: PHY.MCS.slice(0, 10), ssMax: 8, pre: function (s) { return 36 + 4 * PHY.nLtf(s); } },
     ax: { name: "802.11ax",  wifi: "Wi-Fi 6/6E", tsym: 13.6, nsd: { 20: 234, 40: 468, 80: 980, 160: 1960 },
-          widths: [20, 40, 80, 160], mcs: PHY.MCS.slice(0, 12), ssMax: 8, pre: function (s) { return 36 + 7.2 * s; } },
+          widths: [20, 40, 80, 160], mcs: PHY.MCS.slice(0, 12), ssMax: 8, pre: function (s) { return 36 + 7.2 * PHY.nLtf(s); } },
     be: { name: "802.11be",  wifi: "Wi-Fi 7", tsym: 13.6, nsd: { 20: 234, 40: 468, 80: 980, 160: 1960, 320: 3920 },
-          widths: [20, 40, 80, 160, 320], mcs: PHY.MCS, ssMax: 8, pre: function (s) { return 40 + 7.2 * s; } }
+          widths: [20, 40, 80, 160, 320], mcs: PHY.MCS, ssMax: 8, pre: function (s) { return 40 + 7.2 * PHY.nLtf(s); } }
+  };
+
+  /* Long training fields are not one per stream: the preamble carries 1, 2, 4,
+     6 or 8 of them, so 3 streams send 4 and 5 streams send 6 (802.11-2020
+     Tables 19-13 and 21-13, and the HE-LTF count in 27.3.11.10 follows suit). */
+  PHY.nLtf = function (ss) { return ss <= 2 ? ss : ss <= 4 ? 4 : ss <= 6 ? 6 : 8; };
+
+  /* 802.11ac leaves a few MCS, width and stream combinations out of the table
+     because the coded bits per symbol do not divide evenly among the encoders
+     (Tables 21-30 to 21-61). Ask for one and the radio runs the next one down,
+     so a 1SS phone at 20 MHz tops out at MCS 8, 78 Mb/s, not a 86.7 that does
+     not exist. 802.11n at 40 MHz and everything from ax onward have no holes. */
+  PHY.EXCLUDED = { ac: { 20: { 9: [1, 2, 4, 5, 7, 8] }, 80: { 6: [3, 7], 9: [6] }, 160: { 9: [3] } } };
+  PHY.valid = function (std, mcs, ss, bw) {
+    var t = PHY.EXCLUDED[std], w = t && t[bw], m = w && w[mcs];
+    return !(m && m.indexOf(ss) >= 0);
+  };
+  PHY.usable = function (std, mcs, ss, bw) {
+    var s = S(std), m = Math.min(mcs, s.mcs.length - 1);
+    while (m > 0 && !PHY.valid(std, m, ss, bw)) m--;
+    return m;
   };
 
   function S(std) { return PHY.STD[std] || PHY.STD.ax; }
 
   PHY.bitsPerSymbol = function (std, mcs, ss, bw) {
-    var s = S(std), m = s.mcs[Math.min(mcs, s.mcs.length - 1)], nsd = s.nsd[bw] || s.nsd[20];
+    var s = S(std), m = s.mcs[PHY.usable(std, mcs, ss, bw)], nsd = s.nsd[bw] || s.nsd[20];
     return ss * nsd * m[1] * m[2];
   };
 
@@ -760,15 +781,30 @@ html.qam-fs .rig{display:none}
 
   PHY.preamble = function (std, ss) { return S(std).pre(ss); };
 
+  /* What wraps each packet before it is a frame on a secured WLAN: a QoS data
+     header with its FCS (26 + 4; the HT Control field that would make it 34 is
+     absent from A-MPDU subframes), the LLC/SNAP header the IP packet rides in,
+     and the CCMP header plus MIC (8 + 8). 54 bytes is about 1 percent of a
+     1500-byte frame and about 10 percent of the airtime of a 200-byte voice
+     frame, which is why voice is costed the way it is. A management frame is
+     just its header and FCS with the body in the clear. 802.11-2020 9.3.2.1,
+     9.7, 12.5.3. */
+  PHY.OVERHEAD = { data: 30, llc: 8, ccmp: 16, mgmt: 28 };
+  PHY.perMpdu = function (opts) {
+    if (opts.kind === "mgmt") return PHY.OVERHEAD.mgmt;
+    return PHY.OVERHEAD.data + PHY.OVERHEAD.llc + (opts.secure === false ? 0 : PHY.OVERHEAD.ccmp);
+  };
+
   /* Microseconds on the air for one transmission. agg is the number of MPDUs in
      the A-MPDU: aggregation is most of why a modern link gets anywhere near its
-     PHY rate, so leaving it out would make every capacity number wrong. */
+     PHY rate, so leaving it out would make every capacity number wrong. bytes is
+     the packet handed down (the IP datagram); the 802.11 wrapping is added here. */
   PHY.frameAirtime = function (opts) {
     var std = opts.std || "ax", ss = opts.ss || 1, bw = opts.bw || 80,
         bytes = opts.bytes === undefined ? 1500 : opts.bytes,
         agg = Math.max(1, opts.agg || 1),
         bps = PHY.bitsPerSymbol(std, opts.mcs || 0, ss, bw),
-        MAC = 34,                      /* 802.11 header plus FCS */
+        MAC = PHY.perMpdu(opts),
         DELIM = agg > 1 ? 4 : 0,       /* A-MPDU delimiter per subframe */
         bits = 16 + 8 * agg * (bytes + MAC + DELIM) + 6;   /* service + payload + tail */
     return PHY.preamble(std, ss) + Math.ceil(bits / bps) * S(std).tsym;
@@ -798,11 +834,18 @@ html.qam-fs .rig{display:none}
   MAC.T = {
     SIFS: 16, SLOT: 9, DIFS: 34,      /* 5 and 6 GHz values */
     ACK: 28, BA: 32,                   /* control frames at a basic rate */
+    ACKTO: 50,                         /* AckTimeout = SIFS + slot + aPHYRxStartDelay (16 + 9 + 25), 802.11-2020 10.3.2.9 */
     CWMIN: 15, CWMAX: 1023, RETRY_MAX: 7
   };
 
   /* a station waits a random number of slots in [0, CW]; on average half of it */
   MAC.avgBackoff = function (cw) { return ((cw === undefined ? MAC.T.CWMIN : cw) / 2) * MAC.T.SLOT; };
+
+  /* the contention window after n failed attempts: doubled each time, capped */
+  MAC.cwAfter = function (fails, cw0) {
+    var cw = (cw0 === undefined ? MAC.T.CWMIN : cw0) + 1;
+    return Math.min(cw * Math.pow(2, fails), MAC.T.CWMAX + 1) - 1;
+  };
 
   /* microseconds of channel time one successful transmission costs, end to end */
   MAC.txopTime = function (opts) {
@@ -811,25 +854,44 @@ html.qam-fs .rig{display:none}
     return MAC.avgBackoff(opts.cw) + MAC.T.DIFS + air + MAC.T.SIFS + ack;
   };
 
-  /* Retries are not free and they are not cheap: a failed attempt costs the whole
-     frame plus an ACK timeout plus a doubled backoff before anyone tries again. */
+  /* Retries are not free and they are not cheap. Each attempt costs DIFS, a
+     backoff and the whole frame; a failed one then waits out the ACK timeout
+     (50 us) and the next attempt draws its backoff from a doubled window (31,
+     63, 127 ... slots). retry is the chance any one attempt fails; the sum walks
+     the attempts a frame is allowed (RETRY_MAX) with the probability of getting
+     that far, so at retry 0 this is txopTime exactly. Frames still failing
+     after the last attempt are dropped, and throughput() pays for that too. */
   MAC.txopWithRetries = function (opts) {
     var r = NFN.clamp(opts.retry === undefined ? 0.1 : opts.retry, 0, 0.9),
-        good = MAC.txopTime(opts),
-        failed = MAC.avgBackoff(opts.cw) + MAC.T.DIFS + NFN.phy.frameAirtime(opts) + MAC.T.SIFS + 10,
-        n = r / (1 - r);              /* expected failed attempts per success */
-    return good + n * failed;
+        air = NFN.phy.frameAirtime(opts),
+        ack = (opts.agg || 1) > 1 ? MAC.T.BA : MAC.T.ACK,
+        total = 0, p = 1, i;
+    for (i = 0; i <= MAC.T.RETRY_MAX; i++) {
+      total += p * (MAC.T.DIFS + MAC.avgBackoff(MAC.cwAfter(i, opts.cw)) + air
+                    + (1 - r) * (MAC.T.SIFS + ack) + r * MAC.T.ACKTO);
+      p *= r;                        /* the chance the next attempt is needed at all */
+    }
+    return total;
+  };
+  /* the share of frames that get through inside the retry limit */
+  MAC.delivered = function (retry) {
+    var r = NFN.clamp(retry === undefined ? 0.1 : retry, 0, 0.9);
+    return 1 - Math.pow(r, MAC.T.RETRY_MAX + 1);
   };
 
   /* bits per second a single station gets when it has the medium to itself */
   MAC.throughput = function (opts) {
     var agg = Math.max(1, opts.agg || 1), bytes = opts.bytes === undefined ? 1500 : opts.bytes;
-    return agg * bytes * 8 / (MAC.txopWithRetries(opts) * 1e-6);
+    return MAC.delivered(opts.retry) * agg * bytes * 8 / (MAC.txopWithRetries(opts) * 1e-6);
   };
 
-  /* what a beacon set costs before a single client has said anything */
+  /* What a beacon set costs before a single client has said anything. A beacon
+     is a management frame sent at the lowest basic rate, 6 Mb/s non-HT on 5 and
+     6 GHz, whatever the SSID's clients can do: about 396 us for a 250-byte body,
+     not the 315 us an HE MCS 0 PPDU would take. std is kept for a caller that
+     wants to cost a different basic rate. */
   MAC.beaconOverhead = function (ssids, intervalMs, std) {
-    var air = NFN.phy.frameAirtime({ std: std || "ax", mcs: 0, ss: 1, bw: 20, bytes: 250, agg: 1 });
+    var air = NFN.phy.frameAirtime({ std: std || "a", mcs: 0, ss: 1, bw: 20, bytes: 250, agg: 1, kind: "mgmt" });
     return (ssids || 1) * (air * 1e-6) / ((intervalMs || 102.4) / 1000);
   };
 })(typeof window !== "undefined" ? window : globalThis);
@@ -1015,7 +1077,7 @@ html.qam-fs .rig{display:none}
     var opt = { bw: st.bw, retry: st.retry, agg: st.agg },
         groups = (st.groups || []).filter(function (g) { return g.n > 0; }).map(function (g) { return CAP.group(g, opt); }),
         client = groups.reduce(function (t, g) { return t + g.airtime; }, 0),
-        beacons = NFN.mac.beaconOverhead(st.ssids, st.beaconMs, "ax"),
+        beacons = NFN.mac.beaconOverhead(st.ssids, st.beaconMs, "a"),   /* beacons go out at 6 Mb/s whatever the clients can do */
         total = client + beacons,
         target = NFN.clamp(st.target || 0.5, 0.1, 0.95),
         perRadio = st.maxPerRadio || 60,
@@ -1080,6 +1142,7 @@ html.qam-fs .rig{display:none}
         "a radio hears " + Math.round(overlap * 100) + "% of what its co-channel neighbours transmit",
         "downlink and uplink counted together",
         "at most " + perRadio + " clients per radio",
+        "beacons at 6 Mb/s, 250 bytes; every data frame wears 54 bytes of 802.11, LLC/SNAP and CCMP",
         "no MU-MIMO or OFDMA gain, and no interference from anybody else's network"
       ]
     };
@@ -2377,9 +2440,9 @@ html.qam-fs .rig{display:none}
      $GNRMC: latitude, longitude, altitude), `show ap gps ellipse` the error
      ellipse (major and minor axis in metres, angle in degrees) and a `hop` and
      `distance` for a position inherited over a ranged neighbour, `show ap range
-     scanning-results` the FTM table (peer BSSID, average RTT in nanoseconds,
-     RSSI, standard deviation in ps, channel, valid RTTs). These parse the pasted
-     text; nothing here talks to an AP. */
+     scanning-results` the FTM table (peer BSSID, average RTT in picoseconds,
+     RSSI, standard deviation in picoseconds, channel, valid RTTs). These parse
+     the pasted text; nothing here talks to an AP. */
   M.gpsParse = function (text) {
     var t = String(text || ""), out = {}, m;
     m = /\$GN(?:GGA|GNS|RMC)\s+(-?\d+\.\d+),\s*(-?\d+\.\d+)\s+(-?\d+(?:\.\d+)?)?\s*M?/i.exec(t);
@@ -2396,18 +2459,20 @@ html.qam-fs .rig{display:none}
     return isFinite(out.lat) && isFinite(out.lon) ? out : null;
   };
 
-  /* an FTM round trip is a distance: HPE prints the average RTT in nanoseconds
-     (0.15 m of range per nanosecond, there and back) and the standard deviation
-     in units of 100 ps. Open Locate, "AP testing and verification". */
-  M.ftmMetres = function (rttNs) { return rttNs * 299792458e-9 / 2; };
-  M.ftmSdMetres = function (sd100ps) { return sd100ps * 299792458e-10 / 2; };
+  /* an FTM round trip is a distance: light covers 0.29979 mm per picosecond
+     and the trip is there and back. The AP-635 on 10.8.1.0 heads its columns
+     "Average RTT (ps)" and "Average std (ps)", read 2026-09-25; the Open Locate
+     guide's "AP testing and verification" page says nanoseconds, and the AP
+     wins over the doc. If a later release prints ns, this factor moves by 1000. */
+  M.ftmMetres = function (rttPs) { return rttPs * 299792458e-12 / 2; };
+  M.ftmSdMetres = M.ftmMetres;
   M.ftmParse = function (text) {
     var rows = [];
     String(text || "").split("\n").forEach(function (line) {
       var m = /^\s*([0-9a-f]{2}(?::[0-9a-f]{2}){5})\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(\S+)\s+(\d+)\s+(\d+)/i.exec(line);
       if (!m) return;
       var rtt = +m[2], sd = +m[4];
-      rows.push({ bssid: m[1].toLowerCase(), rttNs: rtt, rssi: +m[3], sd100ps: sd, channel: m[5], validRtts: +m[6], ftms: +m[7],
+      rows.push({ bssid: m[1].toLowerCase(), rttPs: rtt, rssi: +m[3], sdPs: sd, channel: m[5], validRtts: +m[6], ftms: +m[7],
                   metres: M.ftmMetres(rtt), plusMinus: M.ftmSdMetres(sd) });
     });
     return rows;
@@ -5305,7 +5370,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
         <p class="t-hint" id="m-scalenote"></p>
       </details>
       <details class="m-more"><summary>From the APs themselves</summary>
-        <p class="t-hint">An AOS 10 AP with a GNSS receiver knows where it is (<code>show ap gps ellipse</code> on its console; read on an AP-635 on 10.8.1.0). Paste each AP's output under its own "Measured on site" fold, then place the masts from those fixes. FTM: <code>show ap range scanning-results</code> lists round trips to the neighbours the AP has ranged, in nanoseconds; paste one AP's table here and pick which AP it came from, and each row becomes a measured distance against the planned one. Peers are matched to APs by radio MAC from a Verify import; unmatched BSSIDs are listed as they are.</p>
+        <p class="t-hint">An AOS 10 AP with a GNSS receiver knows where it is (<code>show ap gps ellipse</code> on its console; read on an AP-635 on 10.8.1.0). Paste each AP's output under its own "Measured on site" fold, then place the masts from those fixes. FTM: <code>show ap range scanning-results</code> lists round trips to the neighbours the AP has ranged, in picoseconds; paste one AP's table here and pick which AP it came from, and each row becomes a measured distance against the planned one. Peers are matched to APs by radio MAC from a Verify import; unmatched BSSIDs are listed as they are.</p>
         <div class="t-acts"><button class="t-btn" id="m-geoplace" type="button">Place masts from GPS</button><span class="t-hint" id="m-geonote" style="margin:0"></span></div>
         <div class="t-row" style="margin-top:10px"><label for="m-ftmfrom">Ranged from</label><select id="m-ftmfrom"></select></div>
         <textarea class="t-out" id="m-ftm" rows="3" placeholder="Peer-bssid  Average RTT (ps)  Average rssi (dbm)  Average std (ps)  Channel  …" aria-label="Paste show ap range scanning-results" style="min-height:64px;font-size:11px"></textarea>

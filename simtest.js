@@ -44,10 +44,19 @@ near("802.11be MCS 13, 2SS, 320 MHz is 5764 Mb/s", NFN.phy.rate("be", 13, 2, 320
 
 /* ── airtime ───────────────────────────────────────────────────────────── */
 var a6 = NFN.phy.frameAirtime({ std: "a", mcs: 0, ss: 1, bw: 20, bytes: 1500, agg: 1 });
-near("1500 bytes at 6 Mb/s is about 2.07 ms", a6, 2072, 2);
+near("a 1500-byte packet at 6 Mb/s, wrapped in 54 bytes of 802.11, LLC/SNAP and CCMP, is about 2.10 ms", a6, 2096, 2);
+near("the bare textbook figure, 34 bytes of header and no encryption, is 2072 us", NFN.phy.frameAirtime({ std: "a", mcs: 0, ss: 1, bw: 20, bytes: 1500 + 34 - 28, agg: 1, kind: "mgmt" }), 2072, 2);
 var a54 = NFN.phy.frameAirtime({ std: "a", mcs: 7, ss: 1, bw: 20, bytes: 1500, agg: 1 });
-near("the same frame at 54 Mb/s", a54, 248, 4);
+near("the same frame at 54 Mb/s", a54, 252, 4);
 eq("a slow client costs about eight times the airtime", Math.round(a6 / a54), 8);
+near("a 250-byte beacon at 6 Mb/s takes about 396 us", NFN.phy.frameAirtime({ std: "a", mcs: 0, ss: 1, bw: 20, bytes: 250, agg: 1, kind: "mgmt" }), 396, 1);
+near("three streams send four LTFs: the 802.11n preamble is 48 us", NFN.phy.preamble("n", 3), 48, 0.01);
+near("and 802.11ac's is 52", NFN.phy.preamble("ac", 3), 52, 0.01);
+near("five streams send six", NFN.phy.preamble("n", 5) - NFN.phy.preamble("n", 4), 8, 0.01);
+near("802.11ac MCS 9 does not exist at 20 MHz for one stream, so it runs MCS 8: 78 Mb/s", NFN.phy.rate("ac", 9, 1, 20), 78, 0.01);
+near("but does for three streams: 260 Mb/s", NFN.phy.rate("ac", 9, 3, 20), 260, 0.01);
+near("nor MCS 9 at 160 MHz with three streams: 2106 not 2340", NFN.phy.rate("ac", 9, 3, 160), 2106, 0.01);
+near("802.11ax has no such holes", NFN.phy.rate("ax", 11, 1, 20), 143.4, 0.1);
 
 /* the tax: a legacy station moving 1 Mb/s against a Wi-Fi 6 station moving 1 Mb/s */
 var slow = NFN.capacity.group({ n: 1, dev: "legacy", app: "web" }, { bw: 20, retry: 0.1 });
@@ -57,6 +66,16 @@ n++;
 
 /* ── MAC ───────────────────────────────────────────────────────────────── */
 near("average backoff at CWmin 15", NFN.mac.avgBackoff(), 67.5, 0.01);
+eq("the window doubles on every failed attempt", [0, 1, 2, 3].map(function (i) { return NFN.mac.cwAfter(i); }).join(","), "15,31,63,127");
+eq("and stops at CWmax", NFN.mac.cwAfter(9), 1023);
+eq("AckTimeout is SIFS plus a slot plus the receiver's start delay, 50 us", NFN.mac.T.ACKTO, 50);
+var rt0 = { std: "ax", mcs: 11, ss: 2, bw: 160, bytes: 1500, agg: 64, retry: 0 };
+near("with no retries the retry model is the plain TXOP", NFN.mac.txopWithRetries(rt0), NFN.mac.txopTime(rt0), 1e-9);
+var rt5 = NFN.mac.txopWithRetries({ std: "ax", mcs: 11, ss: 2, bw: 160, bytes: 1500, agg: 64, retry: 0.5 }),
+    rtNaive = 2 * NFN.mac.txopTime(rt0);
+if (!(rt5 > rtNaive)) { fails++; console.log("  FAIL half the frames failing should cost more than two plain attempts once the timeout and the doubled windows are paid: " + rt5.toFixed(0) + " vs " + rtNaive.toFixed(0)); }
+n++;
+near("one frame in two hundred and fifty-six is dropped at retry 0.5 and the retry limit", NFN.mac.delivered(0.5), 1 - Math.pow(0.5, 8), 1e-12);
 var tp = NFN.mac.throughput({ std: "ax", mcs: 11, ss: 2, bw: 160, bytes: 1500, agg: 64, retry: 0 }) / 1e6;
 if (!(tp > 1200 && tp < 1900)) { fails++; console.log("  FAIL 2SS 160 MHz goodput out of range: " + tp.toFixed(0) + " Mb/s"); }
 n++;
@@ -245,11 +264,11 @@ var GS = NFN.mesh.gpsParse("$GNGGA  40.000000, -75.000000           208.7 M\n$GN
 near("show ap gps summary: the NMEA altitude", GS.alt, 208.7, 1e-9);
 eq("and the constellations in use", GS.constellations.join(","), "Galileo");
 eq("no fix in prose is null", NFN.mesh.gpsParse("GPS Firmware Initialized"), null);
-near("an FTM round trip of 6.671 ns is one metre", NFN.mesh.ftmMetres(6.671), 1, 0.001);
-var FR = NFN.mesh.ftmParse("Peer-bssid  Average RTT  Average rssi (dbm)  Average std (100ps)  Channel  Number of valid RTTs  Number of FTMs\naa:bb:cc:dd:ee:01   400   -62   30   149E   18   20   0\nTotal:1");
-eq("show ap range scanning-results: one row parsed", FR.length, 1);
-near("and 400 ns is 60 m", FR[0].metres, 59.96, 0.01);
-near("with a spread of 30 hundred-picosecond units, 45 cm", FR[0].plusMinus, 0.45, 0.001);
+near("an FTM round trip of 6671 ps is one metre", NFN.mesh.ftmMetres(6671), 1, 0.001);
+var FR = NFN.mesh.ftmParse("Peer-bssid  Average RTT (ps)  Average rssi (dbm)  Average std (ps)  Channel  Number of valid RTTs  Number of FTMs  Antenna\naa:bb:cc:dd:ee:01   400000   -62   3000   149E   18   20   0\nTotal:0 About 20 mins to age out");
+eq("show ap range scanning-results: one row parsed, the AP-635's own header", FR.length, 1);
+near("and 400,000 ps is 60 m", FR[0].metres, 59.96, 0.01);
+near("with a spread of 3000 ps, 45 cm", FR[0].plusMinus, 0.45, 0.001);
 var GP = NFN.mesh.geoPlace([{ lat: 40, lon: -75, major: 6 }, { lat: 40.0009, lon: -75.0012 }, { lat: 39.9992, lon: -75.0015 }]);
 near("three fixes 100 m apart north to south make a field deep enough for them", GP.fd, 250, 20);
 eq("and every point lands inside it", GP.points.every(function (q) { return q.x >= 2 && q.x <= GP.fw - 2 && q.y >= 2 && q.y <= GP.fd - 2; }), true);
