@@ -21,7 +21,7 @@ Once you accept that, the rest of this gets a lot easier to plan.
 
 This is the part that should drive your project plan, and it's buried in a Validated Solution Guide table rather than anywhere you'd trip over it.
 
-**The internal authentication server is gone.** The local user DB on the Mobility Conductor has no equivalent. HPE's own wording is "local user authentication service is not supported." If you're using it for guest, for a handful of service accounts, for lab clients, that's a workstream, not a footnote. Run `show local-user db` during discovery so you know what you're dealing with before somebody finds out the hard way.
+**The internal authentication server is gone.** The local user DB on the Mobility Conductor has no equivalent. HPE's own wording is "local user authentication service is not supported." If you're using it for guest, for a handful of service accounts, for lab clients, that's a workstream, not a footnote. Run `show local-userdb` during discovery so you know what you're dealing with before somebody finds out the hard way.
 
 **AAA FastConnect is gone.** Same table, same blunt "not supported." If the controller is acting as the authentication server rather than relaying to one, you need a real RADIUS server before you migrate.
 

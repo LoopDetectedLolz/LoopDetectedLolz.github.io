@@ -32,7 +32,7 @@ When you convert an Instant AP to a Campus AP, you aren't talking to that AP. Yo
 
 Here's the part that bugs me. The Instant user guide, which is the doc set you are actually in when you do this job, dropped that sentence from its Campus AP page. It's a bare five-step procedure now. The Remote AP page next to it still carries the warning. So the one page people actually read for this job is the one that stopped telling them.
 
-So the "convert one AP first" step converts a hundred APs first. They all reboot, all go looking for the controller, and if the controller isn't reachable from where they sit, or the campus AP whitelist isn't ready, or the image download stalls, you now have a hundred APs sitting on a setup SSID waiting for a human, and a very quiet warehouse. Recoverable, but it's a hundred truck rolls instead of one.
+So the "convert one AP first" step converts a hundred APs first. They all reboot, all go looking for the controller, and if the controller isn't reachable from where they sit, or the campus AP allowlist isn't ready, or the image download stalls, you now have a hundred APs sitting on a setup SSID waiting for a human, and a very quiet warehouse. Recoverable, but it's a hundred truck rolls instead of one.
 
 It isn't a bug. It's how Instant clusters work, and my read on why (the docs don't say) is that a cluster half Instant and half Campus would be a mess to reason about. The conversion page does have a per-AP picker, but only on the Standalone path, not Campus or Remote. And "I'll test on one first" is such a natural instinct that people walk straight into it.
 
@@ -40,7 +40,7 @@ It isn't a bug. It's how Instant clusters work, and my read on why (the docs don
 
 If you want to convert one AP and only one AP, it has to be the only AP in its cluster.
 
-Pull one out of production and put it on its own VLAN, with no layer 2 path back to the others. Give it a minute to elect itself virtual controller of a cluster of one. Now convert it. Watch it reboot, watch it find the gateways, watch it pull the Campus AP image, watch it show up on the controller. That's your pilot, and it actually tells you something: the controllers are reachable, the whitelist works, the image is right for that hardware.
+Pull one out of production and put it on its own VLAN, with no layer 2 path back to the others. Give it a minute to elect itself virtual controller of a cluster of one. Now convert it. Watch it reboot, watch it find the gateways, watch it pull the Campus AP image, watch it show up on the controller. That's your pilot, and it actually tells you something: the controllers are reachable, the allowlist works, the image is right for that hardware.
 
 Then, and only then, you go back to the production cluster knowing that when you press convert, all hundred of them are going to do what the pilot did.
 
@@ -54,11 +54,11 @@ show ap database
 show ap image version
 ```
 
-And if it does go wrong on the production cluster, there's a documented way back that doesn't involve a hundred hard resets, provided the APs actually made it onto the controller: `ap redeploy controller-less` on the controller, with `all`, `ap-group`, `ap-name`, `ip-addr` or `wired-mac` to scope it, sends them back to Instant mode. That's been there since AOS 6.5.2. It doesn't help an AP that never found the controller, which is why the reachability check comes first.
+And if it does go wrong on the production cluster, there's a documented way back that doesn't involve a hundred hard resets, provided the APs actually made it onto the controller: `ap redeploy controller-less` on the controller, with `all`, `ap-group`, `ap-name`, `ip-addr` or `wired-mac` to scope it, sends them back to Instant mode. The CLI reference marks it as Unified APs only, so a fleet of older non-UAP hardware does not get this exit and needs a per-AP reset or TAC. It doesn't help an AP that never found the controller either, which is why the reachability check comes first.
 
 If you'd rather not build a VLAN for it, `swarm-mode standalone` on the pilot AP does the same job. The docs say a standalone AP can't join a cluster even on the same VLAN, which is exactly the isolation you want.
 
-Put the APs in the campus AP whitelist before any of this (that's the gate when CPsec is on with the default auto cert provisioning off), and confirm the controller answers from the AP subnet. Two more that fail every AP at once if you miss them: the controller has to be on a release that supports conversion for that AP model, and the Instant APs and the controller have to be in the same regulatory domain. A domain mismatch fails the whole cluster together, which is precisely the failure this post is about.
+Put the APs in the campus AP allowlist before any of this (that's the gate when CPsec is on with the default auto cert provisioning off), and confirm the controller answers from the AP subnet. Two more that fail every AP at once if you miss them: the controller has to be on a release that supports conversion for that AP model, and the Instant APs and the controller have to be in the same regulatory domain. A domain mismatch fails the whole cluster together, which is precisely the failure this post is about.
 
 ## The migration you might not need
 
@@ -74,12 +74,12 @@ In this case the poster couldn't do that. The two networks were physically separ
 |---|---|
 | Confirm the controllers answer from the AP subnet | If they don't, every converted AP is stranded |
 | Controller release supports conversion for your AP models, regulatory domains match | Either one fails the whole cluster at once |
-| Load the campus AP whitelist first | Controllers reject unknown APs, and a hundred rejections at once is a bad afternoon |
+| Load the campus AP allowlist first | Controllers reject unknown APs, and a hundred rejections at once is a bad afternoon |
 | Isolate one AP on its own VLAN, or set it swarm-mode standalone | Either way it's a cluster of one, and that's the only way to convert one AP |
 | Convert the isolated AP, verify image and controller join | This is the actual test |
 | Ask whether the subnet move is even necessary | CAPs route to controllers fine |
 | Convert production in a window, expecting all of them to go | Because all of them will |
-| Know the way back: `ap redeploy controller-less` | Only works for APs that reached the controller |
+| Know the way back: `ap redeploy controller-less` | Only works for APs that reached the controller, and only for Unified APs |
 | Clear the AirWave config afterwards | Tidy, not required |
 
 ## Bottom line

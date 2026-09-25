@@ -553,7 +553,7 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
     <header class="post-head g-hero cat-Wireless" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Sep 5, 2026 &#183; 6 min</span></div>
+      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Sep 5, 2026 &#183; 7 min</span></div>
       <h1 class="h-hero">One Pilot AP Converts All Hundred of Them</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -610,11 +610,11 @@ html.qam-fs .rig{display:none}
 <h2>Conversion is a cluster decision, not an AP decision</h2>
 <p>When you convert an Instant AP to a Campus AP, you aren't talking to that AP. You're talking to the virtual controller, and the virtual controller sends the convert command to every member of the cluster. Every one. HPE's own wording, still present tense on the current AOS 8 conversion page: "the virtual controller sends the convert command to all the other Instant APs." The AP you picked as your pilot is just the one whose web UI you happened to be logged into.</p>
 <p>Here's the part that bugs me. The Instant user guide, which is the doc set you are actually in when you do this job, dropped that sentence from its Campus AP page. It's a bare five-step procedure now. The Remote AP page next to it still carries the warning. So the one page people actually read for this job is the one that stopped telling them.</p>
-<p>So the "convert one AP first" step converts a hundred APs first. They all reboot, all go looking for the controller, and if the controller isn't reachable from where they sit, or the campus AP whitelist isn't ready, or the image download stalls, you now have a hundred APs sitting on a setup SSID waiting for a human, and a very quiet warehouse. Recoverable, but it's a hundred truck rolls instead of one.</p>
+<p>So the "convert one AP first" step converts a hundred APs first. They all reboot, all go looking for the controller, and if the controller isn't reachable from where they sit, or the campus AP allowlist isn't ready, or the image download stalls, you now have a hundred APs sitting on a setup SSID waiting for a human, and a very quiet warehouse. Recoverable, but it's a hundred truck rolls instead of one.</p>
 <p>It isn't a bug. It's how Instant clusters work, and my read on why (the docs don't say) is that a cluster half Instant and half Campus would be a mess to reason about. The conversion page does have a per-AP picker, but only on the Standalone path, not Campus or Remote. And "I'll test on one first" is such a natural instinct that people walk straight into it.</p>
 <h2>What a real pilot looks like</h2>
 <p>If you want to convert one AP and only one AP, it has to be the only AP in its cluster.</p>
-<p>Pull one out of production and put it on its own VLAN, with no layer 2 path back to the others. Give it a minute to elect itself virtual controller of a cluster of one. Now convert it. Watch it reboot, watch it find the gateways, watch it pull the Campus AP image, watch it show up on the controller. That's your pilot, and it actually tells you something: the controllers are reachable, the whitelist works, the image is right for that hardware.</p>
+<p>Pull one out of production and put it on its own VLAN, with no layer 2 path back to the others. Give it a minute to elect itself virtual controller of a cluster of one. Now convert it. Watch it reboot, watch it find the gateways, watch it pull the Campus AP image, watch it show up on the controller. That's your pilot, and it actually tells you something: the controllers are reachable, the allowlist works, the image is right for that hardware.</p>
 <p>Then, and only then, you go back to the production cluster knowing that when you press convert, all hundred of them are going to do what the pilot did.</p>
 <pre><code># pilot AP, isolated VLAN, cluster of one
 show swarm state
@@ -624,9 +624,9 @@ show ap-env
 show ap database
 show ap image version
 </code></pre>
-<p>And if it does go wrong on the production cluster, there's a documented way back that doesn't involve a hundred hard resets, provided the APs actually made it onto the controller: <code>ap redeploy controller-less</code> on the controller, with <code>all</code>, <code>ap-group</code>, <code>ap-name</code>, <code>ip-addr</code> or <code>wired-mac</code> to scope it, sends them back to Instant mode. That's been there since AOS 6.5.2. It doesn't help an AP that never found the controller, which is why the reachability check comes first.</p>
+<p>And if it does go wrong on the production cluster, there's a documented way back that doesn't involve a hundred hard resets, provided the APs actually made it onto the controller: <code>ap redeploy controller-less</code> on the controller, with <code>all</code>, <code>ap-group</code>, <code>ap-name</code>, <code>ip-addr</code> or <code>wired-mac</code> to scope it, sends them back to Instant mode. The CLI reference marks it as Unified APs only, so a fleet of older non-UAP hardware does not get this exit and needs a per-AP reset or TAC. It doesn't help an AP that never found the controller either, which is why the reachability check comes first.</p>
 <p>If you'd rather not build a VLAN for it, <code>swarm-mode standalone</code> on the pilot AP does the same job. The docs say a standalone AP can't join a cluster even on the same VLAN, which is exactly the isolation you want.</p>
-<p>Put the APs in the campus AP whitelist before any of this (that's the gate when CPsec is on with the default auto cert provisioning off), and confirm the controller answers from the AP subnet. Two more that fail every AP at once if you miss them: the controller has to be on a release that supports conversion for that AP model, and the Instant APs and the controller have to be in the same regulatory domain. A domain mismatch fails the whole cluster together, which is precisely the failure this post is about.</p>
+<p>Put the APs in the campus AP allowlist before any of this (that's the gate when CPsec is on with the default auto cert provisioning off), and confirm the controller answers from the AP subnet. Two more that fail every AP at once if you miss them: the controller has to be on a release that supports conversion for that AP model, and the Instant APs and the controller have to be in the same regulatory domain. A domain mismatch fails the whole cluster together, which is precisely the failure this post is about.</p>
 <h2>The migration you might not need</h2>
 <p>One more thing from that thread, because it removes the riskiest step entirely if it applies to you.</p>
 <p>Campus APs find their controller by IP. Routed is fine. Static, DHCP option 43 and DNS discovery all work across layer 3; only ADP needs to be on the same layer 2 segment. There's no requirement for the APs and the controllers to share a VLAN or a subnet. So if the only reason you're moving the APs to a new management subnet is "that's where the controllers are," you can leave the APs where they sit, make sure 10.x can route to 172.x, and convert them in place. No subnet move, no disconnected-from-everything moment, one fewer thing to go wrong.</p>
@@ -649,7 +649,7 @@ show ap image version
 <td>Either one fails the whole cluster at once</td>
 </tr>
 <tr>
-<td>Load the campus AP whitelist first</td>
+<td>Load the campus AP allowlist first</td>
 <td>Controllers reject unknown APs, and a hundred rejections at once is a bad afternoon</td>
 </tr>
 <tr>
@@ -670,7 +670,7 @@ show ap image version
 </tr>
 <tr>
 <td>Know the way back: <code>ap redeploy controller-less</code></td>
-<td>Only works for APs that reached the controller</td>
+<td>Only works for APs that reached the controller, and only for Unified APs</td>
 </tr>
 <tr>
 <td>Clear the AirWave config afterwards</td>

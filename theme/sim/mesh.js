@@ -77,12 +77,17 @@
      for 6 GHz standard power under AFC; ETSI 20 dBm at 2.4 GHz, 30 dBm EIRP in
      5470 to 5725 MHz, and 14 dBm very low power outdoors at 6 GHz. Point to
      point links get more in both domains and are not modelled. Verify. */
+  /* 5 GHz is not one number: FCC 15.407 gives UNII-1 and UNII-3 access points
+     36 dBm EIRP but holds UNII-2A and UNII-2C (the DFS channels) to 30; ETSI
+     gives 5150 to 5350 MHz 23 dBm and 5470 to 5725 MHz 30 dBm */
   M.DOMAINS = {
-    us: { label: "United States, FCC", eirp: { "2.4": 36, "5": 36, "6": 36 }, note: "36 dBm EIRP; 6 GHz outdoors needs AFC" },
-    eu: { label: "Europe, ETSI",       eirp: { "2.4": 20, "5": 30, "6": 14 }, note: "30 dBm EIRP in 5470 to 5725 MHz; 6 GHz outdoors is very low power" }
+    us: { label: "United States, FCC", eirp: { "2.4": 36, "5": 36, "5dfs": 30, "6": 36 }, note: "36 dBm EIRP (30 on DFS channels); 6 GHz outdoors needs AFC" },
+    eu: { label: "Europe, ETSI",       eirp: { "2.4": 20, "5": 23, "5dfs": 30, "6": 14 }, note: "23 dBm EIRP in 5150 to 5350 MHz, 30 dBm in 5470 to 5725 MHz; 6 GHz outdoors is very low power" }
   };
   M.domain = function (id) { return M.DOMAINS[id] || M.DOMAINS.us; };
   M.bandOf = function (fGHz) { return fGHz < 3 ? "2.4" : fGHz < 5.9 ? "5" : "6"; };
+  /* the EIRP sub-band a frequency falls in: 5.25 to 5.725 GHz is the DFS block in both domains */
+  M.eirpBandOf = function (fGHz) { var b = M.bandOf(fGHz); return b === "5" && fGHz >= 5.25 && fGHz < 5.725 ? "5dfs" : b; };
 
   /* defaults for an outdoor AP: a 5 GHz two stream backhaul at 40 MHz, an omni
      with a few dBi, a mast a few metres up. Change them in the tool. */
@@ -199,7 +204,7 @@
     var want = ap.tx === undefined ? C.tx : ap.tx;
     if (ap.txCap !== undefined && ap.txCap !== null) want = Math.min(want, ap.txCap);
     if (gainDbi === undefined) return want;
-    var lim = M.domain(C.domain).eirp[M.bandOf(fGHz === undefined ? M.apBand(ap, C) : fGHz)];
+    var lim = M.domain(C.domain).eirp[M.eirpBandOf(fGHz === undefined ? M.apBand(ap, C) : fGHz)];
     return lim === undefined ? want : Math.min(want, lim - gainDbi);
   };
   M.eirpClamped = function (ap, C, gainDbi, fGHz) { return M.apTx(ap, C, gainDbi, fGHz) < (ap.tx === undefined ? C.tx : ap.tx) - 1e-9; };
@@ -339,7 +344,7 @@
     return 20 * Math.log10(Math.max(1e-3, Math.hypot(re, im)));
   };
 
-  /* foliage, ITU-R P.833 style: 0.2 f^0.3 d^0.6 dB with f in MHz and d metres
+  /* foliage, the early ITU (CCIR Report 236-2) model: 0.2 f^0.3 d^0.6 dB with f in MHz and d metres
      through the canopy, the short path form. 12 m of trees at 5 GHz is 12 dB. */
   M.foliage = function (dM, fGHz) { return dM <= 0 ? 0 : 0.2 * Math.pow(fGHz * 1000, 0.3) * Math.pow(dM, 0.6); };
 
@@ -711,7 +716,7 @@
      Portals take distinct channels round robin from what the domain allows,
      unless one is pinned. */
   M.assignChannels = function (T, aps, C, st) {
-    var list = NFN.channels.list(M.bandOf(C.fGHz), C.bw, !!st.dfs, C.domain), used = {}, chan = [], i, next = 0;
+    var list = NFN.channels.list(M.bandOf(C.fGHz), C.bw, !!st.dfs, C.domain, true), used = {}, chan = [], i, next = 0;
     for (i = 0; i < aps.length; i++) chan.push(null);
     for (i = 0; i < aps.length; i++) if (T.depth[i] === 0) {
       var c = aps[i].ch !== undefined && aps[i].ch !== null ? aps[i].ch : null;
@@ -885,7 +890,7 @@
         "a link counts once its SNR sits " + C.margin + " dB above the lowest rate, " + (C.fade ? C.fade + " dB of fade margin held back on every link, " : "no fade margin held back, ") + "and the weaker transmitter sets its rate",
         (measured ? measured + " link" + (measured === 1 ? "" : "s") + " measured on site; the gap teaches a correction to the other links at those APs" : "no measured links; every budget is the model"),
         (C.tworay ? "ground reflection at " + C.rho + " of the direct ray in every budget, so mast height moves the fade and the tree" : "no ground reflection in the budgets; switch it on to see how far a metre of mast moves each link"),
-        "rain is under 0.1 dB/km at 5 GHz and is not modelled; a tree line costs ITU-R P.833 foliage loss through the canopy or a knife edge over it, whichever is kinder",
+        "rain is under 0.1 dB/km at 5 GHz and is not modelled; a tree line costs the early ITU (CCIR 236-2) foliage loss through the canopy or a knife edge over it, whichever is kinder",
         T.profile.label + ": " + T.profile.note + (T.profile.maxHops === null ? ", ceiling " + T.maxHops + " hops" : "") + (T.profile.thr ? ", links under " + T.profile.thr + " dB SNR taken last" : "") + " (shape from the vendor's documents, numbers a sketch, 2026-09; verify against your release)",
         "a point holds one parent at a time; a second portal is failover and a split of the points, not a bonded link",
         (function () {
@@ -1059,7 +1064,7 @@
      $GNRMC: latitude, longitude, altitude), `show ap gps ellipse` the error
      ellipse (major and minor axis in metres, angle in degrees) and a `hop` and
      `distance` for a position inherited over a ranged neighbour, `show ap range
-     scanning-results` the FTM table (peer BSSID, average RTT in picoseconds,
+     scanning-results` the FTM table (peer BSSID, average RTT in nanoseconds,
      RSSI, standard deviation in ps, channel, valid RTTs). These parse the pasted
      text; nothing here talks to an AP. */
   M.gpsParse = function (text) {
@@ -1078,17 +1083,19 @@
     return isFinite(out.lat) && isFinite(out.lon) ? out : null;
   };
 
-  /* an FTM round trip in picoseconds is a distance: light covers 0.29979 mm per
-     picosecond and the trip is there and back */
-  M.ftmMetres = function (rttPs) { return rttPs * 299792458e-12 / 2; };
+  /* an FTM round trip is a distance: HPE prints the average RTT in nanoseconds
+     (0.15 m of range per nanosecond, there and back) and the standard deviation
+     in units of 100 ps. Open Locate, "AP testing and verification". */
+  M.ftmMetres = function (rttNs) { return rttNs * 299792458e-9 / 2; };
+  M.ftmSdMetres = function (sd100ps) { return sd100ps * 299792458e-10 / 2; };
   M.ftmParse = function (text) {
     var rows = [];
     String(text || "").split("\n").forEach(function (line) {
       var m = /^\s*([0-9a-f]{2}(?::[0-9a-f]{2}){5})\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(\S+)\s+(\d+)\s+(\d+)/i.exec(line);
       if (!m) return;
       var rtt = +m[2], sd = +m[4];
-      rows.push({ bssid: m[1].toLowerCase(), rttPs: rtt, rssi: +m[3], sdPs: sd, channel: m[5], validRtts: +m[6], ftms: +m[7],
-                  metres: M.ftmMetres(rtt), plusMinus: M.ftmMetres(sd) });
+      rows.push({ bssid: m[1].toLowerCase(), rttNs: rtt, rssi: +m[3], sd100ps: sd, channel: m[5], validRtts: +m[6], ftms: +m[7],
+                  metres: M.ftmMetres(rtt), plusMinus: M.ftmSdMetres(sd) });
     });
     return rows;
   };

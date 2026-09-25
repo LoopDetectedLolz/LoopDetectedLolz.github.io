@@ -4,7 +4,7 @@ slug: poe-budgets-wifi7-aps
 date: 2026-07-29
 tags: Wireless, PoE, Wi-Fi 7
 hero: hero-poe.svg
-summary: Wi-Fi 7 APs don't fail when they're underpowered. They negotiate, shrug, and come up in a reduced mode with the 6 GHz radio dark. Nothing turns red.
+summary: Wi-Fi 7 APs don't fail when they're underpowered. They negotiate, shrug, and come up in a reduced mode: USB off, second port off, 2x2 instead of 4x4. Nothing turns red.
 origin: Five Airheads threads wearing different titles, one root cause
 series: Wi-Fi 7 rollout
 series_order: 1
@@ -18,7 +18,7 @@ This is the most common misconception of the Wi-Fi 7 hardware era: that an AP ei
 
 ## The 60-second PoE primer
 
-PoE comes in tiers: 802.3af (15.4W at the switch port, 13W to the device), 802.3at/PoE+ (30W at the port, 25.5W to the device), 802.3bt/PoE++ (51W for Class 6, 71.3W for Class 8, and note AOS-CX PoE switches don't do Class 7 or 8 at all). The switch and device negotiate, first by hardware classification, then refined over LLDP after link-up.
+PoE comes in tiers: 802.3af (15.4W at the switch port, 13W to the device), 802.3at/PoE+ (30W at the port, 25.5W to the device), 802.3bt/PoE++ (Class 6 is 60W at the port and 51W to the device, Class 8 is 90W at the port and 71.3W to the device). Most AOS-CX PoE models stop at Class 4 or Class 6; Class 8 is only on specific 6300M SKUs such as the R8S90A, so check the model number, not the family. The switch and device negotiate, first by hardware classification, then refined over LLDP after link-up.
 
 What changed: the previous couple of AP generations mostly fit inside PoE+. A Wi-Fi 7 enterprise AP has three Wi-Fi radios plus IoT radios, more chains, faster CPUs, and on the mid-range and flagship models a multi-gig PHY, USB and a second Ethernet port, and the flagships want well north of 30W for all of it (the 750 Series datasheet says 40W or 51W). That's 802.3bt territory. Plug one into the 802.3at closet switch that's been faithfully powering APs for eight years and the AP does math, decides what it can afford, and starts turning things off.
 

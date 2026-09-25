@@ -21,7 +21,7 @@
             ["64-QAM 2/3", 6, 2 / 3], ["64-QAM 3/4", 6, 3 / 4]];
 
   PHY.STD = {
-    a:  { name: "802.11a/g", wifi: "Wi-Fi 3", tsym: 4,    nsd: { 20: 48 },
+    a:  { name: "802.11a/g", wifi: "", tsym: 4,    nsd: { 20: 48 },
           widths: [20], mcs: PHY.AG, ssMax: 1, pre: function () { return 20; } },
     n:  { name: "802.11n",   wifi: "Wi-Fi 4", tsym: 4,    nsd: { 20: 52, 40: 108 },
           widths: [20, 40], mcs: PHY.MCS.slice(0, 8), ssMax: 4, pre: function (s) { return 32 + 4 * s; } },

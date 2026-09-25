@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Converting a Mesh Over the Air Strands Every Point</title>
-<meta name="description" content="Conversion keeps the uplink parameters and throws away everything else, and Central wants a mesh provisioned over the wire the first time. Put those two sentences together before you convert anything on a pole.">
+<meta name="description" content="HPE says the mesh profile survives conversion, and the same doc set says a mesh must be provisioned over the wire the first time. Nobody has reconciled those two sentences, and the one that is wrong is the one that costs you a lift. Plan for the wire.">
 <link rel="canonical" href="https://networkfieldnotes.com/p/mesh-conversion-strands-the-points.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
@@ -10,15 +10,15 @@
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
 <meta property="og:title" content="Converting a Mesh Over the Air Strands Every Point">
-<meta property="og:description" content="Conversion keeps the uplink parameters and throws away everything else, and Central wants a mesh provisioned over the wire the first time. Put those two sentences together before you convert anything on a pole.">
+<meta property="og:description" content="HPE says the mesh profile survives conversion, and the same doc set says a mesh must be provisioned over the wire the first time. Nobody has reconciled those two sentences, and the one that is wrong is the one that costs you a lift. Plan for the wire.">
 <meta property="og:url" content="https://networkfieldnotes.com/p/mesh-conversion-strands-the-points.html">
 <meta property="og:image" content="https://networkfieldnotes.com/og/mesh-conversion-strands-the-points.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Converting a Mesh Over the Air Strands Every Point">
-<meta name="twitter:description" content="Conversion keeps the uplink parameters and throws away everything else, and Central wants a mesh provisioned over the wire the first time. Put those two sentences together before you convert anything on a pole.">
+<meta name="twitter:description" content="HPE says the mesh profile survives conversion, and the same doc set says a mesh must be provisioned over the wire the first time. Nobody has reconciled those two sentences, and the one that is wrong is the one that costs you a lift. Plan for the wire.">
 <meta name="twitter:image" content="https://networkfieldnotes.com/og/mesh-conversion-strands-the-points.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-13"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Converting a Mesh Over the Air Strands Every Point", "description": "Conversion keeps the uplink parameters and throws away everything else, and Central wants a mesh provisioned over the wire the first time. Put those two sentences together before you convert anything on a pole.", "datePublished": "2026-09-13", "image": "https://networkfieldnotes.com/og/mesh-conversion-strands-the-points.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/mesh-conversion-strands-the-points.html", "keywords": "Wireless, Migration, AOS-10, Mesh"}</script>
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-13"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Converting a Mesh Over the Air Strands Every Point", "description": "HPE says the mesh profile survives conversion, and the same doc set says a mesh must be provisioned over the wire the first time. Nobody has reconciled those two sentences, and the one that is wrong is the one that costs you a lift. Plan for the wire.", "datePublished": "2026-09-13", "image": "https://networkfieldnotes.com/og/mesh-conversion-strands-the-points.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/mesh-conversion-strands-the-points.html", "keywords": "Wireless, Migration, AOS-10, Mesh"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -553,7 +553,7 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
     <header class="post-head g-hero cat-Wireless" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Sep 13, 2026 &#183; 7 min</span></div>
+      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Sep 13, 2026 &#183; 8 min</span></div>
       <h1 class="h-hero">Converting a Mesh Over the Air Strands Every Point</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -619,10 +619,10 @@ html.qam-fs .rig{display:none}
       
       <div class="callout origin"><span class="eyebrow">Where this came from</span>A migrating-mesh-to-Central thread, and the sinking feeling that came with reading the plan</div>
       <div class="prose"><p>Somebody on Reddit was moving a mesh network to Central and laid out the plan. Convert the APs, let them come up in AOS 10, carry on. Reasonable plan, and it would have worked fine if every one of those APs had a cable in it.</p>
-<p>Two facts kill it, and neither of them is hiding. HPE's own migration page says that after an AP converts, Central cleans up any old configuration on it except for the uplink parameters. The Central mesh page says the mesh network must be provisioned for the first time by plugging into the wired network. Read those one after the other and the outcome writes itself: the conversion takes away the thing that lets a mesh point join the network, and the only way to give it back is the one thing a mesh point does not have.</p>
-<h2>What actually gets erased</h2>
-<p>A mesh point does not find its portal by magic. It authenticates to it using the mesh cluster profile it was provisioned with: the cluster name that goes out as the MSSID, the key, the priority. That profile is why a point associates to your portal and not to the one across the car park. It is config, it lives on the AP, and it is not an uplink parameter.</p>
-<p>So when the AP reboots into AOS 10 and Central does its cleanup, the point comes back with an AOS 10 image, its uplink settings, and no idea that your mesh exists. It sits there advertising nothing and joining nothing.</p>
+<p>Two sentences in HPE's own docs decide it, and they do not agree with each other. The migration page says that after an AP converts, Central cleans up any old configuration on it except for the uplink parameters, and its list of what is kept ends with mesh. The Central mesh page says the mesh network must be provisioned for the first time by plugging into the wired network. Read those one after the other and you have a profile that is supposed to survive, on an AP that is supposed to need a cable anyway. One of those sentences is going to be the one that matters on the day, and you do not get to pick which.</p>
+<h2>What the profile is, and what the docs promise</h2>
+<p>A mesh point does not find its portal by magic. It authenticates to it using the mesh cluster profile it was provisioned with: the cluster name that goes out as the MSSID, the key, the priority. That profile is why a point associates to your portal and not to the one across the car park. It is config, and it lives on the AP.</p>
+<p>HPE's migration guide says that profile is kept through conversion, and says why: "the existing mesh profile will be retained on the AP for the purpose of allowing reconnection to a mesh network." Good. Now hold that next to the mesh page, which says a mesh is provisioned the first time over the wire, and ask what a converted point is. It is an AP that has just booted a new operating system into a group it has never seen, carrying a profile from the old one. Whether AOS 10 treats that as a reconnection or a first time is the whole question, and neither page answers it. Until one of them does, the plan that survives being wrong is the one with a cable in it.</p>
 <h2>And the wire is not optional</h2>
 <p>The obvious next thought is fine, Central will push the mesh config down to it. Central will, once it can talk to the AP. It cannot talk to the AP, because the AP's only path to Central was the mesh link that no longer forms.</p>
 <p>That is not a Central limitation you can argue your way around. The doc is direct: the first provisioning happens over the wire. After that the mesh behaves like any other deployment. But the first time is the wire, and a conversion makes every AP a first time again.</p>
@@ -713,14 +713,13 @@ html.qam-fs .rig{display:none}
   <text x="15" y="218" class="t note" fill="#B0C4CF" font-size="12">as a portal. So plugging a mesh point in to "check something" changes its role and costs you a reboot, and unplugging</text>
   <text x="15" y="238" class="t note" fill="#B0C4CF" font-size="12">a portal for five minutes reboots it too.</text>
 </svg><figcaption>Role detection at boot, plus the bit that catches people: a live Ethernet link on a point is a reboot into a portal, not a convenience.</figcaption></figure>
-<p>The running-time version is the one that bites. A point that later sees Ethernet 0 come up runs loop detection, and if the link is real it reboots as a portal. So plugging into a mesh point to have a look at something is not a passive act. Neither is unplugging a portal, which reboots five minutes after it loses its wired uplink.</p>
-<p>Fair warning that the page argues with itself on this one. The Automatic Mesh Role Assignment section says a point that finds Ethernet 0 available reboots as a portal. The running time section, a few paragraphs later, says the AP checks for a loop and, if it does not find one, does not reboot and carries on as a point. Same page, two answers. Plan for the reboot, because that is the assumption that costs you nothing if you are wrong, and put it on the lab list if you need to know for certain.</p>
-<h2>Everything else on that page worth taking with you</h2>
+<p>The running-time version is the one that bites. The page says a point that later sees its Ethernet link come up keeps running loop protection, reboots if it detects a loop, and otherwise stays a mesh point. What it does not say is when a point with a live, loop-free cable ever becomes a portal without a reboot you triggered. So plugging into a mesh point to have a look at something is not a passive act. Neither is unplugging a portal, which reboots five minutes after it loses its wired uplink. Plan for the reboot, because that is the assumption that costs you nothing if you are wrong, and put it on the lab list if you need to know for certain.</p>
+<h2>Everything else in the docs worth taking with you</h2>
 <p>A short list of things that are all documented and all cost somebody a day at some point.</p>
 <p>Reverse conversion is not symmetrical. Forward, you add an AP group to the conversion list and convert the lot at once. Backward, from AOS 10 to AOS 8, it is one AP at a time from that AP's console, and the doc says so plainly. Plan the rollback as a per-device job, not a group job.</p>
-<p>ADP discovery is off in AOS 10, so a converted AP ignores the DHCP and DNS options you have been using to point APs at things. If that was part of your bring-up, it is not part of it any more.</p>
-<p>A mesh point cannot be converted to a Remote AP at all, because mesh does not do VPN. If your plan had a RAP in it somewhere, that is the sentence to find first.</p>
-<p>Eight mesh points per portal is the documented ceiling.</p>
+<p>A converted AP does not do controller discovery at all. ADP, DHCP option 43 and DNS are three different mechanisms and it ignores all three, because an AOS 10 AP gets its provisioning rule from Activate and goes to Central. If option 43 or an aruba-master record was part of your bring-up, it is not part of it any more.</p>
+<p>If you are still on Instant and a RAP is somewhere in the plan, the Instant guide is blunt: a mesh point cannot be converted to a Remote AP, because mesh APs do not support a VPN connection. AOS 10 has no RAP role at all; the equivalent is Microbranch, and that is a different conversation.</p>
+<p>Eight mesh points per portal is the ceiling the Instant mesh doc gives. The AOS 10 mesh page does not state one, which is not the same as there not being one. Treat eight as the number until HPE writes down a different one.</p>
 <p>And if 6 GHz backhaul is in the plan, check the opmode before you commit to the band. The mesh notes say 6 GHz supports only wpa3-sae-aes, and that a cluster configured for wpa2-psk-aes gets switched to SAE on that band. Worth knowing that this text sits inside the AP-615 section rather than the general mesh guidance, so treat it as model specific until you have confirmed it for the hardware in your hand.</p>
 <h2>Checklist before you convert anything with no cable in it</h2>
 <table>
@@ -741,7 +740,7 @@ html.qam-fs .rig{display:none}
 </tr>
 <tr>
 <td>Mesh cluster name and key recorded off the APs first</td>
-<td>The AP's copy does not survive the cleanup</td>
+<td>HPE says the AP's copy is retained; if it is not, you want it on paper, not in a lift bucket</td>
 </tr>
 <tr>
 <td>Group in Central holds the mesh config before the AP arrives</td>
@@ -753,11 +752,11 @@ html.qam-fs .rig{display:none}
 </tr>
 <tr>
 <td>DHCP or DNS option-based discovery removed from the plan</td>
-<td>ADP is disabled in AOS 10</td>
+<td>A converted AP does not do controller discovery; it finds Central through Activate</td>
 </tr>
 <tr>
 <td>Points per portal at eight or fewer</td>
-<td>Documented ceiling</td>
+<td>The ceiling in the Instant mesh doc; the AOS 10 mesh page states no limit, so treat eight as the safe number</td>
 </tr>
 <tr>
 <td>6 GHz backhaul, confirm the opmode for your model</td>

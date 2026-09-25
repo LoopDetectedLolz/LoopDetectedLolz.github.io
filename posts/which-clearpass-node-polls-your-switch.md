@@ -79,12 +79,12 @@ sw-lab-01# clear access-list hitcounts ip CPPM-SNMP-WATCH control-plane vrf defa
 sw-lab-01# show access-list hitcounts ip CPPM-SNMP-WATCH control-plane vrf default
 
 Statistics for ACL CPPM-SNMP-WATCH (ipv4):
-  Control Plane (vrf default):
+  vrf default (control-plane):
 
-           Hit Count  Configuration
-                   0    10 permit udp 10.100.0.51/32 any eq 161 count
-                  48    20 permit udp 10.100.0.52/32 any eq 161 count  <<
-               11207    30 permit any any any count
+     Matched Packets  Configuration
+                   0  10 permit udp 10.100.0.51/32 any eq 161 count
+                  48  20 permit udp 10.100.0.52/32 any eq 161 count  <<
+               11207  30 permit any any any count
 ```
 
 That is the whole answer in one screen. Rule 10 is the publisher and it never fired. The polling came from the subscriber, and an ACL that had named only `10.100.0.51` would have dropped every one of those packets.
@@ -128,7 +128,7 @@ sw-lab-01(config)# exit
 sw-lab-01# show snmpv3 users
 ```
 
-On ClearPass, the matching side is Configuration, Network, Devices, the device, SNMP Read Settings. Set the read setting to SNMP v3 with Authentication using SHA and with Privacy, the privacy protocol to AES_128, and the username to the one you just created. Then tick **Read ARP table from this device**, which is the checkbox that does the work described at the top of this post and is off by default.
+On ClearPass, the matching side is Configuration, Network, Devices, the device, SNMP Read Settings. Set the read setting to SNMP v3 with Authentication using SHA and with Privacy, the privacy protocol to AES-128 (AES-256 is there too, use it if the switch side matches), and the username to the one you just created. Then tick **Read ARP table on this device**, which is the checkbox that does the work described at the top of this post and is off by default.
 
 Three ways this fails quietly, in the order I hit them:
 

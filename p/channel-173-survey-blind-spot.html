@@ -633,7 +633,7 @@ html.qam-fs .rig{display:none}
 <p>The one that got me was a laptop that held a single AP for 49 minutes while its signal decayed from -53 dBm down to -69. Classic sticky client. Except when I went to look at that AP's coverage on the heatmap to see what the client should have roamed to instead, the radio wasn't there. Not weak. Not marginal. Absent.</p>
 <p>The AP had two 5 GHz radios. The second one was on channel 173, and my survey had never scanned it.</p>
 <h2>What U-NII-4 actually is</h2>
-<p>The FCC opened 5.850 to 5.895 GHz for unlicensed use in 2020, which added channels 169, 173 and 177 at the top of the 5 GHz band. It's a small slice, three channels, and it's real spectrum that modern APs will use if you let them.</p>
+<p>The FCC opened 5.850 to 5.895 GHz for unlicensed use in 2020, which added channels 169, 173 and 177 at the top of the 5 GHz band. It's a small slice, three channels, indoor APs only in the US with clients under an indoor AP's control, and it's real spectrum that modern APs will use if you let them.</p>
 <p>The important part for us: it's on by default in some auto-channel pools. Nobody sat down and decided to put a radio on 173. The AP picked it, because it was allowed to, and because up there it's quiet.</p>
 <h2>The blind spot</h2>
 <p>Here's the thing that bugs me. My survey platform's channel list ends at U-NII-3, channel 165. There is no entry for 169, 173 or 177, which means "Select All" doesn't include them, which means you cannot scan them even if you know to try.</p>

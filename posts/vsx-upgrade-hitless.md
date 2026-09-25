@@ -42,7 +42,7 @@ This is the one that explains the weird multi-minute outages.
 
 When a member reboots, the ISL and the keepalive both go down, and the surviving member keeps its VSX LAG links up no matter which role it holds. So far so good, the survivor carries everything. Then the rebooted member comes back, the ISL re-forms, it syncs its MAC and ARP tables from the peer, and **only after a delay timer expires do its VSX LAG links come back up.**
 
-(Don't confuse that with the ISL-only failure, where the keepalive stays up and the secondary deliberately drops its VSX LAGs. That's split-brain protection, and it's a different event from a reboot. The docs walk both cases under "Keepalive resolution and ISL failure scenarios" if you want the full table.)
+(Don't confuse that with the ISL-only failure, where the keepalive stays up and the secondary deliberately drops its VSX LAGs. That's split-brain protection, and it's a different event from a reboot. The docs walk both cases under "Keepalive response in ISL failure scenarios" if you want the full table.)
 
 That timer is `linkup-delay-timer`, it lives in the VSX context, and the default is 180 seconds. Max is 600.
 
@@ -69,11 +69,11 @@ Two management modules is also the prerequisite for ISSU on the 6400, which is a
 
 Run `show images` on both members first so you actually know which bank is live before you start. Takes ten seconds and saves an argument later.
 
-## Doing it from Central is a different set of rules
+## Doing it from the WebUI is a different set of rules
 
-One of the three people asking was working through the whole thing from Central rather than the CLI, and that matters more than it should.
+One of the three people asking was working through the whole thing from the browser rather than the CLI, and that matters more than it should.
 
-On the 8360, the upgrade information for 10.16.1060 carries a source-version restriction of 10.09.1060 or 10.10.1020 and later. Read it closely and that restriction is written for upgrades initiated from the REST API or the WebUI. The page puts no such floor on the CLI path.
+On the 8100 and 8360, the release notes carry a source-version restriction of 10.09.1060 or 10.10.1020 and later, tucked under "Important information" rather than the upgrade section. Read it closely and that restriction is written for upgrades initiated from the REST API or the WebUI. The notes put no such floor on the CLI path, and the 10.16 upgrade information says outright that it does not apply to upgrades done from the CLI or from Central.
 
 I am not going to tell you the CLI is therefore blessed on every platform, because that is the kind of claim these release notes exist to punish. What I will tell you is that the upgrade path you are allowed to take can depend on the tool you use to take it. Check your platform's upgrade section for the method you are actually using, not the method whoever wrote the runbook was using.
 
@@ -85,7 +85,7 @@ Three commands, and they're not optional.
 
 `show vsx status` gives you the ISL channel, config sync status, system MAC, platform and software version per member. Mostly you're using it to confirm both sides agree about what they're running before you change what they're running. `show vsx status linkup-delay` prints the configured timer, whether it's running, time left, and which LAGs are excluded, which is the fastest way to answer the timer question from the last section.
 
-`show lacp interfaces multi-chassis` is the one HPE's own pre-check list calls for and most people skip. It's also the mechanical version of the port-map walk: anything whose members all land on one chassis is an orphan. Note which interfaces are forwarding before you start so you have something to diff against afterward.
+`show lacp interfaces multi-chassis` is the one HPE's own pre-check list calls for and most people skip. It only shows the LAGs configured as multi-chassis, so it confirms which VSX LAGs are forwarding on both sides; it will not find you an orphan on a plain access port, which is why the port-map walk still happens first. Note which interfaces are forwarding before you start so you have something to diff against afterward.
 
 If you've got loop protect turned on, confirm the action is set to TX disable (`show loop-protect`, and `loop-protect action tx-disable` on the VSX interface if it isn't). And save the config. I shouldn't have to say that one.
 
