@@ -1,0 +1,181 @@
+{
+ "id": "nac-06-precedence",
+ "title": "Lab 6: precedence, fallback and CoA",
+ "track": "Zero to NAC",
+ "number": 6,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "interface 1/1/1-1/1/8",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "interface 1/1/5",
+  "vlan access 20",
+  "radius-server host 192.0.2.10 key plaintext cppm-lab-key",
+  "aaa group server radius CLEARPASS",
+  "server 192.0.2.10",
+  "vlan 30",
+  "name VOICE",
+  "vlan 99",
+  "name QUARANTINE",
+  "port-access role EMPLOYEE",
+  "vlan access 10",
+  "port-access role PRINTERS",
+  "vlan access 20",
+  "port-access role VOICE",
+  "vlan access 30",
+  "port-access role QUARANTINE",
+  "vlan access 99",
+  "aaa authentication port-access mac-auth",
+  "radius server-group CLEARPASS",
+  "enable",
+  "aaa authentication port-access dot1x authenticator",
+  "radius server-group CLEARPASS",
+  "enable",
+  "interface 1/1/1-1/1/8",
+  "aaa authentication port-access dot1x authenticator",
+  "enable",
+  "aaa authentication port-access mac-auth",
+  "enable"
+ ],
+ "task": "The phone on 1/1/3 has an expired certificate, so 802.1X rejects it, and there is a PC daisy-chained behind it. Plug both in and watch what the default precedence does with the phone. Then raise the client limit on 1/1/3 to 2 so the PC can authenticate as well. Finally, let ClearPass change a session mid-stream: enable dynamic authorization, then run sim coa laptop role QUARANTINE and check where the laptop landed.",
+ "hints": [
+  "A rejected dot1x attempt is not the end: with mac-auth also enabled the switch tries the next method. show port-access clients detail shows which one won.",
+  "aaa authentication port-access client-limit 2 in the interface context. The default is one client per port.",
+  "radius dyn-authorization enable is global. Without it the switch never listens for CoA and ClearPass gets a NAK."
+ ],
+ "devices": [
+  {
+   "id": "laptop",
+   "name": "Laptop (employee.user)",
+   "kind": "laptop",
+   "port": "1/1/1",
+   "mac": "00:00:5e:00:53:01",
+   "user": "employee.user",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   },
+   "connected": true
+  },
+  {
+   "id": "phone",
+   "name": "Desk phone",
+   "kind": "phone",
+   "port": "1/1/3",
+   "mac": "00:00:5e:00:53:03",
+   "lldp": {
+    "sys": "SEP00005E005303",
+    "port": "port1",
+    "caps": "B,T"
+   },
+   "auth": {
+    "dot1x": {
+     "accept": false,
+     "why": "expired certificate"
+    },
+    "mac-auth": {
+     "accept": true,
+     "role": "VOICE"
+    }
+   },
+   "user": "SEP00005E005303"
+  },
+  {
+   "id": "pc-behind-phone",
+   "name": "PC daisy-chained behind the phone",
+   "kind": "laptop",
+   "port": "1/1/3",
+   "mac": "00:00:5e:00:53:33",
+   "user": "employee.user",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   }
+  },
+  {
+   "id": "printer",
+   "name": "Printer (HP LaserJet)",
+   "kind": "printer",
+   "port": "1/1/5",
+   "mac": "00:00:5e:00:53:05",
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "PRINTERS"
+    }
+   },
+   "lldp": {
+    "sys": "NPI53A005",
+    "port": "eth0",
+    "caps": "S"
+   }
+  }
+ ],
+ "checks": [
+  {
+   "desc": "Phone authenticated by mac-auth into VOICE",
+   "client": {
+    "dev": "phone",
+    "status": "Success",
+    "method": "mac-auth",
+    "role": "VOICE"
+   }
+  },
+  {
+   "desc": "PC behind the phone authenticated into EMPLOYEE",
+   "client": {
+    "dev": "pc-behind-phone",
+    "status": "Success",
+    "role": "EMPLOYEE"
+   }
+  },
+  {
+   "desc": "Client limit on 1/1/3 is 2",
+   "config": {
+    "context": "interface 1/1/3",
+    "has": "^aaa authentication port-access client-limit 2$"
+   }
+  },
+  {
+   "desc": "Dynamic authorization enabled",
+   "config": {
+    "has": "^radius dyn-authorization enable$"
+   }
+  },
+  {
+   "desc": "Laptop moved to QUARANTINE by CoA",
+   "client": {
+    "dev": "laptop",
+    "status": "Success",
+    "role": "QUARANTINE",
+    "vlan": 99
+   }
+  }
+ ]
+}

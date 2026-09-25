@@ -1,0 +1,275 @@
+<!-- CX Sandbox: the terminal, devices strip and task panel around theme/cxsim/engine.js.
+     build-blog.py inlines the engine and this file once on any page that carries a
+     {{cxsim}} directive; each directive is a <div class="cxsim widget"> with its lesson JSON
+     inside. Kit tokens only, no external loads, works offline. -->
+<style>
+.cxsim{--cx-accent:var(--blue);--cx-accent-soft:rgba(47,168,224,0.16);padding:0;overflow:hidden;min-width:0;max-width:100%}
+body.acad .cxsim{--cx-accent:var(--orange);--cx-accent-soft:rgba(245,165,36,0.16)}
+.cx-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding:var(--s4) var(--s5) var(--s3);border-bottom:1px solid var(--line)}
+.cx-head .eyebrow{color:var(--cx-accent)}
+.cx-head b{font-size:17px;letter-spacing:-0.01em}
+.cx-head .meta{margin-left:auto}
+.cx-body{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:0}
+.cx-side{border-left:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+.cx-term{position:relative;min-width:0;background:rgba(3,10,16,0.72);font:13px/1.5 var(--mono);color:var(--text);min-height:380px;max-height:520px;display:flex;flex-direction:column;cursor:text}
+.cx-out{flex:1;margin:0;padding:var(--s3) var(--s4) 0;overflow:auto;white-space:pre;font:inherit;color:inherit;background:none;border:0;border-radius:0;overscroll-behavior:contain}
+.cx-out .pr{color:var(--green);font-weight:500}
+body.acad .cx-out .pr{color:#ffd28a}
+.cx-out .err{color:var(--orange)}
+.cx-out .help{color:var(--text-dim)}
+.cx-out .sys{color:var(--teal)}
+.cx-line{display:flex;align-items:center;gap:0;padding:4px var(--s4) var(--s3)}
+.cx-line .pr{color:var(--green);font-weight:500;white-space:pre}
+body.acad .cx-line .pr{color:#ffd28a}
+.cx-in{flex:1;min-width:0;font:inherit;color:inherit;background:none;border:0;outline:0;padding:0;margin:0;caret-color:var(--cx-accent);-webkit-appearance:none;border-radius:0}
+.cx-keys{display:none;gap:6px;padding:0 var(--s3) var(--s3);flex-wrap:wrap}
+.cx-keys button{font:12px var(--mono);color:var(--text-dim);background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:8px;min-height:38px;padding:0 12px;cursor:pointer}
+.cx-keys button:active{background:var(--cx-accent-soft)}
+@media (pointer:coarse){.cx-keys{display:flex}}
+.cx-panel{padding:var(--s3) var(--s4);border-bottom:1px solid var(--line)}
+.cx-panel:last-child{border-bottom:0}
+.cx-panel .eyebrow{display:block;margin-bottom:6px;color:var(--cx-accent)}
+.cx-task{font-size:13.5px;line-height:1.55;color:var(--text-dim);margin:0 0 var(--s2)}
+.cx-task code{font:12px var(--mono);color:var(--text);background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:5px}
+.cx-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:var(--s2)}
+.cx-btn{font:600 12.5px var(--sans);color:var(--text);background:rgba(255,255,255,0.07);border:1px solid var(--line);border-radius:var(--r-pill);min-height:36px;padding:0 14px;cursor:pointer;transition:background .2s var(--ease),transform .2s var(--ease)}
+.cx-btn:hover{background:rgba(255,255,255,0.12)}
+.cx-btn:active{transform:scale(0.98)}
+.cx-btn.acc{color:var(--ink);background:var(--cx-accent);border-color:transparent}
+.cx-btn.acc:hover{background:var(--cx-accent);filter:brightness(1.08)}
+.cx-checks{list-style:none;margin:var(--s2) 0 0;padding:0;font-size:13px}
+.cx-checks li{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-top:1px solid var(--line);color:var(--text-dim);line-height:1.4}
+.cx-checks li:first-child{border-top:0}
+.cx-checks i{flex:none;width:18px;height:18px;border-radius:50%;border:1px solid var(--line);margin-top:1px;position:relative}
+.cx-checks li.ok{color:var(--text)}
+.cx-checks li.ok i{background:var(--green);border-color:var(--green)}
+.cx-checks li.ok i::after{content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;border:solid var(--ink);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.cx-checks small{display:block;color:var(--text-muted);font-size:12px}
+.cx-score{font-size:13px;color:var(--text-dim);margin-top:var(--s2)}
+.cx-score b{color:var(--green)}
+.cx-hint{font-size:13px;color:var(--text-dim);margin:var(--s2) 0 0;padding:8px 10px;border-left:3px solid var(--cx-accent);background:var(--cx-accent-soft);border-radius:0 8px 8px 0;line-height:1.5}
+.cx-devs{list-style:none;margin:0;padding:0}
+.cx-devs li{display:grid;grid-template-columns:10px 1fr auto;gap:8px 10px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:13px}
+.cx-devs li:first-child{border-top:0}
+.cx-devs .dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.14);border:1px solid var(--line)}
+.cx-devs li.on .dot{background:var(--green);border-color:var(--green);box-shadow:0 0 8px rgba(140,224,94,0.5)}
+.cx-devs li.fail .dot{background:var(--orange);border-color:var(--orange)}
+.cx-devs li.warn .dot{background:var(--teal);border-color:var(--teal)}
+.cx-devs .nm{color:var(--text);line-height:1.3;min-width:0}
+.cx-devs .nm small{display:block;color:var(--text-muted);font:11.5px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cx-devs button{font:600 12px var(--sans);color:var(--text);background:rgba(255,255,255,0.07);border:1px solid var(--line);border-radius:var(--r-pill);min-height:34px;padding:0 11px;cursor:pointer;white-space:nowrap}
+.cx-devs button:hover{background:rgba(255,255,255,0.12)}
+.cx-foot{display:flex;flex-wrap:wrap;gap:6px 14px;padding:var(--s2) var(--s5);border-top:1px solid var(--line);font-size:12px;color:var(--text-muted)}
+.cx-foot span{white-space:nowrap}
+.sb-picker{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s4)}
+.sb-picker .pill{cursor:pointer;font:600 13px var(--sans);background:rgba(255,255,255,0.04);border-color:var(--line);color:var(--text-dim)}
+.sb-picker .pill.on{background:var(--cx-accent-soft,rgba(47,168,224,0.16));border-color:var(--blue);border-bottom-color:var(--blue);color:var(--text);box-shadow:none}
+.sb-lab .cxsim{margin-top:0}
+@media (max-width:760px){
+  .cx-body{grid-template-columns:minmax(0,1fr)}
+  .cx-side{border-left:0;border-top:1px solid var(--line)}
+  .cx-term{min-height:300px;max-height:60vh;font-size:12.5px}
+  .cx-head .meta{margin-left:0}
+}
+</style>
+<script>
+(function () {
+  if (typeof CXSim === "undefined") return;
+  var roots = document.querySelectorAll(".cxsim[data-lesson]");
+  if (!roots.length) return;
+  var MAXLINES = 1500;
+
+  // ── anonymous usage events ──────────────────────────────────────────────
+  // The build fills __SBAPI__ from SANDBOX_API; empty means nothing is ever sent.
+  // Only rejected commands travel; what worked stays in the browser.
+  var API = "__SBAPI__", queue = [], timer = null, sid = "";
+  try { sid = localStorage.getItem("cxsim:sid") || ""; if (!/^[a-z0-9-]{8,40}$/.test(sid)) { sid = "s-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem("cxsim:sid", sid); } } catch (e) { sid = "s-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
+  function flush() {
+    timer = null; if (!API || !/^https?:/.test(API) || !queue.length) { queue = []; return; }
+    var body = JSON.stringify({ sid: sid, page: location.pathname, events: queue.splice(0, 50) });
+    try {
+      if (navigator.sendBeacon && document.visibilityState === "hidden") navigator.sendBeacon(API + "/v1/sandbox/events", new Blob([body], { type: "application/json" }));
+      else fetch(API + "/v1/sandbox/events", { method: "POST", headers: { "content-type": "application/json" }, body: body, keepalive: true }).catch(function () {});
+    } catch (e) {}
+    if (queue.length) timer = setTimeout(flush, 500);
+  }
+  function track(lesson, ev, extra) {
+    if (!API) return;
+    var e = { lesson: lesson, ev: ev }; if (extra) for (var k in extra) e[k] = extra[k];
+    queue.push(e); if (queue.length >= 20) flush(); else if (!timer) timer = setTimeout(flush, 4000);
+  }
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") flush(); });
+  window.addEventListener("pagehide", flush);
+  window.addEventListener("error", function (ev) { var first = roots[0] && roots[0].getAttribute("data-lesson") || "page"; track(first, "jserror", { err: "message", cmd: String(ev.message || "").slice(0, 150) + (ev.lineno ? " @" + ev.lineno : "") }); });
+  function errKind(out) {
+    if (!out) return "";
+    if (/^Invalid input/.test(out)) return "invalid";
+    if (/^Ambiguous/.test(out)) return "ambiguous";
+    if (/^Incomplete/.test(out)) return "incomplete";
+    if (/^This command is not used/.test(out)) return "scope";
+    if (/^Error:/.test(out)) return "crash";
+    if (/does not exist|is not defined|is not configured|cannot be|Use `|first\.$|is a LAG member|Port-access needs|Remove port-access|is reserved|Unknown member|must be/.test(out)) return "refused";
+    return "";
+  }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function store(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function load(k) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+  function inlineCode(text) {
+    // `code` in task text becomes <code>; nothing else is interpreted
+    var frag = document.createDocumentFragment(), parts = String(text).split(/`([^`]+)`/g);
+    parts.forEach(function (p, i) { if (!p) return; if (i % 2) frag.appendChild(el("code", "", p)); else frag.appendChild(document.createTextNode(p)); });
+    return frag;
+  }
+
+  Array.prototype.forEach.call(roots, function (root, idx) {
+    var json = root.querySelector('script[type="application/json"]');
+    var lesson = {}; try { lesson = JSON.parse(json ? json.textContent : "{}"); } catch (e) { lesson = {}; }
+    if (!lesson.id) lesson.id = root.getAttribute("data-lesson") || ("sandbox-" + idx);
+    var skey = "cxsim:" + location.pathname + ":" + lesson.id;
+    var saved = load(skey), sim, history = [], hi = 0, hintN = 0;
+    function boot(fromSaved) { sim = CXSim.create(lesson, fromSaved && saved && saved.sim ? saved.sim : null); }
+    boot(true);
+
+    // ── build ────────────────────────────────────────────────────────────
+    root.innerHTML = "";
+    var head = el("div", "cx-head");
+    head.appendChild(el("span", "eyebrow", "CX Sandbox"));
+    head.appendChild(el("b", "", lesson.title || "Try it on a modelled switch"));
+    if (lesson.track) head.appendChild(el("span", "meta", lesson.track + (lesson.number ? " · lab " + lesson.number : "")));
+    root.appendChild(head);
+
+    var body = el("div", "cx-body"), term = el("div", "cx-term"), out = el("pre", "cx-out"), line = el("div", "cx-line");
+    var pr = el("span", "pr", sim.prompt()), inp = el("input", "cx-in");
+    inp.setAttribute("type", "text"); inp.setAttribute("autocomplete", "off"); inp.setAttribute("autocapitalize", "off"); inp.setAttribute("spellcheck", "false"); inp.setAttribute("aria-label", "Switch command line");
+    inp.setAttribute("enterkeyhint", "send");
+    line.appendChild(pr); line.appendChild(inp);
+    var keys = el("div", "cx-keys");
+    [["Tab", "tab"], ["?", "help"], ["↑", "up"], ["↓", "down"], ["Ctrl-C", "cancel"], ["Clear", "clear"]].forEach(function (k) {
+      var b = el("button", "", k[0]); b.type = "button"; b.setAttribute("aria-label", k[0] === "↑" ? "Previous command" : (k[0] === "↓" ? "Next command" : k[0]));
+      b.addEventListener("click", function (ev) { ev.preventDefault(); key(k[1]); inp.focus(); });
+      keys.appendChild(b);
+    });
+    term.appendChild(out); term.appendChild(line); term.appendChild(keys);
+    body.appendChild(term);
+
+    var side = el("div", "cx-side");
+    var task = el("div", "cx-panel"); task.appendChild(el("span", "eyebrow", lesson.checks && lesson.checks.length ? "The task" : "Free play"));
+    var taskP = el("p", "cx-task"); taskP.appendChild(inlineCode(lesson.task || "Type ? to see what the switch accepts here, and sim help for the sandbox's own commands."));
+    task.appendChild(taskP);
+    var btns = el("div", "cx-btns"), checkBtn, hintBtn, resetBtn = el("button", "cx-btn", "Reset lab");
+    resetBtn.type = "button";
+    if (lesson.checks && lesson.checks.length) { checkBtn = el("button", "cx-btn acc", "Check my work"); checkBtn.type = "button"; btns.appendChild(checkBtn); }
+    if (lesson.hints && lesson.hints.length) { hintBtn = el("button", "cx-btn", "Hint"); hintBtn.type = "button"; btns.appendChild(hintBtn); }
+    btns.appendChild(resetBtn); task.appendChild(btns);
+    var hintBox = el("div", ""), checks = el("ul", "cx-checks"), score = el("div", "cx-score");
+    task.appendChild(hintBox); task.appendChild(checks); task.appendChild(score);
+    side.appendChild(task);
+
+    var devPanel = el("div", "cx-panel"), devList = el("ul", "cx-devs");
+    if (lesson.devices && lesson.devices.length) { devPanel.appendChild(el("span", "eyebrow", "Devices on the bench")); devPanel.appendChild(devList); side.appendChild(devPanel); }
+    body.appendChild(side);
+    root.appendChild(body);
+
+    var foot = el("div", "cx-foot");
+    foot.appendChild(el("span", "", "Modelled switch, not the real one."));
+    foot.appendChild(el("span", "", "? for help, Tab to complete, Ctrl-C to cancel a line."));
+    foot.appendChild(el("span", "", API ? "Progress stays in this browser; anonymous counts of errors and passes are sent so the labs can be fixed where people get stuck." : "Progress stays in this browser."));
+    root.appendChild(foot);
+
+    // ── terminal ─────────────────────────────────────────────────────────
+    function write(text, cls) {
+      if (text == null || text === "") return;
+      var span = el("span", cls || "", text + "\n"); out.appendChild(span);
+      while (out.childNodes.length > MAXLINES) out.removeChild(out.firstChild);
+      out.scrollTop = out.scrollHeight;
+    }
+    function echo(cmd) { var s = el("span"); s.appendChild(el("span", "pr", pr.textContent)); s.appendChild(document.createTextNode(cmd + "\n")); out.appendChild(s); out.scrollTop = out.scrollHeight; }
+    function classify(text) { return /^(Invalid input|Ambiguous|Incomplete command|Error:|Interface .* does not exist|VLAN .* does not exist|.* is not defined|.* does not exist)/.test(text) ? "err" : ""; }
+    function persist() {
+      var lines = [], n = 0; for (var i = out.childNodes.length - 1; i >= 0 && n < 200; i--, n++) lines.unshift({ t: out.childNodes[i].textContent, c: out.childNodes[i].className || "" });
+      store(skey, { sim: sim.save(), lines: lines, history: history.slice(-50), hintN: hintN });
+    }
+    function refreshPrompt() { pr.textContent = sim.prompt(); }
+    function exec(cmd) {
+      echo(cmd);
+      if (cmd.trim()) { history.push(cmd); hi = history.length; }
+      var r;
+      try { r = sim.exec(cmd); } catch (e) { r = { out: "Error: " + (e.message || e), prompt: sim.prompt() }; }
+      if (r.out === "__RESET__") { reset(); return; }
+      var kind = errKind(r.out);
+      if (kind) track(lesson.id, "err", { cmd: cmd.trim().slice(0, 150), err: kind });
+      if (/^sim connect /.test(cmd.trim())) track(lesson.id, "connect", { cmd: cmd.trim().split(/\s+/)[2] || "" });
+      write(r.out, /^sim /.test(cmd.trim()) ? "sys" : classify(r.out));
+      refreshPrompt(); renderDevices(); if (checks.childNodes.length) renderChecks(); persist();
+    }
+    function reset() {
+      track(lesson.id, "reset"); store(skey, null); saved = null; boot(false); out.innerHTML = ""; history = []; hi = 0; hintN = 0; hintBox.innerHTML = ""; checks.innerHTML = ""; score.textContent = "";
+      write("Lab reset. " + (lesson.startConfig ? "The starting configuration is back." : "The switch is back to its factory state."), "sys");
+      refreshPrompt(); renderDevices(); persist();
+    }
+    function key(which) {
+      var v = inp.value;
+      if (which === "tab") { var c = sim.complete(v); inp.value = c.line; if (c.options.length) { echo(v); write(c.options.join("  "), "help"); } }
+      else if (which === "help") { echo(v + "?"); write(sim.help(v), "help"); }
+      else if (which === "up") { if (hi > 0) { hi--; inp.value = history[hi] || ""; } }
+      else if (which === "down") { if (hi < history.length) { hi++; inp.value = history[hi] || ""; } }
+      else if (which === "cancel") { echo(v + "^C"); inp.value = ""; }
+      else if (which === "clear") { out.innerHTML = ""; }
+      setTimeout(function () { inp.setSelectionRange(inp.value.length, inp.value.length); }, 0);
+    }
+    inp.addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter") { ev.preventDefault(); var v = inp.value; inp.value = ""; exec(v); }
+      else if (ev.key === "Tab") { ev.preventDefault(); key("tab"); }
+      else if (ev.key === "?" ) { ev.preventDefault(); key("help"); }
+      else if (ev.key === "ArrowUp") { ev.preventDefault(); key("up"); }
+      else if (ev.key === "ArrowDown") { ev.preventDefault(); key("down"); }
+      else if (ev.key === "c" && ev.ctrlKey) { ev.preventDefault(); key("cancel"); }
+      else if (ev.key === "l" && ev.ctrlKey) { ev.preventDefault(); key("clear"); }
+      else if (ev.key === "a" && ev.ctrlKey) { ev.preventDefault(); inp.setSelectionRange(0, 0); }
+      else if (ev.key === "e" && ev.ctrlKey) { ev.preventDefault(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+    });
+    inp.addEventListener("input", function () { if (inp.value.slice(-1) === "?") { inp.value = inp.value.slice(0, -1); key("help"); } });
+    term.addEventListener("mousedown", function (ev) { if (ev.target === inp) return; if (window.getSelection && String(window.getSelection())) return; setTimeout(function () { if (!String(window.getSelection && window.getSelection())) inp.focus(); }, 0); });
+
+    // ── devices ──────────────────────────────────────────────────────────
+    function renderDevices() {
+      if (!lesson.devices || !lesson.devices.length) return;
+      devList.innerHTML = "";
+      sim.devices().forEach(function (d) {
+        var li = el("li"), dot = el("i", "dot"), nm = el("div", "nm"), btn = el("button", "", d.connected ? "Unplug" : "Plug in");
+        btn.type = "button";
+        var state = "";
+        if (d.connected) {
+          if (d.errdisabled) { li.className = "fail"; state = "port error-disabled"; }
+          else if (!d.linkUp) { li.className = "warn"; state = "port down"; }
+          else if (d.auth) { if (d.auth.status === "Success") { li.className = "on"; state = d.auth.method + " ok, " + (d.auth.role || "no role") + ", VLAN " + d.auth.vlan; } else if (d.auth.status === "Open") { li.className = "warn"; state = "no NAC, VLAN " + d.auth.vlan; } else { li.className = "fail"; state = d.auth.method + " failed"; } }
+          else { li.className = "on"; state = "link up"; }
+        } else state = "unplugged";
+        nm.appendChild(document.createTextNode(d.name));
+        nm.appendChild(el("small", "", d.port + " · " + state));
+        btn.addEventListener("click", function () { exec("sim " + (d.connected ? "disconnect " : "connect ") + d.id); });
+        li.appendChild(dot); li.appendChild(nm); li.appendChild(btn); devList.appendChild(li);
+      });
+    }
+
+    // ── checks and hints ─────────────────────────────────────────────────
+    function renderChecks(fromButton) {
+      var res = sim.check(), n = res.filter(function (r) { return r.pass; }).length;
+      if (fromButton) { track(lesson.id, "check", { n: n, total: res.length }); if (n === res.length && res.length) track(lesson.id, "done", { n: n, total: res.length }); }
+      checks.innerHTML = "";
+      res.forEach(function (r) { var li = el("li", r.pass ? "ok" : ""); li.appendChild(el("i")); var d = el("div"); d.appendChild(document.createTextNode(r.desc)); if (!r.pass && r.why) d.appendChild(el("small", "", r.why)); li.appendChild(d); checks.appendChild(li); });
+      score.innerHTML = ""; var b = el("b", "", n + " of " + res.length); score.appendChild(b); score.appendChild(document.createTextNode(n === res.length ? " passed. Lab done." : " passed."));
+    }
+    if (checkBtn) checkBtn.addEventListener("click", function () { renderChecks(true); persist(); });
+    if (hintBtn) hintBtn.addEventListener("click", function () { track(lesson.id, "hint", { n: hintN + 1 }); var h = lesson.hints[hintN % lesson.hints.length]; hintN++; hintBox.innerHTML = ""; var d = el("div", "cx-hint"); d.appendChild(inlineCode(h)); hintBox.appendChild(d); hintBtn.textContent = hintN < lesson.hints.length ? "Next hint" : "Hint"; persist(); });
+    resetBtn.addEventListener("click", reset);
+
+    // ── restore ──────────────────────────────────────────────────────────
+    if (saved && saved.lines) { saved.lines.forEach(function (l) { var s = el("span", l.c, l.t); out.appendChild(s); }); history = saved.history || []; hi = history.length; hintN = saved.hintN || 0; if (hintN && hintBtn && lesson.hints.length) { var d = el("div", "cx-hint"); d.appendChild(inlineCode(lesson.hints[(hintN - 1) % lesson.hints.length])); hintBox.appendChild(d); } out.scrollTop = out.scrollHeight; write("(picked up where you left off)", "sys"); }
+    else { write((lesson.hostname || "switch") + " (modelled " + (CXSim.MODELS[lesson.model || "6200F-12"] || {}).name + ", " + CXSim.VERSION + ")", "sys"); write("Type ? for what is available here. sim help explains the sandbox commands.", "sys"); }
+    refreshPrompt(); renderDevices();
+    track(lesson.id, "start", { n: saved ? 1 : 0 });
+    root._cxsim = { sim: sim, exec: exec, reset: reset };
+  });
+})();
+</script>

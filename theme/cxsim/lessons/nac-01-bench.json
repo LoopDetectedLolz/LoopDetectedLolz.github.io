@@ -1,0 +1,117 @@
+{
+ "id": "nac-01-bench",
+ "title": "Lab 1: the bench",
+ "track": "Zero to NAC",
+ "number": 1,
+ "model": "6200F-12",
+ "hostname": "switch",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "task": "Before any authentication, the switch needs a name, the VLANs the roles will land in, and a way to reach ClearPass. Name it access-01. Make VLAN 10 STAFF and VLAN 20 PRINTERS. Put 1/1/1 to 1/1/8 in VLAN 10 as access ports, then move 1/1/5 to VLAN 20. Add the RADIUS server 192.0.2.10 with the shared secret cppm-lab-key, put it in a server group called CLEARPASS, and save with write memory.",
+ "hints": [
+  "hostname, vlan, name, interface, vlan access, radius-server host, aaa group server radius, server, write memory. ? after any of them shows what comes next.",
+  "A range is one interface line: interface 1/1/1-1/1/8.",
+  "The server has to exist (radius-server host) before a group can list it (server 192.0.2.10 inside the group)."
+ ],
+ "devices": [
+  {
+   "id": "printer",
+   "name": "Printer (HP LaserJet)",
+   "kind": "printer",
+   "port": "1/1/5",
+   "mac": "00:00:5e:00:53:05",
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "PRINTERS"
+    }
+   },
+   "lldp": {
+    "sys": "NPI53A005",
+    "port": "eth0",
+    "caps": "S"
+   }
+  },
+  {
+   "id": "laptop",
+   "name": "Laptop (employee.user)",
+   "kind": "laptop",
+   "port": "1/1/1",
+   "mac": "00:00:5e:00:53:01",
+   "user": "employee.user",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   }
+  }
+ ],
+ "checks": [
+  {
+   "desc": "Hostname is access-01",
+   "hostname": "access-01"
+  },
+  {
+   "desc": "VLAN 10 is STAFF",
+   "vlan": {
+    "id": 10,
+    "name": "STAFF"
+   }
+  },
+  {
+   "desc": "VLAN 20 is PRINTERS",
+   "vlan": {
+    "id": 20,
+    "name": "PRINTERS"
+   }
+  },
+  {
+   "desc": "1/1/1 is an access port in VLAN 10",
+   "config": {
+    "context": "interface 1/1/1",
+    "has": "^vlan access 10$"
+   }
+  },
+  {
+   "desc": "1/1/8 is an access port in VLAN 10",
+   "config": {
+    "context": "interface 1/1/8",
+    "has": "^vlan access 10$"
+   }
+  },
+  {
+   "desc": "1/1/5 is in VLAN 20",
+   "config": {
+    "context": "interface 1/1/5",
+    "has": "^vlan access 20$"
+   }
+  },
+  {
+   "desc": "RADIUS server 192.0.2.10 configured with a key",
+   "config": {
+    "has": "^radius-server host 192\\.0\\.2\\.10 key"
+   }
+  },
+  {
+   "desc": "Server group CLEARPASS holds 192.0.2.10",
+   "config": {
+    "context": "aaa group server radius CLEARPASS",
+    "has": "^server 192\\.0\\.2\\.10$"
+   }
+  },
+  {
+   "desc": "Saved to startup-config",
+   "saved": true
+  }
+ ]
+}

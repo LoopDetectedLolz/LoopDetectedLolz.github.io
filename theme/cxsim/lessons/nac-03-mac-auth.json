@@ -1,0 +1,114 @@
+{
+ "id": "nac-03-mac-auth",
+ "title": "Lab 3: MAC authentication",
+ "track": "Zero to NAC",
+ "number": 3,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "interface 1/1/1-1/1/8",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "interface 1/1/5",
+  "vlan access 20",
+  "radius-server host 192.0.2.10 key plaintext cppm-lab-kye",
+  "aaa group server radius CLEARPASS",
+  "server 192.0.2.10"
+ ],
+ "task": "The printer has no supplicant, so its MAC address is its identity. ClearPass already knows it and will answer with the role PRINTERS. Turn on MAC authentication globally using the CLEARPASS group, enable it on 1/1/5, define a port-access role PRINTERS that lands in VLAN 20, then plug the printer in and read show port-access clients. Something on the bench is not quite right; show port-access clients detail will tell you what.",
+ "hints": [
+  "Global: aaa authentication port-access mac-auth, then radius server-group CLEARPASS and enable inside it. Per port: the same command inside interface 1/1/5, then enable.",
+  "A role returned by ClearPass has to exist on the switch or the client fails: port-access role PRINTERS, vlan access 20.",
+  "If every server times out, look at show radius-server. A shared secret that is one letter off looks exactly like a dead server."
+ ],
+ "devices": [
+  {
+   "id": "printer",
+   "name": "Printer (HP LaserJet)",
+   "kind": "printer",
+   "port": "1/1/5",
+   "mac": "00:00:5e:00:53:05",
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "PRINTERS"
+    }
+   },
+   "lldp": {
+    "sys": "NPI53A005",
+    "port": "eth0",
+    "caps": "S"
+   }
+  },
+  {
+   "id": "laptop",
+   "name": "Laptop (employee.user)",
+   "kind": "laptop",
+   "port": "1/1/1",
+   "mac": "00:00:5e:00:53:01",
+   "user": "employee.user",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   }
+  }
+ ],
+ "checks": [
+  {
+   "desc": "MAC auth enabled globally",
+   "config": {
+    "context": "aaa authentication port-access mac-auth",
+    "has": "^enable$"
+   }
+  },
+  {
+   "desc": "MAC auth uses the CLEARPASS group",
+   "config": {
+    "context": "aaa authentication port-access mac-auth",
+    "has": "^radius server-group CLEARPASS$"
+   }
+  },
+  {
+   "desc": "MAC auth enabled on 1/1/5",
+   "config": {
+    "context": "interface 1/1/5",
+    "has": "^aaa authentication port-access mac-auth$"
+   }
+  },
+  {
+   "desc": "Role PRINTERS lands in VLAN 20",
+   "config": {
+    "context": "port-access role PRINTERS",
+    "has": "^vlan access 20$"
+   }
+  },
+  {
+   "desc": "The printer authenticated into PRINTERS on VLAN 20",
+   "client": {
+    "dev": "printer",
+    "status": "Success",
+    "role": "PRINTERS",
+    "vlan": 20
+   }
+  }
+ ]
+}

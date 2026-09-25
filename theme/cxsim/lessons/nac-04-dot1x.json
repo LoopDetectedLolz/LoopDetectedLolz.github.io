@@ -1,0 +1,147 @@
+{
+ "id": "nac-04-dot1x",
+ "title": "Lab 4: 802.1X",
+ "track": "Zero to NAC",
+ "number": 4,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "interface 1/1/1-1/1/8",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "interface 1/1/5",
+  "vlan access 20",
+  "radius-server host 192.0.2.10 key plaintext cppm-lab-key",
+  "aaa group server radius CLEARPASS",
+  "server 192.0.2.10",
+  "aaa authentication port-access mac-auth",
+  "radius server-group CLEARPASS",
+  "enable",
+  "port-access role PRINTERS",
+  "vlan access 20",
+  "interface 1/1/5",
+  "aaa authentication port-access mac-auth",
+  "enable"
+ ],
+ "task": "Two laptops. employee.user has a valid account; the contractor has the wrong password. Enable 802.1X globally against CLEARPASS and on 1/1/1 and 1/1/2, define a role EMPLOYEE in VLAN 10, plug both in, and confirm one succeeds and the other fails for the right reason.",
+ "hints": [
+  "aaa authentication port-access dot1x authenticator, globally and per interface, with enable inside each.",
+  "The role name ClearPass returns is EMPLOYEE, spelled exactly like that.",
+  "show port-access clients detail shows the reason next to a failed client."
+ ],
+ "devices": [
+  {
+   "id": "laptop",
+   "name": "Laptop (employee.user)",
+   "kind": "laptop",
+   "port": "1/1/1",
+   "mac": "00:00:5e:00:53:01",
+   "user": "employee.user",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   }
+  },
+  {
+   "id": "contractor",
+   "name": "Laptop (contractor, wrong password)",
+   "kind": "laptop",
+   "port": "1/1/2",
+   "mac": "00:00:5e:00:53:02",
+   "user": "j.contractor",
+   "auth": {
+    "dot1x": {
+     "accept": false,
+     "why": "bad password"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   }
+  },
+  {
+   "id": "printer",
+   "name": "Printer (HP LaserJet)",
+   "kind": "printer",
+   "port": "1/1/5",
+   "mac": "00:00:5e:00:53:05",
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "PRINTERS"
+    }
+   },
+   "lldp": {
+    "sys": "NPI53A005",
+    "port": "eth0",
+    "caps": "S"
+   }
+  }
+ ],
+ "checks": [
+  {
+   "desc": "802.1X enabled globally",
+   "config": {
+    "context": "aaa authentication port-access dot1x authenticator",
+    "has": "^enable$"
+   }
+  },
+  {
+   "desc": "802.1X uses the CLEARPASS group",
+   "config": {
+    "context": "aaa authentication port-access dot1x authenticator",
+    "has": "^radius server-group CLEARPASS$"
+   }
+  },
+  {
+   "desc": "802.1X enabled on 1/1/1",
+   "config": {
+    "context": "interface 1/1/1",
+    "has": "^aaa authentication port-access dot1x authenticator$"
+   }
+  },
+  {
+   "desc": "802.1X enabled on 1/1/2",
+   "config": {
+    "context": "interface 1/1/2",
+    "has": "^aaa authentication port-access dot1x authenticator$"
+   }
+  },
+  {
+   "desc": "employee.user authenticated into EMPLOYEE",
+   "client": {
+    "dev": "laptop",
+    "status": "Success",
+    "role": "EMPLOYEE",
+    "method": "dot1x"
+   }
+  },
+  {
+   "desc": "The contractor failed",
+   "client": {
+    "dev": "contractor",
+    "status": "Failed"
+   }
+  }
+ ]
+}
