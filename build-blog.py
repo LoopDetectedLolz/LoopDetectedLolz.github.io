@@ -495,7 +495,7 @@ sb += f'''
 <section class="sim-intro">
   <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
   <h1 class="h-hero">A switch you can type on</h1>
-  <p class="lede">A modelled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes follow the CX CLI, the wording is mine, and anything the lab did not need is not in it.</p>
+  <p class="lede">A modelled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes were checked line by line against AOS-CX 10.18.1002 running on my own bench on September 25, 2026, the wording where it differs is mine, and anything the lab did not need is not in it.</p>
 </section>
 <nav class="sb-picker" aria-label="Labs">{sb_pills}</nav>
 {sb_labs}

@@ -62,6 +62,7 @@
     if (saved) this.load(saved);
     else if (this.lesson.startConfig) this.apply(this.lesson.startConfig);
     this.startup = this.runningConfig();    // what the lesson booted with is the startup config
+    this.startupKeys = this.runningConfig(true);
     this.dirtyMark = this.runningConfig();
     this.stack = [{ ctx: "exec" }];
     this.history = [];
@@ -130,20 +131,35 @@
   Switch.prototype.lagMembers = function (id) { var self = this; return this.portNames().filter(function (p) { return self.ifaces[p].lag === +id; }); };
 
   // ── running config ──────────────────────────────────────────────────────
+  // Shape checked against AOS-CX Virtual.10.18.1002 on 2026-09-25: block order, the built-in
+  // `radius` group, the mgmt interface, the bang separators. showKeys renders the parser-readable
+  // form (real secrets, no cosmetic lines) that save/load and rollback feed back in.
   Switch.prototype.runningConfig = function (showKeys) {
     var self = this, o = [];
-    o.push("Current configuration:", "!", "!Version " + this.version, "!export-password: default", "hostname " + this.hostname);
-    o.push("user admin group administrators password ciphertext <hidden>");
-    Object.keys(this.vlans).map(Number).sort(function (a, b) { return a - b; }).forEach(function (v) {
+    o.push("Current configuration:", "!", "!Version AOS-CX " + this.version, "!export-password: default", "hostname " + this.hostname);
+    o.push("user admin group administrators password ciphertext <hidden>", "!", "!", "!", "!");
+    this.radius.forEach(function (r) { o.push("radius-server host " + r.host + (r.key ? (showKeys ? " key plaintext " + r.key : " key ciphertext <hidden>") : "") + (r.vrf ? " vrf " + r.vrf : "")); });
+    o.push("!", "!");
+    Object.keys(this.groups).forEach(function (g) {
+      o.push("aaa group server radius " + g);
+      self.groups[g].servers.forEach(function (sv, i) { o.push("    server " + sv + (showKeys ? "" : " priority " + (i + 1))); });
+      o.push("!");
+    });
+    if (this.radius.length && !showKeys) { o.push("aaa group server radius radius"); this.radius.forEach(function (r, i) { o.push("    server " + r.host + " priority " + (i + 1)); }); o.push("!"); }
+    if (this.pa.dynAuth) o.push("radius dyn-authorization enable");
+    if (!showKeys) o.push("ssh server vrf mgmt");
+    Object.keys(this.vlans).map(Number).sort(function (x, y) { return x - y; }).forEach(function (v) {
       o.push("vlan " + v);
       if (self.vlans[v].name && !(v === 1 && self.vlans[v].name === "DEFAULT_VLAN_1")) o.push("    name " + self.vlans[v].name);
       if (self.vlans[v].desc) o.push("    description " + self.vlans[v].desc);
     });
-    if (this.pa.macAuth || this.pa.dot1x || this.radius.length) o.push("radius dyn-authorization " + (this.pa.dynAuth ? "enable" : "disable"));
-    this.radius.forEach(function (r) { o.push("radius-server host " + r.host + (r.key ? (showKeys ? " key plaintext " + r.key : " key ciphertext <hidden>") : "") + (r.vrf ? " vrf " + r.vrf : "")); });
-    Object.keys(this.groups).forEach(function (g) {
-      o.push("aaa group server radius " + g);
-      self.groups[g].servers.forEach(function (s) { o.push("    server " + s); });
+    if (this.stp.enable) { o.push("spanning-tree"); if (this.stp.mode !== "mstp") o.push("spanning-tree mode " + this.stp.mode); if (this.stp.priority !== 8) o.push("spanning-tree priority " + this.stp.priority); }
+    if (!showKeys) o.push("interface mgmt", "    no shutdown", "    ip dhcp");
+    Object.keys(this.pa.roles).forEach(function (r) {
+      var role = self.pa.roles[r];
+      o.push("port-access role " + r);
+      if (role.desc) o.push("    description " + role.desc);
+      if (role.vlan) o.push("    vlan access " + role.vlan);
     });
     if (this.pa.dot1x || this.pa.dot1xGroup) {
       o.push("aaa authentication port-access dot1x authenticator");
@@ -155,38 +171,31 @@
       if (this.pa.macAuthGroup) o.push("    radius server-group " + this.pa.macAuthGroup);
       if (this.pa.macAuth) o.push("    enable");
     }
-    Object.keys(this.pa.roles).forEach(function (r) {
-      var role = self.pa.roles[r];
-      o.push("port-access role " + r);
-      if (role.desc) o.push("    description " + role.desc);
-      if (role.vlan) o.push("    vlan access " + role.vlan);
-    });
     Object.keys(this.vsf.members).forEach(function (m) {
       var mm = self.vsf.members[m];
       o.push("vsf member " + m, "    type " + (mm.type || self.model.pn).toLowerCase());
-      Object.keys(mm.links || {}).forEach(function (l) { mm.links[l].forEach(function (p) { o.push("    link " + l + " " + p); }); });
+      Object.keys(mm.links || {}).forEach(function (l) { mm.links[l].forEach(function (pp) { o.push("    link " + l + " " + pp); }); });
     });
-    if (this.stp.enable) { o.push("spanning-tree"); if (this.stp.mode !== "mstp") o.push("spanning-tree mode " + this.stp.mode); if (this.stp.priority !== 8) o.push("spanning-tree priority " + this.stp.priority); }
-    Object.keys(this.lags).map(Number).sort(function (a, b) { return a - b; }).forEach(function (id) {
+    Object.keys(this.lags).map(Number).sort(function (x, y) { return x - y; }).forEach(function (id) {
       var l = self.lags[id];
       o.push("interface lag " + id);
       if (l.desc) o.push("    description " + l.desc);
-      o.push(l.shutdown ? "    shutdown" : "    no shutdown");
+      if (l.shutdown) o.push("    shutdown");
       o.push("    no routing");
-      self.l2Lines(l, o);
+      self.l2Lines(l, o, true);
       if (l.lacp !== "off") o.push("    lacp mode " + l.lacp);
     });
     this.portNames().forEach(function (n) {
-      var i = self.ifaces[n], hasCfg;
+      var i = self.ifaces[n];
       o.push("interface " + n);
       if (i.desc) o.push("    description " + i.desc);
-      o.push(i.shutdown ? "    shutdown" : "    no shutdown");
       if (i.lag) { o.push("    lag " + i.lag); return; }
+      o.push(i.shutdown ? "    shutdown" : "    no shutdown");
       if (i.routing) { if (i.ip) o.push("    ip address " + i.ip); if (i.ospf) o.push("    ip ospf " + i.ospf.proc + " area " + i.ospf.area); return; }
       o.push("    no routing");
       self.l2Lines(i, o);
-      if (i.adminEdge) o.push("    spanning-tree port-type admin-edge");
       if (i.bpduGuard) o.push("    spanning-tree bpdu-guard");
+      if (i.adminEdge) o.push("    spanning-tree port-type admin-edge");
       if (i.loopProtect) o.push("    loop-protect");
       if (i.clientLimit) o.push("    aaa authentication port-access client-limit " + i.clientLimit);
       if (i.critRole) o.push("    aaa authentication port-access critical-role " + i.critRole);
@@ -195,29 +204,30 @@
       if (i.macAuth) o.push("    aaa authentication port-access mac-auth", "        enable");
       if (i.precedence) o.push("    aaa authentication port-access auth-precedence " + i.precedence.join(" "));
     });
-    Object.keys(this.svis).map(Number).sort(function (a, b) { return a - b; }).forEach(function (v) {
-      var s = self.svis[v];
+    Object.keys(this.svis).map(Number).sort(function (x, y) { return x - y; }).forEach(function (v) {
+      var sv = self.svis[v];
       o.push("interface vlan " + v);
-      if (s.desc) o.push("    description " + s.desc);
-      if (s.shutdown) o.push("    shutdown");
-      if (s.ip) o.push("    ip address " + s.ip);
-      if (s.ospf) o.push("    ip ospf " + s.ospf.proc + " area " + s.ospf.area);
+      if (sv.desc) o.push("    description " + sv.desc);
+      if (sv.shutdown) o.push("    shutdown");
+      if (sv.ip) o.push("    ip address " + sv.ip);
+      if (sv.ospf) o.push("    ip ospf " + sv.ospf.proc + " area " + sv.ospf.area);
     });
     this.routes.forEach(function (r) { o.push("ip route " + r.prefix + "/" + r.len + " " + r.nh); });
-    Object.keys(this.ospf).forEach(function (p) {
-      var pr = self.ospf[p];
-      o.push("router ospf " + p);
-      if (pr.routerId) o.push("    router-id " + pr.routerId);
-      Object.keys(pr.areas).forEach(function (a) { o.push("    area " + a); });
-      pr.passive.forEach(function (i) { o.push("    passive-interface " + i); });
+    if (!showKeys) o.push("!", "!", "!", "!", "!");
+    Object.keys(this.ospf).forEach(function (pr) {
+      var proc = self.ospf[pr];
+      o.push("router ospf " + pr);
+      if (proc.routerId) o.push("    router-id " + proc.routerId);
+      Object.keys(proc.areas).forEach(function (ar) { o.push("    area " + ar); });
+      proc.passive.forEach(function (i) { o.push("    passive-interface " + i); });
     });
     o.push("https-server vrf mgmt");
     return o.join("\n");
   };
-  Switch.prototype.l2Lines = function (i, o) {
+  Switch.prototype.l2Lines = function (i, o, isLag) {
     if (i.mode === "access") o.push("    vlan access " + i.access);
     else {
-      if (i.native !== 1 || i.nativeTag) o.push("    vlan trunk native " + i.native + (i.nativeTag ? " tag" : ""));
+      if (i.native !== 1 || i.nativeTag || isLag) o.push("    vlan trunk native " + i.native + (i.nativeTag ? " tag" : ""));
       o.push("    vlan trunk allowed " + (i.trunk ? i.trunk.slice().sort(function (a, b) { return a - b; }).join(",") : "all"));
     }
   };
@@ -229,6 +239,7 @@
       if (on) { if (/^\S/.test(l)) break; out.push(l); }
       else if (l === header) { on = true; out.push(l); }
     }
+    if (on && /^interface /.test(header)) out.push("    exit");
     return on ? out : null;
   };
 
@@ -245,7 +256,7 @@
   Switch.prototype.configLines = function () {
     return this.runningConfig(true).split("\n").filter(function (l) {
       return l && l[0] !== "!" && !/^Current configuration|^user admin|^https-server/.test(l);
-    }).map(function (l) { return l.trim(); });
+    }).map(function (l) { return l.trim(); });   // showKeys=true output carries no cosmetic lines
   };
 
   Switch.prototype.save = function () {
@@ -384,19 +395,22 @@
     });
     for (var ai = 0; ai < toks.length; ai++) {
       var set = Object.keys(lits[ai] || {});
-      if (set.length > 1 && set.indexOf(toks[ai].toLowerCase()) < 0) return { out: "Ambiguous input: " + toks[ai], prompt: this.prompt() };
+      if (set.length > 1 && set.indexOf(toks[ai].toLowerCase()) < 0) return { out: "% Ambiguous command.", prompt: this.prompt() };
     }
     if (!full.length) {
       if (!partial && outsideScope(toks)) return { out: "This command is not used in this scenario. (It exists on the real switch; the sandbox does not model it.)", prompt: this.prompt() };
-      out = partial ? "Incomplete command." : "Invalid input: " + toks[toks.length - 1];
-      return { out: out, prompt: this.prompt() };
+      if (partial) return { out: "% Command incomplete.", prompt: this.prompt() };
+      // the box names the first token it could not place, not the last one typed
+      var depth = 0;
+      this.candidates().forEach(function (c) { for (var k = 1; k <= toks.length; k++) { var m2 = matchPattern(c.cmd.p, toks.slice(0, k)); if (m2.state === "no") break; depth = Math.max(depth, k); } });
+      return { out: "Invalid input: " + toks[Math.min(depth, toks.length - 1)], prompt: this.prompt() };
     }
     // prefer the nearest context, then the most exact literal matches
     full.sort(function (a, b) { return (b.c.level - a.c.level) || (b.m.exact - a.m.exact); });
     if (full.length > 1 && full[0].c.level === full[1].c.level && full[0].m.exact === full[1].m.exact && full[0].c.cmd !== full[1].c.cmd
         && full[0].c.cmd.p.join(" ") !== full[1].c.cmd.p.join(" ")) {
       // two different commands tie: ambiguous unless one is the exact spelling
-      return { out: "Ambiguous command: " + toks.join(" "), prompt: this.prompt() };
+      return { out: "% Ambiguous command.", prompt: this.prompt() };
     }
     var pick = full[0];
     if (pick.c.level >= 0 && pick.c.level < this.stack.length - 1) this.stack = this.stack.slice(0, pick.c.level + 1);
@@ -453,8 +467,8 @@
     });
     if (!rows.length) return "Invalid input: " + (partialTok || toks[toks.length - 1] || "");
     rows.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
-    var w = Math.max.apply(null, rows.map(function (r) { return r[0].length; })) + 2;
-    return rows.map(function (r) { return "  " + pad(r[0], w) + r[1]; }).join("\n");
+    var w = Math.max(22, Math.max.apply(null, rows.map(function (r) { return r[0].length; })) + 2);
+    return rows.map(function (r) { return "  " + pad(r[0], w) + r[1] + " "; }).join("\n");
   };
 
   // Tab completion: returns {line, options}
@@ -500,13 +514,13 @@
   cmd("*", "end", function () { this.stack = [this.stack[0]]; });
   cmd("*", "configure terminal", function () { if (this.ctx().ctx !== "exec") return ""; this.push({ ctx: "config" }); });
   cmd("*", "configure", function () { if (this.ctx().ctx !== "exec") return ""; this.push({ ctx: "config" }); });
-  cmd("*", "write memory", function () { this.startup = this.runningConfig(); return "Copying configuration: [Success]"; });
-  cmd("*", "copy running-config startup-config", function () { this.startup = this.runningConfig(); return "Copying configuration: [Success]"; });
-  cmd("*", "copy running-config checkpoint <WORD>", function (a) { this.checkpoints = this.checkpoints.filter(function (c) { return c.name !== a[3]; }); this.checkpoints.push({ name: a[3], config: this.runningConfig(), at: this.now() }); return "Copying configuration: [Success]"; });
+  cmd("*", "write memory", function () { this.startup = this.runningConfig(); this.startupKeys = this.runningConfig(true); return "Copying configuration: [Success]"; });
+  cmd("*", "copy running-config startup-config", function () { this.startup = this.runningConfig(); this.startupKeys = this.runningConfig(true); return "Copying configuration: [Success]"; });
+  cmd("*", "copy running-config checkpoint <WORD>", function (a) { this.checkpoints = this.checkpoints.filter(function (c) { return c.name !== a[3]; }); this.checkpoints.push({ name: a[3], config: this.runningConfig(true), at: this.now() }); return "Copying configuration: [Success]"; });
   cmd("*", "checkpoint rollback <WORD>", function (a) {
-    var cfg = a[2] === "startup-config" ? this.startup : (this.checkpoints.filter(function (c) { return c.name === a[2]; })[0] || {}).config;
+    var cfg = a[2] === "startup-config" ? (this.startupKeys || this.startup) : (this.checkpoints.filter(function (c) { return c.name === a[2]; })[0] || {}).config;
     if (!cfg) return "Checkpoint " + a[2] + " does not exist.";
-    var lines = cfg.split("\n").filter(function (l) { return l && l[0] !== "!" && !/^Current configuration|^user admin|^https-server/.test(l); }).map(function (l) { return l.trim(); });
+    var lines = cfg.split("\n").filter(function (l) { return l && l[0] !== "!" && !/^Current configuration|^user admin|^https-server|^ssh server|^interface mgmt|^    ip dhcp|^aaa group server radius radius$/.test(l); }).map(function (l) { return l.trim().replace(/ priority \d+$/, ""); });
     var devs = this.devices; this.reset(); this.devices = devs; this.apply(lines); this.reauthAll();
     this.stack = [{ ctx: "exec" }];
     return "Configuration restored from " + a[2] + ".";
@@ -907,7 +921,7 @@
   Switch.prototype.ping = function (ip, n) {
     var r = this.reachable(ip), out = ["PING " + ip + " (" + ip + ") 100(128) bytes of data."], i;
     if (r.ok) { for (i = 0; i < n; i++) out.push("108 bytes from " + ip + ": icmp_seq=" + (i + 1) + " ttl=64 time=" + (r.how === "local" ? "0.04" : (0.3 + (i % 3) * 0.1).toFixed(2)) + " ms"); out.push("", "--- " + ip + " ping statistics ---", n + " packets transmitted, " + n + " received, 0% packet loss, time " + (n * 1000 - 990) + "ms"); }
-    else { for (i = 0; i < n; i++) out.push(/unreachable/i.test(r.why) ? "From " + ip + " icmp_seq=" + (i + 1) + " " + r.why : ""); out = out.filter(Boolean); out.push("", "--- " + ip + " ping statistics ---", n + " packets transmitted, 0 received, 100% packet loss, time " + (n * 1000) + "ms", "(" + r.why + ")"); }
+    else { out.push("", "--- " + ip + " ping statistics ---", n + " packets transmitted, 0 received, 100% packet loss, time " + (n * 1000 + 46) + "ms", "(sandbox: " + r.why + ")"); }
     return out.join("\n");
   };
 
@@ -921,8 +935,6 @@
   cmd("*", "show running-config interface <PORT>", function (a) { var s = this.configSection("interface " + a[3]); return s ? s.join("\n") : "Interface " + a[3] + " does not exist on this switch."; });
   cmd("*", "show running-config interface lag <1-256>", function (a) { var s = this.configSection("interface lag " + a[4]); return s ? s.join("\n") : "LAG " + a[4] + " does not exist."; });
   cmd("*", "show running-config interface vlan <1-4094>", function (a) { var s = this.configSection("interface vlan " + a[4]); return s ? s.join("\n") : "Interface vlan " + a[4] + " does not exist."; });
-  cmd("*", "show running-config vlan", function () { return this.runningConfig().split("\n").filter(function (l, i, arr) { return /^vlan \d+/.test(l) || (/^    /.test(l) && /^vlan /.test(lastHeader(arr, i))); }).join("\n"); });
-  function lastHeader(arr, i) { while (i >= 0 && /^    /.test(arr[i])) i--; return arr[i] || ""; }
   cmd("*", "show startup-config", function () { return this.startup; });
   cmd("*", "show version", function () {
     return ["-----------------------------------------------------------------------------", "CX Sandbox (a model of an AOS-CX switch, not HPE software)", "-----------------------------------------------------------------------------",
@@ -931,9 +943,16 @@
   });
   cmd("*", "show system", function () {
     var up = Math.floor((this.now() - this.boot) / 1000);
-    return ["Hostname            : " + this.hostname, "System Description  : " + this.version, "System Contact      : ", "System Location     : ", "Vendor              : Aruba", "Product Name        : " + this.model.pn + " " + this.model.name,
-      "Chassis Serial Nbr  : SG00000000", "Base MAC Address    : 00005e-005300", "ArubaOS-CX Version  : " + this.version, "Time Zone           : UTC", "", "Up Time             : " + uptime(up), "CPU Util (%)        : 3", "Memory Usage (%)    : 31"].join("\n");
+    return ["Hostname               : " + this.hostname, "System Description     : " + this.version + " (modelled)", "System Contact         : ", "System Location        : ", "Vendor                 : (CX Sandbox model)", "Product Name           : " + this.model.pn + " " + this.model.name,
+      "Chassis Serial Nbr     : SG00000000", "Base MAC Address       : 00005e-005300", "AOS-CX Version         : " + this.version + " (modelled)", "Time Zone              : UTC", "Up Time                : " + uptime(up), "CPU Util (%)           : 3", "CPU Util (% avg 1 min) : 3", "CPU Util (% avg 5 min) : 3", "Memory Usage (%)       : 31", "CPU Idle (%)           : 97"].join("\n");
   });
+  function collapsePorts(list) {
+    // "1/1/1-1/1/4,lag1" the way the box prints member lists
+    var phys = list.filter(function (p) { return !/^lag/.test(p); }).sort(function (a, b) { return portKey(a) - portKey(b); }), out = [], i = 0;
+    while (i < phys.length) { var j = i; while (j + 1 < phys.length && portKey(phys[j + 1]) === portKey(phys[j]) + 1) j++; out.push(j > i ? phys[i] + "-" + phys[j] : phys[i]); i = j + 1; }
+    return out.concat(list.filter(function (p) { return /^lag/.test(p); })).join(",");
+  }
+  var VLAN_RULE = pad("", 114).replace(/ /g, "-");
   cmd("*", "show vlan", function () { return this.showVlan(null); });
   cmd("*", "show vlan <1-4094>", function (a) { if (!this.vlans[+a[2]]) return "VLAN " + a[2] + " does not exist."; return this.showVlan(+a[2]); });
   Switch.prototype.vlanPorts = function (v) {
@@ -947,18 +966,24 @@
     Object.keys(this.vlans).map(Number).sort(function (a, b) { return a - b; }).forEach(function (v) {
       if (only && v !== only) return;
       var ports = self.vlanPorts(v), up = ports.some(function (p) { return /^lag/.test(p) ? self.lagUp(p.slice(3)).up : self.linkUp(p); });
-      rows.push([v, self.vlans[v].name, up ? "up" : "down", up ? "ok" : "no_member_port_up", "static", ports.join(",") || ""]);
+      rows.push(pad(v, 6) + pad(self.vlans[v].name, 34) + pad(up ? "up" : "down", 8) + pad(up ? "ok" : "no_member_forwarding", 24) + pad(v === 1 ? "default" : "static", 12) + collapsePorts(ports));
     });
-    return table(["VLAN", "Name", "Status", "Reason", "Type", "Interfaces"], rows);
+    return ["", VLAN_RULE, pad("VLAN", 6) + pad("Name", 34) + pad("Status", 8) + pad("Reason", 24) + pad("Type", 12) + "Interfaces", VLAN_RULE].concat(rows).join("\n");
   };
+  var BRIEF_RULE = pad("", 104).replace(/ /g, "-");
+  function briefRow(port, native, mode, type, enabled, status, reason, speed, desc) {
+    return pad(port, 15) + pad(native, 8) + pad(mode, 7) + pad(type, 15) + pad(enabled, 8) + pad(status, 8) + pad(reason, 24) + pad(speed, 8) + desc;
+  }
   cmd("*", "show interface brief", function () {
     var self = this, rows = [];
     this.portNames().forEach(function (n) {
-      var i = self.ifaces[n], up = self.linkUp(n), lnk = self.errdisabled[n] ? "down" : (up ? "up" : "down");
-      var reason = self.errdisabled[n] ? "Error-disabled" : (i.shutdown ? "Administratively down" : (up ? "" : "Waiting for link"));
-      rows.push([n, i.routing ? "" : (i.mode === "trunk" ? "trunk" : String(i.access)), i.routing ? "routed" : "access", i.type, i.lag ? "lag" + i.lag : (i.desc || ""), lnk, reason, up ? (i.copper ? "1000" : "10000") : "--"]);
+      var i = self.ifaces[n], up = self.linkUp(n);
+      var reason = self.errdisabled[n] ? "Error-disabled" : (i.shutdown ? "Administratively down" : (up ? "" : (i.copper ? "Waiting for link" : "No XCVR installed")));
+      rows.push(briefRow(n, i.routing || i.lag ? (i.lag ? self.lags[i.lag].native : "--") : (i.mode === "trunk" ? String(i.native) : String(i.access)), i.routing ? "routed" : (i.lag ? (self.lags[i.lag].mode) : i.mode), "--", i.shutdown ? "no" : "yes", up ? "up" : "down", reason, up ? (i.copper ? "1000" : "10000") : "--", i.desc || "--"));
     });
-    return table(["Port", "Native VLAN", "Mode", "Type", "Description", "Status", "Reason", "Speed"], rows);
+    Object.keys(this.svis).forEach(function (v) { rows.push(briefRow("vlan" + v, "--", "--", "--", self.svis[v].shutdown ? "no" : "yes", self.sviUp(+v) && !self.svis[v].shutdown ? "up" : "down", "", "--", "--")); });
+    Object.keys(this.lags).forEach(function (l) { var lg = self.lags[l], lu = self.lagUp(l); rows.push(briefRow("lag" + l, String(lg.mode === "trunk" ? lg.native : lg.access), lg.mode, "--", lg.shutdown ? "no" : "yes", lu.up ? "up" : "down", lu.up ? "" : "--", lu.up ? String(lu.active.length * 1000) : "auto", lg.desc || "--")); });
+    return [BRIEF_RULE, pad("Port", 15) + pad("Native", 8) + pad("Mode", 7) + pad("Type", 15) + pad("Enabled", 8) + pad("Status", 8) + pad("Reason", 24) + pad("Speed", 8) + "Description", pad("", 15) + pad("VLAN", 62) + pad("(Mb/s)", 8), BRIEF_RULE].concat(rows).join("\n") + "\n";
   });
   cmd("*", "show interface <PORT>", function (a) {
     var i = this.ifaces[a[2]]; if (!i) return "Interface " + a[2] + " does not exist on this switch.";
@@ -992,9 +1017,14 @@
     });
     return rows;
   };
-  cmd("*", "show mac-address-table", function () { var rows = this.macRows(); return "MAC age-time            : 300 seconds\nNumber of MAC addresses : " + rows.length + "\n\n" + table(["MAC Address", "VLAN", "Port", "Type"], rows); });
-  cmd("*", "show mac-address-table vlan <1-4094>", function (a) { var rows = this.macRows().filter(function (r) { return r[1] === +a[3]; }); return "Number of MAC addresses : " + rows.length + "\n\n" + table(["MAC Address", "VLAN", "Port", "Type"], rows); });
-  cmd("*", "show mac-address-table interface <PORT>", function (a) { var rows = this.macRows().filter(function (r) { return r[2] === a[3]; }); return "Number of MAC addresses : " + rows.length + "\n\n" + table(["MAC Address", "VLAN", "Port", "Type"], rows); });
+  function macTable(rows, last) {
+    var out = ["MAC age-time            : 300 seconds", "Number of MAC addresses : " + rows.length, "", pad("MAC Address", 21) + pad("VLAN", 9) + pad("Type", 26) + last, pad("", last === "Port" ? 62 : 67).replace(/ /g, "-")];
+    rows.forEach(function (r) { out.push(pad(r[0], 21) + pad(r[1], 9) + pad(r[3], 26) + r[2]); });
+    return out.join("\n");
+  }
+  cmd("*", "show mac-address-table", function () { return macTable(this.macRows(), "Port"); });
+  cmd("*", "show mac-address-table vlan <1-4094>", function (a) { return macTable(this.macRows().filter(function (r) { return r[1] === +a[3]; }), "Port"); });
+  cmd("*", "show mac-address-table interface <PORT>", function (a) { return macTable(this.macRows().filter(function (r) { return r[2] === a[3]; }), "Interface"); });
   cmd("*", "show lldp neighbor-info", function () { return this.showLldp(null); });
   cmd("*", "show lldp neighbor-info <PORT>", function (a) { return this.showLldp(a[3]); });
   Switch.prototype.showLldp = function (only) {
@@ -1004,46 +1034,61 @@
       (d.ports || [d.port]).forEach(function (p, k) {
         if (only && p !== only) return; if (!self.linkUp(p)) return;
         var rp = Array.isArray(d.lldp.port) ? d.lldp.port[k] : d.lldp.port;
-        rows.push([p, d.lldp.chassis || macCx(d.mac), rp || "", d.lldp.sys || d.name, (d.lldp.caps || "")]);
+        rows.push({ port: p, chassis: d.lldp.chassis || macCx(d.mac), pid: rp || "", sys: d.lldp.sys || d.name, caps: d.lldp.caps || "", dev: d });
       });
     });
-    if (only && !rows.length) return "No LLDP neighbour on " + only + ".";
-    return "LLDP Neighbor Information\n=========================\n\nTotal Neighbor Entries          : " + rows.length + "\n\n" + table(["LOCAL-PORT", "CHASSIS-ID", "PORT-ID", "SYS-NAME", "CAPABILITIES"], rows);
+    if (only) {
+      if (!rows.length) return ["Port                           : " + only, "Neighbor Entries               : 0", "Neighbor Entries Deleted       : 0", "Neighbor Entries Dropped       : 0", "Neighbor Entries Aged-Out      : 0"].join("\n");
+      var r = rows[0], capName = { B: "Bridge", R: "Router", T: "Telephone", S: "Station", W: "WLAN Access Point" };
+      var caps = r.caps.split(",").map(function (c) { return capName[c.trim()] || c.trim(); }).filter(Boolean).join(", ");
+      return ["Port                           : " + only, "Neighbor Entries               : 1", "Neighbor Entries Deleted       : 0", "Neighbor Entries Dropped       : 0", "Neighbor Entries Aged-Out      : 0",
+        "Neighbor System-Name           : " + r.sys, "Neighbor System-Description    : " + (r.dev.lldp.desc || ""), "Neighbor Chassis-ID            : " + r.chassis, "Neighbor Management-Address    : " + (r.dev.ip || ""),
+        "Chassis Capabilities Available : " + caps, "Chassis Capabilities Enabled   : " + caps, "Neighbor Port-ID               : " + r.pid, "Neighbor Port-Desc             : " + r.pid, "Neighbor Port VLAN ID          : " + (r.dev.vlan || 1), "TTL                            : 120"].join("\n");
+    }
+    var out = ["", "LLDP Neighbor Information ", "=========================", "", "Total Neighbor Entries          : " + rows.length, "Total Neighbor Entries Deleted  : 0", "Total Neighbor Entries Dropped  : 0", "Total Neighbor Entries Aged-Out : 0", "",
+      pad("LOCAL-PORT", 12) + pad("CHASSIS-ID", 19) + pad("PORT-ID", 29) + pad("PORT-DESC", 29) + pad("TTL", 9) + "SYS-NAME    ", pad("", 107).replace(/ /g, "-")];
+    rows.forEach(function (r) { out.push(pad(r.port, 12) + pad(r.chassis, 19) + pad(r.pid, 29) + pad(r.pid, 29) + pad("120", 9) + r.sys); });
+    return out.join("\n");
   };
   cmd("*", "show lacp aggregates", function () {
     var self = this, o = [];
     Object.keys(this.lags).forEach(function (id) {
-      var l = self.lags[id], lu = self.lagUp(id), mem = self.lagMembers(id);
-      o.push("Aggregate name       : lag" + id, "Interfaces           : " + mem.join(" "), "Heartbeat rate       : Slow", "Aggregated interfaces: " + lu.active.join(" "), "Mode                 : " + l.lacp, "Hash                 : l3-src-dst", "Aggregate mode       : " + (lu.up ? "up" : "down"), "");
+      var l = self.lags[id], mem = self.lagMembers(id);
+      o.push("", "Aggregate name   : lag" + id, "Interfaces       : " + mem.join(" "), "Heartbeat rate   : Slow", "Hash             : l3-src-dst", "Aggregate mode   : " + (l.lacp === "off" ? "Off" : l.lacp.charAt(0).toUpperCase() + l.lacp.slice(1)));
     });
     return o.length ? o.join("\n") : "No LAGs configured.";
   });
   cmd("*", "show lacp interfaces", function () {
-    var self = this, rows = [];
+    var self = this, actor = [], partner = [];
     Object.keys(this.lags).forEach(function (id) {
       var l = self.lags[id], lu = self.lagUp(id);
-      self.lagMembers(id).forEach(function (p) {
-        var active = lu.active.indexOf(p) >= 0, d = self.devsOn(p)[0];
-        var partnerOk = d && d.kind === "switch" && d.lacp && (d.lacp.lag === "any" || (d.lacp.ports || []).indexOf(p) >= 0);
-        rows.push([p, "lag" + id, l.lacp === "off" ? "static" : (active ? "ALFNCD" : (self.linkUp(p) ? (partnerOk ? "ALFOEX" : "ALFOEX") : "ALFOEX")), l.lacp === "off" ? "" : (active ? (d.lacp.sysid || "00:00:5e:00:53:ff") : (self.linkUp(p) && !partnerOk ? "no LACP partner" : "")), active ? "Up" : "Down"]);
+      self.lagMembers(id).forEach(function (p, k) {
+        var active = lu.active.indexOf(p) >= 0, d = self.devsOn(p)[0], up = self.linkUp(p);
+        var st = l.lacp === "off" ? "" : ((l.lacp === "active" ? "A" : "P") + "LF" + (active ? "NCD" : "OEX"));
+        actor.push(pad(p, 11) + pad("lag" + id, 11) + pad(up ? String(portKey(p) % 1000) : "", 6) + pad(up ? "1" : "", 6) + pad(st, 8) + pad(up ? "00:00:5e:00:53:00" : "", 18) + pad(up ? "65534" : "", 7) + pad(up ? id : "", 5) + (active ? "up" : "down"));
+        partner.push(pad(p, 11) + pad("lag" + id, 11) + pad(active ? String(k + 1) : "", 6) + pad(active ? "1" : "", 6) + pad(active ? st : "", 8) + pad(active && d && d.lacp ? (d.lacp.sysid || "") : "", 18) + pad(active ? "65534" : "", 7) + (active ? String(id) : ""));
       });
     });
-    return "State abbreviations :\nA - Active        P - Passive      F - Aggregable I - Individual\nS - Short-timeout L - Long-timeout N - InSync     O - OutofSync\nC - Collecting    D - Distributing X - State m/c expired  E - Default neighbor state\n\n" + table(["Intf", "Aggr", "State", "Partner", "Status"], rows);
+    var rule = pad("", 82).replace(/ /g, "-");
+    return ["", "State abbreviations :", "A - Active        P - Passive      F - Aggregable I - Individual", "S - Short-timeout L - Long-timeout N - InSync     O - OutofSync", "C - Collecting    D - Distributing ", "X - State m/c expired              E - Default neighbor state", "", "IE - LACP Fallback mode is active", "",
+      "Actor details of all interfaces:", rule, "Intf       Aggr       Port  Port  State   System-ID         System Aggr Forwarding", "           Name       Id    Pri                             Pri    Key  State     ", rule].concat(actor).concat(["", "", "Partner details of all interfaces:", rule, "Intf       Aggr       Port  Port  State   System-ID         System Aggr           ", "           Name       Id    Pri                             Pri    Key            ", rule]).concat(partner).join("\n");
   });
-  cmd("*", "show spanning-tree", function () { return this.showStp(false); });
-  cmd("*", "show spanning-tree summary", function () { return this.showStp(true); });
-  Switch.prototype.showStp = function (summary) {
+  cmd("*", "show spanning-tree", function () { return this.showStp(); });
+  Switch.prototype.showStp = function () {
     var self = this;
-    if (!this.stp.enable) return "Spanning tree is disabled. Enable it with `spanning-tree` in the config context.";
+    if (!this.stp.enable) return "Spanning-tree is disabled";
     var rootDev = (this.lesson.devices || []).filter(function (d) { return d.kind === "switch" && d.stpRoot && self.devices[d.id] && self.devices[d.id].connected && (d.ports || [d.port]).some(function (p) { return self.linkUp(p) && !self.errdisabled[p]; }); })[0];
-    var o = ["Spanning tree status : Enabled   Protocol: " + (this.stp.mode === "mstp" ? "MSTP" : "RPVST"), ""];
-    if (this.stp.mode === "mstp") o.push("MST0", "  Spanning tree status : Enabled", "  Root ID    Priority   : " + (rootDev ? (rootDev.stpPriority || 4096) : this.stp.priority * 4096), "             MAC-Address: " + (rootDev ? macCx(rootDev.mac) : "00:00:5e:00:53:00"), "             " + (rootDev ? "Root port: " + (rootDev.ports || [rootDev.port])[0] : "This bridge is the root"), "  Bridge ID  Priority   : " + this.stp.priority * 4096, "             MAC-Address: 00:00:5e:00:53:00", "");
-    else o.push("  Root ID    Priority   : " + (rootDev ? (rootDev.stpPriority || 4096) : this.stp.priority * 4096), "             " + (rootDev ? "Root port: " + (rootDev.ports || [rootDev.port])[0] : "This bridge is the root"), "");
-    if (summary) return o.join("\n");
+    var rootPort = rootDev ? (function () { var ps = (rootDev.ports || [rootDev.port]).filter(function (p) { return self.linkUp(p); }); var lg = ps.length && self.ifaces[ps[0]].lag; return lg ? "lag" + lg : ps[0]; })() : "";
+    var myMac = "00:00:5e:00:53:00";
+    var o = ["Spanning tree status      : Enabled Protocol: " + (this.stp.mode === "mstp" ? "MSTP" : "RPVST"), "", "MST0",
+      "  Root ID    Priority   : " + (rootDev ? (rootDev.stpPriority || 4096) : this.stp.priority * 4096) + "               ", "             MAC-Address: " + (rootDev ? macCx(rootDev.mac) : myMac) + "   ",
+      rootDev ? "             Root Port: " + rootPort : "             This bridge is the root", "             Hello time(in seconds):2  Max Age(in seconds):20", "             Forward Delay(in seconds):15", "",
+      "  Bridge ID  Priority  : " + this.stp.priority * 4096 + "               ", "             MAC-Address: " + myMac + "   ", "             Hello time(in seconds):2  Max Age(in seconds):20", "             Forward Delay(in seconds):15", "",
+      "Port         Role           State      Cost           Priority   Type             BPDU-Tx    BPDU-Rx    TCN-Tx     TCN-Rx", "------------ -------------- ---------- -------------- ---------- ---------------- ---------- ---------- ---------- ----------"];
     var rows = [];
-    this.portNames().forEach(function (n) { var i = self.ifaces[n]; if (i.routing || i.lag) return; var st = self.stpState(n); if (!self.linkUp(n) && !self.errdisabled[n]) return; rows.push([n, self.errdisabled[n] ? "Disabled" : st.role, self.errdisabled[n] ? "Down" : st.state, 20000, 128, i.adminEdge ? "admin-edge" : (i.bpduGuard ? "" : "p2p"), i.bpduGuard ? "bpdu-guard" : ""]); });
-    Object.keys(this.lags).forEach(function (l) { var lu = self.lagUp(l); if (!lu.up) return; rows.push(["lag" + l, "Root", "Forwarding", 10000, 128, "p2p", ""]); });
-    return o.join("\n") + "\n" + table(["Port", "Role", "State", "Cost", "Priority", "Type", "Guard"], rows);
+    this.portNames().forEach(function (n) { var i = self.ifaces[n]; if (i.routing || i.lag) return; var st = self.stpState(n), up = self.linkUp(n) && !self.errdisabled[n]; var role = up ? st.role : "Disabled", state = up ? st.state : "Down"; rows.push(pad(n, 13) + pad(role, 15) + pad(state, 11) + pad("20000", 15) + pad("128", 11) + pad(up ? (i.adminEdge ? "P2P Edge" : "P2P") : (i.adminEdge ? "P2P Edge" : "Shr"), 17) + pad(up ? String(9 + self.tick) : "0", 11) + pad(up && role === "Root" ? String(9 + self.tick) : "0", 11) + pad("0", 11) + "0"); });
+    Object.keys(this.lags).forEach(function (l) { var lu = self.lagUp(l), isRoot = rootPort === "lag" + l; rows.push(pad("lag" + l, 13) + pad(lu.up ? (isRoot ? "Root" : "Designated") : "Disabled", 15) + pad(lu.up ? "Forwarding" : "Down", 11) + pad("20000", 15) + pad("64", 11) + pad(lu.up ? "P2P" : "Shr", 17) + pad(lu.up ? String(9 + self.tick) : "0", 11) + pad(lu.up && isRoot ? String(9 + self.tick) : "0", 11) + pad("0", 11) + "0"); });
+    return o.concat(rows).concat(["", "Number of topology changes    : 0", "Last topology change occurred : 0 seconds ago", ""]).join("\n");
   };
   cmd("*", "show vsf", function () {
     var self = this, ids = Object.keys(this.vsf.members), o = ["VSF Stack ID   : 1", "MAC Address    : 00:00:5e:00:53:00", "Secondary      : " + (ids.length ? ids[0] : "none"), "Topology       : " + (ids.length ? "Chain" : "Standalone"), "Status         : Active", "Split Detect   : disabled", ""];
@@ -1056,40 +1101,60 @@
     return rows.length ? table(["Mbr", "Link", "Interface", "State"], rows) : "No VSF links configured.";
   });
   cmd("*", "show ip interface brief", function () {
-    var self = this, rows = [];
-    this.portNames().forEach(function (n) { var i = self.ifaces[n]; if (i.routing) rows.push([n, i.ip || "No Address", self.linkUp(n) ? "up" : "down", "default"]); });
-    Object.keys(this.svis).forEach(function (v) { var s = self.svis[v]; rows.push(["vlan" + v, s.ip || "No Address", s.shutdown ? "down (admin)" : (self.sviUp(+v) ? "up" : "down (no member port up)"), "default"]); });
-    return rows.length ? table(["Interface", "IP Address", "Status", "VRF"], rows) : "No routed interfaces.";
+    var self = this, rows = ["Interface         IP Address             Interface Status", "                                           link/admin"];
+    this.portNames().forEach(function (n) { var i = self.ifaces[n]; if (i.routing) rows.push(pad(n, 17) + pad(i.ip || "No Address", 26) + (self.linkUp(n) ? "up" : "down") + "/" + (i.shutdown ? "down" : "up"), ""); });
+    Object.keys(this.svis).forEach(function (v) { var sv = self.svis[v]; rows.push(pad("vlan" + v, 17) + pad(sv.ip || "No Address", 26) + (self.sviUp(+v) && !sv.shutdown ? "up" : "down") + "/" + (sv.shutdown ? "down" : "up"), ""); });
+    return rows.join("\n");
   });
   cmd("*", "show ip route", function () {
-    var rows = this.routeTable().map(function (r) { return [r.prefix + "/" + r.len, r.via + (r.ifn ? " (" + r.ifn + ")" : ""), r.type === "C" ? "connected" : (r.type === "S" ? "static" : "ospf"), "[" + r.dist + "/" + r.metric + "]"]; });
-    return "Displaying ipv4 routes selected for forwarding\n\n'[x/y]' denotes [distance/metric]\n\n" + (rows.length ? table(["Prefix", "Nexthop", "Origin", "Distance"], rows) : "No routes.");
+    var self = this, rows = [], rt = this.routeTable();
+    rt.forEach(function (r) {
+      rows.push(pad(r.prefix + "/" + r.len, 20) + pad(r.type === "C" ? "-" : r.via, 41) + pad(r.ifn || r.via, 14) + pad("-", 18) + pad(r.type, 10) + pad("[" + r.dist + "/" + r.metric + "]", 13) + (r.type === "C" ? "-" : "00h:0" + Math.min(9, Math.floor(self.tick / 6)) + "m:" + pad(self.tick % 60, 2, true).replace(/ /g, "0") + "s"));
+      if (r.type === "C") { var own = r.via.indexOf("vlan") === 0 ? self.svis[+r.via.slice(4)].ip : self.ifaces[r.via].ip; rows.push(pad(own.split("/")[0] + "/32", 20) + pad("-", 41) + pad(r.via, 14) + pad("-", 18) + pad("L", 10) + pad("[0/0]", 13) + "-"); }
+    });
+    return ["Displaying ipv4 routes selected for forwarding", "", "Origin Codes: C - connected, S - static, L - local", "              R - RIP, B - BGP, O - OSPF, D - DHCP", "              U - Unnumbered", "Type Codes:   E - External BGP, I - Internal BGP, V - VPN, EV - EVPN", "              IA - OSPF internal area, E1 - OSPF external type 1", "              E2 - OSPF external type 2   ", "", "VRF: default", "",
+      "Prefix              Nexthop                                  Interface     VRF(egress)       Origin/   Distance/    Age", "                                                                                             Type      Metric", pad("", 104).replace(/ /g, "-")].concat(rows).concat(["", "Total Route Count : " + rows.length]).join("\n");
   });
   cmd("*", "show ip ospf neighbors", function () {
     var n = this.ospfNeighbors();
-    if (!Object.keys(this.ospf).length) return "OSPF is not configured. Start with `router ospf 1`.";
-    var rows = n.map(function (x) { return [x.rid, 1, x.state === "FULL" ? "FULL/DR" : "DOWN (" + x.why + ")", x.dev.ip, x.ifname]; });
-    return "OSPF Process ID " + Object.keys(this.ospf)[0] + " VRF default\n\nTotal Number of Neighbors : " + n.filter(function (x) { return x.state === "FULL"; }).length + "\n\n" + (rows.length ? table(["Neighbor ID", "Priority", "State", "Nbr Address", "Interface"], rows) : "No neighbours heard.");
+    if (!Object.keys(this.ospf).length || !n.length) return "No OSPF neighbor found on VRF default.";
+    var rows = n.map(function (x) { return pad(x.rid, 16) + pad("1", 10) + pad(x.state === "FULL" ? "FULL/DR" : "DOWN (" + x.why + ")", 26) + pad(x.dev.ip, 18) + x.ifname; });
+    return ["OSPF Process ID " + n[0].proc + " VRF default", "", "Total Number of Neighbors : " + n.filter(function (x) { return x.state === "FULL"; }).length, "", pad("Neighbor ID", 16) + pad("Priority", 10) + pad("State", 26) + pad("Nbr Address", 18) + "Interface", pad("", 84).replace(/ /g, "-")].concat(rows).join("\n");
   });
   cmd("*", "show ip ospf interface", function () {
-    var self = this, o = [];
-    Object.keys(this.svis).forEach(function (v) { var s = self.svis[v]; if (s.ospf) o.push("Interface vlan" + v + " is " + (self.sviUp(+v) && !s.shutdown ? "up" : "down") + ", Process ID " + s.ospf.proc + ", Area " + s.ospf.area + (self.ospf[s.ospf.proc] && self.ospf[s.ospf.proc].passive.indexOf("vlan" + v) >= 0 ? " (passive)" : "") + ", IP " + (s.ip || "none") + ", Hello 10 Dead 40"); });
-    this.portNames().forEach(function (n) { var i = self.ifaces[n]; if (i.ospf) o.push("Interface " + n + " is " + (self.linkUp(n) ? "up" : "down") + ", Process ID " + i.ospf.proc + ", Area " + i.ospf.area + ", IP " + (i.ip || "none") + ", Hello 10 Dead 40"); });
-    return o.length ? o.join("\n") : "No OSPF interfaces.";
+    var self = this, o = ["Codes: DR - Designated router  BDR - Backup Designated router", "State: P2P - Point-to-point  P2MP - Point-to-multipoint"];
+    function block(name, up, proc, area, ip, passive, nbr) {
+      o.push("Interface " + name + " is " + (up ? "up, line protocol is up" : "down, line protocol is down"), "--------------------------------------------",
+        "VRF                 : default                         Process             : " + proc, "IP Address          : " + pad(ip || "", 32) + "Area                : " + area,
+        "Status              : " + pad(up ? "Up" : "Down", 32) + "Network Type        : Broadcast", "Hello Interval      : 10    sec                       Dead Interval       : 40    sec",
+        "Cost Configured     : NA                              Cost Calculated     : 100", "State/Type          : " + pad(nbr ? "DR" : (up ? "Waiting" : "Down"), 32) + "Router Priority     : 1", "Authentication      : No                              Passive             : " + (passive ? "Yes" : "No"));
+    }
+    var nb = this.ospfNeighbors();
+    Object.keys(this.svis).forEach(function (v) { var sv = self.svis[v]; if (sv.ospf) block("vlan" + v, self.sviUp(+v) && !sv.shutdown, sv.ospf.proc, sv.ospf.area, sv.ip, self.ospf[sv.ospf.proc] && self.ospf[sv.ospf.proc].passive.indexOf("vlan" + v) >= 0, nb.some(function (x) { return x.ifname === "vlan" + v && x.state === "FULL"; })); });
+    this.portNames().forEach(function (n) { var i = self.ifaces[n]; if (i.ospf) block(n, self.linkUp(n), i.ospf.proc, i.ospf.area, i.ip, false, nb.some(function (x) { return x.ifname === n && x.state === "FULL"; })); });
+    return o.length > 2 ? o.join("\n") : "No OSPF interfaces.";
   });
   cmd("*", "show arp", function () {
     var self = this, rows = [];
-    (this.lesson.devices || []).concat(this.lesson.hosts || []).forEach(function (d) { if (!d.ip || !d.mac) return; if (d.id && !(self.devices[d.id] && self.devices[d.id].connected)) return; var r = self.reachable(d.ip); if (r.ok && r.how === "direct") { var l = self.ifaceForIp(d.ip); rows.push([d.ip, macCx(d.mac), l ? (l.kind === "vlan" ? "vlan" + l.id : l.id) : "", "dynamic"]); } });
-    return rows.length ? table(["IPv4 Address", "MAC", "Port", "State"], rows) : "No ARP entries.";
+    (this.lesson.devices || []).concat(this.lesson.hosts || []).forEach(function (d) { if (!d.ip || !d.mac) return; if (d.id && !(self.devices[d.id] && self.devices[d.id].connected)) return; var r = self.reachable(d.ip); if (r.ok && r.how === "direct") { var l = self.ifaceForIp(d.ip); rows.push(pad(d.ip, 20) + pad(macCx(d.mac), 20) + pad(l ? (l.kind === "vlan" ? "vlan" + l.id : l.id) : "", 14) + pad(d.port || "", 10) + "reachable"); } });
+    return rows.length ? ["IPv4 Address        MAC                 Port          Physical Port State", pad("", 82).replace(/ /g, "-")].concat(rows).join("\n") : "No ARP entries found.";
   });
+  var RADIUS_GLOBAL = ["******* Global RADIUS Configuration ******* ", " ", "Shared-Secret                  : None", "Timeout                        : 5 seconds ", "Auth-Type                      : pap", "Retries                        : 1 ", "DNS Query Mode                 : Backoff ", "DNS Refresh Interval           : 300 seconds ", "Initial TLS Connection Timeout : 30 seconds ", "TLS Timeout                    : 5 seconds ", "Tracking Time Interval         : 300 seconds ", "Tracking Retries               : 1", "Tracking User-name             : radius-tracking-user", "Tracking Password              : None", "Status-Server Time Interval    : 300 seconds "];
+  var RS_RULE = pad("", 140).replace(/ /g, "-");
   cmd("*", "show radius-server", function () {
     var self = this;
-    if (!this.radius.length) return "No RADIUS servers configured. Add one with `radius-server host <A.B.C.D> key plaintext <key>`.";
-    return "******* Global RADIUS Configuration *******\nShared-Secret: None\nTimeout: 5\nAuth-Type: pap\nRetries: 1\nTracking Time Interval (seconds): 300\nTracking Mode: authentication\n\n" + table(["Host", "Auth-Port", "Acct-Port", "VRF", "Shared-Secret", "Status"], this.radius.map(function (r) { var reach = self.radiusReach([r]); return [r.host, 1812, 1813, r.vrf || "default", r.key ? "configured" : "none", reach.server ? "reachable" : "unreachable"]; }));
+    var rows = this.radius.map(function (r) { var reach = self.radiusReach([r]); return pad((reach.server ? "" : "*") + r.host, 45) + "| " + pad("", 5) + "| " + pad("1812", 5) + "| " + (r.vrf || "default"); });
+    return ["Unreachable servers are preceded by *"].concat(RADIUS_GLOBAL).concat(["Number of Servers              : " + this.radius.length, RS_RULE, pad("SERVER NAME", 45) + "| TLS  | PORT | VRF                             ", RS_RULE]).concat(rows).concat([RS_RULE]).join("\n");
   });
   cmd("*", "show radius-server detail", function () {
-    var self = this; if (!this.radius.length) return "No RADIUS servers configured.";
-    return this.radius.map(function (r) { var reach = self.radiusReach([r]); return "Host: " + r.host + "\n  Auth-Port: 1812  Acct-Port: 1813  VRF: " + (r.vrf || "default") + "\n  Shared-Secret: " + (r.key ? "configured" : "none") + "\n  Reachability (sandbox): " + (reach.server ? "the server answers" : reach.tried[0].why); }).join("\n\n");
+    var self = this, o = RADIUS_GLOBAL.concat(["Number of Servers              : " + this.radius.length]);
+    this.radius.forEach(function (r) {
+      var reach = self.radiusReach([r]), groups = Object.keys(self.groups).filter(function (g) { return self.groups[g].servers.indexOf(r.host) >= 0; }).map(function (g) { return g + ":" + (self.groups[g].servers.indexOf(r.host) + 1); });
+      o.push("****** RADIUS Server Information ******", "Server-Name                     : " + r.host, "Auth-Port                       : 1812", "Accounting-Port                 : 1813", "VRF                             : " + (r.vrf || "default"), "TLS Enabled                     : No",
+        "Shared-Secret                   : " + (r.key ? "<configured>" : "None"), "Timeout                         : 5 seconds ", "Retries                         : 1", "Auth-Type                       : pap", "Server-Group:Priority           : " + (groups.join(",") || "radius:1"), "Tracking                        : disabled",
+        "Reachability-Status             : " + (reach.server ? "reachable" : "unreachable"), "Sandbox note                    : " + (reach.server ? "the fake ClearPass answers" : reach.tried[0].why));
+    });
+    return o.join("\n");
   });
   cmd("*", "show radius-server statistics", function () {
     var self = this, o = [];
@@ -1102,9 +1167,9 @@
   });
   cmd("*", "show aaa server-groups", function () {
     var self = this, rows = [];
-    rows.push(["radius", "radius", this.radius.map(function (r) { return r.host; }).join(", ") || "(none)", "built in, every configured server"]);
-    Object.keys(this.groups).forEach(function (g) { rows.push([g, "radius", self.groups[g].servers.join(", ") || "(empty)", ""]); });
-    return "******* AAA Mechanism RADIUS *******\n" + table(["Group Name", "Type", "Servers", "Note"], rows);
+    Object.keys(this.groups).forEach(function (g) { self.groups[g].servers.forEach(function (sv, i) { rows.push(pad(g, 32) + "| " + pad(sv, 45) + "| " + pad("", 5) + "| " + pad("1812", 5) + "| " + pad("default", 32) + "| " + (i + 1)); rows.push(RS_RULE); }); });
+    this.radius.forEach(function (r, i) { rows.push(pad("radius", 32) + "| " + pad(r.host, 45) + "| " + pad("", 5) + "| " + pad("1812", 5) + "| " + pad("default", 32) + "| " + (i + 1) + "       "); rows.push(RS_RULE); });
+    return ["******* AAA Mechanism TACACS+ *******", RS_RULE, "GROUP NAME                      | SERVER NAME                                  | PORT | VRF                             | PRIORITY", RS_RULE, "******* AAA Mechanism RADIUS *******", RS_RULE, "GROUP NAME                      | SERVER NAME                                  | TLS  | PORT | VRF                             | PRIORITY", RS_RULE].concat(rows).join("\n");
   });
   Switch.prototype.clientRows = function (filterPort) {
     var self = this, rows = [];
@@ -1119,7 +1184,7 @@
     var self = this, rows = this.clientRows(port);
     if (!rows.length) {
       var open = Object.keys(this.clients).filter(function (k) { return self.clients[k].method === "none" && (!port || self.clients[k].port === port); });
-      return "Port Access Clients\n\nNo port-access clients." + (open.length ? "\n(" + open.length + " device" + (open.length > 1 ? "s are" : " is") + " connected on ports without port-access; they never authenticated, they are simply on the access VLAN.)" : "");
+      return "No port-access clients found." + (open.length ? "\n(sandbox: " + open.length + " device" + (open.length > 1 ? "s are" : " is") + " connected on ports without port-access; they never authenticated, they are simply on the access VLAN.)" : "");
     }
     if (!detail) return "Port Access Clients\n\nFlags: Authentication status Success (S), Failed (F), In Progress (I)\n\n" + table(["Port", "MAC-Address", "Onboarded Method", "Status", "Role", "VLAN", "Client Name"], rows.map(function (c) { return [c.port, c.mac, c.method === "dot1x" ? "dot1x" : "mac-auth", c.status === "Success" ? "S" : "F", c.role || (c.status === "Success" ? "-" : ""), c.status === "Success" ? c.vlan : "", c.user || ""]; }));
     return rows.map(function (c) {
@@ -1129,11 +1194,16 @@
       return o.join("\n");
     }).join("\n\n");
   };
-  cmd("*", "show aaa authentication port-access interface all client-status", function () { return this.showClients(null, true); });
-  cmd("*", "show aaa authentication port-access interface <PORT> client-status", function (a) { return this.showClients(a[5], true); });
-  cmd("*", "show port-access role", function () { var self = this, names = Object.keys(this.pa.roles); return names.length ? names.map(function (r) { return "Role Information:\n\nName  : " + r + "\nType  : local\n----------------------------------------------\n    Description       : " + (self.pa.roles[r].desc || "") + "\n    VLAN              : " + (self.pa.roles[r].vlan || "not set") + "\n    Reauthentication  : Disabled"; }).join("\n\n") : "No port-access roles defined."; });
-  cmd("*", "show port-access role <WORD>", function (a) { var r = this.pa.roles[a[3]]; return r ? "Role Information:\n\nName  : " + a[3] + "\nType  : local\n----------------------------------------------\n    Description       : " + (r.desc || "") + "\n    VLAN              : " + (r.vlan || "not set") + "\n    Reauthentication  : Disabled" : "Role " + a[3] + " is not defined."; });
-  cmd("*", "show checkpoint list", function () { var rows = this.checkpoints.map(function (c) { return [c.name, "user", tsClock(c.at)]; }); rows.unshift(["startup-config", "system", "boot"]); return table(["Name", "Type", "Written"], rows); });
+  cmd("*", "show aaa authentication port-access interface all client-status", function () { return this.clientRows(null).length ? this.showClients(null, true) : "No aaa clients found."; });
+  cmd("*", "show aaa authentication port-access interface <PORT> client-status", function (a) { return this.clientRows(a[5]).length ? this.showClients(a[5], true) : "No aaa clients found."; });
+  cmd("*", "show port-access role", function () {
+    var self = this, names = Object.keys(this.pa.roles);
+    if (!names.length) return "No port-access roles configured.";
+    var o = ["Role Information:", "Attributes overridden by RADIUS are prefixed by '*'."];
+    names.forEach(function (r) { o.push("Name  : " + r, "Type  : local", "----------------------------------------------"); if (self.pa.roles[r].desc) o.push("    Description                         : " + self.pa.roles[r].desc); if (self.pa.roles[r].vlan) o.push("    Access VLAN                         : " + self.pa.roles[r].vlan); });
+    return o.join("\n");
+  });
+  cmd("*", "show checkpoint list", function () { if (!this.checkpoints.length) return "Checkpoint list doesn't exist"; var rows = this.checkpoints.map(function (c) { return [c.name, "user", tsClock(c.at)]; }); return table(["Name", "Type", "Written"], rows); });
   cmd("*", "show aaa authentication port-access", function () { return "Global 802.1X   : " + (this.pa.dot1x ? "Enabled" : "Disabled") + " (server group " + (this.pa.dot1xGroup || "radius") + ")\nGlobal MAC-auth : " + (this.pa.macAuth ? "Enabled" : "Disabled") + " (server group " + (this.pa.macAuthGroup || "radius") + ")\nDyn-authorization: " + (this.pa.dynAuth ? "Enabled" : "Disabled"); });
 
   // ── sandbox commands (not switch commands) ──────────────────────────────

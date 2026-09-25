@@ -106,7 +106,7 @@
    "desc": "Server group CLEARPASS holds 192.0.2.10",
    "config": {
     "context": "aaa group server radius CLEARPASS",
-    "has": "^server 192\\.0\\.2\\.10$"
+    "has": "^server 192\\.0\\.2\\.10( priority \\d+)?$"
    }
   },
   {
