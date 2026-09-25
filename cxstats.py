@@ -26,10 +26,12 @@ TOKEN = os.environ.get("NFN_ADMIN_TOKEN", "")
 
 
 def fetch(days):
-    if not TOKEN:
-        sys.exit("Set NFN_ADMIN_TOKEN first (the ADMIN_TOKEN secret on the Worker).")
+    if not TOKEN or TOKEN.strip().lower().startswith("the admin"):
+        sys.exit("Set NFN_ADMIN_TOKEN to the real value you gave 'wrangler secret put ADMIN_TOKEN',\n"
+                 "not the placeholder text.")
+    # Cloudflare's browser check answers 403 / error 1010 to urllib's default agent, so name ourselves
     req = urllib.request.Request(API + "/v1/admin/sandbox?days=%d" % days,
-                                 headers={"authorization": "Bearer " + TOKEN})
+                                 headers={"authorization": "Bearer " + TOKEN, "user-agent": "nfn-cxstats/1.0"})
     try:
         with urllib.request.urlopen(req, context=_ctx(), timeout=30) as r:
             return json.load(r)["events"]
