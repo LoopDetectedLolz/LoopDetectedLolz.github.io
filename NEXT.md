@@ -20,6 +20,16 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
   the seating block aiming tool, the mesh planner (verified against a real point the day
   before) and the "What happened" story tool, one page, the model concatenated into it.
 
+## Ready to publish, not pushed yet (2026-09-25)
+
+- **The CX Sandbox** at `sandbox.html`: a modelled AOS-CX 6200F in the page with a fake ClearPass,
+  eight labs (six Zero to NAC, one L2, one L3) plus free play, `{{cxsim: <lab>}}` for posts. Engine
+  `theme/cxsim/engine.js` (281 Node checks in `cxsimtest.js`, fuzzed clean), widget
+  `theme/widgets/cxsim.html`, labs `theme/cxsim/lessons/`. Usage events go to the comments Worker
+  (`comments/worker.js`, `comments/schema-sandbox.sql`) and `cxstats.py` reads them. To ship:
+  `wrangler d1 execute nfn-comments --remote --file=schema-sandbox.sql`, `wrangler deploy` in
+  `comments/`, then the normal `publish it` from Claude Code. `CLAUDE.md` has the section.
+
 ## What is in the lab, not on the site
 
 - `theme/sim/` is the second-generation core: `core`, `rf`, `phy`, `mac`, `channels`,

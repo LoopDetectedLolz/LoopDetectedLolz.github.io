@@ -714,6 +714,7 @@ radius-server host 203.0.113.50 key &lt;SECRET&gt; auth-port &lt;AUTH-PORT&gt; a
 <h2>Bottom line</h2>
 <p>A timeout means the request left and nobody answered. Fix the source IP, then the secret, then look at the firewall. There's no source port knob on AOS-Switch, and you don't need one.</p>
 <p>What changed in my base config: every AOS-Switch and CX build gets a loopback and <code>ip source-interface radius</code> before the first <code>radius-server host</code> line. The build sheet records the post-NAT IP next to the secret, so whoever registers the client isn't guessing.</p></div>
+      
     </div>
     
     <section class="c-wrap g-card" id="comments" data-rise data-slug="a-radius-timeout-means-somebody-dropped-it-not-that-it-never-left" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">

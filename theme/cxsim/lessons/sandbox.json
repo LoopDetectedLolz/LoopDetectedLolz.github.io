@@ -1,0 +1,131 @@
+{
+ "id": "sandbox",
+ "title": "CX Sandbox",
+ "track": "",
+ "model": "6200F-12",
+ "hostname": "switch",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "task": "A modelled 6200F with nothing configured. Type ? for what is available in the current context, Tab to complete, and sim help for the sandbox's own commands. The devices on the right can be plugged in whenever you want to see what the switch does with them.",
+ "devices": [
+  {
+   "id": "printer",
+   "name": "Printer (HP LaserJet)",
+   "kind": "printer",
+   "port": "1/1/5",
+   "mac": "00:00:5e:00:53:05",
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "PRINTERS"
+    }
+   },
+   "lldp": {
+    "sys": "NPI53A005",
+    "port": "eth0",
+    "caps": "S"
+   }
+  },
+  {
+   "id": "laptop",
+   "name": "Laptop (employee.user)",
+   "kind": "laptop",
+   "port": "1/1/1",
+   "mac": "00:00:5e:00:53:01",
+   "user": "employee.user",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   }
+  },
+  {
+   "id": "contractor",
+   "name": "Laptop (contractor, wrong password)",
+   "kind": "laptop",
+   "port": "1/1/2",
+   "mac": "00:00:5e:00:53:02",
+   "user": "j.contractor",
+   "auth": {
+    "dot1x": {
+     "accept": false,
+     "why": "bad password"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   }
+  },
+  {
+   "id": "phone",
+   "name": "Desk phone",
+   "kind": "phone",
+   "port": "1/1/3",
+   "mac": "00:00:5e:00:53:03",
+   "lldp": {
+    "sys": "SEP00005E005303",
+    "port": "port1",
+    "caps": "B,T"
+   },
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "VOICE"
+    }
+   }
+  },
+  {
+   "id": "desk-switch",
+   "name": "Unmanaged desk switch (someone brought it in)",
+   "kind": "switch",
+   "port": "1/1/8",
+   "mac": "00:00:5e:00:53:08",
+   "bpdu": true,
+   "lldp": {
+    "sys": "DGS-1005",
+    "port": "1",
+    "caps": "B"
+   }
+  },
+  {
+   "id": "core-01",
+   "name": "Core switch core-01",
+   "kind": "switch",
+   "port": null,
+   "mac": "00:00:5e:00:53:f0",
+   "ports": [
+    "1/1/13",
+    "1/1/14"
+   ],
+   "lacp": {
+    "lag": "any",
+    "sysid": "00:00:5e:00:53:f0"
+   },
+   "stpRoot": true,
+   "stpPriority": 4096,
+   "bpdu": true,
+   "lldp": {
+    "sys": "core-01",
+    "port": [
+     "1/1/21",
+     "1/1/22"
+    ],
+    "chassis": "00:00:5e:00:53:f0",
+    "caps": "B,R"
+   }
+  }
+ ],
+ "hints": [],
+ "checks": []
+}

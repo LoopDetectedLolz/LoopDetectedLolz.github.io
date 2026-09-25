@@ -1,0 +1,162 @@
+{
+ "id": "nac-05-roles",
+ "title": "Lab 5: dynamic roles",
+ "track": "Zero to NAC",
+ "number": 5,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "interface 1/1/1-1/1/8",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "interface 1/1/5",
+  "vlan access 20",
+  "radius-server host 192.0.2.10 key plaintext cppm-lab-key",
+  "aaa group server radius CLEARPASS",
+  "server 192.0.2.10",
+  "aaa authentication port-access mac-auth",
+  "radius server-group CLEARPASS",
+  "enable",
+  "aaa authentication port-access dot1x authenticator",
+  "radius server-group CLEARPASS",
+  "enable",
+  "interface 1/1/1-1/1/8",
+  "aaa authentication port-access dot1x authenticator",
+  "enable",
+  "aaa authentication port-access mac-auth",
+  "enable"
+ ],
+ "task": "Both methods are on for every port, everything is plugged in, and everything fails. ClearPass is answering Access-Accept with a role in it every time. Read the reason, then make the switch able to honour what it is being told: EMPLOYEE in VLAN 10, PRINTERS in VLAN 20, and VOICE in a new VLAN 30 named VOICE.",
+ "hints": [
+  "show port-access clients detail. The reason names the missing piece.",
+  "port-access role <NAME> then vlan access <id>. The VLAN has to exist before a role can point at it.",
+  "Clients re-authenticate on their own once the role exists; clear port-access clients if you want to watch it happen."
+ ],
+ "devices": [
+  {
+   "id": "laptop",
+   "name": "Laptop (employee.user)",
+   "kind": "laptop",
+   "port": "1/1/1",
+   "mac": "00:00:5e:00:53:01",
+   "user": "employee.user",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   },
+   "connected": true
+  },
+  {
+   "id": "printer",
+   "name": "Printer (HP LaserJet)",
+   "kind": "printer",
+   "port": "1/1/5",
+   "mac": "00:00:5e:00:53:05",
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "PRINTERS"
+    }
+   },
+   "lldp": {
+    "sys": "NPI53A005",
+    "port": "eth0",
+    "caps": "S"
+   },
+   "connected": true
+  },
+  {
+   "id": "phone",
+   "name": "Desk phone",
+   "kind": "phone",
+   "port": "1/1/3",
+   "mac": "00:00:5e:00:53:03",
+   "lldp": {
+    "sys": "SEP00005E005303",
+    "port": "port1",
+    "caps": "B,T"
+   },
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "VOICE"
+    }
+   },
+   "connected": true
+  }
+ ],
+ "checks": [
+  {
+   "desc": "VLAN 30 is VOICE",
+   "vlan": {
+    "id": 30,
+    "name": "VOICE"
+   }
+  },
+  {
+   "desc": "Role EMPLOYEE in VLAN 10",
+   "config": {
+    "context": "port-access role EMPLOYEE",
+    "has": "^vlan access 10$"
+   }
+  },
+  {
+   "desc": "Role PRINTERS in VLAN 20",
+   "config": {
+    "context": "port-access role PRINTERS",
+    "has": "^vlan access 20$"
+   }
+  },
+  {
+   "desc": "Role VOICE in VLAN 30",
+   "config": {
+    "context": "port-access role VOICE",
+    "has": "^vlan access 30$"
+   }
+  },
+  {
+   "desc": "Laptop in EMPLOYEE",
+   "client": {
+    "dev": "laptop",
+    "status": "Success",
+    "role": "EMPLOYEE"
+   }
+  },
+  {
+   "desc": "Printer in PRINTERS",
+   "client": {
+    "dev": "printer",
+    "status": "Success",
+    "role": "PRINTERS"
+   }
+  },
+  {
+   "desc": "Phone in VOICE on VLAN 30",
+   "client": {
+    "dev": "phone",
+    "status": "Success",
+    "role": "VOICE",
+    "vlan": 30
+   }
+  }
+ ]
+}

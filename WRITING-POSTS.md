@@ -30,6 +30,8 @@ That runs `blog-publish`: build, dash check, scrub check, contact-copy check, gr
 
 **Interactive widgets.** Add `interactive: poe` or `interactive: channel173` to the front matter and the matching panel from `theme/widgets/` renders under the hero. New widgets are one HTML file with its own script; keep them to vanilla JS, kit colours, and no external loads.
 
+**A switch to type on.** Put `{{cxsim: nac-03-mac-auth}}` on its own line and the post gets a modelled AOS-CX terminal with that lab's task, devices and pass checks; `{{cxsim}}` alone is a free sandbox. The labs live in `theme/cxsim/lessons/` (six Zero to NAC labs, one switching lab, one routing lab, plus the sandbox); copy one to write a new lab, then run `node cxsimtest.js`. It is a model of the switch, and the embed says so, so anything a lesson claims the real box does still gets verified against the CLI reference.
+
 **Reading paths.** `series: ClearPass, properly` plus `series_order: 2` puts a numbered path card before the end card, with the next part lit. Current series: ClearPass, properly; Moving to AOS 10; Wi-Fi 7 rollout; Switching, carefully. A series needs two posts before it shows.
 
 **RF motif.** Wireless and RF survey posts get a faint concentric-ring watermark on the header automatically. Nothing to do.

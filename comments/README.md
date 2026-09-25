@@ -85,3 +85,24 @@ per page.
 - Every post fails the spam check: the Turnstile site key in `build-blog.py` and the secret in the Worker are from different widgets.
 - Comments post but do not appear: check the slug. The widget sends the post's slug and the reader sees only `visible = 1` rows.
 - Spam gets through Turnstile: lower `LIMITS.perHour` in `worker.js`, or set the widget to Interactive in the Turnstile dashboard.
+
+## CX Sandbox usage events
+
+The same Worker also collects anonymous usage from the CX Sandbox embeds (`POST /v1/sandbox/events`):
+which lesson was opened, commands the modelled switch rejected, check runs and pass counts, resets,
+and any JavaScript error the widget hits. A random id the browser makes for itself ties a session's
+events together; nothing typed successfully ever leaves the page and no address is stored.
+
+```bash
+wrangler d1 execute nfn-comments --remote --file=schema-sandbox.sql   # once, adds the table
+wrangler deploy                                                       # after any worker.js change
+
+export NFN_ADMIN_TOKEN='...'
+python3 cxstats.py                 # last 30 days: users, attempts, pass rate per lab, commands that fail most
+python3 cxstats.py --days 7 --lesson nac-03-mac-auth
+python3 cxstats.py --errors        # every JS error the widget reported, newest first
+python3 cxstats.py export events.json
+```
+
+`SANDBOX_API` at the top of `build-blog.py` points the embeds at the Worker; empty it to stop
+sending events everywhere.

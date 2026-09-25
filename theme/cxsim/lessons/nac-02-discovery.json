@@ -1,0 +1,133 @@
+{
+ "id": "nac-02-discovery",
+ "title": "Lab 2: what is on the port before NAC",
+ "track": "Zero to NAC",
+ "number": 2,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "interface 1/1/1-1/1/8",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "interface 1/1/5",
+  "vlan access 20",
+  "radius-server host 192.0.2.10 key plaintext cppm-lab-key",
+  "aaa group server radius CLEARPASS",
+  "server 192.0.2.10"
+ ],
+ "task": "Nothing authenticates yet, and the switch already knows a lot. Everything on the bench is plugged in. Use show mac-address-table, show lldp neighbor-info, show interface brief and show port-access clients to work out what is where. Then give the phone's port the description Desk phone, and shut down the port that has an unmanaged switch hanging off it.",
+ "hints": [
+  "LLDP names devices that speak it; the MAC table catches the ones that don't.",
+  "show port-access clients is empty on purpose. No port-access, no clients: the devices are simply on VLAN 10.",
+  "description and shutdown live in the interface context."
+ ],
+ "devices": [
+  {
+   "id": "printer",
+   "name": "Printer (HP LaserJet)",
+   "kind": "printer",
+   "port": "1/1/5",
+   "mac": "00:00:5e:00:53:05",
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "PRINTERS"
+    }
+   },
+   "lldp": {
+    "sys": "NPI53A005",
+    "port": "eth0",
+    "caps": "S"
+   },
+   "connected": true
+  },
+  {
+   "id": "laptop",
+   "name": "Laptop (employee.user)",
+   "kind": "laptop",
+   "port": "1/1/1",
+   "mac": "00:00:5e:00:53:01",
+   "user": "employee.user",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   },
+   "connected": true
+  },
+  {
+   "id": "phone",
+   "name": "Desk phone",
+   "kind": "phone",
+   "port": "1/1/3",
+   "mac": "00:00:5e:00:53:03",
+   "lldp": {
+    "sys": "SEP00005E005303",
+    "port": "port1",
+    "caps": "B,T"
+   },
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "VOICE"
+    }
+   },
+   "connected": true
+  },
+  {
+   "id": "desk-switch",
+   "name": "Unmanaged desk switch (someone brought it in)",
+   "kind": "switch",
+   "port": "1/1/8",
+   "mac": "00:00:5e:00:53:08",
+   "bpdu": true,
+   "lldp": {
+    "sys": "DGS-1005",
+    "port": "1",
+    "caps": "B"
+   },
+   "connected": true
+  }
+ ],
+ "checks": [
+  {
+   "desc": "1/1/3 is described as Desk phone",
+   "config": {
+    "context": "interface 1/1/3",
+    "has": "^description Desk phone$"
+   }
+  },
+  {
+   "desc": "1/1/8 (the desk switch) is shut down",
+   "config": {
+    "context": "interface 1/1/8",
+    "has": "^shutdown$"
+   }
+  },
+  {
+   "desc": "The printer port is still up",
+   "config": {
+    "context": "interface 1/1/5",
+    "has": "^no shutdown$"
+   }
+  }
+ ]
+}

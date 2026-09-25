@@ -23,6 +23,7 @@ SITE = {
 }
 COMMENTS_API = "https://api.networkfieldnotes.com"   # empty this line to turn comments off everywhere
 TURNSTILE_SITEKEY = "0x4AAAAAAE0IseyiQ4X9zk6r"   # public half of the Turnstile widget, safe in the page
+SANDBOX_API = COMMENTS_API                        # the CX Sandbox sends anonymous usage events here; empty it to send nothing
 BASE_URL = "https://networkfieldnotes.com"
 CUSTOM_DOMAIN = "networkfieldnotes.com"
 
@@ -112,6 +113,24 @@ def figures(html):
             '<figcaption>%s</figcaption>' % cap if cap else '')
     return FIG_RE.sub(one, html)
 
+# ── CX Sandbox ───────────────────────────────────────────────────────────────
+# {{cxsim: lesson-id}} (or {{cxsim}} for the free sandbox) on its own line becomes a modelled
+# AOS-CX terminal. The lesson JSON from theme/cxsim/lessons/ is inlined into the div and the
+# engine plus widget are appended once per page, so the post works offline like everything else.
+CXSIM_RE = re.compile(r'<p>\{\{cxsim(?::\s*([^}]+?))?\s*\}\}</p>')
+def cxsim(html):
+    def one(m):
+        lid = (m.group(1) or "sandbox").strip()
+        path = os.path.join(ROOT, "theme", "cxsim", "lessons", lid + ".json")
+        if not os.path.exists(path):
+            sys.exit("no lesson theme/cxsim/lessons/%s.json" % lid)
+        data = json.dumps(json.load(open(path, encoding="utf-8")), separators=(",", ":")).replace("</", "<\\/")
+        return '<div class="cxsim widget" data-lesson="%s"><script type="application/json">%s</script></div>' % (E(lid), data)
+    return CXSIM_RE.sub(one, html)
+def cxsim_block():
+    engine = open(os.path.join(ROOT, "theme", "cxsim", "engine.js"), encoding="utf-8").read()
+    return "<script>%s</script>%s" % (engine, widget("cxsim").replace("__SBAPI__", E(SANDBOX_API.rstrip("/"))))
+
 def parse_post(path):
     raw = open(path, encoding="utf-8").read()
     m = re.match(r'^---\n(.*?)\n---\n(.*)$', raw, re.S)
@@ -125,7 +144,9 @@ def parse_post(path):
     body = re.sub(r'```mermaid.*?```', '', m.group(2), flags=re.S)
     meta["readtime"] = max(2, round(len(re.findall(r'\w+', body)) / 220))
     meta["tags"] = [t.strip() for t in meta.get("tags", "").split(",") if t.strip()]
-    meta["html"] = figures(terminalize(markdown.markdown(body, extensions=["fenced_code", "tables"])))
+    rendered = terminalize(markdown.markdown(body, extensions=["fenced_code", "tables"]))
+    meta["cxsim"] = bool(CXSIM_RE.search(rendered))
+    meta["html"] = cxsim(figures(rendered))
     meta["series"] = meta.get("series", "").strip()
     meta["series_order"] = int(meta.get("series_order", "0") or 0)
     meta["interactive"] = meta.get("interactive", "").strip()
@@ -356,6 +377,7 @@ for i, p in enumerate(posts):
       {widget(p["interactive"]) if p["interactive"] else ""}
       <div class="callout origin"><span class="eyebrow">Where this came from</span>{E(p.get("origin",""))}</div>
       <div class="prose">{p["html"]}</div>
+      {cxsim_block() if p["cxsim"] else ""}
     </div>
     {series_nav(p)}
     {comments_block(p)}
@@ -451,8 +473,51 @@ acad += f'''
 <section>
   <div class="lessons">{"".join(acad_items)}</div>
 </section>
+<section class="band g-card" data-rise>
+  <div>
+    <h3>Type on a switch first</h3>
+    <p>The CX Sandbox is a modelled AOS-CX switch in the page: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, a LAG, spanning tree, an SVI and OSPF. Eight labs with checks, or a blank switch to poke at.</p>
+  </div>
+  <a class="btn" href="sandbox.html" data-origin="zoom">Open the sandbox</a>
+</section>
 ''' + foot("nfn-bot-think.svg")
 open(os.path.join(ROOT, "academy.html"), "w", encoding="utf-8").write(acad)
+
+# ── CX Sandbox page: every lab, one picker ──────────────────────────────────
+SANDBOX_LABS = ["sandbox", "nac-01-bench", "nac-02-discovery", "nac-03-mac-auth", "nac-04-dot1x", "nac-05-roles", "nac-06-precedence", "l2-01-uplink", "l3-01-routing"]
+def _lab_meta(lid):
+    return json.load(open(os.path.join(ROOT, "theme", "cxsim", "lessons", lid + ".json"), encoding="utf-8"))
+sb_pills = "".join('<button class="pill sb-pill%s" type="button" data-lab="%s">%s</button>' % (" on" if i == 0 else "", E(lid), E(_lab_meta(lid)["title"].replace("Lab ", "").replace("Switching lab: ", "L2: ").replace("Routing lab: ", "L3: ").replace("CX Sandbox", "Free play")))
+                   for i, lid in enumerate(SANDBOX_LABS))
+sb_labs = "".join('<div class="sb-lab" data-lab="%s"%s>%s</div>' % (E(lid), "" if i == 0 else ' hidden', cxsim('<p>{{cxsim: %s}}</p>' % lid)) for i, lid in enumerate(SANDBOX_LABS))
+sb = head("CX Sandbox · " + SITE["name"], "A modelled HPE Aruba Networking CX switch you can type on: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, a LAG, spanning tree, an SVI and OSPF. Eight labs with checks and a blank switch.", BASE_URL + "/sandbox.html", BASE_URL + "/og/sandbox.png", active="academy")
+sb += f'''
+<section class="sim-intro">
+  <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
+  <h1 class="h-hero">A switch you can type on</h1>
+  <p class="lede">A modelled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes follow the CX CLI, the wording is mine, and anything the lab did not need is not in it.</p>
+</section>
+<nav class="sb-picker" aria-label="Labs">{sb_pills}</nav>
+{sb_labs}
+{cxsim_block()}
+<script>
+(function(){{
+  var pills=document.querySelectorAll('.sb-pill'),labs=document.querySelectorAll('.sb-lab');
+  function show(id){{var found=false;labs.forEach(function(l){{var on=l.getAttribute('data-lab')===id;l.hidden=!on;if(on)found=true;}});if(!found)return show('sandbox');pills.forEach(function(p){{p.classList.toggle('on',p.getAttribute('data-lab')===id);}});}}
+  pills.forEach(function(p){{p.addEventListener('click',function(){{var id=p.getAttribute('data-lab');show(id);try{{history.replaceState(null,'','#lab='+id);}}catch(e){{}}}});}});
+  var m=/[#&]lab=([a-z0-9-]+)/.exec(location.hash);if(m)show(m[1]);
+  window.addEventListener('hashchange',function(){{var m=/[#&]lab=([a-z0-9-]+)/.exec(location.hash);if(m)show(m[1]);}});
+}})();
+</script>
+<section class="band g-card" data-rise>
+  <div>
+    <h3>Where the labs come from</h3>
+    <p>The six NAC labs follow the Zero to NAC track on one bench: a 6200F and a ClearPass that answers the way the lab says it does. Run the same steps on real gear and the show commands will look familiar, with the box's own wording.</p>
+  </div>
+  <a class="btn" href="academy.html">Back to the Academy</a>
+</section>
+''' + foot("nfn-bot-switchwork.svg")
+open(os.path.join(ROOT, "sandbox.html"), "w", encoding="utf-8").write(sb)
 
 # ── simulator page: the banner on its own ───────────────────────────────────
 sim = head("Simulator · " + SITE["name"], "A Wi-Fi link you can break: a real frame sent symbol by symbol through a link budget, a reflection, spatial streams and a Teams call, with interference you add yourself.", BASE_URL + "/simulator.html", BASE_URL + "/og/simulator.png", active="tools")
@@ -650,6 +715,7 @@ for p in posts:
 og_card(SITE["tagline"][:110], "Field notes", os.path.join(ROOT, "og", "home.png"))
 og_card("Wireless Academy: the theory, and the lab that proves it", "Wireless Academy", os.path.join(ROOT, "og", "academy.png"))
 og_card("The simulator: a Wi-Fi link you can break, one symbol at a time", "Simulator", os.path.join(ROOT, "og", "simulator.png"))
+og_card("The CX Sandbox: a modelled AOS-CX switch you can type on, with a fake ClearPass behind it", "CX Sandbox", os.path.join(ROOT, "og", "sandbox.png"))
 og_card("Planning tools that show their working: capacity, aiming, mesh, and what happened", "Tools", os.path.join(ROOT, "og", "tools.png"))
 rasterize(os.path.join(ROOT, "logo", "nfn-favicon.svg"), os.path.join(ROOT, "apple-touch-icon.png"), 180, 180)
 
@@ -658,6 +724,7 @@ urls = ['<url><loc>%s/</loc><changefreq>weekly</changefreq><priority>1.0</priori
         '<url><loc>%s/about.html</loc><priority>0.5</priority></url>' % BASE_URL,
         '<url><loc>%s/academy.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/simulator.html</loc><priority>0.8</priority></url>' % BASE_URL,
+        '<url><loc>%s/sandbox.html</loc><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/tools.html</loc><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/socials.html</loc><priority>0.3</priority></url>' % BASE_URL]
 urls += ['<url><loc>%s/p/%s.html</loc><lastmod>%s</lastmod><priority>0.8</priority></url>'

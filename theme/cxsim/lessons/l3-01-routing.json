@@ -1,0 +1,155 @@
+{
+ "id": "l3-01-routing",
+ "title": "Routing lab: SVI, default route, OSPF",
+ "track": "Switching",
+ "number": 2,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "interface 1/1/1-1/1/8",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "interface 1/1/5",
+  "vlan access 20",
+  "radius-server host 192.0.2.10 key plaintext cppm-lab-key",
+  "aaa group server radius CLEARPASS",
+  "server 192.0.2.10",
+  "vlan 100",
+  "name UPLINK",
+  "interface 1/1/13",
+  "no shutdown",
+  "no routing",
+  "vlan access 100"
+ ],
+ "hosts": [
+  {
+   "ip": "198.51.100.10",
+   "mac": "00:00:5e:00:53:a0",
+   "behind": "core-rtr",
+   "name": "file server"
+  }
+ ],
+ "task": "core-rtr sits on 1/1/13 in VLAN 100 at 203.0.113.1 and speaks OSPF in area 0. Give the switch an SVI on VLAN 100 at 203.0.113.2/24 and one on VLAN 10 at 192.0.2.1/24, add a default route to the router, then start OSPF process 1 with area 0.0.0.0 and put VLAN 100 in it. When the adjacency is FULL, ping the file server at 198.51.100.10, then see what show ip route learned.",
+ "hints": [
+  "interface vlan 100, ip address 203.0.113.2/24. The SVI only comes up once a port in that VLAN has link, so plug the router in.",
+  "ip route 0.0.0.0/0 203.0.113.1 is the static way; router ospf 1, area 0.0.0.0, then ip ospf 1 area 0.0.0.0 on the SVI is the dynamic one.",
+  "show ip ospf neighbors tells you why an adjacency is stuck, and it is usually the area."
+ ],
+ "devices": [
+  {
+   "id": "core-rtr",
+   "name": "Core router core-rtr",
+   "kind": "router",
+   "port": "1/1/13",
+   "mac": "00:00:5e:00:53:f1",
+   "vlan": 100,
+   "ip": "203.0.113.1",
+   "bpdu": false,
+   "lldp": {
+    "sys": "core-rtr",
+    "port": "1/1/21",
+    "caps": "R"
+   },
+   "ospf": {
+    "area": "0.0.0.0",
+    "routerId": "203.0.113.1",
+    "routes": [
+     "198.51.100.0/24",
+     "0.0.0.0/0"
+    ]
+   }
+  },
+  {
+   "id": "laptop",
+   "name": "Laptop (employee.user)",
+   "kind": "laptop",
+   "port": "1/1/1",
+   "mac": "00:00:5e:00:53:01",
+   "user": "employee.user",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   }
+  },
+  {
+   "id": "printer",
+   "name": "Printer (HP LaserJet)",
+   "kind": "printer",
+   "port": "1/1/5",
+   "mac": "00:00:5e:00:53:05",
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "PRINTERS"
+    }
+   },
+   "lldp": {
+    "sys": "NPI53A005",
+    "port": "eth0",
+    "caps": "S"
+   }
+  }
+ ],
+ "checks": [
+  {
+   "desc": "SVI vlan100 is 203.0.113.2/24",
+   "config": {
+    "context": "interface vlan 100",
+    "has": "^ip address 203\\.0\\.113\\.2/24$"
+   }
+  },
+  {
+   "desc": "SVI vlan10 is 192.0.2.1/24",
+   "config": {
+    "context": "interface vlan 10",
+    "has": "^ip address 192\\.0\\.2\\.1/24$"
+   }
+  },
+  {
+   "desc": "Default route via 203.0.113.1",
+   "route": {
+    "prefix": "0.0.0.0/0",
+    "type": "S"
+   }
+  },
+  {
+   "desc": "OSPF adjacency with core-rtr is FULL",
+   "ospf": {
+    "dev": "core-rtr"
+   }
+  },
+  {
+   "desc": "198.51.100.0/24 learned by OSPF",
+   "route": {
+    "prefix": "198.51.100.0/24",
+    "type": "O"
+   }
+  },
+  {
+   "desc": "The file server answers ping",
+   "ping": {
+    "to": "198.51.100.10",
+    "ok": true
+   }
+  }
+ ]
+}
