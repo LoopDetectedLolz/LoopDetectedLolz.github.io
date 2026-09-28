@@ -1248,10 +1248,15 @@ html.qam-fs .rig{display:none}
     }
     return best;
   }
-  function viaSet(sRoot, cont, toks, i, bit, after, depth) {
+  // each option at most once: the lab switch takes `ntp server X prefer iburst` but answers `iburst iburst` with
+  // Invalid input: iburst (2026-09-28), so an option is known by its first keyword and not taken twice
+  function viaSet(sRoot, cont, toks, i, bit, after, depth, used) {
     var best = walkReal(cont, toks, i, bit, after);
     if (best.state === "full" || i >= toks.length || depth > 16) return best;
-    var r = walkReal(sRoot, toks, i, bit, function (j) { return j > i ? viaSet(sRoot, cont, toks, j, bit, after, depth + 1) : null; });
+    used = used || [];
+    var heads = litsAt(CORPUS.nodes[sRoot], toks[i].toLowerCase(), bit), head = heads.length === 1 ? heads[0] : "";
+    if (head && used.indexOf(head) >= 0) return better({ state: "invalid", at: i }, best) ? { state: "invalid", at: i } : best;
+    var r = walkReal(sRoot, toks, i, bit, function (j) { return j > i ? viaSet(sRoot, cont, toks, j, bit, after, depth + 1, head ? used.concat([head]) : used) : null; });
     return better(r, best) ? r : best;
   }
   // every node the tokens can leave the walker at, for ? and Tab: inside a set that is the set's options and
