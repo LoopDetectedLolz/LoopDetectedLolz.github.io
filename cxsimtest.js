@@ -730,5 +730,30 @@ var cfb = CK.check(bd.config, {});
 ok(!cfb.findings.some(function (f) { return f.sev === "error"; }), "the checker finds no errors in the builder's own output: " + cfb.findings.filter(function (f) { return f.sev === "error"; }).map(function (f) { return f.title; }).join(" | "));
 ok(!cfb.findings.some(function (f) { return f.kind === "hardening" && f.sev === "warn" && !/^(1\.1\.4|1\.3\.1)$/.test(f.cis); }), "hardening warnings left are only the ones the builder says to do by hand: " + cfb.findings.filter(function (f) { return f.kind === "hardening" && f.sev === "warn"; }).map(function (f) { return f.cis + " " + f.title; }).join(" | "));
 
+// ── the guide: practices and the CIS map say only what the switch takes ──
+section = "guide";
+var CIS = JSON.parse(fs.readFileSync(path.join(__dirname, "theme", "cxsim", "cis.json"), "utf8"));
+var PRACT = JSON.parse(fs.readFileSync(path.join(__dirname, "theme", "cxsim", "practices.json"), "utf8")).practices;
+function linesOk(lines, what) {
+  CK.parse(lines.join("\n").replace(/<[A-Z-]+>/g, "x")).lines.forEach(function (ln) {
+    if (!ln.ctx) return;
+    var ctx = ln.ctx === "config" && /^(copy|checkpoint|write)\b/.test(ln.text) ? "exec" : ln.ctx, sx = CX.syntax(ctx, ln.text, "10.18");
+    ok(!!sx && sx.state === "full", what + ": " + ln.text + (sx && sx.error ? " -> " + sx.error : ""));
+  });
+}
+eq(CIS.controls.length, 28, "the L1 audit's 28 controls");
+CIS.controls.forEach(function (c) {
+  ok(/^\d+(\.\d+)+$/.test(c.id) && c.ask && /^(config|manual)$/.test(c.auto), "CIS " + c.id + " is complete");
+  ok(!/[—–]| - /.test(c.ask), "CIS " + c.id + " has no dashes");
+  (c.check || []).forEach(function (l) { var sx = CX.syntax("exec", l.split("|")[0].trim(), "10.18"); ok(!!sx && sx.state === "full", "CIS " + c.id + " check command is real: " + l); });
+  if (c.fix) linesOk(c.fix, "CIS " + c.id + " fix");
+});
+// every control the checker can raise is on the guide, and the guide says so
+var raised = {}; [cr, cr16, cc, CK.check("", {}), CK.check("telnet server vrf default\nsnmp-server community public\ncopy running-config tftp://192.0.2.9/x vrf mgmt\nhttps-server vrf mgmt", {})].forEach(function (r) { r.findings.forEach(function (f) { if (f.cis) raised[f.cis] = 1; }); });
+Object.keys(raised).forEach(function (id) { var c = CIS.controls.filter(function (x) { return x.id === id; })[0]; ok(!!c && c.auto === "config", "the checker's CIS " + id + " is on the guide as checked from a config"); });
+PRACT.forEach(function (p) { ok(p.t && p.w && !/[—–]| - /.test(p.t + p.w), "practice \"" + p.t + "\" is written, without dashes"); if (p.see) ok(nkeys.indexOf(p.see) >= 0, "practice \"" + p.t + "\" points at a note"); linesOk(p.lines, "practice \"" + p.t + "\""); });
+var FEAT = JSON.parse(fs.readFileSync(path.join(__dirname, "theme", "cxsim", "features.json"), "utf8"));
+ok(FEAT.features.length > 100 && FEAT.features.every(function (f) { return f.type && f.name && (f["6200"] || f["6300"]); }), "the Feature Navigator rows are whole");
+
 console.log((fail ? "FAILED " + fail + " of " : "passed ") + (pass + fail) + " checks");
 process.exit(fail ? 1 : 0);

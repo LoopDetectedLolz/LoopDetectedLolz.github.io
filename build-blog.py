@@ -955,6 +955,183 @@ cxb += f'''
 ''' + foot("nfn-bot-switchwork.svg")
 open(os.path.join(ROOT, "cx-build.html"), "w", encoding="utf-8").write(cxb)
 
+# ── CX releases and hardening: what changed, what good looks like, CIS by number ─
+# Three sources, each named on the page: HPE's Feature Navigator (theme/cxsim/features.json, fetched 2026-09-28),
+# the command lists harvested from the Switch Simulator for each release (the corpus, diffed here), and the
+# sandbox's own notes. Practices and the CIS map are ours (theme/cxsim/practices.json, cis.json); cxsimtest.js
+# checks every config line on this page against the command set.
+def cx_corpus_forms():
+    src = open(os.path.join(ROOT, "theme", "cxsim", "corpus", "aoscx.js"), encoding="utf-8").read()
+    c = json.loads(re.search(r"var c = (\{.*\}); if \(typeof module", src, re.S).group(1))
+    words, rels = c["t"].split(" "), [v[0] for v in c["v"]]
+    allm = (1 << len(rels)) - 1
+    PHN = {-1: "<n>", -2: "A.B.C.D", -3: "A.B.C.D/M", -4: "X:X::X:X", -5: "IFNAME", -6: "MAC", -7: "WORD", -8: "LINE"}
+    nodes = []
+    for s in c["n"].split("|"):
+        parts = s.split(",")
+        kids = []
+        for p in parts[1:]:
+            q = p.split(".")
+            kids.append((int(q[0], 36), int(q[1], 36), int(q[2], 36) if len(q) > 2 else allm))
+        nodes.append((int(parts[0], 36), kids))
+    sets = c.get("s", [])
+    def label(t):
+        if t <= -100:
+            heads = sorted({words[k] if k >= 0 else PHN.get(k, "?") for k, _, _ in nodes[sets[-t - 100]][1]})
+            return "{" + "|".join(heads[:6]) + ("|..." if len(heads) > 6 else "") + "}"
+        return words[t] if t >= 0 else PHN[t]
+    forms = {}
+    for ctx, r in c["r"].items():
+        out, stack, steps = {}, [(r, [], allm)], 0
+        while stack and steps < 400000:
+            ni, toks, mask = stack.pop(); steps += 1
+            e, kids = nodes[ni]
+            if e & mask and toks:
+                f = " ".join(toks); out[f] = out.get(f, 0) | (e & mask)
+            if len(toks) > 14:
+                continue
+            for t, ch, m in kids:
+                if m & mask:
+                    stack.append((ch, toks + [label(t)], m & mask))
+        forms[ctx] = out
+    return rels, forms
+CXG_RELS, CXG_FORMS = cx_corpus_forms()
+CXG_CTX = [("config", "config"), ("if", "interface"), ("lag", "LAG"), ("vlan", "VLAN"), ("svi", "VLAN interface"), ("pa-role", "port-access role"), ("lldp-group", "LLDP group"),
+           ("device-profile", "device profile"), ("ubt-zone", "UBT zone"), ("sg", "RADIUS group"), ("dot1x", "802.1X"), ("macauth", "MAC auth"), ("if-dot1x", "port 802.1X"),
+           ("if-macauth", "port MAC auth"), ("ospf", "OSPF")]
+def cxg_delta(rel):
+    """New and gone command forms in rel against the release before it, per context, grouped by their first words."""
+    i = CXG_RELS.index(rel)
+    new, gone = {}, {}
+    for ctx, label in CXG_CTX + [("exec", "exec")]:
+        for f, m in CXG_FORMS.get(ctx, {}).items():
+            if f.startswith("no ") or (ctx != "exec" and f.startswith("show ")):
+                continue
+            first = min(j for j in range(len(CXG_RELS)) if m >> j & 1)
+            last = max(j for j in range(len(CXG_RELS)) if m >> j & 1)
+            head = " ".join(f.split(" ")[:3 if f.startswith(("aaa ", "port-access ", "ip ", "ipv6 ", "show ", "debug ")) else 2])
+            if first == i and i > 0:
+                new.setdefault(label, {}).setdefault(head, []).append(f)
+            if last == i - 1:
+                gone.setdefault(label, {}).setdefault(head, []).append(f)
+    return new, gone
+def cxg_form(f):
+    return " ".join('<i>%s</i>' % E(w) if (w.isupper() and len(w) > 1) or w.startswith(("<", "{")) or w in ("A.B.C.D", "A.B.C.D/M", "X:X::X:X") else E(w) for w in f.split(" "))
+def cxg_groups(d, verb):
+    out = []
+    for label in [l for _, l in CXG_CTX] + ["exec"]:
+        if label not in d:
+            continue
+        heads = d[label]; n = sum(len(v) for v in heads.values())
+        items = "".join('<li><code>%s</code>%s</li>' % (cxg_form(sorted(v)[0]), ' <span class="more">and %d more like it</span>' % (len(v) - 1) if len(v) > 1 else "")
+                        for h, v in sorted(heads.items(), key=lambda kv: (-len(kv[1]), kv[0]))[:40])
+        out.append('<details class="cxg-cli"><summary><b>%s</b> %d %s command form%s</summary><ul>%s</ul></details>' % (E(label), n, verb, "" if n == 1 else "s", items))
+    return "".join(out)
+CX_FEAT = json.load(open(os.path.join(ROOT, "theme", "cxsim", "features.json"), encoding="utf-8"))
+CX_PRACT = json.load(open(os.path.join(ROOT, "theme", "cxsim", "practices.json"), encoding="utf-8"))["practices"]
+CX_CIS = json.load(open(os.path.join(ROOT, "theme", "cxsim", "cis.json"), encoding="utf-8"))
+def cxg_nav(rel):
+    builds = [b for b in CX_FEAT["compared"] if b.startswith(rel + ".")]
+    if not builds:
+        return '<p class="cxg-none">Not in the Feature Navigator yet (checked %s). The command line below is the first place 10.18 shows.</p>' % E(CX_FEAT["fetched"])
+    rows = [f for f in CX_FEAT["features"] if f["6200"] in builds or f["6300"] in builds]
+    bytype = {}
+    for f in rows:
+        bytype.setdefault(f["type"], []).append(f)
+    items = []
+    for t in sorted(bytype):
+        lis = "".join('<li>%s <span class="cxg-plat">%s</span></li>' % (E(f["name"]), " ".join(
+            '<em>%s</em>' % p for p in ("6200", "6300") if f[p] in builds)) for f in sorted(bytype[t], key=lambda x: x["name"].lower()))
+        items.append('<div class="cxg-type"><h4>%s</h4><ul>%s</ul></div>' % (E(t), lis))
+    return '<p class="cxg-src">%d features first listed for the 6200 or 6300 in %s.</p><div class="cxg-types">%s</div>' % (len(rows), " and ".join(builds), "".join(items))
+def cxg_notes(rel):
+    hits = []
+    for n in CX_NOTES["notes"]:
+        for v in n.get("v", []):
+            if re.search(r"(^New in %s\b|^Introduced in %s\b|\b%s (added|took|says|has|matched)\b)" % ((re.escape(rel),) * 3), v):
+                hits.append('<li><a href="cx-notes.html#%s"><code>%s</code></a>: %s</li>' % (cx_slug(n["k"]), E(n["k"]), E(v)))
+    return '<ul class="cxg-notes">%s</ul>' % "".join(hits) if hits else '<p class="cxg-none">No note calls this release out yet.</p>'
+cxg_rel_html = ""
+for rel in reversed(CXG_RELS):
+    new, gone = cxg_delta(rel)
+    nn, ng = sum(len(v) for g in new.values() for v in g.values()), sum(len(v) for g in gone.values() for v in g.values())
+    cli = ('<p class="cxg-src">%d command forms appear in %s and %d that %s had are gone, across the contexts the lists cover. Forms, not features: one new option can add a few.</p>%s%s'
+           % (nn, rel, ng, CXG_RELS[CXG_RELS.index(rel) - 1], cxg_groups(new, "new"), cxg_groups(gone, "gone"))) if CXG_RELS.index(rel) else (
+           '<p class="cxg-src">The baseline: %d command forms across the contexts harvested. Every later release is compared with the one before it.</p>' % sum(len(v) for v in CXG_FORMS.values()))
+    cxg_rel_html += ('<section class="cxg-rel g-card" id="r-%s"><h3>AOS-CX %s</h3><div class="cxg-cols"><div><h4 class="cxg-h">In HPE\'s Feature Navigator</h4>%s</div>'
+                     '<div><h4 class="cxg-h">In the command line</h4>%s<h4 class="cxg-h">Called out in the command notes</h4>%s</div></div></section>'
+                     % (rel.replace(".", "-"), rel, cxg_nav(rel), cli, cxg_notes(rel)))
+cxg_pract = "".join('<article class="cxg-p g-card"><h3>%s</h3><p>%s</p>%s%s</article>' % (
+    E(p["t"]), E(p["w"]), '<pre>%s</pre>' % E("\n".join(p["lines"])) if p["lines"] else "",
+    '<a class="cxg-see" href="cx-notes.html#%s">The note on <code>%s</code></a>' % (cx_slug(p["see"]), E(p["see"])) if p.get("see") else "") for p in CX_PRACT)
+cxg_cis = "".join('<article class="cxg-c g-card"><header><span class="cxg-id">CIS %s</span><span class="cxg-auto %s">%s</span></header><p>%s</p>%s%s</article>' % (
+    E(c["id"]), "on" if c["auto"] == "config" else "", "The config checker looks for this" if c["auto"] == "config" else "Check this by hand",
+    E(c["ask"]), '<p class="cxg-chk">Check: %s</p>' % " · ".join('<code>%s</code>' % E(x) for x in c["check"]) if c["check"] else "",
+    '<pre>%s</pre>' % E("\n".join(c["fix"])) if c["fix"] else "") for c in CX_CIS["controls"])
+CXG_DESC = "What changed in AOS-CX from 10.15 to 10.18 for the 6200 and 6300, from HPE's Feature Navigator and the command lists themselves; best practices for a campus access switch; and hardening mapped to the CIS benchmark by control number."
+cxg = head("CX releases and hardening · " + SITE["name"], CXG_DESC, BASE_URL + "/cx-guide.html", BASE_URL + "/og/cx-guide.png", active="academy")
+cxg += f'''
+{CX_TOOLS_CSS}
+<style>
+.cxg-jump{{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s5)}}
+.cxg-sec{{margin:0 0 var(--s7)}}
+.cxg-sec>h2{{font-size:26px;letter-spacing:-0.02em;margin:0 0 8px}}
+.cxg-sec>p{{color:var(--text-dim);font-size:16px;line-height:1.6;max-width:820px;margin:0 0 var(--s4)}}
+.cxg-rel{{padding:var(--s4) var(--s5);margin:0 0 var(--s4)}}
+.cxg-rel h3{{font-size:22px;margin:0 0 var(--s3)}}
+.cxg-cols{{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s5)}}
+.cxg-h{{font:600 11px var(--mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--blue-light);margin:0 0 8px}}
+.cxg-cols>div>.cxg-h:not(:first-child){{margin-top:var(--s4)}}
+.cxg-src,.cxg-none{{color:var(--text-muted);font-size:13.5px;line-height:1.55;margin:0 0 10px}}
+.cxg-types{{display:grid;gap:10px}}
+.cxg-type h4{{font-size:14px;margin:0 0 4px;color:var(--text)}}
+.cxg-type ul,.cxg-notes,.cxg-cli ul{{margin:0;padding-left:1.1em;color:var(--text-dim);font-size:14px;line-height:1.55}}
+.cxg-plat em{{font:normal 11px var(--mono);color:var(--teal);border:1px solid rgba(94,210,218,0.4);border-radius:var(--r-pill);padding:1px 6px;margin-left:4px;white-space:nowrap}}
+.cxg-cli{{border-top:1px solid var(--line);padding:6px 0}}
+.cxg-cli summary{{cursor:pointer;min-height:38px;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text-dim)}}
+.cxg-cli summary b{{color:var(--text);font-weight:600}}
+.cxg-cli code,.cxg-notes code,.cxg-p code,.cxg-c code{{font:12.5px var(--mono);color:var(--text);overflow-wrap:anywhere}}
+.cxg-cli i{{font-style:normal;color:var(--text-muted)}}
+.cxg-cli .more{{color:var(--text-muted);font-size:12.5px}}
+.cxg-notes a{{color:var(--blue-light)}}
+.cxg-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,380px),1fr));gap:var(--s4)}}
+.cxg-p,.cxg-c{{padding:var(--s4) var(--s5);min-width:0}}
+.cxg-p h3{{font-size:17px;margin:0 0 6px}}
+.cxg-p p,.cxg-c p{{color:var(--text-dim);font-size:14.5px;line-height:1.6;margin:0 0 8px}}
+.cxg-p pre,.cxg-c pre{{margin:8px 0 0;font:12.5px/1.55 var(--mono);color:var(--text);background:rgba(3,10,16,0.6);border:1px solid var(--line);border-radius:10px;padding:10px 12px;overflow-x:auto}}
+.cxg-see{{display:inline-flex;align-items:center;min-height:38px;margin-top:6px;font-size:13.5px;color:var(--blue-light)}}
+.cxg-c header{{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;margin:0 0 8px}}
+.cxg-id{{font:700 13px var(--mono);color:var(--text)}}
+.cxg-auto{{font:11px var(--mono);color:var(--text-muted);border:1px solid var(--line);border-radius:var(--r-pill);padding:2px 8px}}
+.cxg-auto.on{{color:#bdf29c;border-color:rgba(140,224,94,0.5)}}
+.cxg-chk{{font-size:13px!important}}
+@media (max-width:860px){{.cxg-cols{{grid-template-columns:minmax(0,1fr)}}.cxg-rel,.cxg-p,.cxg-c{{padding:var(--s3) var(--s4)}}}}
+</style>
+<section class="sim-intro">
+  <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
+  <h1 class="h-hero">Releases, habits and hardening</h1>
+  <p class="lede">What changed from AOS-CX {CXG_RELS[0]} to {CXG_RELS[-1]} for the 6200 and 6300, seen three ways: HPE's Feature Navigator, the command lists I pulled off the Switch Simulator for each release, and the sandbox's own notes. Then the habits that keep a campus access switch out of trouble, and hardening mapped to the CIS benchmark for CX switches by control number. Every config line on this page is checked against the command set before it is published.</p>
+</section>
+{cx_tools("guide")}
+<nav class="cxg-jump" aria-label="Sections"><a class="pill outline" href="#releases">By release</a><a class="pill outline" href="#practice">Best practices</a><a class="pill outline" href="#cis">Hardening, CIS by number</a></nav>
+<section class="cxg-sec" id="releases">
+  <h2>By release</h2>
+  <p>Newest first. The Feature Navigator is HPE's list of what each platform supports in each release, compared here with licenses Native and Advanced and read on {E(CX_FEAT["fetched"])}; a feature sits under the first release it shows up in. The command line column is the difference between the command lists of one release and the one before it, which catches syntax the navigator never mentions. The Simulator hides hardware, so PoE, VSF and some speeds do not show there.</p>
+  {cxg_rel_html}
+</section>
+<section class="cxg-sec" id="practice">
+  <h2>Best practices for a campus access switch</h2>
+  <p>The habits, each with the few lines that do it. The <a href="cx-build.html">script builder</a> writes most of them for you, and the <a href="cx-check.html">config checker</a> tells you which a config is missing.</p>
+  <div class="cxg-grid">{cxg_pract}</div>
+</section>
+<section class="cxg-sec" id="cis">
+  <h2>Hardening, CIS by control number</h2>
+  <p>The {E(CX_CIS["benchmark"])} has {len(CX_CIS["controls"])} automated and manual items. They are mapped here by control number only: the numbers come from the public Tenable audit file for it, the wording is mine, and the benchmark's own text is not reproduced. Where a control can be read from a config, the config checker looks for it; the rest need eyes on the box.</p>
+  <div class="cxg-grid">{cxg_cis}</div>
+</section>
+''' + foot("nfn-bot-switchwork.svg")
+open(os.path.join(ROOT, "cx-guide.html"), "w", encoding="utf-8").write(cxg)
+
 # ── simulator page: the banner on its own ───────────────────────────────────
 sim = head("Simulator · " + SITE["name"], "A Wi-Fi link you can break: a real frame sent symbol by symbol through a link budget, a reflection, spatial streams and a Teams call, with interference you add yourself.", BASE_URL + "/simulator.html", BASE_URL + "/og/simulator.png", active="tools")
 sim += f'''
@@ -1155,6 +1332,7 @@ og_card("The CX Sandbox: a modelled AOS-CX switch you can type on, with a fake C
 og_card("AOS-CX command notes: what each command does, examples, release changes and where the sandbox pretends", "CX Sandbox", os.path.join(ROOT, "og", "cx-notes.png"))
 og_card("Paste an AOS-CX config, get findings back. It never leaves your browser.", "CX Sandbox", os.path.join(ROOT, "og", "cx-check.png"))
 og_card("Build an AOS-CX access switch config block by block, every block explained and checked", "CX Sandbox", os.path.join(ROOT, "og", "cx-build.png"))
+og_card("AOS-CX 10.15 to 10.18: what changed, the habits that matter, and CIS hardening by control number", "CX Sandbox", os.path.join(ROOT, "og", "cx-guide.png"))
 og_card("Planning tools that show their working: capacity, aiming, mesh, and what happened", "Tools", os.path.join(ROOT, "og", "tools.png"))
 rasterize(os.path.join(ROOT, "logo", "nfn-favicon.svg"), os.path.join(ROOT, "apple-touch-icon.png"), 180, 180)
 
@@ -1167,6 +1345,7 @@ urls = ['<url><loc>%s/</loc><changefreq>weekly</changefreq><priority>1.0</priori
         '<url><loc>%s/cx-notes.html</loc><priority>0.6</priority></url>' % BASE_URL,
         '<url><loc>%s/cx-check.html</loc><priority>0.6</priority></url>' % BASE_URL,
         '<url><loc>%s/cx-build.html</loc><priority>0.6</priority></url>' % BASE_URL,
+        '<url><loc>%s/cx-guide.html</loc><priority>0.6</priority></url>' % BASE_URL,
         '<url><loc>%s/tools.html</loc><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/socials.html</loc><priority>0.3</priority></url>' % BASE_URL]
 urls += ['<url><loc>%s/p/%s.html</loc><lastmod>%s</lastmod><priority>0.8</priority></url>'
