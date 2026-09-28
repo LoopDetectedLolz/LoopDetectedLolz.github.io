@@ -43,7 +43,7 @@
  "hints": [
   "show port-access clients detail. The reason names the missing piece.",
   "port-access role <NAME> then vlan access <id>. The VLAN has to exist before a role can point at it.",
-  "Clients re-authenticate on their own once the role exists; clear port-access clients if you want to watch it happen."
+  "Clients re-authenticate on their own once the role exists. port-access reauthenticate interface 1/1/1-1/1/5 makes them do it now, if you want to watch."
  ],
  "devices": [
   {

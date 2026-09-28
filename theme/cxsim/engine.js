@@ -19,13 +19,15 @@
   "use strict";
 
   // ── models ──────────────────────────────────────────────────────────────
+  // img is the platform prefix AOS-CX prints in front of the release: ML for the 6200, FL for the 6300.
   var MODELS = {
-    "6200F-12": { name: "6200F 12G CL4 2SFP+ 139W", pn: "JL725A", copper: 12, sfp: 2, sfpType: "SFP+", poe: true },
-    "6200F-24": { name: "6200F 24G CL4 4SFP+ 370W", pn: "JL726A", copper: 24, sfp: 4, sfpType: "SFP+", poe: true },
-    "6200F-48": { name: "6200F 48G CL4 4SFP+ 370W", pn: "JL727A", copper: 48, sfp: 4, sfpType: "SFP+", poe: true },
-    "6300M-48": { name: "6300M 48G CL4 PoE 4SFP56", pn: "JL662A", copper: 48, sfp: 4, sfpType: "SFP56", poe: true }
+    "6200F-12": { name: "6200F 12G CL4 2SFP+ 139W", pn: "JL725A", copper: 12, sfp: 2, sfpType: "SFP+", poe: true, img: "ML" },
+    "6200F-24": { name: "6200F 24G CL4 4SFP+ 370W", pn: "JL726A", copper: 24, sfp: 4, sfpType: "SFP+", poe: true, img: "ML" },
+    "6200F-48": { name: "6200F 48G CL4 4SFP+ 370W", pn: "JL727A", copper: 48, sfp: 4, sfpType: "SFP+", poe: true, img: "ML" },
+    "6300M-48": { name: "6300M 48G CL4 PoE 4SFP56", pn: "JL662A", copper: 48, sfp: 4, sfpType: "SFP56", poe: true, img: "FL" }
   };
-  var VERSION = "FL.10.15.1005";
+  // The release the shapes were checked against: the AOS-CX Switch Simulator, Virtual.10.18.1002.
+  var VERSION = "10.18.1002";
 
   function portsFor(model, member) {
     var m = MODELS[model] || MODELS["6200F-12"], out = [], i;
@@ -55,7 +57,7 @@
     this.lesson = lesson || {};
     this.modelId = this.lesson.model || "6200F-12";
     this.model = MODELS[this.modelId] || MODELS["6200F-12"];
-    this.version = this.lesson.version || VERSION;
+    this.version = this.lesson.version || ((this.model.img || "ML") + "." + VERSION);
     this.boot = Date.now() - (this.lesson.uptime || 0) * 1000;
     this.tick = 0;                          // command counter, drives fake timestamps
     this.reset();
@@ -80,7 +82,8 @@
     this.svis = {};
     this.radius = [];                       // {host, key, port, vrf}
     this.groups = {};                       // name -> {type:'radius', servers:[]}
-    this.pa = { roles: {}, macAuth: false, dot1x: false, macAuthGroup: "", dot1xGroup: "", dynAuth: false };
+    this.pa = { roles: {}, macAuth: false, dot1x: false, macAuthGroup: "", dot1xGroup: "", dynAuth: false, dynClients: {},
+      dynStats: { badCoa: 0, badDisc: 0, coaReq: 0, coaAck: 0, coaNak: 0 } };
     this.stp = { enable: false, mode: "mstp", priority: 8 };
     this.routes = [];                       // {prefix, len, nh, ifname}
     this.ospf = {};                         // proc -> {routerId, areas:{}, passive:[]}
@@ -147,6 +150,8 @@
     });
     if (this.radius.length && !showKeys) { o.push("aaa group server radius radius"); this.radius.forEach(function (r, i) { o.push("    server " + r.host + " priority " + (i + 1)); }); o.push("!"); }
     if (this.pa.dynAuth) o.push("radius dyn-authorization enable");
+    var dyn = Object.keys(this.pa.dynClients);
+    if (dyn.length) { if (!showKeys) o.push("!"); dyn.forEach(function (ip) { o.push("radius dyn-authorization client " + ip + " secret-key " + (showKeys ? "plaintext " + self.pa.dynClients[ip].key : "ciphertext <hidden>")); }); }
     if (!showKeys) o.push("ssh server vrf mgmt");
     Object.keys(this.vlans).map(Number).sort(function (x, y) { return x - y; }).forEach(function (v) {
       o.push("vlan " + v);
@@ -180,7 +185,7 @@
       var l = self.lags[id];
       o.push("interface lag " + id);
       if (l.desc) o.push("    description " + l.desc);
-      if (l.shutdown) o.push("    shutdown");
+      if (!l.shutdown) o.push("    no shutdown");
       o.push("    no routing");
       self.l2Lines(l, o, true);
       if (l.lacp !== "off") o.push("    lacp mode " + l.lacp);
@@ -189,7 +194,7 @@
       var i = self.ifaces[n];
       o.push("interface " + n);
       if (i.desc) o.push("    description " + i.desc);
-      if (i.lag) { o.push("    lag " + i.lag); return; }
+      if (i.lag) { if (!i.shutdown) o.push("    no shutdown"); o.push("    lag " + i.lag); return; }
       o.push(i.shutdown ? "    shutdown" : "    no shutdown");
       if (i.routing) { if (i.ip) o.push("    ip address " + i.ip); if (i.ospf) o.push("    ip ospf " + i.ospf.proc + " area " + i.ospf.area); return; }
       o.push("    no routing");
@@ -294,6 +299,8 @@
     "vsf": "Virtual switching framework (stacking)", "member": "Stack member", "type": "Member model", "link": "VSF link", "brief": "One line per entry", "detail": "Full detail", "version": "Software version", "system": "System information",
     "mac-address-table": "Learned MAC addresses", "lldp": "Link layer discovery", "neighbor-info": "Neighbours seen on LLDP", "interfaces": "Per-interface view", "aggregates": "Per-LAG view", "summary": "Summary", "neighbors": "OSPF neighbours",
     "clients": "Authenticated and failed clients", "client-status": "Per-client authentication status", "server-groups": "Configured server groups", "statistics": "Counters", "list": "List entries", "arp": "ARP table", "rollback": "Restore a checkpoint",
+    "page": "Page long output (the sandbox never pages)", "log-off": "Log off port-access clients", "client": "Port-access clients", "reauthenticate": "Re-authenticate the clients on an interface",
+    "mac": "By MAC address", "secret-key": "Shared secret for this client", "configuration": "Configuration", "local": "Roles defined on the switch",
     "repetitions": "Number of echo requests", "connect": "Plug a device into its port", "disconnect": "Unplug a device", "coa": "Send a change of authorization from the fake RADIUS server", "status": "What is plugged in and how it authenticated", "reset": "Put the lab back to its starting state", "help": "How the sandbox commands work"
   };
   var PH = {
@@ -304,6 +311,7 @@
     "<2-8>": ["Member 2 to 8", function (t) { return /^\d+$/.test(t) && +t >= 2 && +t <= 8; }],
     "<1-2>": ["Link 1 or 2", function (t) { return t === "1" || t === "2"; }],
     "<1-10>": ["Count", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 10; }],
+    "<2-1000>": ["Lines per page", function (t) { return /^\d+$/.test(t) && +t >= 2 && +t <= 1000; }],
     "<A.B.C.D>": ["IPv4 address", isIp],
     "<AREA>": ["Area id, a number or dotted form", function (t) { return isIp(t) || /^\d+$/.test(t); }],
     "<A.B.C.D/M>": ["IPv4 prefix", function (t) { var p = t.split("/"); return p.length === 2 && isIp(p[0]) && /^\d+$/.test(p[1]) && +p[1] <= 32; }],
@@ -312,6 +320,7 @@
     "<VLIST>": ["VLAN list, e.g. 10,20,30-40, or all", function (t) { return /^(all|\d+(-\d+)?(,\d+(-\d+)?)*)$/.test(t); }],
     "<WORD>": ["Name", function (t) { return /^\S+$/.test(t); }],
     "<LINE>": ["Text", function () { return true; }],
+    "<MAC>": ["MAC address, e.g. 00:00:5e:00:53:01", function (t) { return /^([0-9a-f]{2}[:-]?){5}[0-9a-f]{2}$/i.test(t); }],
     "<DEV>": ["Device id from the Devices panel", function (t) { return /^\S+$/.test(t); }]
   };
 
@@ -382,11 +391,25 @@
     return list;
   };
 
+  // A line may carry output filters after a pipe, the way the box takes them: `show running-config | include vlan`.
+  // Filters run on what a show printed; a line whose command failed keeps its own error.
   Switch.prototype.run = function (line, quiet) {
+    var pipe = splitPipe(line);
+    if (!pipe.piped) return this.runOne(line, quiet);
+    var head = tokens(pipe.cmd)[0] || "";
+    if (!head || "show".indexOf(head.toLowerCase()) !== 0) { this.tick++; if (!quiet) this.history.push(line); return { out: "Command not supported.", prompt: this.prompt() }; }
+    var r = this.runOne(pipe.cmd, quiet, line);
+    if (isFail(r.out)) return r;
+    if (pipe.error) r.out = pipe.error;
+    else r.out = applyFilters(r.out, pipe.filters);
+    return r;
+  };
+
+  Switch.prototype.runOne = function (line, quiet, logLine) {
     var self = this, toks = tokens(line), out;
     if (!toks.length) return { out: "", prompt: this.prompt() };
     this.tick++;
-    var full = [], partial = false, lits = [];
+    var full = [], partial = false, lits = [], ambiguous = false;
     this.candidates().forEach(function (c) {
       var m = matchPattern(c.cmd.p, toks);
       if (m.state === "no") return;
@@ -395,12 +418,18 @@
     });
     for (var ai = 0; ai < toks.length; ai++) {
       var set = Object.keys(lits[ai] || {});
-      if (set.length > 1 && set.indexOf(toks[ai].toLowerCase()) < 0) return { out: "% Ambiguous command.", prompt: this.prompt() };
+      if (set.length > 1 && set.indexOf(toks[ai].toLowerCase()) < 0) ambiguous = true;
     }
+    if (ambiguous) return { out: "% Ambiguous command.", prompt: this.prompt() };
     if (!full.length) {
-      if (!partial && outsideScope(toks)) return { out: "This command is not used in this scenario. (It exists on the real switch; the sandbox does not model it.)", prompt: this.prompt() };
-      if (partial) return { out: "% Command incomplete.", prompt: this.prompt() };
-      // the box names the first token it could not place, not the last one typed
+      // Not something the model carries. Ask the real 10.18 command set what the box would say.
+      var real = this.realLookup(toks);
+      if (real && real.state === "full") return { out: SCOPE_MSG, prompt: this.prompt() };
+      if (partial || (real && real.state === "partial")) return { out: "% Command incomplete.", prompt: this.prompt() };
+      if (real && real.state === "ambiguous") return { out: "% Ambiguous command.", prompt: this.prompt() };
+      if (real) return { out: "Invalid input: " + toks[Math.min(real.at, toks.length - 1)], prompt: this.prompt() };
+      // no corpus loaded: the curated list of real prefixes, then the first token the model could not place
+      if (outsideScope(toks)) return { out: SCOPE_MSG, prompt: this.prompt() };
       var depth = 0;
       this.candidates().forEach(function (c) { for (var k = 1; k <= toks.length; k++) { var m2 = matchPattern(c.cmd.p, toks.slice(0, k)); if (m2.state === "no") break; depth = Math.max(depth, k); } });
       return { out: "Invalid input: " + toks[Math.min(depth, toks.length - 1)], prompt: this.prompt() };
@@ -417,7 +446,7 @@
     try { out = pick.c.cmd.fn.call(this, pick.m.args, toks) || ""; }
     catch (e) { out = "Error: " + (e.message || e); }
     this.validateStack();
-    if (!quiet) this.history.push(line);
+    if (!quiet) this.history.push(logLine || line);
     return { out: out, prompt: this.prompt() };
   };
 
@@ -450,10 +479,170 @@
     var line = toks.join(" ").toLowerCase(), head = line.replace(/^no /, "");
     return OUTSIDE.some(function (o) { return head.indexOf(o) === 0 || line.indexOf(o) === 0; });
   }
+  var SCOPE_MSG = "This command is not used in this scenario.\n(It exists on the real switch; the sandbox does not model it.)";
+  function isFail(out) { return /^(Invalid input|% |This command is not used|Command not supported|Error:)/.test(String(out)); }
+
+  // ── the real command set ────────────────────────────────────────────────
+  // theme/cxsim/corpus/10.18.js is every command template the AOS-CX Switch Simulator printed with `list`,
+  // packed by cxcorpus.py into one shared trie per context. The model uses it to answer a command it does
+  // not carry the way the box would: real syntax gets "not used in this scenario", anything else gets the
+  // box's own "Invalid input: <first token it could not place>". It is loaded before the engine in the page
+  // (self.CXCorpus) and required from ./corpus under Node. Without it the curated OUTSIDE list still works.
+  var CORPUS = null, CORPUS_SRC = null;
+  try { if (typeof module === "object" && module.exports && typeof require === "function") CORPUS_SRC = require("./corpus/10.18.js"); } catch (e) { CORPUS_SRC = null; }
+  function corpus() {
+    if (CORPUS) return CORPUS;
+    var src = CORPUS_SRC || (typeof self !== "undefined" && self.CXCorpus && self.CXCorpus["10.18"]) || null;
+    if (!src) return null;
+    var words = src.t.split(" ");
+    var nodes = src.n.split("|").map(function (s) {
+      var parts = s.split(","), n = { e: parts[0] === "1", k: {}, w: [] };
+      for (var i = 1; i < parts.length; i++) { var p = parts[i].split("."), t = parseInt(p[0], 36), c = parseInt(p[1], 36); if (t < 0) n.w.push([t, c]); else n.k[words[t]] = c; }
+      n.keys = Object.keys(n.k);
+      return n;
+    });
+    CORPUS = { version: src.version, nodes: nodes, roots: src.r };
+    return CORPUS;
+  }
+  // placeholder classes cxcorpus.py writes as negative tokens
+  var PH_NAME = { "-1": "<number>", "-2": "A.B.C.D", "-3": "A.B.C.D/M", "-4": "X:X::X:X", "-5": "IFNAME", "-6": "MAC", "-7": "WORD", "-8": "LINE" };
+  function phOk(cls, t) {
+    switch (cls) {
+      case -1: return /^\d+([,-]\d+)*$/.test(t);
+      case -2: return isIp(t);
+      case -3: var p = t.split("/"); return p.length === 2 && isIp(p[0]) && /^\d+$/.test(p[1]) && +p[1] <= 32;
+      case -4: return t.indexOf(":") >= 0 && /^[0-9a-f:.]+(\/\d+)?$/i.test(t);
+      case -5: return /^(\d+\/\d+\/\d+(\.\d+)?([-,]\d+\/\d+\/\d+(\.\d+)?)*|lag\d+(\.\d+)?|vlan\d+|loopback\d+|tunnel\d+|mgmt|\d+(\.\d+)?)$/i.test(t);
+      case -6: return /^([0-9a-f]{2}[:-]?){5}[0-9a-f]{2}$/i.test(t) || /^[0-9a-f]{4}\.[0-9a-f]{4}\.[0-9a-f]{4}$/i.test(t);
+      default: return true;
+    }
+  }
+  var RANK = { invalid: 0, ambiguous: 1, partial: 1, full: 2 };
+  function better(a, b) { return !b || RANK[a.state] > RANK[b.state] || (RANK[a.state] === RANK[b.state] && a.at > b.at); }
+  // walk the trie the way the box's parser does: exact keyword, else a unique prefix, else a placeholder
+  function walkReal(ni, toks, i) {
+    var n = CORPUS.nodes[ni];
+    if (i === toks.length) return { state: n.e ? "full" : "partial", at: i };
+    var t = toks[i].toLowerCase(), best = { state: "invalid", at: i };
+    var lits = n.k.hasOwnProperty(t) ? [t] : n.keys.filter(function (k) { return k.indexOf(t) === 0; });
+    if (lits.length > 1) best = { state: "ambiguous", at: i };
+    else if (lits.length === 1) { var r = walkReal(n.k[lits[0]], toks, i + 1); if (r.state === "full") return r; if (better(r, best)) best = r; }
+    for (var w = 0; w < n.w.length; w++) {
+      var cls = n.w[w][0];
+      if (cls === -8) return { state: "full", at: toks.length };
+      if (!phOk(cls, toks[i])) continue;
+      var r2 = walkReal(n.w[w][1], toks, i + 1); if (r2.state === "full") return r2; if (better(r2, best)) best = r2;
+    }
+    return best;
+  }
+  function reachReal(ni, toks, i, acc) {
+    if (i === toks.length) { if (acc.indexOf(ni) < 0) acc.push(ni); return acc; }
+    var n = CORPUS.nodes[ni], t = toks[i].toLowerCase();
+    var lits = n.k.hasOwnProperty(t) ? [t] : n.keys.filter(function (k) { return k.indexOf(t) === 0; });
+    if (lits.length === 1) reachReal(n.k[lits[0]], toks, i + 1, acc);
+    n.w.forEach(function (w) { if (w[0] !== -8 && phOk(w[0], toks[i])) reachReal(w[1], toks, i + 1, acc); });
+    return acc;
+  }
+  var CORPUS_CTX = { exec: "exec", config: "config", "if": "if", lag: "lag", vlan: "vlan", svi: "svi", role: "pa-role", dot1x: "dot1x", macauth: "macauth",
+    "dot1x-if": "if-dot1x", "macauth-if": "if-macauth", sg: "sg", ospf: "ospf" };
+  // the corpus contexts a line can come from, nearest first; show works from any context on the box
+  Switch.prototype.realCtxs = function (toks) {
+    var self = this, out = [], cur = this.ctx().ctx;
+    this.ctxChain().forEach(function (i) { var c = self.stack[i].ctx; if (c === "exec" && cur !== "exec") return; var k = CORPUS_CTX[c]; if (k && out.indexOf(k) < 0) out.push(k); });
+    if (toks.length && toks[0].length > 1 && "show".indexOf(toks[0].toLowerCase()) === 0 && out.indexOf("exec") < 0) out.push("exec");
+    return out;
+  };
+  Switch.prototype.realLookup = function (toks) {
+    var C = corpus(); if (!C || this.ctx().ctx === "vsf") return null;
+    var best = null, ctxs = this.realCtxs(toks);
+    for (var k = 0; k < ctxs.length; k++) {
+      if (C.roots[ctxs[k]] === undefined) continue;
+      var r = walkReal(C.roots[ctxs[k]], toks, 0);
+      if (r.state === "full") return r;
+      if (better(r, best)) best = r;
+    }
+    return best;
+  };
+  // real next words for "?": keywords plus placeholder classes, and <cr> when the line is already complete
+  Switch.prototype.realNext = function (toks, partialTok) {
+    var C = corpus(), out = {}; if (!C || this.ctx().ctx === "vsf") return out;
+    var self = this, pt = (partialTok || "").toLowerCase();
+    this.realCtxs(toks.length ? toks : [partialTok || ""]).forEach(function (ctx) {
+      if (C.roots[ctx] === undefined) return;
+      reachReal(C.roots[ctx], toks, 0, []).forEach(function (ni) {
+        var n = C.nodes[ni];
+        if (n.e && !pt) out["<cr>"] = "cr";
+        n.keys.forEach(function (k) { if (k.indexOf(pt) === 0) out[k] = "k"; });
+        n.w.forEach(function (w) { if (!pt || phOk(w[0], partialTok)) out[PH_NAME[w[0]]] = "w"; });
+      });
+    });
+    return out;
+  };
+
+  // ── output filters after a pipe ─────────────────────────────────────────
+  // The six the box offers after `|` (10.18.1002, 2026-09-28). include, exclude and begin take a regular
+  // expression, quoted when it has spaces; count counts lines. line-number and redirect are real but not modelled.
+  var PIPE_HELP = [["begin", "Displays the first line that matches the pattern string and specified number of lines before and after it"],
+    ["count", "Count the number of lines that match the specified string"], ["exclude", "Displays lines that do not match the specified pattern string"],
+    ["include", "Displays lines that match the specified pattern string"], ["line-number", "Displays line numbers along with the command output"],
+    ["redirect", "Saves the output from cli to a file"]];
+  function splitPipe(line) {
+    var segs = [], cur = "", q = false, i;
+    for (i = 0; i < line.length; i++) { var ch = line.charAt(i); if (ch === '"') q = !q; if (ch === "|" && !q) { segs.push(cur); cur = ""; } else cur += ch; }
+    segs.push(cur);
+    var res = { cmd: segs[0], filters: [], error: "", piped: segs.length > 1 };
+    for (var s = 1; s < segs.length && !res.error; s++) {
+      var seg = segs[s].trim();
+      if (!seg) { res.error = "Command not supported."; break; }
+      var m = seg.match(/^(\S+)\s*([\s\S]*)$/), opTok = m[1].toLowerCase(), arg = m[2].trim();
+      var ops = PIPE_HELP.map(function (p) { return p[0]; }).filter(function (o) { return o.indexOf(opTok) === 0; });
+      if (ops.indexOf(opTok) >= 0) ops = [opTok];
+      if (ops.length !== 1) { res.error = ops.length > 1 ? "% Ambiguous command." : "Command not supported."; break; }
+      if (/^-/.test(arg)) { res.error = "Command not supported."; break; }
+      if (/^"[\s\S]*"$/.test(arg)) arg = arg.slice(1, -1);
+      if (/^(include|exclude|begin)$/.test(ops[0]) && !arg) { res.error = "% Command incomplete."; break; }
+      res.filters.push({ op: ops[0], arg: arg });
+    }
+    return res;
+  }
+  function applyFilters(out, filters) {
+    var lines = String(out).split("\n");
+    for (var f = 0; f < filters.length; f++) {
+      var fl = filters[f], re = null;
+      if (fl.op === "line-number" || fl.op === "redirect") return SCOPE_MSG;
+      if (fl.arg) { try { re = new RegExp(fl.arg); } catch (e) { re = new RegExp(fl.arg.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")); } }
+      if (fl.op === "include") lines = lines.filter(function (l) { return re.test(l); });
+      else if (fl.op === "exclude") lines = lines.filter(function (l) { return !re.test(l); });
+      else if (fl.op === "begin") { var k = 0; while (k < lines.length && !re.test(lines[k])) k++; lines = lines.slice(k); }
+      else if (fl.op === "count") lines = [String(re ? lines.filter(function (l) { return re.test(l); }).length : lines.length)];
+    }
+    return lines.join("\n");
+  }
   Switch.prototype.exec = Switch.prototype.run;
 
   // "?" help for a partial line. `line` is what the user typed before the ?
+  function fmtRows(rows) {
+    var w = Math.max(22, Math.max.apply(null, rows.map(function (r) { return r[0].length; })) + 2);
+    return rows.map(function (r) { return "  " + pad(r[0], w) + r[1] + " "; }).join("\n");
+  }
+  // the pipe's own ? list, laid out the way 10.18 printed it: a 13-wide name column, descriptions wrapped
+  function fmtPipe(rows) {
+    return rows.map(function (r) {
+      var out = [], cur = "";
+      r[1].split(" ").forEach(function (w) { if (cur && (cur + " " + w).length > 64) { out.push(cur); cur = w; } else cur = cur ? cur + " " + w : w; });
+      out.push(cur);
+      return out.map(function (t, i) { return (i ? pad("", 15) : "  " + pad(r[0], 13)) + t + " "; }).join("\n");
+    }).join("\n");
+  }
   Switch.prototype.help = function (line) {
+    if (splitPipe(line).piped) {
+      var tail = line.slice(line.lastIndexOf("|") + 1), tt = tokens(tail), open = /\s$/.test(tail) || !tt.length;
+      if (!tt.length || (tt.length === 1 && !open)) {
+        var pfx = (tt[0] || "").toLowerCase(), pr = PIPE_HELP.filter(function (p) { return p[0].indexOf(pfx) === 0; });
+        return pr.length ? fmtPipe(pr) : "Invalid input: " + pfx;
+      }
+      return fmtRows([["WORD", "Pattern to match, a regular expression (quote it when it has spaces)"]]);
+    }
     var toks = tokens(line), trailing = /\s$/.test(line) || !toks.length, partialTok = trailing ? "" : toks.pop();
     var seen = {}, rows = [];
     this.candidates().forEach(function (c) {
@@ -465,10 +654,16 @@
       if (next[0] === "<") { if (partialTok && !PH[next][1](partialTok) && next !== "<LINE>") return; if (!seen[next]) { seen[next] = 1; rows.push([next, PH[next][0]]); } }
       else { if (partialTok && next.indexOf(partialTok.toLowerCase()) !== 0) return; if (!seen[next]) { seen[next] = 1; rows.push([next, c.cmd.help || HELP[next] || ""]); } }
     });
+    // the real words at this point that the model does not carry, so ? shows the box's whole tree
+    var real = this.realNext(toks, partialTok), hasPh = rows.some(function (r) { return r[0].charAt(0) === "<" && r[0] !== "<cr>"; });
+    Object.keys(real).forEach(function (k) {
+      if (seen[k] || (real[k] === "w" && hasPh)) return;
+      seen[k] = 1;
+      rows.push([k, k === "<cr>" ? "" : (real[k] === "w" ? "Real parameter, not modelled in the sandbox" : "Real command, not modelled in the sandbox")]);
+    });
     if (!rows.length) return "Invalid input: " + (partialTok || toks[toks.length - 1] || "");
     rows.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
-    var w = Math.max(22, Math.max.apply(null, rows.map(function (r) { return r[0].length; })) + 2);
-    return rows.map(function (r) { return "  " + pad(r[0], w) + r[1] + " "; }).join("\n");
+    return fmtRows(rows);
   };
 
   // Tab completion: returns {line, options}
@@ -516,17 +711,35 @@
   cmd("*", "configure", function () { if (this.ctx().ctx !== "exec") return ""; this.push({ ctx: "config" }); });
   cmd("*", "write memory", function () { this.startup = this.runningConfig(); this.startupKeys = this.runningConfig(true); return "Copying configuration: [Success]"; });
   cmd("*", "copy running-config startup-config", function () { this.startup = this.runningConfig(); this.startupKeys = this.runningConfig(true); return "Copying configuration: [Success]"; });
-  cmd("*", "copy running-config checkpoint <WORD>", function (a) { this.checkpoints = this.checkpoints.filter(function (c) { return c.name !== a[3]; }); this.checkpoints.push({ name: a[3], config: this.runningConfig(true), at: this.now() }); return "Copying configuration: [Success]"; });
+  cmd("*", "copy running-config checkpoint <WORD>", function (a) {
+    var cfg = this.runningConfig(true);
+    if (this.checkpoints.some(function (c) { return c.config === cfg; })) return "Copying configuration: [Failure]\n\nAn identical checkpoint already exists";
+    this.checkpoints = this.checkpoints.filter(function (c) { return c.name !== a[3]; }); this.checkpoints.push({ name: a[3], config: cfg, at: this.now() }); return "Copying configuration: [Success]";
+  });
   cmd("*", "checkpoint rollback <WORD>", function (a) {
     var cfg = a[2] === "startup-config" ? (this.startupKeys || this.startup) : (this.checkpoints.filter(function (c) { return c.name === a[2]; })[0] || {}).config;
-    if (!cfg) return "Checkpoint " + a[2] + " does not exist.";
+    if (!cfg) return "Checkpoint " + a[2] + " doesn't exist";
     var lines = cfg.split("\n").filter(function (l) { return l && l[0] !== "!" && !/^Current configuration|^user admin|^https-server|^ssh server|^interface mgmt|^    ip dhcp|^aaa group server radius radius$/.test(l); }).map(function (l) { return l.trim().replace(/ priority \d+$/, ""); });
-    var devs = this.devices; this.reset(); this.devices = devs; this.apply(lines); this.reauthAll();
+    // a rollback replaces the configuration, not the checkpoint store or what is plugged in
+    var devs = this.devices, cps = this.checkpoints; this.reset(); this.devices = devs; this.checkpoints = cps; this.apply(lines); this.reauthAll();
     this.stack = [{ ctx: "exec" }];
-    return "Configuration restored from " + a[2] + ".";
+    return "Copying configuration: [Success]";
   });
-  cmd("*", "clear port-access clients", function () { this.clients = {}; this.reauthAll(); });
-  cmd("*", "clear port-access clients interface <IFNAME>", function (a) { var r = this.expandIf(a[4]); if (r.error) return r.error; var self = this; r.ifs.forEach(function (n) { self.devsOn(n).forEach(function (d) { delete self.clients[d.id]; }); }); this.reauthAll(); });
+  // paging: every scripted session on the box starts with `no page`; the terminal here never pages
+  cmd("*", "no page", function () { return ""; });
+  cmd("*", "page", function () { return ""; });
+  cmd("*", "page <2-1000>", function () { return ""; });
+  // clearing a session. 10.18 has no `clear port-access clients`; it logs a client off or re-authenticates a port.
+  Switch.prototype.logOff = function (pick) {
+    var self = this, hit = 0;
+    Object.keys(this.clients).forEach(function (k) { var c = self.clients[k]; if (c.method !== "none" && pick(c)) { delete self.clients[k]; hit++; } });
+    this.tick++; this.reauthAll();
+    return "";
+  };
+  cmd("*", "port-access log-off client mac <MAC>", function (a) { var m = macCx(a[4]); return this.logOff(function (c) { return c.mac === m; }); });
+  cmd("*", "port-access log-off client interface <IFNAME>", function (a) { var r = this.expandIf(a[4]); if (r.error) return r.error; return this.logOff(function (c) { return r.ifs.indexOf(c.port) >= 0; }); });
+  cmd("*", "port-access log-off client role <WORD>", function (a) { return this.logOff(function (c) { return c.role === a[4]; }); });
+  cmd("*", "port-access reauthenticate interface <IFNAME>", function (a) { var r = this.expandIf(a[3]); if (r.error) return r.error; return this.logOff(function (c) { return r.ifs.indexOf(c.port) >= 0; }); });
   cmd("*", "ping <A.B.C.D>", function (a) { return this.ping(a[1], 5); });
   cmd("*", "ping <A.B.C.D> repetitions <1-10>", function (a) { return this.ping(a[1], +a[3]); });
 
@@ -543,7 +756,8 @@
   });
   cmd("config", "interface <IFNAME>", function (a) { var r = this.expandIf(a[1]); if (r.error) return r.error; this.push({ ctx: "if", ifs: r.ifs }); });
   cmd("config", "interface lag <1-256>", function (a) {
-    var id = +a[2]; if (!this.lags[id]) this.lags[id] = { name: "lag" + id, shutdown: false, routing: false, mode: "access", access: 1, trunk: null, native: 1, nativeTag: false, lacp: "off", desc: "" };
+    // a new LAG is administratively down until `no shutdown`, like the box (checked on 10.18.1002, 2026-09-28)
+    var id = +a[2]; if (!this.lags[id]) this.lags[id] = { name: "lag" + id, shutdown: true, routing: false, mode: "access", access: 1, trunk: null, native: 1, nativeTag: false, lacp: "off", desc: "" };
     this.push({ ctx: "lag", id: id });
   });
   cmd("config", "no interface lag <1-256>", function (a) { var id = +a[3], self = this; if (!this.lags[id]) return "LAG " + id + " does not exist."; delete this.lags[id]; this.portNames().forEach(function (n) { if (self.ifaces[n].lag === id) self.ifaces[n].lag = 0; }); });
@@ -562,6 +776,10 @@
   cmd("config", "radius dyn-authorization enable", function () { this.pa.dynAuth = true; });
   cmd("config", "no radius dyn-authorization enable", function () { this.pa.dynAuth = false; });
   cmd("config", "radius dyn-authorization disable", function () { this.pa.dynAuth = false; });
+  // 10.18 only answers CoA from a configured client (seen 2026-09-26: ClearPass's requests were counted as
+  // invalid client addresses and dropped until this line went in)
+  cmd("config", "radius dyn-authorization client <A.B.C.D> secret-key plaintext <WORD>", function (a) { this.pa.dynClients[a[3]] = { key: a[6] }; });
+  cmd("config", "no radius dyn-authorization client <A.B.C.D>", function (a) { delete this.pa.dynClients[a[4]]; });
   cmd("config", "aaa group server radius <WORD>", function (a) { if (a[4] === "radius") return "The group name `radius` is reserved for the built-in group of every configured server."; if (!this.groups[a[4]]) this.groups[a[4]] = { servers: [] }; this.push({ ctx: "sg", id: a[4] }); });
   cmd("config", "no aaa group server radius <WORD>", function (a) { delete this.groups[a[5]]; if (this.pa.dot1xGroup === a[5]) this.pa.dot1xGroup = ""; if (this.pa.macAuthGroup === a[5]) this.pa.macAuthGroup = ""; this.reauthAll(); });
   cmd("config", "aaa authentication port-access dot1x authenticator", function () { this.push({ ctx: "dot1x" }); });
@@ -730,27 +948,30 @@
     return { server: null, tried: tried };
   };
 
+  // One RADIUS exchange for one method. outcome: accept, reject, timeout, or authz (RADIUS accepted but the
+  // role or VLAN it named does not exist here, which 10.18 shows as authenticated with authorization Invalid).
   Switch.prototype.authenticate = function (dev, method) {
     var iface = this.ifaces[dev.port], group = method === "dot1x" ? this.pa.dot1xGroup : this.pa.macAuthGroup;
     var servers = this.groupServers(group);
-    var rec = { dev: dev.id, port: dev.port, mac: macCx(dev.mac), method: method, status: "Failed", role: "", vlan: iface.access, reason: "", server: "", user: method === "dot1x" ? (dev.user || "") : macCx(dev.mac), at: this.now(), tried: [] };
-    if (!servers.length) { rec.reason = "No RADIUS server in group " + (group || "radius"); return this.applyFallback(rec, iface, "critical"); }
+    var rec = { dev: dev.id, port: dev.port, mac: macCx(dev.mac), method: method, status: "Failed", role: "", vlan: 0, reason: "", server: "", user: method === "dot1x" ? (dev.user || "") : macCx(dev.mac), at: this.now(), tried: [], outcome: "" };
+    if (!servers.length) { rec.reason = "No RADIUS server in group " + (group || "radius"); rec.outcome = "timeout"; return rec; }
     var r = this.radiusReach(servers); rec.tried = r.tried;
-    if (!r.server) { rec.reason = "RADIUS request timed out on every server"; return this.applyFallback(rec, iface, "critical"); }
+    if (!r.server) { rec.reason = "RADIUS request timed out on every server"; rec.outcome = "timeout"; return rec; }
     rec.server = r.server.host;
     var answer = (dev.auth || {})[method];
-    if (!answer) { rec.reason = method === "dot1x" ? "Client does not speak 802.1X" : "Access-Reject (unknown MAC)"; return this.applyFallback(rec, iface, "reject"); }
-    if (!answer.accept) { rec.reason = "Access-Reject" + (answer.why ? " (" + answer.why + ")" : ""); return this.applyFallback(rec, iface, "reject"); }
+    if (!answer) { rec.reason = method === "dot1x" ? "Client does not speak 802.1X" : "Access-Reject (unknown MAC)"; rec.outcome = "reject"; return rec; }
+    if (!answer.accept) { rec.reason = "Access-Reject" + (answer.why ? " (" + answer.why + ")" : ""); rec.outcome = "reject"; return rec; }
     if (answer.role) {
       var role = this.pa.roles[answer.role];
-      if (!role) { rec.reason = "Role " + answer.role + " returned by RADIUS is not defined on the switch"; return this.applyFallback(rec, iface, "reject"); }
+      if (!role) { rec.reason = "Role " + answer.role + " returned by RADIUS is not defined on the switch"; rec.outcome = "authz"; return rec; }
       rec.role = answer.role; rec.vlan = role.vlan || iface.access;
     } else if (answer.vlan) {
-      if (!this.vlans[answer.vlan]) { rec.reason = "VLAN " + answer.vlan + " returned by RADIUS does not exist on the switch"; return this.applyFallback(rec, iface, "reject"); }
+      if (!this.vlans[answer.vlan]) { rec.reason = "VLAN " + answer.vlan + " returned by RADIUS does not exist on the switch"; rec.outcome = "authz"; return rec; }
       rec.vlan = answer.vlan;
-    }
-    rec.status = "Success"; rec.reason = "Access-Accept"; return rec;
+    } else rec.vlan = iface.access;
+    rec.status = "Success"; rec.reason = "Access-Accept"; rec.outcome = "accept"; return rec;
   };
+  // Every method failed: the critical role on a timeout, the reject role on a reject, when the port has one.
   Switch.prototype.applyFallback = function (rec, iface, kind) {
     var roleName = kind === "critical" ? iface.critRole : iface.rejectRole;
     if (roleName && this.pa.roles[roleName]) { rec.status = "Success"; rec.role = roleName; rec.vlan = this.pa.roles[roleName].vlan || iface.access; rec.reason += "; " + (kind === "critical" ? "critical" : "reject") + " role applied"; rec.fallback = kind; }
@@ -773,12 +994,26 @@
       if (!nac.any) { self.clients[d.id] = { dev: d.id, port: d.port, mac: macCx(d.mac), method: "none", status: "Open", role: "", vlan: iface.mode === "access" ? iface.access : iface.native, reason: iface.routing ? "Routed port, no VLAN" : "No port-access on this port, the client is just on VLAN " + iface.access, at: self.now(), user: "" }; return; }
       perPort[d.port] = (perPort[d.port] || 0) + 1;
       if (perPort[d.port] > (iface.clientLimit || 1)) { self.clients[d.id] = { dev: d.id, port: d.port, mac: macCx(d.mac), method: "none", status: "Failed", role: "", vlan: 0, reason: "Client limit " + (iface.clientLimit || 1) + " reached on " + d.port, at: self.now(), user: "" }; return; }
+      // Methods run in precedence order until one authenticates. A device with no supplicant never answers
+      // the EAP identity request, so 802.1X ends in Supplicant-Timeout without RADIUS ever seeing it. The
+      // history and per-method states are what 10.18 prints in `show port-access clients detail`.
       var order = iface.precedence || ["dot1x", "mac-auth"];
-      var canDot1x = nac.dot1x && !!(d.auth && d.auth.dot1x), canMac = nac.mac;
-      var methods = order.filter(function (m) { return m === "dot1x" ? canDot1x : canMac; });
-      if (!methods.length) { self.clients[d.id] = { dev: d.id, port: d.port, mac: macCx(d.mac), method: nac.dot1x ? "dot1x" : "mac-auth", status: "Failed", role: "", vlan: 0, reason: nac.dot1x && !nac.mac ? "Client never answered the EAP identity request (no supplicant) and mac-auth is off" : "No usable method", at: self.now(), user: "" }; return; }
-      var rec = null;
-      for (var i = 0; i < methods.length; i++) { rec = self.authenticate(d, methods[i]); if (rec.status === "Success") break; }
+      var methods = order.filter(function (m) { return m === "dot1x" ? nac.dot1x : nac.mac; });
+      var hist = [], prec = {}, rec = null, last = null, speaks = !!(d.auth && d.auth.dot1x);
+      methods.forEach(function (m) { prec[m] = "Not attempted"; });
+      for (var i = 0; i < methods.length; i++) {
+        var m = methods[i];
+        if (m === "dot1x" && !speaks) { hist.unshift({ m: "dot1x", ok: false, why: "Supplicant-Timeout" }); prec.dot1x = "Unauthenticated"; last = { outcome: "noeap" }; continue; }
+        var r = self.authenticate(d, m), authed = r.outcome === "accept" || r.outcome === "authz";
+        hist.unshift({ m: m, ok: authed, why: r.outcome === "reject" ? "Server-Reject" : (r.outcome === "timeout" ? "Server-Timeout" : "") });
+        prec[m] = authed ? "Authenticated" : (r.outcome === "reject" && m === "mac-auth" ? "Held" : "Unauthenticated");
+        rec = r; last = r;
+        if (authed) break;
+      }
+      if (!rec) rec = { dev: d.id, port: d.port, mac: macCx(d.mac), method: "dot1x", status: "Failed", role: "", vlan: 0, server: "", tried: [], outcome: "noeap",
+        reason: nac.dot1x && !nac.mac ? "Client never answered the EAP identity request (no supplicant) and mac-auth is off" : "Client never answered the EAP identity request (no supplicant)", at: self.now(), user: "" };
+      if (rec.outcome !== "accept" && rec.outcome !== "authz") self.applyFallback(rec, iface, last && last.outcome === "timeout" ? "critical" : "reject");
+      rec.hist = hist; rec.prec = prec; rec.order = methods; rec.mode = "c"; rec.speaks = speaks; rec.user = speaks ? (d.user || "") : "";
       self.clients[d.id] = rec;
     });
   };
@@ -808,8 +1043,14 @@
   Switch.prototype.coa = function (id, role) {
     var d = this.dev(id), c = this.clients[id]; if (!d) return "No device called " + id + " in this lab.";
     if (!c || c.status !== "Success" || c.method === "none") return "ClearPass has no session for " + d.name + " to change.";
-    if (!this.pa.dynAuth) return "CoA-NAK: the switch is not listening for dynamic authorization (radius dyn-authorization enable is off).";
-    if (!this.pa.roles[role]) return "CoA-NAK: role " + role + " is not defined on the switch.";
+    var from = c.server || ((this.lesson.radius || {}).servers || [])[0] || "the RADIUS server", st = this.pa.dynStats;
+    if (!this.pa.dynAuth) return "No reply: the switch is not listening for dynamic authorization (radius dyn-authorization enable is off), so ClearPass times out.";
+    var client = this.pa.dynClients[from];
+    if (!client) { st.badCoa++; return "No reply: " + from + " is not a dynamic authorization client on this switch (radius dyn-authorization client), so the request is dropped and counted as an invalid client address."; }
+    if (client.key !== (this.lesson.radius || {}).key) { st.badCoa++; return "No reply: the secret-key for " + from + " does not match ClearPass, so the switch drops the request."; }
+    st.coaReq++;
+    if (!this.pa.roles[role]) { st.coaNak++; return "CoA-NAK: role " + role + " is not defined on the switch."; }
+    st.coaAck++;
     c.role = role; c.vlan = this.pa.roles[role].vlan || this.ifaces[c.port].access; c.reason = "CoA applied"; c.at = this.now();
     return "CoA-ACK: " + d.name + " moved to role " + role + ", VLAN " + c.vlan + ".";
   };
@@ -974,31 +1215,84 @@
   function briefRow(port, native, mode, type, enabled, status, reason, speed, desc) {
     return pad(port, 15) + pad(native, 8) + pad(mode, 7) + pad(type, 15) + pad(enabled, 8) + pad(status, 8) + pad(reason, 24) + pad(speed, 8) + desc;
   }
+  // The Switch Simulator reports every virtual port at 1000; the sandbox models the hardware, so the SFP+
+  // uplinks run at 10000 and a LAG is the sum of its active members, as on the box.
+  function portSpeed(i) { return i.copper ? 1000 : 10000; }
+  Switch.prototype.lagSpeed = function (id) { var self = this; return this.lagUp(id).active.reduce(function (t, n) { return t + portSpeed(self.ifaces[n]); }, 0); };
   cmd("*", "show interface brief", function () {
     var self = this, rows = [];
     this.portNames().forEach(function (n) {
       var i = self.ifaces[n], up = self.linkUp(n);
       var reason = self.errdisabled[n] ? "Error-disabled" : (i.shutdown ? "Administratively down" : (up ? "" : (i.copper ? "Waiting for link" : "No XCVR installed")));
-      rows.push(briefRow(n, i.routing || i.lag ? (i.lag ? self.lags[i.lag].native : "--") : (i.mode === "trunk" ? String(i.native) : String(i.access)), i.routing ? "routed" : (i.lag ? (self.lags[i.lag].mode) : i.mode), "--", i.shutdown ? "no" : "yes", up ? "up" : "down", reason, up ? (i.copper ? "1000" : "10000") : "--", i.desc || "--"));
+      rows.push(briefRow(n, i.routing || i.lag ? (i.lag ? self.lags[i.lag].native : "--") : (i.mode === "trunk" ? String(i.native) : String(i.access)), i.routing ? "routed" : (i.lag ? (self.lags[i.lag].mode) : i.mode), "--", i.shutdown ? "no" : "yes", up ? "up" : "down", reason, up ? String(portSpeed(i)) : "--", i.desc || "--"));
     });
     Object.keys(this.svis).forEach(function (v) { rows.push(briefRow("vlan" + v, "--", "--", "--", self.svis[v].shutdown ? "no" : "yes", self.sviUp(+v) && !self.svis[v].shutdown ? "up" : "down", "", "--", "--")); });
-    Object.keys(this.lags).forEach(function (l) { var lg = self.lags[l], lu = self.lagUp(l); rows.push(briefRow("lag" + l, String(lg.mode === "trunk" ? lg.native : lg.access), lg.mode, "--", lg.shutdown ? "no" : "yes", lu.up ? "up" : "down", lu.up ? "" : "--", lu.up ? String(lu.active.length * 1000) : "auto", lg.desc || "--")); });
-    return [BRIEF_RULE, pad("Port", 15) + pad("Native", 8) + pad("Mode", 7) + pad("Type", 15) + pad("Enabled", 8) + pad("Status", 8) + pad("Reason", 24) + pad("Speed", 8) + "Description", pad("", 15) + pad("VLAN", 62) + pad("(Mb/s)", 8), BRIEF_RULE].concat(rows).join("\n") + "\n";
+    // a LAG row always reads "--" for Reason, and "auto" for Speed while it is down (both as captured)
+    Object.keys(this.lags).forEach(function (l) { var lg = self.lags[l], lu = self.lagUp(l); rows.push(briefRow("lag" + l, String(lg.mode === "trunk" ? lg.native : lg.access), lg.mode, "--", lg.shutdown ? "no" : "yes", lu.up ? "up" : "down", "--", lu.up ? String(self.lagSpeed(l)) : "auto", lg.desc || "--")); });
+    return [BRIEF_RULE, pad("Port", 15) + pad("Native", 8) + pad("Mode", 7) + pad("Type", 15) + pad("Enabled", 8) + pad("Status", 8) + pad("Reason", 24) + pad("Speed", 8) + "Description", pad("", 15) + pad("VLAN", 70) + pad("(Mb/s)", 19), BRIEF_RULE].concat(rows).join("\n") + "\n";
   });
+  // The per-port view in 10.18.1002's layout (captured 2026-09-25 and 2026-09-28). The simulator prints Type
+  // "--", auto-negotiation off and MDI none because its ports are virtual; kept as captured. Down, error-disabled
+  // and routed ports were not captured: their State information wording is the model's.
+  var STAT_RULE = " ---------------- -------------------- -------------------- --------------------";
+  function statTables(up, tick) {
+    var rx = up ? 24 + tick * 3 : 0, tx = up ? 160 + tick * 5 : 0, rate = function (l) { return " " + pad(l, 17) + pad("0.00", 20, true) + " " + pad("0.00", 20, true) + " " + pad("0.00", 20, true); };
+    var stat = function (l, a, b) { return " " + pad(l, 17) + pad(a, 20, true) + " " + pad(b, 20, true) + " " + pad("0", 20, true); };
+    return ["", " Rate                               RX                   TX        Total (RX+TX)", STAT_RULE, rate("Mbits / sec"), rate("KPkts / sec"), rate("  Unicast"), rate("  Multicast"), rate("  Broadcast"), rate("Utilization %"), "",
+      " Statistic                          RX                   TX                Total", STAT_RULE, stat("Packets", rx, tx), stat("  Unicast", 0, 0), stat("  Multicast", 0, 0), stat("  Broadcast", 0, 0),
+      stat("Bytes", rx * 193, tx * 130), stat("Jumbos", 0, 0), stat("Dropped", 0, 0), stat("Pause Frames", 0, 0), stat("Errors", 0, 0), stat("  CRC/FCS", 0, "n/a"), stat("  Collision", "n/a", 0), stat("  Runts", 0, "n/a"), stat("  Giants", 0, "n/a")];
+  }
+  function vlanLines(i) {
+    if (i.mode === "access") return [" VLAN Mode: access", " Access VLAN: " + i.access];
+    return [" VLAN Mode: native-" + (i.nativeTag ? "tagged" : "untagged"), " Native VLAN: " + i.native, " Allowed VLAN List: " + (i.trunk ? i.trunk.slice().sort(function (a, b) { return a - b; }).join(",") : "all")];
+  }
   cmd("*", "show interface <PORT>", function (a) {
-    var i = this.ifaces[a[2]]; if (!i) return "Interface " + a[2] + " does not exist on this switch.";
-    var up = this.linkUp(a[2]), st = this.stpState(a[2]), o = [];
-    o.push("Interface " + a[2] + " is " + (this.errdisabled[a[2]] ? "down (error-disabled: " + this.errdisabled[a[2]] + ")" : (up ? "up" : "down")));
-    o.push(" Admin state is " + (i.shutdown ? "down" : "up"), " Link state: " + (up ? "up" : "down") + (up ? "" : (this.errdisabled[a[2]] ? "" : " (waiting for link)")), " Description: " + (i.desc || ""), " Hardware: Ethernet, MAC Address: 00:00:5e:00:53:" + pad((portKey(a[2]) % 256).toString(16), 2, true).replace(/ /g, "0"));
-    o.push(" MTU " + i.mtu, " Type " + i.type, " Full-duplex", " Speed " + (up ? (i.copper ? "1000" : "10000") : "0") + " Mb/s", " Auto-negotiation is on", " Flow-control: off", " Error-control: off");
-    if (i.lag) o.push(" Member of lag" + i.lag);
-    if (!i.routing) o.push(" VLAN Mode: " + i.mode + (i.mode === "access" ? ", VLAN " + i.access : ", native " + i.native + ", allowed " + (i.trunk ? i.trunk.join(",") : "all")));
-    if (i.routing && i.ip) o.push(" IPv4 address " + i.ip);
-    if (this.stp.enable) o.push(" Spanning tree: " + st.role + " / " + st.state + (i.adminEdge ? " (admin-edge)" : "") + (i.bpduGuard ? " bpdu-guard" : ""));
-    var nac = this.nacOn(i); if (i.dot1x || i.macAuth) o.push(" Port-access: " + (i.dot1x ? "dot1x " : "") + (i.macAuth ? "mac-auth " : "") + (nac.ifOnly ? "(configured here but not enabled globally)" : "(active)"));
-    var devs = this.devsOn(a[2]); if (devs.length && up) o.push(" Connected (sandbox): " + devs.map(function (d) { return d.name; }).join(", "));
-    o.push(" Rate collection interval: 300 seconds", " Rx", "          " + pad(up ? 1842 + this.tick * 7 : 0, 12, true) + " input packets", " Tx", "          " + pad(up ? 2210 + this.tick * 9 : 0, 12, true) + " output packets");
+    var n = a[2], i = this.ifaces[n], self = this; if (!i) return "Interface " + n + " does not exist on this switch.";
+    var up = this.linkUp(n), nac = this.nacOn(i), err = this.errdisabled[n];
+    var admitted = this.clientRows({ port: n }).some(function (c) { return c.status === "Success"; });
+    var blocked = up && nac.any && !admitted, o = [""];
+    o.push("Interface " + n + " is " + (up ? "up" + (blocked ? " (Blocked)" : "") : "down") + " ", " Admin state is " + (i.shutdown ? "down" : "up"));
+    if (blocked) o.push(" State information: Blocked by Port Access Security");
+    else if (err) o.push(" State information: " + err);
+    else if (i.shutdown) o.push(" State information: Administratively down");
+    else if (!up) o.push(" State information: " + (i.copper ? "Waiting for link" : "No XCVR installed"));
+    o.push(" Link state: " + (up ? "up" : "down"), " Link transitions: 0", " Description: " + (i.desc || ""), " Persona: ", " Hardware: Ethernet, MAC Address: 00:00:5e:00:53:" + pad((portKey(n) % 256).toString(16), 2, true).replace(/ /g, "0") + " ",
+      " Hardware port: " + n.split("/")[2] + " ", " MTU " + i.mtu + " ", " Type --", " Full-duplex ", " qos trust none", " Speed " + (up ? portSpeed(i) : 0) + " Mb/s ", " Auto-negotiation is off", " Flow-control: off ", " Error-control: off ", " MDI mode: none ");
+    if (i.lag) { var lg = this.lags[i.lag]; o = o.concat(vlanLines(lg)); } else if (!i.routing) o = o.concat(vlanLines(i));
+    o.push(" Rate collection interval: 300 seconds");
+    o = o.concat(statTables(up, this.tick));
+    // what the real view does not say, as the sandbox's own notes
+    var notes = [];
+    if ((i.dot1x || i.macAuth) && nac.ifOnly) notes.push("port-access is configured on this port but not enabled globally, so nothing authenticates here");
+    if (i.lag) notes.push("member of lag" + i.lag);
+    if (i.routing && i.ip) notes.push("routed port, " + i.ip);
+    var devs = this.devsOn(n); if (devs.length && up) notes.push("plugged in: " + devs.map(function (d) { return d.name; }).join(", "));
+    if (notes.length) o.push("", "(sandbox: " + notes.join("; ") + ")");
     return o.join("\n");
+  });
+  cmd("*", "show interface lag <1-256>", function (a) {
+    var id = +a[3], l = this.lags[id]; if (!l) return "Interface lag" + id + " does not exist.";
+    var lu = this.lagUp(id), mem = this.lagMembers(id), o = [""];
+    o.push("Aggregate lag" + id + " is " + (lu.up ? "up" : "down") + " ", " Admin state is " + (l.shutdown ? "down" : "up") + " ");
+    if (l.shutdown) o.push(" State information : Admin state is down ");
+    o.push(" Description : " + (l.desc || ""), " MAC Address                 : 00:00:5e:00:53:00 ", " Aggregated-interfaces       : " + mem.join(" ") + " ", " Aggregation-key             : " + id,
+      " Aggregate mode              : " + (l.lacp === "off" ? "static" : l.lacp) + " ", " Speed                       : " + (lu.up ? this.lagSpeed(id) : 0) + " Mb/s ", " qos trust none");
+    o = o.concat(vlanLines(l), [" L3 Counters: Rx Disabled, Tx Disabled "], statTables(lu.up, this.tick).slice(9));
+    return o.join("\n");
+  });
+  cmd("*", "show lacp configuration", function () { return "System-ID       : 00:00:5e:00:53:00\nSystem-priority : 65534"; });
+  cmd("*", "show lacp interfaces <PORT>", function (a) {
+    var n = a[3], i = this.ifaces[n]; if (!i) return "Interface " + n + " does not exist on this switch.";
+    if (!i.lag) return "Interface " + n + " is not part of any LAG.";
+    var id = i.lag, l = this.lags[id], lu = this.lagUp(id), active = lu.active.indexOf(n) >= 0, up = this.linkUp(n), d = this.devsOn(n)[0];
+    var st = l.lacp === "off" ? "" : (l.lacp === "active" ? "A" : "P") + "LF" + (active ? "NCD" : "OE");
+    var pst = active ? ((d && d.lacp && d.lacp.mode === "passive") ? "P" : "A") + "LFNCD" : (up ? "PLFOEX" : "");
+    var row = function (label, x, y) { return pad(label, 19) + "| " + pad(x, 19) + "| " + pad(y, 19); };
+    return ["", "State abbreviations :", "A - Active        P - Passive      F - Aggregable I - Individual", "S - Short-timeout L - Long-timeout N - InSync     O - OutofSync", "C - Collecting    D - Distributing ",
+      "X - State m/c expired              E - Default neighbor state", "", "IE - LACP Fallback mode is active", "", "", "Aggregate-name : lag" + id, "-------------------------------------------------",
+      "                       Actor             Partner", "-------------------------------------------------", row("Port-id", up ? portKey(n) % 1000 : "", active ? portKey(n) % 1000 : 0),
+      row("Port-priority", up ? 1 : "", active ? 1 : 0), row("Key", id, active ? id : 0), row("State", st, pst), row("System-ID", "00:00:5e:00:53:00", active && d && d.lacp ? (d.lacp.sysid || "") : "00:00:00:00:00:00"),
+      row("System-priority", 65534, active ? 65534 : 0), ""].join("\n");
   });
   Switch.prototype.macRows = function () {
     var self = this, rows = [];
@@ -1156,14 +1450,40 @@
     });
     return o.join("\n");
   });
-  cmd("*", "show radius-server statistics", function () {
+  // Counters are the model's estimate from the sessions it holds: a PEAP exchange is about nine requests,
+  // eight of them answered with a challenge; MAC-auth is one request. The layout is 10.18.1002's.
+  cmd("*", "show radius-server statistics authentication", function () {
     var self = this, o = [];
     this.radius.forEach(function (r) {
-      var acc = 0, rej = 0, to = 0;
-      Object.keys(self.clients).forEach(function (k) { var c = self.clients[k]; if (c.method === "none") return; (c.tried || []).forEach(function (t) { if (t.host === r.host && t.result === "timeout") to++; }); if (c.server === r.host) { if (c.reason.indexOf("Access-Accept") === 0) acc++; else rej++; } });
-      o.push("Server Name   : " + r.host, "Auth-Port     : 1812", "Access Requests    : " + (acc + rej + to), "Access Accepts     : " + acc, "Access Rejects     : " + rej, "Timeouts           : " + to, "Bad Authenticators : 0", "Round Trip Time    : " + (to && !acc && !rej ? "n/a" : "12 ms"), "");
+      var s = { req: 0, chal: 0, acc: 0, rej: 0, to: 0, rtx: 0 };
+      Object.keys(self.clients).forEach(function (k) {
+        var c = self.clients[k]; if (c.method === "none") return;
+        (c.tried || []).forEach(function (t) { if (t.host === r.host && t.result === "timeout") { s.to++; s.req++; s.rtx++; } });
+        if (c.server !== r.host) return;
+        var ok = c.outcome === "accept" || c.outcome === "authz";
+        if (c.method === "dot1x") { s.req += 9; s.chal += 8; } else s.req += 1;
+        if (ok) s.acc++; else s.rej++;
+      });
+      var line = function (label, v) { return "    " + pad(label, 46) + ": " + pad(v, 5); };
+      o.push(" Server Name     : " + r.host, " Auth-Port       : 1812", " Accounting-Port : 1813", " VRF             : " + (r.vrf || "default"), " TLS Enabled     : No", "",
+        "  Authentication Statistics", "  -------------------------", line("Round Trip Time", s.acc + s.rej ? 1 : 0), line("Pending Requests", 0), line("Timeouts", s.to),
+        line("Bad Authenticators", 0), line("Packets Dropped", 0), line("Access Requests", s.req), line("Access challenge", s.chal), line("Access Accepts", s.acc),
+        line("Access Rejects", s.rej), line("Access Response Malformed", 0), line("Access Retransmits", s.rtx), line("Tracking Requests", 0), line("Tracking Responses", 0), line("Unknown Response Code", 0), "");
     });
     return o.length ? o.join("\n") : "No RADIUS servers configured.";
+  });
+  cmd("*", "show radius dyn-authorization", function () {
+    var self = this, st = this.pa.dynStats, ips = Object.keys(this.pa.dynClients);
+    var o = ["Status and Counters - RADIUS Dynamic Authorization Information", "", "  RADIUS Dynamic Authorization                   : " + (this.pa.dynAuth ? "Enabled" : "Disabled"),
+      "  RADIUS Dynamic Authorization UDP Port          : 3799", "  Invalid Client Addresses in CoA Requests       : " + st.badCoa, "  Invalid Client Addresses in Disconnect Requests: " + st.badDisc];
+    if (!ips.length) return o.concat(["No RADIUS dynamic authorization client configured"]).join("\n");
+    o.push("", "Dynamic Authorization Client Information", "=========================================");
+    ips.forEach(function (ip) {
+      o.push("", "IP Address               : " + ip, "VRF                      : default", "TLS Enabled              : No", "Replay Protection        : Disabled", "Time Window              : 300 seconds ",
+        "rfc5176-enforcement-mode : strict", "Disconnect Requests      : 0", "Disconnect ACKs          : 0", "Disconnect NAKs          : 0", "CoA Requests             : " + st.coaReq,
+        "CoA ACKs                 : " + st.coaAck, "CoA NAKs                 : " + st.coaNak, "Shared-Secret            : <ciphertext>");
+    });
+    return o.join("\n");
   });
   cmd("*", "show aaa server-groups", function () {
     var self = this, rows = [];
@@ -1171,40 +1491,124 @@
     this.radius.forEach(function (r, i) { rows.push(pad("radius", 32) + "| " + pad(r.host, 45) + "| " + pad("", 5) + "| " + pad("1812", 5) + "| " + pad("default", 32) + "| " + (i + 1) + "       "); rows.push(RS_RULE); });
     return ["******* AAA Mechanism TACACS+ *******", RS_RULE, "GROUP NAME                      | SERVER NAME                                  | PORT | VRF                             | PRIORITY", RS_RULE, "******* AAA Mechanism RADIUS *******", RS_RULE, "GROUP NAME                      | SERVER NAME                                  | TLS  | PORT | VRF                             | PRIORITY", RS_RULE].concat(rows).join("\n");
   });
-  Switch.prototype.clientRows = function (filterPort) {
+  // ── port-access clients, in 10.18.1002's own layout ─────────────────────
+  // Table, detail and client-status views checked against the lab switch on 2026-09-26 and 2026-09-28
+  // (802.1X success, MAC-auth success, server reject, server timeout, role missing, multi-domain). The
+  // fallback-role wording ("<role>, Critical") follows HPE's documentation; the lab never produced one.
+  Switch.prototype.clientRows = function (filter) {
     var self = this, rows = [];
-    (this.lesson.devices || []).forEach(function (d) { var c = self.clients[d.id]; if (!c || c.method === "none") return; if (filterPort && c.port !== filterPort) return; rows.push(c); });
+    (this.lesson.devices || []).forEach(function (d) {
+      var c = self.clients[d.id]; if (!c || c.method === "none") return;
+      if (filter && filter.port && c.port !== filter.port) return;
+      if (filter && filter.mac && c.mac !== filter.mac) return;
+      if (filter && filter.role && c.role !== filter.role) return;
+      rows.push(c);
+    });
     return rows.sort(function (a, b) { return portKey(a.port) - portKey(b.port); });
   };
-  cmd("*", "show port-access clients", function () { return this.showClients(null, false); });
-  cmd("*", "show port-access clients detail", function () { return this.showClients(null, true); });
-  cmd("*", "show port-access clients interface <PORT>", function (a) { return this.showClients(a[4], false); });
-  cmd("*", "show port-access clients interface <PORT> detail", function (a) { return this.showClients(a[4], true); });
-  Switch.prototype.showClients = function (port, detail) {
-    var self = this, rows = this.clientRows(port);
+  Switch.prototype.clientView = function (c) {
+    var authed = c.outcome === "accept" || c.outcome === "authz", ok = c.status === "Success" && c.outcome !== "authz";
+    var meth = c.fallback || !authed ? "--" : ({ dot1x: "1x", "mac-auth": "ma", "device-profile": "dp" }[c.method] || "--");
+    var mode = c.mode || "c", dtype = mode === "m" ? (c.voice ? "v" : "d") : "-";
+    var why = (c.hist && c.hist[0] && c.hist[0].why) || (c.outcome === "timeout" ? "Server-Timeout" : "Server-Reject");
+    var name = c.user || (authed && c.method === "mac-auth" ? c.mac.replace(/:/g, "") : c.mac);
+    var fb = c.fallback === "critical" ? "Critical" : (c.fallback === "reject" ? "Reject" : "");
+    return {
+      name: name, flags: meth + "|" + mode + "|" + dtype + "|" + (ok ? "s" : "f"), vlan: ok ? "(u)" + c.vlan : "",
+      role: ok ? (c.role ? c.role + (fb ? ", " + fb : "") : "") : "", roleDetail: ok && c.role ? c.role + (fb ? ", " + fb + " role" : "") : "",
+      status: authed ? c.method + " Authenticated" : "Authentication Failed, " + why,
+      authz: c.outcome === "authz" ? "Invalid" : (ok ? "Applied" : ""), devType: mode === "m" ? (c.voice ? "voice" : "data") : ""
+    };
+  };
+  var CLIENT_RULE = pad("", 110).replace(/ /g, "-");
+  Switch.prototype.clientTable = function (rows) {
+    var self = this, o = ["", "Port Access Clients", "", "RADIUS overridden user roles are suffixed with '*'", "", "Flags: Onboarding-Method|Mode|Device-Type|Status ", "",
+      "Onboarding-Method: 1x 802.1X, ma MAC-Auth, ps Port-Security, dp Device-Profile ", "Mode: c Client-Mode, d Device-Mode, m Multi-Domain ", "Device-Type: d Data, v Voice ",
+      "Status: s Success, f Failed, p In-Progress, d Role-Download-Failed ", "", CLIENT_RULE,
+      "Port     Client-Name             IPv4-Address    User-Role                           VLAN            Flags    ", CLIENT_RULE];
+    rows.forEach(function (c) { var v = self.clientView(c); o.push(pad(c.port, 9) + pad(v.name, 24) + pad("", 16) + pad(v.role, 36) + pad(v.vlan, 16) + v.flags); });
+    return o.concat([""]).join("\n");
+  };
+  // one client's blocks; full adds VLAN and MACsec, which `show aaa ... client-status` leaves out
+  Switch.prototype.clientBlock = function (c, full) {
+    var self = this, v = this.clientView(c), head = "Client " + c.mac + (v.name !== c.mac ? ", " + v.name : ""), ok = v.authz === "Applied";
+    var secs = Math.max(1, Math.floor((this.now() - c.at) / 1000));
+    var prec = (c.order || []).map(function (m) { return m + " - " + ((c.prec || {})[m] || "Not attempted"); }).join(", ");
+    var hist = (c.hist || []).map(function (h, i) { return h.m + " - " + (h.ok ? "Authenticated" : "Unauthenticated") + (h.why ? ", " + h.why : "") + ", " + (secs + i * 5) + "s ago"; });
+    var o = [head, pad("", head.length).replace(/ /g, "="), "  Session Details", "  ---------------", "    Port         : " + c.port, "    Session Time : " + secs + "s",
+      "    IPv4 Address : ", "    IPv6 Address : ", "    Device Type  : " + v.devType, ""];
+    if (full) o.push("  VLAN Details", "  ------------", "    VLAN Group Name : ", "    VLANs Assigned  : " + (ok ? c.vlan : ""), "      Access          : " + (ok ? c.vlan : ""),
+      "      Native Untagged : ", "      Allowed Trunk   : ", "");
+    o.push("  Authentication Details", "  ----------------------", "    Status          : " + v.status, "    Auth Precedence : " + prec,
+      "    Auth History    : " + (hist.length ? hist.join("\n                      ") : ""), "");
+    if (full) o.push("  MACsec Details", "  --------------", "    MKA Session Status : ", "    MACsec Status      : ", "");
+    o.push("  Authorization Details", "  ----------------------", "    Role   : " + v.roleDetail, "    Status : " + v.authz);
+    // what the real box would only show in the debug buffer, marked as the sandbox's own note
+    var note = c.status === "Success" && !c.fallback ? "" : c.reason;
+    if (c.tried && c.tried.some(function (t) { return t.result !== "ok"; })) note += (note ? ". " : "") + c.tried.filter(function (t) { return t.result !== "ok"; }).map(function (t) { return t.host + ": " + t.why; }).join("; ");
+    if (note) o.push("", "  (sandbox: " + note + ")");
+    return o.join("\n");
+  };
+  Switch.prototype.roleInfo = function (names) {
+    var self = this, o = [];
+    names.forEach(function (r) {
+      var role = self.pa.roles[r]; if (!role) return;
+      o.push("Name  : " + r, "Type  : local", "----------------------------------------------");
+      if (role.desc) o.push("    Description                         : " + role.desc);
+      if (role.vlan) o.push("    Access VLAN                         : " + role.vlan);
+      o.push("");
+    });
+    return o;
+  };
+  Switch.prototype.showClients = function (filter, detail) {
+    var self = this, rows = this.clientRows(filter), port = filter && filter.port;
     if (!rows.length) {
       var open = Object.keys(this.clients).filter(function (k) { return self.clients[k].method === "none" && (!port || self.clients[k].port === port); });
       return "No port-access clients found." + (open.length ? "\n(sandbox: " + open.length + " device" + (open.length > 1 ? "s are" : " is") + " connected on ports without port-access; they never authenticated, they are simply on the access VLAN.)" : "");
     }
-    if (!detail) return "Port Access Clients\n\nFlags: Authentication status Success (S), Failed (F), In Progress (I)\n\n" + table(["Port", "MAC-Address", "Onboarded Method", "Status", "Role", "VLAN", "Client Name"], rows.map(function (c) { return [c.port, c.mac, c.method === "dot1x" ? "dot1x" : "mac-auth", c.status === "Success" ? "S" : "F", c.role || (c.status === "Success" ? "-" : ""), c.status === "Success" ? c.vlan : "", c.user || ""]; }));
-    return rows.map(function (c) {
-      var o = ["Port: " + c.port, "  Client Name        : " + (c.user || ""), "  Client MAC         : " + c.mac, "  Onboarded Method   : " + (c.method === "dot1x" ? "dot1x" : "mac-auth"), "  Auth Status        : " + c.status, "  Auth Server        : " + (c.server || "none answered"), "  Role               : " + (c.role || "-"), "  VLAN               : " + (c.status === "Success" ? c.vlan : "-"), "  Reason             : " + c.reason];
-      if (c.tried && c.tried.length) c.tried.forEach(function (t) { o.push("    " + t.host + ": " + (t.result === "ok" ? "answered" : "timeout, " + t.why)); });
-      o.push("  Session Time       : " + Math.max(1, Math.floor((self.now() - c.at) / 1000)) + " s");
-      return o.join("\n");
-    }).join("\n\n");
-  };
-  cmd("*", "show aaa authentication port-access interface all client-status", function () { return this.clientRows(null).length ? this.showClients(null, true) : "No aaa clients found."; });
-  cmd("*", "show aaa authentication port-access interface <PORT> client-status", function (a) { return this.clientRows(a[5]).length ? this.showClients(a[5], true) : "No aaa clients found."; });
-  cmd("*", "show port-access role", function () {
-    var self = this, names = Object.keys(this.pa.roles);
-    if (!names.length) return "No port-access roles configured.";
-    var o = ["Role Information:", "Attributes overridden by RADIUS are prefixed by '*'."];
-    names.forEach(function (r) { o.push("Name  : " + r, "Type  : local", "----------------------------------------------"); if (self.pa.roles[r].desc) o.push("    Description                         : " + self.pa.roles[r].desc); if (self.pa.roles[r].vlan) o.push("    Access VLAN                         : " + self.pa.roles[r].vlan); });
+    if (!detail) return this.clientTable(rows);
+    var roles = [];
+    var o = rows.map(function (c) { if (c.role && c.status === "Success" && roles.indexOf(c.role) < 0) roles.push(c.role); return ["", "Port Access Client Status Details:", "", "RADIUS overridden user roles are suffixed with '*'", "", self.clientBlock(c, true), ""].join("\n"); });
+    if (roles.length) o.push(["", "Role Information:", ""].concat(this.roleInfo(roles)).join("\n"));
     return o.join("\n");
+  };
+  cmd("*", "show port-access clients", function () { return this.showClients(null, false); });
+  cmd("*", "show port-access clients detail", function () { return this.showClients(null, true); });
+  cmd("*", "show port-access clients interface <PORT>", function (a) { return this.showClients({ port: a[4] }, false); });
+  cmd("*", "show port-access clients interface <PORT> detail", function (a) { return this.showClients({ port: a[4] }, true); });
+  cmd("*", "show port-access clients mac <MAC>", function (a) { return this.showClients({ mac: macCx(a[4]) }, false); });
+  cmd("*", "show port-access clients mac <MAC> detail", function (a) { return this.showClients({ mac: macCx(a[4]) }, true); });
+  cmd("*", "show port-access clients role <WORD>", function (a) { return this.showClients({ role: a[4] }, false); });
+  Switch.prototype.clientStatus = function (port) {
+    var self = this, rows = this.clientRows(port ? { port: port } : null);
+    if (!rows.length) return "No aaa clients found.";
+    return ["", "Port Access Client Status Details", "", "RADIUS overridden user roles are suffixed with '*'", ""].concat(rows.map(function (c) { return self.clientBlock(c, false) + "\n\n"; })).join("\n");
+  };
+  cmd("*", "show aaa authentication port-access interface all client-status", function () { return this.clientStatus(null); });
+  cmd("*", "show aaa authentication port-access interface <PORT> client-status", function (a) { return this.clientStatus(a[5]); });
+  Switch.prototype.showRoles = function (names) {
+    if (!names.length) return "No port-access roles configured.";
+    return ["", "Role Information:", "Attributes overridden by RADIUS are prefixed by '*'.", ""].concat(this.roleInfo(names)).join("\n");
+  };
+  cmd("*", "show port-access role", function () { return this.showRoles(Object.keys(this.pa.roles)); });
+  cmd("*", "show port-access role local", function () { return this.showRoles(Object.keys(this.pa.roles)); });
+  cmd("*", "show port-access role name <WORD>", function (a) { return this.pa.roles[a[4]] ? this.showRoles([a[4]]) : "Port-access role not configured "; });
+  // checkpoints: `show checkpoint` lists them; `show checkpoint <name>` prints one. There is no `show checkpoint
+  // list` on 10.18: the box reads "list" as a checkpoint name, hence "Checkpoint list doesn't exist".
+  cmd("*", "show checkpoint", function () {
+    var self = this, rows = this.checkpoints.slice().sort(function (a, b) { return b.at - a.at; }).map(function (c, i) {
+      return pad(c.name, 34) + pad(i === 0 ? "latest" : "checkpoint", 12) + pad("User", 8) + pad(new Date(c.at).toISOString().replace(/\.\d+Z$/, "Z"), 22) + self.version;
+    });
+    rows.push(pad("startup-config", 34) + pad("startup", 12) + pad("User", 8) + pad(new Date(this.boot).toISOString().replace(/\.\d+Z$/, "Z"), 22) + this.version);
+    return [pad("NAME", 34) + pad("TYPE", 12) + pad("WRITER", 8) + pad("DATE(YYYY/MM/DD)", 22) + "IMAGE VERSION"].concat(rows).join("\n");
   });
-  cmd("*", "show checkpoint list", function () { if (!this.checkpoints.length) return "Checkpoint list doesn't exist"; var rows = this.checkpoints.map(function (c) { return [c.name, "user", tsClock(c.at)]; }); return table(["Name", "Type", "Written"], rows); });
-  cmd("*", "show aaa authentication port-access", function () { return "Global 802.1X   : " + (this.pa.dot1x ? "Enabled" : "Disabled") + " (server group " + (this.pa.dot1xGroup || "radius") + ")\nGlobal MAC-auth : " + (this.pa.macAuth ? "Enabled" : "Disabled") + " (server group " + (this.pa.macAuthGroup || "radius") + ")\nDyn-authorization: " + (this.pa.dynAuth ? "Enabled" : "Disabled"); });
+  cmd("*", "show checkpoint <WORD>", function (a) {
+    if (a[2] === "startup-config") return this.startup.replace(/^Current configuration:/, "Checkpoint configuration:");
+    var c = this.checkpoints.filter(function (x) { return x.name === a[2]; })[0];
+    if (!c) return "Checkpoint " + a[2] + " doesn't exist";
+    var lines = c.config.split("\n").filter(function (l) { return l && l[0] !== "!" && !/^Current configuration|^user admin|^https-server/.test(l); }).map(function (l) { return l.trim(); });
+    return new Switch(this.lesson, { config: lines }).runningConfig().replace(/^Current configuration:/, "Checkpoint configuration:");
+  });
 
   // ── sandbox commands (not switch commands) ──────────────────────────────
   cmd("*", "sim connect <DEV>", function (a) { return this.connect(a[2]); });

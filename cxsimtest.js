@@ -46,14 +46,20 @@ has(s.exec("hostname bad name").out, "Invalid input", "hostname with a space is 
 has(s.exec("write memory").out, "Success", "write memory in config context");
 has(s.exec("show startup-config").out, "hostname access-01", "startup config saved");
 eq(s.exec("exit").prompt, "access-01# ", "exit from config");
-has(s.exec("show version").out, "FL.10.15", "show version");
+has(s.exec("show version").out, "ML.10.18", "show version (6200 image prefix ML, 10.18 train)");
 has(s.exec("show system").out, "Product Name           : JL725A", "show system model");
-has(s.exec("show checkpoint list").out, "doesn't exist", "checkpoint list empty like the box");
-has(s.exec("copy running-config checkpoint before").out, "Success", "checkpoint written");
+eq(s.exec("show checkpoint list").out, "Checkpoint list doesn't exist", "10.18 reads `list` as a checkpoint name");
+has(s.exec("show checkpoint").out, "startup-config                    startup", "show checkpoint lists the startup config");
+eq(s.exec("copy running-config checkpoint before").out, "Copying configuration: [Success]", "checkpoint written");
+has(s.exec("show checkpoint").out, "before                            latest", "the new checkpoint is the latest");
 run(s, ["conf t", "vlan 44", "name TEMP", "end"]);
 has(s.exec("show vlan").out, "TEMP", "vlan 44 exists");
-has(s.exec("checkpoint rollback before").out, "restored", "rollback message");
+eq(s.exec("checkpoint rollback before").out, "Copying configuration: [Success]", "rollback message");
 ok(s.exec("show vlan").out.indexOf("TEMP") < 0, "vlan 44 gone after rollback");
+has(s.exec("show checkpoint").out, "before", "a rollback keeps the checkpoint store");
+has(s.exec("copy running-config checkpoint again").out, "An identical checkpoint already exists", "an identical checkpoint is refused");
+eq(s.exec("checkpoint rollback nope").out, "Checkpoint nope doesn't exist", "rollback to a missing checkpoint");
+has(s.exec("show checkpoint before").out, "Checkpoint configuration:", "show checkpoint <name> prints it");
 has(s.exec("show vlan 10").out, "STAFF", "show vlan by id");
 has(s.exec("sim help").out, "sim connect", "sim help");
 has(s.exec("sim status").out, "unplugged", "sim status");
@@ -106,6 +112,98 @@ has(px.exec("show port-access role").out, "    Access VLAN                      
 has(px.exec("show aaa server-groups").out, "******* AAA Mechanism TACACS+ *******", "server groups header");
 has(px.exec("show ip route").out, "Total Route Count : ", "route table footer");
 
+// ── port-access views in 10.18.1002's layout (lab captures 2026-09-26 and 2026-09-28) ───
+section = "clients";
+var pc = CX.create(lesson("sandbox"));
+run(pc, ["conf t", "vlan 10", "vlan 20", "port-access role PRINTERS", "vlan access 20", "port-access role EMPLOYEE", "vlan access 10",
+  "radius-server host 192.0.2.10 key plaintext cppm-lab-key", "aaa group server radius CLEARPASS", "server 192.0.2.10", "exit",
+  "aaa authentication port-access mac-auth", "radius server-group CLEARPASS", "enable", "exit",
+  "aaa authentication port-access dot1x authenticator", "radius server-group CLEARPASS", "enable", "exit",
+  "interface 1/1/1-1/1/5", "aaa authentication port-access dot1x authenticator", "enable", "exit", "aaa authentication port-access mac-auth", "enable", "end"]);
+pc.connect("laptop"); pc.connect("contractor"); pc.connect("printer");
+var tb = pc.exec("show port-access clients").out;
+has(tb, "Flags: Onboarding-Method|Mode|Device-Type|Status \n", "flags legend");
+has(tb, "Port     Client-Name             IPv4-Address    User-Role                           VLAN            Flags    \n", "column header");
+has(tb, "\n1/1/1    employee.user                           EMPLOYEE                            (u)10           1x|c|-|s", "802.1X success row");
+has(tb, "\n1/1/5    00005e005305                            PRINTERS                            (u)20           ma|c|-|s", "MAC-auth success row: the name is the MAC-auth user name");
+has(tb, "\n1/1/2    j.contractor                                                                                --|c|-|f", "failed row: no method, no role");
+var dt = pc.exec("show port-access clients interface 1/1/5 detail").out;
+has(dt, "Client 00:00:5e:00:53:05, 00005e005305\n======", "detail heading");
+has(dt, "    Status          : mac-auth Authenticated", "mac-auth status");
+has(dt, "    Auth Precedence : dot1x - Unauthenticated, mac-auth - Authenticated", "precedence after a supplicant timeout");
+has(dt, "    Auth History    : mac-auth - Authenticated, ", "history newest first");
+has(dt, "\n                      dot1x - Unauthenticated, Supplicant-Timeout, ", "history continuation line");
+has(dt, "    Role   : PRINTERS\n    Status : Applied", "authorization applied");
+has(dt, "Role Information:", "detail ends with the role");
+var fd = pc.exec("show port-access clients interface 1/1/2 detail").out;
+has(fd, "    Status          : Authentication Failed, Server-Reject", "reject status");
+has(fd, "    Auth Precedence : dot1x - Unauthenticated, mac-auth - Held", "a rejected MAC is held");
+has(pc.exec("show port-access clients mac 00:00:5e:00:53:05").out, "00005e005305", "filter by MAC");
+ok(pc.exec("show port-access clients mac 00:00:5e:00:53:05").out.indexOf("employee.user") < 0, "the MAC filter shows one client");
+has(pc.exec("show port-access clients role EMPLOYEE").out, "employee.user", "filter by role");
+var cs = pc.exec("show aaa authentication port-access interface all client-status").out;
+has(cs, "Port Access Client Status Details\n", "client-status heading");
+ok(cs.indexOf("VLAN Details") < 0 && cs.indexOf("Client 00:00:5e:00:53:01, employee.user") >= 0, "client-status leaves out the VLAN block");
+eq(pc.exec("show aaa authentication port-access").out, "% Command incomplete.", "10.18 needs more after show aaa authentication port-access");
+eq(pc.exec("port-access log-off client mac 00:00:5e:00:53:01").out, "", "log a client off");
+eq(pc.exec("port-access reauthenticate interface 1/1/5").out, "", "re-authenticate a port");
+has(pc.exec("clear port-access clients").out, "Invalid input", "clear port-access clients does not exist on 10.18");
+run(pc, ["conf t", "no port-access role EMPLOYEE", "end"]);
+has(pc.exec("show port-access clients").out, "\n1/1/1    employee.user                                                                               1x|c|-|f", "role missing: 1x|c|-|f as captured");
+has(pc.exec("show port-access clients interface 1/1/1 detail").out, "    Status          : dot1x Authenticated", "role missing still reads authenticated");
+run(pc, ["conf t", "port-access role EMPLOYEE", "vlan access 10", "radius-server host 192.0.2.10 key plaintext wrong", "end"]);
+var to = pc.exec("show port-access clients interface 1/1/1 detail").out;
+has(to, "    Status          : Authentication Failed, Server-Timeout", "timeout status");
+has(to, "    Auth Precedence : dot1x - Unauthenticated, mac-auth - Unauthenticated", "both methods tried");
+has(to, "    Auth History    : mac-auth - Unauthenticated, Server-Timeout, ", "history on a timeout");
+has(pc.exec("show port-access clients").out, "\n1/1/1    employee.user                                                                               --|c|-|f", "timeout row keeps the identity");
+
+// ── the pipe, as 10.18 does it (captured 2026-09-28) ─────────────────────────
+section = "pipe";
+var pp = CX.create(lesson("nac-06-precedence"));
+var rcAll = pp.exec("show running-config").out.replace(/\n$/, "").split("\n");
+eq(pp.exec("show running-config | count").out, String(rcAll.length), "| count counts every line");
+eq(pp.exec("show running-config | include vlan").out.split("\n").every(function (l) { return /vlan/.test(l); }), true, "| include keeps matching lines");
+eq(pp.exec("show vlan | include VOICE").out.split("\n").filter(Boolean).length, 1, "| include on show vlan");
+ok(pp.exec("show vlan | exclude VOICE").out.indexOf("VOICE") < 0, "| exclude drops matches");
+eq(pp.exec("show running-config | include ^interface").out.split("\n")[0], "interface mgmt", "anchors work");
+ok(pp.exec("show running-config | include \"vlan|interface\"").out.split("\n").length > 5, "quoted alternation works");
+eq(pp.exec("show running-config | begin \"port-access role VOICE\"").out.split("\n")[0], "port-access role VOICE", "| begin starts at the first match");
+eq(pp.exec("show running-config | include interface | count").out, String(rcAll.filter(function (l) { return /interface/.test(l); }).length), "filters chain");
+eq(pp.exec("show running-config | section interface").out, "Command not supported.", "no | section on 10.18");
+eq(pp.exec("show running-config | include -i VLAN").out, "Command not supported.", "no -i on 10.18");
+eq(pp.exec("show vlan |").out, "Command not supported.", "a bare pipe");
+eq(pp.exec("show vlan | include").out, "% Command incomplete.", "include without a pattern");
+has(pp.exec("show vlan | line-number").out, "not used in this scenario", "line-number is real but not modelled");
+eq(pp.help("show vlan | "), ["  begin        Displays the first line that matches the pattern string and ", "               specified number of lines before and after it ",
+  "  count        Count the number of lines that match the specified string ", "  exclude      Displays lines that do not match the specified pattern string ",
+  "  include      Displays lines that match the specified pattern string ", "  line-number  Displays line numbers along with the command output ",
+  "  redirect     Saves the output from cli to a file "].join("\n"), "? after the pipe prints what the box printed");
+eq(pp.exec("show vlan 99 | include QUARANTINE").out.split("\n").filter(Boolean).length, 1, "a pipe after arguments");
+ok(pp.history().indexOf("show vlan | include VOICE") >= 0, "the whole piped line lands in history");
+
+// ── real commands the sandbox does not model answer like the box (corpus 10.18) ─
+section = "corpus";
+var cc = CX.create(lesson("sandbox"));
+has(cc.exec("show lldp neighbor-info detail").out, "not used in this scenario", "real show, not modelled");
+eq(cc.exec("show lldp foo").out, "Invalid input: foo", "names the first token the box would refuse");
+eq(cc.exec("shw vlan").out, "Invalid input: shw", "a typo in the first word");
+has(cc.exec("show running-config json").out, "not used in this scenario", "real variant of a modelled command");
+has(cc.exec("diag cable-diagnostic test 1/1/1").out, "not used in this scenario", "cable diagnostics exist on 10.18");
+eq(cc.exec("no page").out, "", "no page is silent, as every script starts with it");
+eq(cc.exec("page 24").out, "", "page with a length");
+cc.exec("conf t");
+has(cc.exec("ntp server 192.0.2.5").out, "not used in this scenario", "real config command");
+eq(cc.exec("ntp bogus").out, "Invalid input: bogus", "wrong keyword under a real command");
+cc.exec("interface 1/1/1");
+has(cc.exec("lldp med network-policy").out, "not used in this scenario", "real interface command, not modelled");
+eq(cc.exec("lldp med-tlv-select network-policy").out, "Invalid input: med-tlv-select", "not 10.18 syntax");
+has(cc.exec("speed auto 1g 2.5g").out, "not used in this scenario", "speed is hardware-only (hardware.txt), the simulator hides it");
+eq(cc.exec("speed banana").out, "Invalid input: banana", "speed still checks its words");
+has(cc.help("lldp "), "Real ", "? under a real prefix merges the box's words");
+cc.exec("end");
+eq(cc.exec("show aaa authentication port-access").out, "% Command incomplete.", "incomplete when the box wants more");
+
 // ── running config round trip ─────────────────────────────────────────────
 section = "roundtrip";
 run(s, ["conf t", "interface lag 1", "no routing", "vlan trunk allowed 10", "lacp mode active", "interface 1/1/13", "lag 1", "interface 1/1/5", "description printer port", "aaa authentication port-access mac-auth", "enable", "exit", "aaa authentication port-access client-limit 2", "spanning-tree port-type admin-edge", "spanning-tree bpdu-guard", "end"]);
@@ -130,7 +228,8 @@ c = n.exec("show port-access clients").out;
 has(c, "S", "success flag"); has(c, "PRINTERS", "role in the table");
 ok(/00:00:5e:00:53:05\s+20\s/.test(n.exec("show mac-address-table").out), "printer MAC learned in VLAN 20");
 allPass(n, "lab 3 solved");
-has(n.exec("show radius-server statistics").out, "Access Accepts     : 1", "statistics count the accept");
+ok(/^    Access Accepts +: 1 *$/m.test(n.exec("show radius-server statistics authentication").out), "statistics count the accept");
+eq(n.exec("show radius-server statistics").out, "% Command incomplete.", "10.18 wants authentication or accounting after statistics");
 // mac-auth off globally but on per port: nothing happens
 run(n, ["conf t", "aaa authentication port-access mac-auth", "no enable", "end"]);
 has(n.exec("show interface 1/1/5").out, "not enabled globally", "interface shows the global gap");
@@ -159,7 +258,8 @@ has(d.exec("show port-access clients detail").out, "no supplicant", "printer can
 // roles lab: everything fails until roles exist
 var L5 = lesson("nac-05-roles"), r = CX.create(L5);
 var t = r.exec("show port-access clients").out;
-ok((t.match(/  F  /g) || []).length === 3, "three failures at the start: " + t.split("\n").slice(-3).join(" | "));
+ok((t.match(/\|f$/gm) || []).length === 3, "three failures at the start: " + t.split("\n").slice(-4).join(" | "));
+has(r.exec("show port-access clients detail").out, "    Status : Invalid", "RADIUS accepted a role the switch lacks: authorization Invalid");
 run(r, ["conf t", "vlan 30", "name VOICE", "port-access role EMPLOYEE", "vlan access 10", "port-access role PRINTERS", "vlan access 20", "port-access role VOICE", "vlan access 30", "end"]);
 allPass(r, "lab 5 solved");
 has(r.exec("show mac-address-table vlan 30").out, "00:00:5e:00:53:03", "phone MAC in VLAN 30");
@@ -170,12 +270,24 @@ has(p.connect("phone"), "mac-auth success, role VOICE", "dot1x reject falls thro
 has(p.connect("pc-behind-phone"), "Client limit 1", "second client hits the limit");
 run(p, ["conf t", "interface 1/1/3", "aaa authentication port-access client-limit 2", "end"]);
 has(p.exec("show port-access clients interface 1/1/3").out, "EMPLOYEE", "client limit 2 lets the PC in");
-has(p.exec("sim coa laptop role QUARANTINE").out, "CoA-NAK", "CoA refused before dyn-authorization");
+has(p.exec("sim coa laptop role QUARANTINE").out, "No reply", "CoA unanswered before dyn-authorization");
 run(p, ["conf t", "radius dyn-authorization enable", "end"]);
+has(p.exec("sim coa laptop role QUARANTINE").out, "not a dynamic authorization client", "10.18 drops CoA from a server that is not a dyn-authorization client");
+has(p.exec("show radius dyn-authorization").out, "Invalid Client Addresses in CoA Requests       : 1", "and counts it as an invalid client address");
+has(p.exec("show radius dyn-authorization").out, "No RADIUS dynamic authorization client configured", "empty client list wording");
+run(p, ["conf t", "radius dyn-authorization client 192.0.2.10 secret-key plaintext wrong-key", "end"]);
+has(p.exec("sim coa laptop role QUARANTINE").out, "does not match", "a wrong CoA secret is dropped");
+run(p, ["conf t", "radius dyn-authorization client 192.0.2.10 secret-key plaintext cppm-lab-key", "end"]);
+has(p.exec("sim coa laptop role NOSUCH").out, "CoA-NAK", "CoA naming a missing role is NAKed");
 has(p.exec("sim coa laptop role QUARANTINE").out, "CoA-ACK", "CoA applied");
+has(p.exec("show radius dyn-authorization").out, "CoA ACKs                 : 1", "ACK counted");
+has(p.exec("show running-config").out, "radius dyn-authorization client 192.0.2.10 secret-key ciphertext", "client line in the running config");
 allPass(p, "lab 6 solved");
+var p0 = CX.create(L6); p0.connect("phone"); run(p0, ["conf t", "interface 1/1/3", "aaa authentication port-access client-limit 2", "radius dyn-authorization enable", "end"]); p0.exec("sim coa laptop role QUARANTINE");
+ok(p0.check().some(function (x) { return !x.pass && /QUARANTINE/.test(x.desc); }), "lab 6 is not solved by enable alone");
 run(p, ["conf t", "interface 1/1/1", "aaa authentication port-access auth-precedence mac-auth dot1x", "end"]);
-has(p.exec("show port-access clients interface 1/1/1 detail").out, "Onboarded Method   : dot1x", "mac-auth first then dot1x still lands on dot1x for an unknown MAC");
+has(p.exec("show port-access clients interface 1/1/1 detail").out, "    Status          : dot1x Authenticated", "mac-auth first then dot1x still lands on dot1x for an unknown MAC");
+has(p.exec("show port-access clients interface 1/1/1 detail").out, "Auth Precedence : mac-auth - Held, dot1x - Authenticated", "precedence line in the configured order");
 run(p, ["conf t", "no radius-server host 192.0.2.10", "end"]);
 has(p.exec("show port-access clients interface 1/1/1 detail").out, "No RADIUS server", "removing the server fails everyone");
 run(p, ["conf t", "radius-server host 192.0.2.10 key plaintext wrong", "interface 1/1/1", "aaa authentication port-access critical-role QUARANTINE", "end"]);
@@ -199,7 +311,17 @@ has(two.exec("show interface brief").out, "Administratively down", "shutdown sho
 section = "l2";
 var l2 = CX.create(lesson("l2-01-uplink"));
 run(l2, ["conf t", "interface lag 1", "no routing", "vlan trunk allowed 10,20,30", "lacp mode active", "interface 1/1/13-1/1/14", "lag 1", "spanning-tree", "interface 1/1/1-1/1/12", "spanning-tree port-type admin-edge", "spanning-tree bpdu-guard", "end"]);
-l2.connect("core-01"); l2.connect("desk-switch"); l2.connect("printer"); l2.connect("laptop"); l2.connect("phone");
+l2.connect("core-01");
+// 10.18 creates a LAG administratively down (captured 2026-09-28): nothing forms until `no shutdown`
+has(l2.exec("show interface lag 1").out, " Admin state is down ", "a new LAG is admin down");
+has(l2.exec("show interface brief").out, "lag1           1       trunk  --             no      down    --                      auto    --", "down LAG row as captured");
+has(l2.connect("core-01"), "not up", "connect explains the LAG is not up");
+ok(l2.check().some(function (x) { return !x.pass && /lag 1 is up/.test(x.desc); }), "the lab is not solved while the LAG is shut");
+run(l2, ["conf t", "interface lag 1", "no shutdown", "end"]);
+has(l2.exec("show running-config interface lag 1").out, "interface lag 1\n    no shutdown", "no shutdown is written into the LAG block");
+l2.connect("desk-switch"); l2.connect("printer"); l2.connect("laptop"); l2.connect("phone");
+has(l2.exec("show interface brief").out, "lag1           1       trunk  --             yes     up      --                      20000   --", "up LAG row: Reason --, speed the sum of its members");
+has(l2.exec("show interface lag 1").out, " Speed                       : 20000 Mb/s ", "LAG speed is the sum of the active members");
 has(l2.exec("show lacp aggregates").out, "Interfaces       : 1/1/13 1/1/14", "both members listed"); has(l2.exec("show lacp interfaces").out, "1/1/14     lag1       14    1     ALFNCD", "both members aggregate");
 has(l2.exec("show lacp interfaces").out, "ALFNCD", "LACP in sync");
 has(l2.exec("show interface 1/1/8").out, "BPDU guard", "desk switch err-disabled");
@@ -209,7 +331,7 @@ allPass(l2, "l2 lab solved");
 run(l2, ["conf t", "interface 1/1/8", "no shutdown", "end"]);
 ok(l2.exec("show interface 1/1/8").out.indexOf("error-disabled") < 0, "no shutdown clears err-disable");
 var l2b = CX.create(lesson("l2-01-uplink"));
-run(l2b, ["conf t", "interface lag 1", "no routing", "interface 1/1/13-1/1/14", "lag 1", "end"]);
+run(l2b, ["conf t", "interface lag 1", "no shutdown", "no routing", "interface 1/1/13-1/1/14", "lag 1", "end"]);
 l2b.connect("core-01");
 ok(l2b.exec("show lacp interfaces").out.indexOf("ALF") < 0, "static lag shows no LACP state");
 run(l2b, ["conf t", "interface lag 1", "lacp mode passive", "end"]);
@@ -278,6 +400,11 @@ var noHelp = probe.help("no ");
 has(noHelp, "shutdown", "no ? lists shutdown");
 var lines = ifHelp.split("\n").filter(function (l) { return l.trim() && !/  \S+\s{2,}\S/.test(l); });
 ok(lines.length === 0, "every interface-context word has help text: " + lines.join(" | "));
+// every <placeholder> in the command table has a validator, or the parser throws on the line that reaches it
+var esrc = fs.readFileSync(path.join(__dirname, "theme", "cxsim", "engine.js"), "utf8"), phKeys = {}, m1, cre = /cmd\(\s*"[^"]*",\s*"([^"]+)"/g, noPh = [];
+(esrc.match(/var PH = \{[\s\S]*?\n  \};/) || [""])[0].replace(/"(<[^"]+>)"\s*:/g, function (x, k) { phKeys[k] = 1; });
+while ((m1 = cre.exec(esrc))) m1[1].split(" ").forEach(function (tk) { if (tk[0] === "<" && !phKeys[tk]) noPh.push(tk + " in `" + m1[1] + "`"); });
+ok(noPh.length === 0, "placeholders without a validator: " + noPh.join(", "));
 
 console.log((fail ? "FAILED " + fail + " of " : "passed ") + (pass + fail) + " checks");
 process.exit(fail ? 1 : 0);

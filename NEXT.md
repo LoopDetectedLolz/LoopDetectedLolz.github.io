@@ -20,15 +20,27 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
   the seating block aiming tool, the mesh planner (verified against a real point the day
   before) and the "What happened" story tool, one page, the model concatenated into it.
 
-## Ready to publish, not pushed yet (2026-09-25)
+## The CX Sandbox (live since 2026-09-25; phase 1 of the rebuild on branch `cx-sandbox-v2`, 2026-09-28)
 
-- **The CX Sandbox** at `sandbox.html`: a modelled AOS-CX 6200F in the page with a fake ClearPass,
-  eight labs (six Zero to NAC, one L2, one L3) plus free play, `{{cxsim: <lab>}}` for posts. Engine
-  `theme/cxsim/engine.js` (281 Node checks in `cxsimtest.js`, fuzzed clean), widget
-  `theme/widgets/cxsim.html`, labs `theme/cxsim/lessons/`. Usage events go to the comments Worker
-  (`comments/worker.js`, `comments/schema-sandbox.sql`) and `cxstats.py` reads them. To ship:
-  `wrangler d1 execute nfn-comments --remote --file=schema-sandbox.sql`, `wrangler deploy` in
-  `comments/`, then the normal `publish it` from Claude Code. `CLAUDE.md` has the section.
+- **Live**: `sandbox.html`, a modelled AOS-CX 6200F with a fake ClearPass, eight labs plus free play,
+  `{{cxsim: <lab>}}` for posts. Usage events need `wrangler d1 execute nfn-comments --remote
+  --file=schema-sandbox.sql` and `wrangler deploy` in `comments/` if that has not been done.
+- **Audited 2026-09-28** against the laptop lab (CX 10.18.1002 plus ClearPass): of 10,077 real command
+  forms the live engine modelled 126, called 4,475 "not used in this scenario" and answered 5,400 with
+  "Invalid input". Pipes did not exist, and a few labs taught commands 10.18 does not have.
+- **Branch `cx-sandbox-v2`, not pushed, not merged**: the real 10.18 command set behind the parser
+  (`cxcorpus.py`, `theme/cxsim/corpus/`), pipes, the NAC views in the box's layout, `show checkpoint`,
+  LAGs created shut down, CoA needing a dyn-authorization client, the labs and hints updated to match,
+  388 checks in `cxsimtest.js`. The same sweep now gives 146 modelled, 9,859 "not used", 5 invalid
+  (all five are the sweep's own sample values). Review with `git diff main...cx-sandbox-v2`.
+- **Next, in order**: notes and tooltips per command; the ten scenarios (LLDP-MED, device profiles,
+  multi-domain, UBT, multi-gig, LACP, debug, pipes, REST to CLI, cable diagnostics); the version
+  picker once 10.15, 10.16 and 10.17 are harvested with `list` from their OVAs; the config checker;
+  the script builder; the feature guide and hardening mapped by CIS control number; the diagrams.
+  The plan and its evidence are in the "CX Sandbox Blueprint" artifact.
+- **Weekly**: a scheduled task (Mondays about 07:00) reads the Feature Navigator and the consolidated
+  release notes, drafts sandbox changes on a `sandbox-drafts/<date>` branch in a worktree, and never
+  pushes, merges or touches the lab.
 
 ## What is in the lab, not on the site
 

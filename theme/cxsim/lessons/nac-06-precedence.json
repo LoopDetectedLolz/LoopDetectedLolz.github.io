@@ -51,11 +51,12 @@
   "aaa authentication port-access mac-auth",
   "enable"
  ],
- "task": "The phone on 1/1/3 has an expired certificate, so 802.1X rejects it, and there is a PC daisy-chained behind it. Plug both in and watch what the default precedence does with the phone. Then raise the client limit on 1/1/3 to 2 so the PC can authenticate as well. Finally, let ClearPass change a session mid-stream: enable dynamic authorization, then run sim coa laptop role QUARANTINE and check where the laptop landed.",
+ "task": "The phone on 1/1/3 has an expired certificate, so 802.1X rejects it, and there is a PC daisy-chained behind it. Plug both in and watch what the default precedence does with the phone. Then raise the client limit on 1/1/3 to 2 so the PC can authenticate as well. Finally, let ClearPass change a session mid-stream: enable dynamic authorization, accept it from ClearPass at 192.0.2.10 with the shared secret cppm-lab-key, then run sim coa laptop role QUARANTINE and check where the laptop landed.",
  "hints": [
   "A rejected dot1x attempt is not the end: with mac-auth also enabled the switch tries the next method. show port-access clients detail shows which one won.",
   "aaa authentication port-access client-limit 2 in the interface context. The default is one client per port.",
-  "radius dyn-authorization enable is global. Without it the switch never listens for CoA and ClearPass gets a NAK."
+  "radius dyn-authorization enable is global. Without it the switch never listens for CoA and ClearPass times out.",
+  "The switch also has to know who may send CoA: radius dyn-authorization client 192.0.2.10 secret-key plaintext cppm-lab-key. Until then it drops the request and counts it in show radius dyn-authorization."
  ],
  "devices": [
   {
@@ -166,6 +167,12 @@
    "desc": "Dynamic authorization enabled",
    "config": {
     "has": "^radius dyn-authorization enable$"
+   }
+  },
+  {
+   "desc": "ClearPass may send CoA",
+   "config": {
+    "has": "^radius dyn-authorization client 192\\.0\\.2\\.10 secret-key "
    }
   },
   {
