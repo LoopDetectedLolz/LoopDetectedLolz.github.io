@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>What a Radio Actually Sends</title>
-<meta name="description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
+<title>Noise, SNR, and Why RSSI Lies</title>
+<meta name="description" content="A client at -67 dBm can be flying or crawling and the RSSI number won&#x27;t tell you which. The noise floor will. Where the floor comes from, why a Wi-Fi card can&#x27;t see most of what raises it, and a lab where you raise it yourself with a microwave oven.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/academy-07-noise-snr-and-why-rssi-lies.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="What a Radio Actually Sends">
-<meta property="og:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
+<meta property="og:title" content="Noise, SNR, and Why RSSI Lies">
+<meta property="og:description" content="A client at -67 dBm can be flying or crawling and the RSSI number won&#x27;t tell you which. The noise floor will. Where the floor comes from, why a Wi-Fi card can&#x27;t see most of what raises it, and a lab where you raise it yourself with a microwave oven.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/academy-07-noise-snr-and-why-rssi-lies.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/academy-07-noise-snr-and-why-rssi-lies.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="What a Radio Actually Sends">
-<meta name="twitter:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-10"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "What a Radio Actually Sends", "description": "Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.", "datePublished": "2026-09-10", "image": "https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html", "keywords": "Wireless, Academy, RF"}</script>
+<meta name="twitter:title" content="Noise, SNR, and Why RSSI Lies">
+<meta name="twitter:description" content="A client at -67 dBm can be flying or crawling and the RSSI number won&#x27;t tell you which. The noise floor will. Where the floor comes from, why a Wi-Fi card can&#x27;t see most of what raises it, and a lab where you raise it yourself with a microwave oven.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-07-noise-snr-and-why-rssi-lies.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-30"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Noise, SNR, and Why RSSI Lies", "description": "A client at -67 dBm can be flying or crawling and the RSSI number won't tell you which. The noise floor will. Where the floor comes from, why a Wi-Fi card can't see most of what raises it, and a lab where you raise it yourself with a microwave oven.", "datePublished": "2026-09-30", "image": "https://networkfieldnotes.com/og/academy-07-noise-snr-and-why-rssi-lies.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-07-noise-snr-and-why-rssi-lies.html", "keywords": "Wireless, Academy, RF"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -553,99 +553,148 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 10, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">What a Radio Actually Sends</h1>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 30, 2026 &#183; 10 min</span></div>
+      <h1 class="h-hero">Noise, SNR, and Why RSSI Lies</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A dBm ladder from 30 dBm (1 W) down to -90 dBm (1 pW) with the 3 dB, 10 dB and doubling-distance rules, and a wavelength comparison for 2.4, 5 and 6 GHz">
-  <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#F5A524;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
-    .bx{fill:rgba(0,0,0,0.45);stroke:rgba(255,255,255,0.12)}.bt{fill:#fff;font-size:13px;font-weight:600}.mut{fill:#8BA2AE;font-size:11px}
-  </style></defs>
-  <text x="30" y="36" class="t eyebrow">LESSON 1: WHAT A RADIO ACTUALLY SENDS</text>
-  <text x="30" y="66" class="t big">Three anchors, two rules, and you can do the math in your head.</text>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 7: Noise, SNR, and why RSSI lies. Two panels with the same client at -67 dBm RSSI on a dBm scale. Left, a quiet room with a -95 dBm noise floor: the gap is 28 dB of SNR, which buys MCS 7, 64-QAM 5/6, 86 Mb/s on 20 MHz one stream. Right, a microwave running and the floor at -80 dBm: the gap shrinks to 13 dB, MCS 3, 16-QAM 1/2, 34 Mb/s. Caption: the signal didn't move. The floor did, and the floor sets the rung.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .md { font-family: 'JetBrains Mono', monospace; font-size: 11px; fill: #B0C4CF; }
+      .mh { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: #8BA2AE; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 13px; fill: #F5A524; font-weight: 600; }
+      .mt { font-family: 'JetBrains Mono', monospace; font-size: 11px; fill: #5ED2DA; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 13px; fill: #8CE05E; font-weight: 600; }
+      .mw { font-family: 'JetBrains Mono', monospace; font-size: 13px; fill: #EAF2F6; font-weight: 600; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .grid { stroke: rgba(255,255,255,0.10); stroke-width: 1; }
+    </style>
+  </defs>
 
-  <!-- the ladder -->
-  <g class="t">
-    <line x1="120" y1="96" x2="120" y2="306" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
-    <g font-size="12">
-      <circle cx="120" cy="100" r="5" fill="#F5A524"/><text x="136" y="104" class="mono" fill="#fff">+30 dBm</text><text x="216" y="104" class="mut">1 W, legal ceiling for most of what we do</text>
-      <circle cx="120" cy="134" r="5" fill="#F5A524"/><text x="136" y="138" class="mono" fill="#fff">+20 dBm</text><text x="216" y="138" class="mut">100 mW, an enterprise AP radio</text>
-      <circle cx="120" cy="168" r="5" fill="#F5A524"/><text x="136" y="172" class="mono" fill="#fff">  0 dBm</text><text x="216" y="172" class="mut">1 mW, the reference</text>
-      <circle cx="120" cy="202" r="4" fill="#8BA2AE"/><text x="136" y="206" class="mono" fill="#B0C4CF">-30 dBm</text><text x="216" y="206" class="mut">1 microwatt</text>
-      <circle cx="120" cy="236" r="5" fill="#8CE05E"/><text x="136" y="240" class="mono" fill="#fff">-67 dBm</text><text x="216" y="240" class="mut">a good client signal, two ten-millionths of a mW</text>
-      <circle cx="120" cy="270" r="4" fill="#8BA2AE"/><text x="136" y="274" class="mono" fill="#B0C4CF">-90 dBm</text><text x="216" y="274" class="mut">1 picowatt, where the noise floor lives</text>
-    </g>
-    <text x="30" y="104" class="mut">strong</text><text x="30" y="274" class="mut">weak</text>
-  </g>
+  <text x="24" y="36" class="eb">LESSON 7: NOISE, SNR, AND WHY RSSI LIES</text>
+  <text x="24" y="66" class="hl">Same signal, two floors. The gap picks the rung, not the RSSI.</text>
 
-  <!-- rules -->
-  <g class="t">
-    <rect x="560" y="92" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="115" class="bt">3 dB is double, or half.</text>
-    <text x="576" y="137" class="lbl">10 dB is ten times, or a tenth. 23 dBm is 200 mW.</text>
-    <rect x="560" y="162" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="185" class="bt">Double the distance, lose about 6 dB.</text>
-    <text x="576" y="207" class="lbl">Four times the distance, 12 dB. That is the lab.</text>
-    <rect x="560" y="232" width="310" height="74" rx="10" class="bx"/>
-    <text x="576" y="255" class="bt">Wavelength picks the behaviour.</text>
-    <text x="576" y="276" class="mono" fill="#B0C4CF">2.4 GHz  12.5 cm     5 GHz  6 cm     6 GHz  5 cm</text>
-    <text x="576" y="296" class="lbl">Shorter gets through gaps, loses more in walls.</text>
-  </g>
+  <!-- left: quiet room -->
+  <rect x="24" y="86" width="412" height="210" rx="8" class="box"/>
+  <text x="40" y="106" class="t">Quiet room, 20 MHz</text>
+  <line x1="80" y1="118.0" x2="262" y2="118.0" class="grid"/>
+  <text x="76" y="122.0" text-anchor="end" class="mh">-50</text>
+  <line x1="80" y1="150.0" x2="262" y2="150.0" class="grid"/>
+  <text x="76" y="154.0" text-anchor="end" class="mh">-60</text>
+  <line x1="80" y1="182.0" x2="262" y2="182.0" class="grid"/>
+  <text x="76" y="186.0" text-anchor="end" class="mh">-70</text>
+  <line x1="80" y1="214.0" x2="262" y2="214.0" class="grid"/>
+  <text x="76" y="218.0" text-anchor="end" class="mh">-80</text>
+  <line x1="80" y1="246.0" x2="262" y2="246.0" class="grid"/>
+  <text x="76" y="250.0" text-anchor="end" class="mh">-90</text>
+  <line x1="80" y1="278.0" x2="262" y2="278.0" class="grid"/>
+  <text x="76" y="282.0" text-anchor="end" class="mh">-100</text>
+  <rect x="86" y="262.0" width="176" height="16.0" fill="rgba(139,162,174,0.22)" stroke="none"/>
+  <line x1="86" y1="262.0" x2="262" y2="262.0" stroke="#8BA2AE" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="174" y="277.0" text-anchor="middle" class="md">noise floor -95 dBm</text>
+  <rect x="86" y="168.4" width="176" height="8" rx="2" fill="#5ED2DA"/>
+  <text x="174" y="162.4" text-anchor="middle" class="mt">RSSI -67 dBm</text>
+  <line x1="276" y1="172.4" x2="276" y2="262.0" stroke="#F5A524" stroke-width="2"/>
+  <line x1="271" y1="172.4" x2="281" y2="172.4" stroke="#F5A524" stroke-width="2"/>
+  <line x1="271" y1="262.0" x2="281" y2="262.0" stroke="#F5A524" stroke-width="2"/>
+  <text x="288" y="180.4" class="mo">28 dB SNR</text>
+  <text x="288" y="198.4" class="mg">MCS 7</text>
+  <text x="288" y="214.4" class="ts">64-QAM 5/6</text>
+  <text x="288" y="230.4" class="ts">86 Mb/s, one stream</text>
 
-  <text x="30" y="326" class="t mono" fill="#F5A524">An AP at +20 dBm heard at -67 dBm: 87 dB of path loss. That number is the whole design.</text>
+  <!-- right: oven on -->
+  <rect x="464" y="86" width="412" height="210" rx="8" class="box"/>
+  <text x="480" y="106" class="t">Microwave running, same AP, same spot</text>
+  <line x1="520" y1="118.0" x2="702" y2="118.0" class="grid"/>
+  <text x="516" y="122.0" text-anchor="end" class="mh">-50</text>
+  <line x1="520" y1="150.0" x2="702" y2="150.0" class="grid"/>
+  <text x="516" y="154.0" text-anchor="end" class="mh">-60</text>
+  <line x1="520" y1="182.0" x2="702" y2="182.0" class="grid"/>
+  <text x="516" y="186.0" text-anchor="end" class="mh">-70</text>
+  <line x1="520" y1="214.0" x2="702" y2="214.0" class="grid"/>
+  <text x="516" y="218.0" text-anchor="end" class="mh">-80</text>
+  <line x1="520" y1="246.0" x2="702" y2="246.0" class="grid"/>
+  <text x="516" y="250.0" text-anchor="end" class="mh">-90</text>
+  <line x1="520" y1="278.0" x2="702" y2="278.0" class="grid"/>
+  <text x="516" y="282.0" text-anchor="end" class="mh">-100</text>
+  <rect x="526" y="214.0" width="176" height="64.0" fill="rgba(139,162,174,0.22)" stroke="none"/>
+  <line x1="526" y1="214.0" x2="702" y2="214.0" stroke="#8BA2AE" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="614" y="229.0" text-anchor="middle" class="md">noise floor -80 dBm</text>
+  <rect x="526" y="168.4" width="176" height="8" rx="2" fill="#5ED2DA"/>
+  <text x="614" y="162.4" text-anchor="middle" class="mt">RSSI -67 dBm</text>
+  <line x1="716" y1="172.4" x2="716" y2="214.0" stroke="#F5A524" stroke-width="2"/>
+  <line x1="711" y1="172.4" x2="721" y2="172.4" stroke="#F5A524" stroke-width="2"/>
+  <line x1="711" y1="214.0" x2="721" y2="214.0" stroke="#F5A524" stroke-width="2"/>
+  <text x="728" y="180.4" class="mo">13 dB SNR</text>
+  <text x="728" y="198.4" class="mw">MCS 3</text>
+  <text x="728" y="214.4" class="ts">16-QAM 1/2</text>
+  <text x="728" y="230.4" class="ts">34 Mb/s, one stream</text>
+
+  <text x="24" y="320" class="cap">The signal didn't move. The floor did, and the floor sets the rung.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 1. Fundamentals first, then a lab on real gear</div>
-      <div class="prose"><p>This is the first lesson of the Wireless Academy, and it starts with the thing every wireless conversation eventually gets stuck on: the numbers. RSSI is -67 dBm. Is that good? The AP is at 20 dBm. Is that a lot? Somebody wants "more signal." How much more, and what does more even mean?</p>
-<p>By the end of this one you'll be able to answer those without a calculator, and you'll have measured it yourself on an AP you own.</p>
-<h2>What's actually leaving the antenna</h2>
-<p>A Wi-Fi radio sends an electromagnetic wave. Three things describe it. Frequency is how many times a second it oscillates, and it's what picks the band: 2.4 GHz, 5 GHz, 6 GHz. Wavelength is how long one cycle is in space, and it falls out of frequency directly: the speed of light divided by the frequency. At 2.4 GHz that's about 12.5 cm. At 5 GHz it's about 6 cm, and at 6 GHz about 5 cm.</p>
-<p>That matters more than it sounds. A shorter wavelength interacts with objects differently. It gets through gaps more easily but loses more energy going through walls, and it doesn't bend around corners as well. Most of the "5 GHz doesn't reach as far as 2.4" gap is wavelength. The frequency term in free space loss alone costs about 6 dB going from 2.4 to 5 GHz. It isn't all of it, though. Regulatory caps differ by band, and so does whatever per-band power your APs are actually set to.</p>
-<p>Amplitude is how strong the wave is, and that's the one we spend our lives measuring. The problem is the range. The AP transmits something like 100 milliwatts. The client, a few rooms away, receives something like a ten-billionth of that. Writing those two numbers next to each other in milliwatts is useless, so we don't.</p>
-<h2>The number that matters: dBm</h2>
-<p>We use decibels relative to one milliwatt, dBm. The definition is 10 times the log of the power in milliwatts, and you don't need to remember that. You need to remember three anchors and two rules.</p>
-<p>Anchors: 0 dBm is 1 mW. 20 dBm is 100 mW, roughly what an enterprise AP radio transmits. 30 dBm is 1 W. In the US that's the FCC ceiling for an AP at 2.4 GHz and in U-NII-1 and U-NII-3, while U-NII-2A and 2C cap you at 24 dBm. Indoor 6 GHz is a different kind of limit, 5 dBm per MHz of EIRP, so a 20 MHz channel tops out around 18 dBm EIRP and only a 320 MHz one gets near 30. Treat 30 dBm as the outer wall, not a number you're entitled to.</p>
-<p>Rule one: 3 dB doubles or halves the power. Rule two: 10 dB is ten times or a tenth. Everything else is those two combined. 23 dBm is 20 plus 3, so 200 mW. 13 dBm is 10 plus 3, so 20 mW. Going down, -70 dBm is seven tens below 1 mW, which is one ten-millionth of a milliwatt. That's a workable data signal, although most designs want -67 dBm or better once voice or density is involved, and it's why we don't write it in milliwatts.</p>
-<p>When two dBm numbers are compared you get a plain dB difference. An AP at 20 dBm and a client hearing it at -67 dBm are 87 dB apart. That 87 dB is the total link loss, path loss plus whatever the two antennas gave back or took away, and it's the number a wireless design lives or dies on.</p>
-<p>One rule for free space that you'll use constantly: every time you double the distance, you lose about 6 dB. Four times the distance is 12 dB. That's what the lab is about.</p>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 7. Fundamentals first, then a lab on real gear</div>
+      <div class="prose"><p>Last week ended with adjacent-channel overlap raising the noise floor. This week is the floor itself, and why the number everybody stares at doesn't include it.</p>
+<p>A client sits at -67 dBm and the user says it's slow. Somebody opens the client page, sees a healthy bar, and says the Wi-Fi is fine. Both are right about what they can see. RSSI is how loud the AP is. It says nothing about how loud everything else is, and the radio only cares about the gap. That gap is SNR, and SNR picks the rung on lesson 4's table. Not the signal. The gap.</p>
+<h2>Where the floor comes from</h2>
+<p>With nothing transmitting anywhere, a receiver still hears noise. Thermal noise, the electrons in its own front end moving about, and physics gives it a number: about -174 dBm per hertz of bandwidth at room temperature. Wider channel, more hertz, more noise. A 20 MHz channel collects 73 dB worth of hertz, so its thermal floor is -101 dBm, and every doubling of width adds 3 dB: -98 at 40, -95 at 80, -92 at 160. That's the price of width from lesson 2, paid before a single frame goes on the air.</p>
+<p>Then the receiver adds its own. The amplifier chain adds a few dB called the noise figure, and how few depends on the silicon. The APs in my lab report -92 dBm on 80 MHz, 3 dB over thermal, and a laptop I've seen written up reads -98 on 20 MHz, also 3 dB over. Cheaper radios are worse. Aruba's own doc says a floor above -80 dBm is a sign of trouble, which gives you the range: a quiet 20 MHz channel on real gear sits between about -98 and -92 dBm, and anything near -80 means the room has a problem. I'll use -95 for the sums because it's in the middle.</p>
+<p>Everything above thermal plus noise figure is the room. Other people's Wi-Fi too weak to decode. Microwaves. Cameras. Bluetooth. The floor the AP reports is the total, and it can't tell you which part is which. It's a sum, and computers are very patient about summing.</p>
+<h2>The number that matters</h2>
+<pre><code>SNR (dB) = RSSI (dBm) - noise floor (dBm)
+</code></pre>
+<p>Same client, -67 dBm, two rooms. A quiet one and one with something running in it.</p>
+<pre><code>-67 - (-95) = 28 dB SNR   -&gt;  MCS 7, 64-QAM 5/6, 86 Mb/s on 20 MHz one stream
+-67 - (-80) = 13 dB SNR   -&gt;  MCS 3, 16-QAM 1/2, 34 Mb/s on 20 MHz one stream
+</code></pre>
+<p>The rows are lesson 4's SNR floors, the site's own typical figures: MCS 7 wants 25 dB and MCS 8 wants 29, so 28 lands on 7. MCS 3 wants 12 and MCS 4 wants 16, so 13 lands on 3. The signal didn't move. The floor came up 15 dB and took four rungs and 60 percent of the rate with it, and the retries on the way down come out of lesson 5's airtime, so the whole channel pays.</p>
+<h2>Why RSSI lies</h2>
+<p>It doesn't lie, exactly. It answers a narrower question than people think they're asking. A Wi-Fi chip is a modem. It reports the strength of 802.11 frames it managed to decode, because that's what it's for. Energy it can't demodulate isn't a frame, so it isn't signal; the chip lumps it into the noise floor and moves on. A microwave oven three metres away doesn't lower your RSSI at all. It raises the floor, and the client page shows you the one number that can't see it.</p>
+<p>A spectrum analyser is the opposite kind of tool. It measures energy in a slice of frequency and doesn't care whether anything decodes. Everything shows up, with a shape:</p>
+<ul>
+<li><strong>A microwave oven</strong> is a wide hill centred around 2.45 GHz that switches on and off with a regular cadence rather than sitting solid. It's a 2.4 GHz problem only; there's nothing for it to leak into at 5 GHz.</li>
+<li><strong>Bluetooth</strong> is narrow spikes hopping across the whole 2.4 GHz band, 79 channels of 1 MHz at 1,600 hops a second. Low power, everywhere, briefly.</li>
+<li><strong>Wireless cameras</strong> of the old analogue kind are the worst: a solid block that never stops, because video never stops. Vendor testing puts the duty cycle at 90 to 100 percent and the throughput on that channel at nothing.</li>
+<li><strong>Radar</strong> on the DFS channels is short high-power bursts. Your AP has to leave the channel when it sees one and stay off it for at least 30 minutes, which shows up as a channel change nobody asked for.</li>
+<li><strong>Neighbouring Wi-Fi too weak to decode</strong> is the one people forget. Below the level where the preamble decodes it's just energy, and energy raises the floor. Last week's overlap, seen from the other side.</li>
+</ul>
+<p>The chip does notice, in its own way. Retries climb when frames get corrupted, and both platforms report non-Wi-Fi utilisation because the radio can count the times it heard energy it couldn't make sense of. That's a symptom. The spectrum view is the cause.</p>
 <h2>What the gear shows you</h2>
-<p>Every platform reports received signal strength for a connected client, and they mostly agree on the unit even when they disagree on the name.</p>
-<p>In Aruba Central, open the client from the Clients list and watch the labels. The client detail gives you Signal Quality as SNR in dB, Device Health as a signal strength percentage, and the actual dBm figure as RSSI in the Roaming Experience table further down. Two of those are the received power in different clothes; SNR is that power measured against the noise floor. On the AP itself, <code>show ap debug client-table</code> lists every associated client, but its signal columns are <code>Last_ACK_SNR</code> and <code>Last_Rx_SNR</code>: SNR, dB above the noise floor, not dBm, and that's true on AOS 8, Instant and AOS 10 alike. On an AOS 8 controller the command also takes an <code>ap-name</code>. So don't be surprised when it's a small positive number, and if you want a dBm figure you're going back to Central for it. Same physics, different reference.</p>
-<p>In Mist, open the client from the Clients list and follow its Client Insights link. The status block gives you RSSI and SNR as current values; the charts of both over time need the Marvis for Wireless subscription. The graphed form is the useful one, because a single reading lies and a trend doesn't.</p>
-<p>On the Sidekick, Ekahau lists every AP it can hear with its signal strength (the Network Overview in the Analyzer app), which is the one measurement in this list that doesn't depend on your client's radio. The Sidekick has calibrated radios of its own, and that independence is the whole reason it exists.</p>
+<p><strong>Aruba Central.</strong> The client page's Signal Quality is SNR in dB as the AP measured it, banded Poor at 0 to 20, Fair at 21 to 35 and Good above 35, with Retry Frames next to it. For the floor, the AP's RF tab has a Noise Floor graph beside Channel Utilization, and the Radios list has a Noise Floor (dBm) column. The AP's Spectrum tab goes further: Channel Utilization split into Available, Interference and Wi-Fi Utilization, and an Interfering Devices table with type, frequency, bandwidth, affected channels, signal strength and duty cycle. The catch is that the radio has to be in spectrum scan mode to feed it, and in that mode it serves no clients. The doc scopes it to Instant 8.5.0.1 and later; whether it works on an AOS 10 AP I haven't checked on a box yet, as of September 2026.</p>
+<p><strong>Aruba CLI.</strong> <code>show ap debug client-table</code> gives Last_ACK_SNR and Last_Rx_SNR per client, last packet only, same caveat as lesson 4. <code>show ap debug radio-stats</code> has a Current Noise Floor line, and the -80 dBm warning is on that doc page; it's on AOS 8 and on AOS 10 from 10.3.1.0. On AOS 8, <code>show ap arm rf-summary</code> lists every channel the radio scanned with a noise column, so you can see whether the floor is on your channel or everywhere. <code>show ap monitor ap-list</code> on AOS 10 and Instant gives curr-rssi and curr-snr for every AP the radio can hear, and on 10.8 in my lab there's a pathloss column the AP works out itself. For classification on AOS 8, <code>ap spectrum local-override</code> turns a radio into a spectrum monitor and <code>show ap spectrum device-summary</code> counts what it found per channel, with Microwave, Bluetooth, Video and Cordless Phone among the types.</p>
+<p><strong>Mist.</strong> Client Insights shows Current Values with RSSI and SNR side by side; the Client SNR chart over time, like lesson 4's PHY rate chart, needs Marvis for Wireless. Site &gt; Radio Management has an AVG. NOISE tile, the average floor of every AP on the band, and its Radio Events include an Interference AP non wifi event that names microwave ovens, cordless phones, Bluetooth and wireless video cameras. The API is more direct than the screens. <code>GET /api/v1/sites/{site_id}/stats/clients</code> returns <code>rssi</code>, <code>snr</code>, <code>tx_retries</code> and <code>rx_retries</code> per client, and <code>GET /api/v1/sites/{site_id}/stats/devices</code> returns per radio, under <code>radio_stat.band_24</code> and <code>band_5</code>, a <code>noise_floor</code> in dBm and a <code>util_non_wifi</code> percentage the spec describes as frames with invalid PLCPs and glitches counted as noise. That's the chip admitting what it couldn't decode. There's also <code>POST /api/v1/sites/{site_id}/analyze_spectrum</code>, a capture streamed from an AP over a websocket with a per-channel <code>noise</code> and <code>non_wifi</code> share. I haven't run it and I don't see a screen for it in the docs, as of September 2026.</p>
+<p><strong>Ekahau Sidekick.</strong> The real spectrum analyser in the bag. Tri-band, 19 kHz resolution, up to 50 sweeps a second, amplitude range down to -92 dBm, so anything quieter than that it can't draw. It's the only thing in this lesson that shows you the shape of the interferer rather than a number derived from it.</p>
 <h2>The lab</h2>
-<p>One AP, one client, a tape measure, and forty minutes. Outdoors or a large open room, because walls will make the numbers lie and that's next lesson's problem.</p>
+<p>One AP, one laptop, a wired box for iperf3, a microwave oven, under an hour. A microwave is the one interferer everybody can produce on demand. It's legal, it's repeatable, and it lives in 2.4 GHz only, which makes the second half of the lab free.</p>
 <ol>
-<li>Note the AP's transmit power. Central shows it per radio; Mist shows it on the AP's radio settings. Fix it if it's on auto, so it doesn't change during the lab.</li>
-<li>Stand 2 m from the AP with the client associated on 5 GHz. Wait a minute for the reading to settle, then record RSSI from the platform and from the Sidekick.</li>
-<li>Move to 4 m. Record again. Then 8 m, then 16 m.</li>
-<li>Put the four numbers in a row.</li>
+<li>Pin the AP to channel 6, 20 MHz, fixed power. Laptop 3 m away, line of sight. The oven in the same room, a few metres from both, a mug of water inside so you're not running it empty.</li>
+<li>Baseline. Write down RSSI and SNR from Central's client page or Mist's Current Values, the radio's noise floor from the RF tab or <code>stats/devices</code>, and Retry Frames or <code>tx_retries</code>. <code>iperf3 -s</code> on the wired host, <code>iperf3 -c &lt;host&gt; -R -t 30</code> on the laptop. Write down the throughput.</li>
+<li>Sidekick in spectrum view on 2.4 GHz for a minute. Note what's there before you add anything.</li>
+<li>Oven on full for two minutes. Rerun iperf3 for 30 seconds while it runs. Watch the Sidekick during the burst.</li>
+<li>Read everything again while it's running: RSSI, SNR, noise floor, retries. Cloud stats lag the radio by an averaging window, so give them a minute.</li>
+<li>Oven off. Wait two minutes, read again.</li>
+<li>Move the laptop and the AP to 5 GHz, any channel. Repeat steps 2, 4 and 5.</li>
 </ol>
-<p>What you should see: each step drops by something close to 6 dB. Not exactly. Reflections, the client's antenna, and the fact that you're standing there will push it around by a couple of dB, and that's fine.</p>
-<figure class="wide">
-<div class="pan"><img src="../media/academy-01-six-db.png" alt="Four link budget strips at 2, 4, 8 and 16 metres reading minus 27, minus 33, minus 39 and minus 45 dBm, each step 6 dB below the one above" width="1204" height="1176" loading="lazy"></div>
-<figcaption>The same link modelled in free space at your four distances, for a 26 dBm EIRP radio on 5 GHz: -27, -33, -39, -45 dBm, and 6.02 dB between each one. A 20 dBm radio starts 6 dB lower and steps the same. That is the whole rule. Your room will read lower than these and the steps will be bigger, which is next week's lesson and not a bad measurement.</figcaption>
-</figure>
-
-<figure>
-<video controls playsinline preload="metadata" poster="../media/academy-01-six-db.jpg" src="../media/academy-01-six-db.mp4" width="1280" height="600"></video>
-<figcaption>The same walk without stopping, 2 m out to 16 m, with the received power tracking it down the curve.</figcaption>
-</figure>
-
-<p>You can drive this one yourself in the <a href="../simulator.html">simulator</a>.</p>
-<p>What means something's off: a drop of 15 dB on one step usually means you walked behind something, or the client roamed to another AP, which the platform will show you. A reading that doesn't change at all across two steps means the number you're reading is being averaged too slowly, or the client picked a different radio. Check the BSSID the client is on before you trust any step.</p>
-<p>Then do it once on 2.4 GHz. The steps still drop about 6 dB each, and at the same transmit power they start from a higher number. Check the 2.4 GHz radio's power before you compare, because APs are routinely set lower on 2.4 to stop the cell swallowing the building, and that alone can erase the gap you're looking for. Match the power and the gap that's left is the wavelength difference from the top of this lesson, and now you've measured it.</p>
+<p><strong>What you should see.</strong> This is what the physics expects; measured figures replace it once the run is done. RSSI holds within a dB or two of baseline the whole time, because the AP didn't change and the oven isn't a frame. The radio's noise floor climbs and SNR falls by the same amount, because it's a subtraction. Retries climb and throughput drops on every run with the oven on. On the Sidekick, a wide hill near the top of the 2.4 GHz band that flickers rather than sits, with a duty cycle well under 100 percent, because the magnetron pulses in time with the mains rather than running steady. On 5 GHz nothing moves, which is the point of step 7. If the floor on channel 6 barely moves, your oven leaks high and narrow: put the AP on channel 11, the non-overlapping channel nearest 2.45 GHz, and go again.</p>
+<p><strong>What means it's broken.</strong> RSSI dropping with the oven means the laptop moved or the AP changed power; check Central's Power Changes or Mist's Radio Events. SNR falling with no change in the reported floor means the two numbers came from different radios or different minutes; read both from the same radio and wait out the averaging window. A floor above -80 dBm before you switch anything on means the room already had a problem, and step 3 should have shown you what. And if the Sidekick shows the hill but the AP's floor barely moves, the AP is averaging a thing that pulses and the Sidekick is drawing its peaks. Neither is wrong. They measure different things, which is the whole lesson.</p>
 <h2>Three questions</h2>
-<p>Is 100 mW more or less than 23 dBm, and by how much? A client's signal went from -60 to -66 dBm; what happened to the received power? You've moved to four times your original distance from the AP; roughly how much signal did you give up?</p>
-<p>Answers: less, by 3 dB. It dropped to a quarter. About 12 dB.</p>
+<ol>
+<li>A client shows -62 dBm RSSI on a radio reporting a -78 dBm noise floor. What's the SNR, and roughly which rung does it land on?</li>
+<li>The AP's noise floor reads -92 dBm on 80 MHz and you change the radio to 20 MHz. Where should the floor go, and why?</li>
+<li>A user complains of slow Wi-Fi in the kitchen at lunchtime, 2.4 GHz only. Which two numbers on the client page do you look at first, and which tool tells you the cause?</li>
+</ol>
+<p>Answers: 16 dB, MCS 4 on the site's floors, 16-QAM 3/4 and nowhere near the top of the table despite a strong-looking RSSI. About 6 dB lower, near -98, because two halvings of width take two lots of 3 dB off the thermal noise. SNR and Retry Frames, then the Sidekick; the client page shows you the symptom and the spectrum view shows you the oven.</p>
 <h2>Next week</h2>
-<p>Bands, channels and widths. Where 2.4, 5 and 6 GHz live, what the U-NII blocks are, and what you pay for a wider channel. The lab is the same AP with the width changed, and the client's rate table telling you what it cost.</p></div>
+<p>Joining a network. Probe, authentication, association, the 4-way handshake and EAP, captured on Mist and on Aruba, then the same join read back in ClearPass Access Tracker.</p></div>
       
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 1 of 11</span></h3><div class="ser-steps"><a class="ser-step here" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-01-what-a-radio-actually-sends" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 6 of 11</span></h3><div class="ser-steps"><a class="ser-step" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span></a><a class="ser-step" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step here" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-07-noise-snr-and-why-rssi-lies" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -805,7 +854,7 @@ html.qam-fs .rig{display:none}
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="channel-173-survey-blind-spot.html"><span class="eyebrow">Older</span>Your Survey Tool Can&#x27;t See Channel 173</a><a class="pn g-card" href="how-the-banner-works.html"><span class="eyebrow">Newer</span>The Banner Is a Wi-Fi Link You Can Break</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-06-interference-from-yourself.html"><span class="eyebrow">Older</span>Interference From Yourself</a><a class="pn g-card" href="academy-08-joining-a-network.html"><span class="eyebrow">Newer</span>Joining a Network</a></div>
     </section>
   </article>
 </div>

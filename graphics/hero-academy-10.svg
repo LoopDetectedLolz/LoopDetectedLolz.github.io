@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 10: Capacity, not coverage. Left, three concentric cells around one AP labelled minimum basic rate 1, 6 and 24 Mb/s, each smaller than the last. Right, a bar chart of beacon airtime per second for six SSIDs: about 156 ms at 1 Mb/s, 25 ms at 6 Mb/s and 7 ms at 24 Mb/s, an approximation for a 300 byte beacon ten times a second. Caption: the cell is drawn by the slowest rate you allow, not by the power you set.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .m  { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #EAF2F6; }
+      .md { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #B0C4CF; }
+      .mh { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.5px; fill: #8BA2AE; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #8CE05E; font-weight: 600; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .grid { stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .c1 { fill: rgba(139,162,174,0.10); stroke: #8BA2AE; stroke-width: 1; stroke-dasharray: 4 4; }
+      .c6 { fill: rgba(94,210,218,0.12); stroke: #5ED2DA; stroke-width: 1.5; }
+      .c24 { fill: rgba(140,224,94,0.18); stroke: #8CE05E; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <text x="24" y="36" class="eb">LESSON 10: CAPACITY, NOT COVERAGE</text>
+  <text x="24" y="66" class="hl">Power sets how far you're heard. The slowest rate sets the cell.</text>
+
+  <!-- left: three cells -->
+  <rect x="24" y="86" width="330" height="210" rx="8" class="box"/>
+  <text x="40" y="106" class="t">One AP, same power, three minimum basic rates</text>
+
+  <circle cx="150" cy="200" r="86" class="c1"/>
+  <circle cx="150" cy="200" r="58" class="c6"/>
+  <circle cx="150" cy="200" r="32" class="c24"/>
+  <circle cx="150" cy="200" r="5" fill="#F5A524"/>
+  <text x="150" y="222" text-anchor="middle" class="mh">AP</text>
+
+  <!-- radial labels to the right -->
+  <line x1="182" y1="200" x2="256" y2="176" class="grid"/>
+  <text x="262" y="180" class="mg">MBR 24 Mb/s</text>
+  <text x="262" y="194" class="ts">smallest cell</text>
+
+  <line x1="208" y1="200" x2="256" y2="216" class="grid"/>
+  <text x="262" y="220" class="m" style="fill:#5ED2DA">MBR 6 Mb/s</text>
+  <text x="262" y="234" class="ts">5 GHz default</text>
+
+  <line x1="236" y1="200" x2="256" y2="256" class="grid"/>
+  <text x="262" y="260" class="md">MBR 1 Mb/s</text>
+  <text x="262" y="274" class="ts">2.4 GHz only</text>
+
+  <!-- right: beacon airtime bars -->
+  <rect x="372" y="86" width="504" height="210" rx="8" class="box"/>
+  <text x="388" y="106" class="t">Beacon airtime per second, six SSIDs on one radio</text>
+  <text x="388" y="122" class="ts">300 byte beacon, ten a second per SSID, preamble included. Approximation.</text>
+
+  <text x="388" y="152" class="md">1 Mb/s</text>
+  <rect x="470" y="140" width="270" height="16" rx="3" fill="#8BA2AE"/>
+  <text x="748" y="153" class="md">156 ms</text>
+  <text x="864" y="153" text-anchor="end" class="mo">15.6%</text>
+
+  <text x="388" y="196" class="md">6 Mb/s</text>
+  <rect x="470" y="184" width="43" height="16" rx="3" fill="#5ED2DA"/>
+  <text x="521" y="197" class="md">25 ms</text>
+  <text x="864" y="197" text-anchor="end" class="mo">2.5%</text>
+
+  <text x="388" y="240" class="md">24 Mb/s</text>
+  <rect x="470" y="228" width="12" height="16" rx="3" fill="#8CE05E"/>
+  <text x="490" y="241" class="md">7 ms</text>
+  <text x="864" y="241" text-anchor="end" class="mg">0.7%</text>
+
+  <line x1="470" y1="132" x2="470" y2="252" class="grid"/>
+  <text x="388" y="280" class="ts">One 1 Mb/s beacon is 2592 us. One at 24 is 120 us. Same 300 bytes, one bad rate.</text>
+
+  <text x="24" y="320" class="cap">The cell is drawn by the slowest rate you allow, not by the power you set.</text>
+</svg>

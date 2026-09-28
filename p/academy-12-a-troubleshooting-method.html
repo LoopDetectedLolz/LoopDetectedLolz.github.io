@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>What a Radio Actually Sends</title>
-<meta name="description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
+<title>A Troubleshooting Method</title>
+<meta name="description" content="Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practise finding each with the right tool.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/academy-12-a-troubleshooting-method.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="What a Radio Actually Sends">
-<meta property="og:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
+<meta property="og:title" content="A Troubleshooting Method">
+<meta property="og:description" content="Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practise finding each with the right tool.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/academy-12-a-troubleshooting-method.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/academy-12-a-troubleshooting-method.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="What a Radio Actually Sends">
-<meta name="twitter:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-10"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "What a Radio Actually Sends", "description": "Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.", "datePublished": "2026-09-10", "image": "https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html", "keywords": "Wireless, Academy, RF"}</script>
+<meta name="twitter:title" content="A Troubleshooting Method">
+<meta name="twitter:description" content="Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practise finding each with the right tool.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-12-a-troubleshooting-method.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-10-05"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "A Troubleshooting Method", "description": "Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practise finding each with the right tool.", "datePublished": "2026-10-05", "image": "https://networkfieldnotes.com/og/academy-12-a-troubleshooting-method.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-12-a-troubleshooting-method.html", "keywords": "Wireless, Academy, Troubleshooting"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -553,99 +553,190 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 10, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">What a Radio Actually Sends</h1>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Oct 5, 2026 &#183; 8 min</span></div>
+      <h1 class="h-hero">A Troubleshooting Method</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A dBm ladder from 30 dBm (1 W) down to -90 dBm (1 pW) with the 3 dB, 10 dB and doubling-distance rules, and a wavelength comparison for 2.4, 5 and 6 GHz">
-  <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#F5A524;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
-    .bx{fill:rgba(0,0,0,0.45);stroke:rgba(255,255,255,0.12)}.bt{fill:#fff;font-size:13px;font-weight:600}.mut{fill:#8BA2AE;font-size:11px}
-  </style></defs>
-  <text x="30" y="36" class="t eyebrow">LESSON 1: WHAT A RADIO ACTUALLY SENDS</text>
-  <text x="30" y="66" class="t big">Three anchors, two rules, and you can do the math in your head.</text>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 12: A troubleshooting method. Four stacked layers, client, RF, infrastructure and upstream, each with what lives in it, the tool that proves it on the right, and in green the counter that clears it. Caption: a clean counter rules a layer out, and ruling layers out is most of the job.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .ln { font-family: 'Instrument Sans', sans-serif; font-size: 15px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .mh { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.5px; fill: #8BA2AE; }
+      .mt { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; fill: #5ED2DA; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; fill: #8CE05E; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .num { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .grid { stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+    </style>
+  </defs>
 
-  <!-- the ladder -->
-  <g class="t">
-    <line x1="120" y1="96" x2="120" y2="306" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
-    <g font-size="12">
-      <circle cx="120" cy="100" r="5" fill="#F5A524"/><text x="136" y="104" class="mono" fill="#fff">+30 dBm</text><text x="216" y="104" class="mut">1 W, legal ceiling for most of what we do</text>
-      <circle cx="120" cy="134" r="5" fill="#F5A524"/><text x="136" y="138" class="mono" fill="#fff">+20 dBm</text><text x="216" y="138" class="mut">100 mW, an enterprise AP radio</text>
-      <circle cx="120" cy="168" r="5" fill="#F5A524"/><text x="136" y="172" class="mono" fill="#fff">  0 dBm</text><text x="216" y="172" class="mut">1 mW, the reference</text>
-      <circle cx="120" cy="202" r="4" fill="#8BA2AE"/><text x="136" y="206" class="mono" fill="#B0C4CF">-30 dBm</text><text x="216" y="206" class="mut">1 microwatt</text>
-      <circle cx="120" cy="236" r="5" fill="#8CE05E"/><text x="136" y="240" class="mono" fill="#fff">-67 dBm</text><text x="216" y="240" class="mut">a good client signal, two ten-millionths of a mW</text>
-      <circle cx="120" cy="270" r="4" fill="#8BA2AE"/><text x="136" y="274" class="mono" fill="#B0C4CF">-90 dBm</text><text x="216" y="274" class="mut">1 picowatt, where the noise floor lives</text>
-    </g>
-    <text x="30" y="104" class="mut">strong</text><text x="30" y="274" class="mut">weak</text>
-  </g>
+  <text x="24" y="36" class="eb">LESSON 12: A TROUBLESHOOTING METHOD</text>
+  <text x="24" y="66" class="hl">Find the layer first. Then one change at a time.</text>
 
-  <!-- rules -->
-  <g class="t">
-    <rect x="560" y="92" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="115" class="bt">3 dB is double, or half.</text>
-    <text x="576" y="137" class="lbl">10 dB is ten times, or a tenth. 23 dBm is 200 mW.</text>
-    <rect x="560" y="162" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="185" class="bt">Double the distance, lose about 6 dB.</text>
-    <text x="576" y="207" class="lbl">Four times the distance, 12 dB. That is the lab.</text>
-    <rect x="560" y="232" width="310" height="74" rx="10" class="bx"/>
-    <text x="576" y="255" class="bt">Wavelength picks the behaviour.</text>
-    <text x="576" y="276" class="mono" fill="#B0C4CF">2.4 GHz  12.5 cm     5 GHz  6 cm     6 GHz  5 cm</text>
-    <text x="576" y="296" class="lbl">Shorter gets through gaps, loses more in walls.</text>
-  </g>
+  <!-- column headers -->
+  <text x="40" y="92" class="mh">LAYER</text>
+  <text x="196" y="92" class="mh">WHAT LIVES THERE</text>
+  <text x="458" y="92" class="mh">THE TOOL THAT PROVES IT</text>
+  <text x="686" y="92" class="mh">THE COUNTER THAT CLEARS IT</text>
 
-  <text x="30" y="326" class="t mono" fill="#F5A524">An AP at +20 dBm heard at -67 dBm: 87 dB of path loss. That number is the whole design.</text>
+  <!-- row 1: client -->
+  <rect x="24" y="100" width="852" height="46" rx="8" class="box"/>
+  <text x="40" y="123" class="num">1</text>
+  <text x="56" y="123" class="ln">Client</text>
+  <text x="196" y="119" class="t">adapter, driver, rates, streams,</text>
+  <text x="196" y="134" class="t">what it decided to do (lessons 4, 9)</text>
+  <text x="458" y="119" class="mt">Client Capabilities (Central)</text>
+  <text x="458" y="134" class="mt">Current Values (Mist)</text>
+  <text x="686" y="119" class="mg">Tx|Rx Rate on a row</text>
+  <text x="686" y="134" class="mg">of the MCS table</text>
+
+  <!-- row 2: RF -->
+  <rect x="24" y="152" width="852" height="46" rx="8" class="box"/>
+  <text x="40" y="175" class="num">2</text>
+  <text x="56" y="175" class="ln">RF</text>
+  <text x="196" y="171" class="t">signal, SNR, noise floor, airtime,</text>
+  <text x="196" y="186" class="t">co-channel (lessons 1, 3, 5, 6, 7)</text>
+  <text x="458" y="171" class="mt">Retry Frames, Signal Quality</text>
+  <text x="458" y="186" class="mt">Sidekick spectrum view</text>
+  <text x="686" y="171" class="mg">retries flat, SNR at</text>
+  <text x="686" y="186" class="mg">the baseline number</text>
+
+  <!-- row 3: infrastructure -->
+  <rect x="24" y="204" width="852" height="46" rx="8" class="box"/>
+  <text x="40" y="227" class="num">3</text>
+  <text x="56" y="227" class="ln">Infrastructure</text>
+  <text x="196" y="223" class="t">AP, controller, the join, the auth,</text>
+  <text x="196" y="238" class="t">the VLAN, DHCP (lesson 8)</text>
+  <text x="458" y="223" class="mt">Access Tracker (ClearPass)</text>
+  <text x="458" y="238" class="mt">Client Events (Mist, Central)</text>
+  <text x="686" y="223" class="mg">Accept, then</text>
+  <text x="686" y="238" class="mg">DHCP Acknowledged</text>
+
+  <!-- row 4: upstream -->
+  <rect x="24" y="256" width="852" height="46" rx="8" class="box"/>
+  <text x="40" y="279" class="num">4</text>
+  <text x="56" y="279" class="ln">Upstream</text>
+  <text x="196" y="275" class="t">switch port, PoE, uplink, DNS,</text>
+  <text x="196" y="290" class="t">the internet (not the Academy's)</text>
+  <text x="458" y="275" class="mt">AP Health SLE (Mist)</text>
+  <text x="458" y="290" class="mt">the switch, not the AP</text>
+  <text x="686" y="275" class="mg">an address, a DNS answer,</text>
+  <text x="686" y="290" class="mg">a ping past the gateway</text>
+
+  <text x="24" y="326" class="cap">A clean counter rules a layer out. Ruling layers out is most of the job.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 1. Fundamentals first, then a lab on real gear</div>
-      <div class="prose"><p>This is the first lesson of the Wireless Academy, and it starts with the thing every wireless conversation eventually gets stuck on: the numbers. RSSI is -67 dBm. Is that good? The AP is at 20 dBm. Is that a lot? Somebody wants "more signal." How much more, and what does more even mean?</p>
-<p>By the end of this one you'll be able to answer those without a calculator, and you'll have measured it yourself on an AP you own.</p>
-<h2>What's actually leaving the antenna</h2>
-<p>A Wi-Fi radio sends an electromagnetic wave. Three things describe it. Frequency is how many times a second it oscillates, and it's what picks the band: 2.4 GHz, 5 GHz, 6 GHz. Wavelength is how long one cycle is in space, and it falls out of frequency directly: the speed of light divided by the frequency. At 2.4 GHz that's about 12.5 cm. At 5 GHz it's about 6 cm, and at 6 GHz about 5 cm.</p>
-<p>That matters more than it sounds. A shorter wavelength interacts with objects differently. It gets through gaps more easily but loses more energy going through walls, and it doesn't bend around corners as well. Most of the "5 GHz doesn't reach as far as 2.4" gap is wavelength. The frequency term in free space loss alone costs about 6 dB going from 2.4 to 5 GHz. It isn't all of it, though. Regulatory caps differ by band, and so does whatever per-band power your APs are actually set to.</p>
-<p>Amplitude is how strong the wave is, and that's the one we spend our lives measuring. The problem is the range. The AP transmits something like 100 milliwatts. The client, a few rooms away, receives something like a ten-billionth of that. Writing those two numbers next to each other in milliwatts is useless, so we don't.</p>
-<h2>The number that matters: dBm</h2>
-<p>We use decibels relative to one milliwatt, dBm. The definition is 10 times the log of the power in milliwatts, and you don't need to remember that. You need to remember three anchors and two rules.</p>
-<p>Anchors: 0 dBm is 1 mW. 20 dBm is 100 mW, roughly what an enterprise AP radio transmits. 30 dBm is 1 W. In the US that's the FCC ceiling for an AP at 2.4 GHz and in U-NII-1 and U-NII-3, while U-NII-2A and 2C cap you at 24 dBm. Indoor 6 GHz is a different kind of limit, 5 dBm per MHz of EIRP, so a 20 MHz channel tops out around 18 dBm EIRP and only a 320 MHz one gets near 30. Treat 30 dBm as the outer wall, not a number you're entitled to.</p>
-<p>Rule one: 3 dB doubles or halves the power. Rule two: 10 dB is ten times or a tenth. Everything else is those two combined. 23 dBm is 20 plus 3, so 200 mW. 13 dBm is 10 plus 3, so 20 mW. Going down, -70 dBm is seven tens below 1 mW, which is one ten-millionth of a milliwatt. That's a workable data signal, although most designs want -67 dBm or better once voice or density is involved, and it's why we don't write it in milliwatts.</p>
-<p>When two dBm numbers are compared you get a plain dB difference. An AP at 20 dBm and a client hearing it at -67 dBm are 87 dB apart. That 87 dB is the total link loss, path loss plus whatever the two antennas gave back or took away, and it's the number a wireless design lives or dies on.</p>
-<p>One rule for free space that you'll use constantly: every time you double the distance, you lose about 6 dB. Four times the distance is 12 dB. That's what the lab is about.</p>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 12. Fundamentals first, then a lab on real gear</div>
+      <div class="prose"><p>Last week was the survey and what a heatmap can't see. This week is what to do when the ticket arrives anyway, saying "Wi-Fi is slow" and nothing else.</p>
+<p>Eleven lessons come down to one habit: find the layer before you touch anything. Most of the bad troubleshooting I've done was changing a channel because the ticket said Wi-Fi when the problem was a DHCP scope with no leases left. The radio is usually fine. It's just the part everyone can see.</p>
+<h2>Four layers</h2>
+<p>A wireless connection has four places to fail.</p>
+<p><strong>The client.</strong> Its adapter, its driver, the rates and streams it supports, and what it decided to do. Lesson 4 was the rate it picked; lesson 9 was the AP it picked. A 1x1 badge reader on an old driver is a client problem and no AP setting fixes it.</p>
+<p><strong>RF.</strong> Signal, SNR, noise floor, airtime, co-channel neighbours. Lessons 1, 3, 5, 6 and 7. The layer the ticket blames, and the fastest to prove or clear, because retries and SNR are on the first screen of both platforms.</p>
+<p><strong>Infrastructure.</strong> The AP, the controller or cloud, the join, the auth, the VLAN, DHCP. Lesson 8. A client that associates and then goes nowhere is here, and the events name the step.</p>
+<p><strong>Upstream.</strong> The switch port, PoE, the uplink, DNS, the internet. Out of scope for the Academy, and in my experience where about half the "Wi-Fi is slow" tickets end.</p>
+<p>The method is four lines. Reproduce it. Locate the layer before you touch anything. One change at a time. Write the prediction down before you measure, lesson 3's habit. Then read the counter that proves the layer: retries for RF, Access Tracker for auth, the DHCP event for infrastructure. And read the counters that stayed clean. A clean counter is how you rule a layer out, and ruling layers out is most of the job.</p>
+<h2>The number that matters</h2>
+<p>The one-change rule is arithmetic, not manners. With n suspects and one change per trial, each result names a knob:</p>
+<pre><code>one at a time:      n trials           3 suspects  -&gt;  3 trials, worst case
+all at once:        2^n combinations   3 suspects  -&gt;  8 to tell them apart
+</code></pre>
+<p>Change two things together and if it works you have four combinations of those two knobs and no idea which one mattered, so you're back to trying them separately, up to four trials, to learn what one would've told you. Computers are very patient about this. Change control isn't.</p>
 <h2>What the gear shows you</h2>
-<p>Every platform reports received signal strength for a connected client, and they mostly agree on the unit even when they disagree on the name.</p>
-<p>In Aruba Central, open the client from the Clients list and watch the labels. The client detail gives you Signal Quality as SNR in dB, Device Health as a signal strength percentage, and the actual dBm figure as RSSI in the Roaming Experience table further down. Two of those are the received power in different clothes; SNR is that power measured against the noise floor. On the AP itself, <code>show ap debug client-table</code> lists every associated client, but its signal columns are <code>Last_ACK_SNR</code> and <code>Last_Rx_SNR</code>: SNR, dB above the noise floor, not dBm, and that's true on AOS 8, Instant and AOS 10 alike. On an AOS 8 controller the command also takes an <code>ap-name</code>. So don't be surprised when it's a small positive number, and if you want a dBm figure you're going back to Central for it. Same physics, different reference.</p>
-<p>In Mist, open the client from the Clients list and follow its Client Insights link. The status block gives you RSSI and SNR as current values; the charts of both over time need the Marvis for Wireless subscription. The graphed form is the useful one, because a single reading lies and a trend doesn't.</p>
-<p>On the Sidekick, Ekahau lists every AP it can hear with its signal strength (the Network Overview in the Analyzer app), which is the one measurement in this list that doesn't depend on your client's radio. The Sidekick has calibrated radios of its own, and that independence is the whole reason it exists.</p>
+<p>Every screen and command below is from an earlier lesson or a doc page. The job is matching each to a layer.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Layer it proves</th>
+<th>What to read</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Central client page</td>
+<td>Client, RF</td>
+<td>Health bar: Device Health, Signal Quality (SNR), Tx|Rx Rate. Graphs: Retry Frames, Roaming Experience. Connection: Client Capabilities, Client Max Speed. Network: VLAN ID, Auth Server, DHCP Server</td>
+</tr>
+<tr>
+<td>Central client Events tab</td>
+<td>Infrastructure</td>
+<td>Client 802.1X Radius Reject, Client 802.1X Radius Timeout, Client EAP Failure, Client DHCP Acknowledged, Client DHCP Timeout, Client Roaming Success</td>
+</tr>
+<tr>
+<td>AOS CLI</td>
+<td>Client, RF</td>
+<td><code>show ap debug client-table</code> (last-packet rates, Last_ACK_SNR), <code>show ap debug client-stats</code> (per-MCS counters), <code>show ap arm history</code>, <code>show ap bss-table</code> (channel, EIRP, client count per BSS), <code>show ap monitor ap-list</code> (neighbours with chan, curr-rssi, curr-snr)</td>
+</tr>
+<tr>
+<td>AOS 8 CLI</td>
+<td>Infrastructure</td>
+<td><code>show auth-tracebuf</code> with <code>failures</code> or <code>mac &lt;address&gt;</code>: the 802.1X exchange with the server, packet by packet</td>
+</tr>
+<tr>
+<td>Mist Client Insights</td>
+<td>All four</td>
+<td>Current Values: RSSI, SNR, RX/TX rates, protocol. Client Events: Authorization Failure, DHCP Timed Out, DHCP Denied, Gateway ARP Timeout, DNS Failure. Pre-Connection charts: Authorization Latency, DHCP Latency</td>
+</tr>
+<tr>
+<td>Mist SLEs</td>
+<td>Site-wide</td>
+<td>Successful Connects, Time to Connect, Throughput, Coverage, Capacity, Roaming, AP Health. The classifiers under each name the layer for you</td>
+</tr>
+<tr>
+<td>Marvis</td>
+<td>Infrastructure, upstream</td>
+<td>Marvis Actions: Authentication Failure, DHCP Failure, ARP Failure, DNS Failure. The Conversational Assistant for the question in words</td>
+</tr>
+<tr>
+<td>ClearPass</td>
+<td>Infrastructure</td>
+<td>Access Tracker: Login Status of Accept, Reject or Timeout, and the Error Code. Event Viewer: what never made it into Access Tracker</td>
+</tr>
+<tr>
+<td>Sidekick</td>
+<td>RF</td>
+<td>The spectrum view for non-Wi-Fi noise, the passive survey for what's actually on the channel</td>
+</tr>
+</tbody>
+</table>
+<p>Central's Events tab and Mist's Client Events are the same idea with different names, and both list auth and DHCP as separate events, which is what makes them a layer detector. The Mist SLE names are the doc page's as of September 2026; the classifiers under Successful Connects are Association, Authorization, DHCP, ARP and DNS, which is the four-layer model in a different font.</p>
+<p>The client layer is the one no platform shows well. Central gives you Client Capabilities and Client Max Speed, Mist gives you the protocol, and beyond that you're on the laptop reading its adapter properties. It's always a laptop.</p>
 <h2>The lab</h2>
-<p>One AP, one client, a tape measure, and forty minutes. Outdoors or a large open room, because walls will make the numbers lie and that's next lesson's problem.</p>
+<p>One AP, one laptop, lesson 8's 802.1X SSID pointed at the ClearPass lab, the AP on a switch port you can edit, the Sidekick, and a microwave or a metal cabinet. Under an hour. Each break gets three columns in your notes: predicted, seen, and which counters stayed clean.</p>
 <ol>
-<li>Note the AP's transmit power. Central shows it per radio; Mist shows it on the AP's radio settings. Fix it if it's on auto, so it doesn't change during the lab.</li>
-<li>Stand 2 m from the AP with the client associated on 5 GHz. Wait a minute for the reading to settle, then record RSSI from the platform and from the Sidekick.</li>
-<li>Move to 4 m. Record again. Then 8 m, then 16 m.</li>
-<li>Put the four numbers in a row.</li>
+<li>Baseline. Laptop 3 m from the AP, connect, write down SNR, Retry Frames, the Access Tracker Accept, and the DHCP Acknowledged event (Central) or DHCP Success (Mist). Every break gets compared to this row.</li>
+<li>Break RF. Put the laptop behind the cabinet or run the microwave on the 2.4 GHz radio, same as lesson 7. Prediction first: RSSI holds within a few dB, SNR collapses, retries climb, no auth event, no DHCP event.</li>
+<li>Read it. Central: Signal Quality drops, Retry Frames climbs, Events tab quiet. Mist: SNR in Current Values drops, <code>tx_retries</code> from <code>/stats/clients</code> climbs, Client Events show nothing bad. Sidekick: the spectrum view shows the thing. Access Tracker: no new session, because the client never re-authenticated. That's RF, proven by retries, cleared on auth and DHCP.</li>
+<li>Put it back. Confirm SNR and retries return to the baseline row before the next break, or you're changing two things.</li>
+<li>Break auth. Change the RADIUS shared secret on the WLAN's server entry, on either platform, to something wrong. Reconnect the laptop. Prediction: SNR and retries unchanged, an auth failure event, nothing in Access Tracker.</li>
+<li>Read it. Central: a Client 802.1X event in the Events tab and a status of Failed in the health bar. Mist: Authorization Failure in Client Events, with a paperclip if the AP kept a packet capture, and Successful Connects takes the hit under Authorization. ClearPass: the doc puts shared secret errors in Monitoring &gt; Event Viewer, and in my experience Access Tracker stays empty for an 802.1X request it can't check. No new row in Access Tracker plus an Authentication event in Event Viewer is the signature. Check both, though; a Reject carrying the error text Wrong shared secret is possible on some request types and I haven't seen it on an EAP request yet, as of September 2026. Whether Central logs it as Reject or Timeout I haven't pinned to a box yet, as of September 2026; in my experience the server doesn't answer a request it can't check, so I'd expect the timeout.</li>
+<li>Put it back. Confirm an Accept in Access Tracker before you touch the switch.</li>
+<li>Break upstream. On the AP's switch port, remove the client VLAN from the trunk, or block DHCP on the port if your switch has a knob for it. Reconnect. Prediction: SNR and retries clean, Accept in Access Tracker, then a DHCP timeout and no address.</li>
+<li>Read it. Central: Client DHCP Timeout in the Events tab, and the Network section shows the VLAN ID the client landed in. Mist: DHCP Timed Out in Client Events, DHCP Latency on the Pre-Connection chart, Successful Connects hit under DHCP, sub-classifier Discover Unresponsive if Mist saw no offer at all. RF clean, auth clean. That's upstream.</li>
+<li>Put it all back and run the baseline row once more.</li>
 </ol>
-<p>What you should see: each step drops by something close to 6 dB. Not exactly. Reflections, the client's antenna, and the fact that you're standing there will push it around by a couple of dB, and that's fine.</p>
-<figure class="wide">
-<div class="pan"><img src="../media/academy-01-six-db.png" alt="Four link budget strips at 2, 4, 8 and 16 metres reading minus 27, minus 33, minus 39 and minus 45 dBm, each step 6 dB below the one above" width="1204" height="1176" loading="lazy"></div>
-<figcaption>The same link modelled in free space at your four distances, for a 26 dBm EIRP radio on 5 GHz: -27, -33, -39, -45 dBm, and 6.02 dB between each one. A 20 dBm radio starts 6 dB lower and steps the same. That is the whole rule. Your room will read lower than these and the steps will be bigger, which is next week's lesson and not a bad measurement.</figcaption>
-</figure>
-
-<figure>
-<video controls playsinline preload="metadata" poster="../media/academy-01-six-db.jpg" src="../media/academy-01-six-db.mp4" width="1280" height="600"></video>
-<figcaption>The same walk without stopping, 2 m out to 16 m, with the received power tracking it down the curve.</figcaption>
-</figure>
-
-<p>You can drive this one yourself in the <a href="../simulator.html">simulator</a>.</p>
-<p>What means something's off: a drop of 15 dB on one step usually means you walked behind something, or the client roamed to another AP, which the platform will show you. A reading that doesn't change at all across two steps means the number you're reading is being averaged too slowly, or the client picked a different radio. Check the BSSID the client is on before you trust any step.</p>
-<p>Then do it once on 2.4 GHz. The steps still drop about 6 dB each, and at the same transmit power they start from a higher number. Check the 2.4 GHz radio's power before you compare, because APs are routinely set lower on 2.4 to stop the cell swallowing the building, and that alone can erase the gap you're looking for. Match the power and the gap that's left is the wavelength difference from the top of this lesson, and now you've measured it.</p>
+<p><strong>What you should see.</strong> Three breaks, three different dirty counters, and each time the other layers' counters sit at the baseline. The RF break is the only one that touches SNR and retries. The auth break is the only one with an empty Access Tracker. The DHCP break is the only one where the client gets through authentication and still has no address. If your notes show that, you can find any of the three in a real building without touching a config.</p>
+<p><strong>What means it's broken.</strong> Retries rising on the auth break means you didn't wait for RF to settle after step 4; redo the row. An Accept in Access Tracker during the auth break means the wrong secret went on a server the WLAN doesn't use; check the Auth Server field. A DHCP failure during the RF break means the microwave knocked the client off and it came back; that's the layers interacting, which is real, and the fix is to read the events in time order.</p>
+<p>The figures here are what the method expects. Measured ones replace them, same as lesson 2.</p>
 <h2>Three questions</h2>
-<p>Is 100 mW more or less than 23 dBm, and by how much? A client's signal went from -60 to -66 dBm; what happened to the received power? You've moved to four times your original distance from the AP; roughly how much signal did you give up?</p>
-<p>Answers: less, by 3 dB. It dropped to a quarter. About 12 dB.</p>
-<h2>Next week</h2>
-<p>Bands, channels and widths. Where 2.4, 5 and 6 GHz live, what the U-NII blocks are, and what you pay for a wider channel. The lab is the same AP with the width changed, and the client's rate table telling you what it cost.</p></div>
+<ol>
+<li>A client shows 35 dB SNR, 2 percent retries, an Accept in Access Tracker, and DHCP Timed Out. Which layer, and which counters cleared the others?</li>
+<li>You change the channel and the RADIUS timeout together. The user says it's better. What did you learn?</li>
+<li>Central shows Retry Frames at 40 percent and Signal Quality at 12 dB while the laptop reports a strong signal. Which lesson, which tool, and which layer?</li>
+</ol>
+<p>Answers: Upstream, or the DHCP side of infrastructure; the SNR and retries cleared RF, the Accept cleared auth, so the address is the only thing missing. Nothing, and you now owe two more trials to find out which one did it. Lesson 7, the Sidekick's spectrum view, RF; strong RSSI with low SNR is noise, and the client can't see noise, only the analyser can.</p>
+<h2>What to do with all twelve</h2>
+<p>Run the labs, keep the numbers, and put the calculators on the Tools page to work every time a ticket says "slow" without saying why.</p></div>
       
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 1 of 11</span></h3><div class="ser-steps"><a class="ser-step here" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-01-what-a-radio-actually-sends" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 11 of 11</span></h3><div class="ser-steps"><a class="ser-step" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span></a><a class="ser-step" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step here" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span><span class="ser-tag">You are here</span></a></div></section>
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-12-a-troubleshooting-method" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -805,7 +896,7 @@ html.qam-fs .rig{display:none}
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="channel-173-survey-blind-spot.html"><span class="eyebrow">Older</span>Your Survey Tool Can&#x27;t See Channel 173</a><a class="pn g-card" href="how-the-banner-works.html"><span class="eyebrow">Newer</span>The Banner Is a Wi-Fi Link You Can Break</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="eyebrow">Older</span>Surveys and What a Heatmap Can&#x27;t See</a></div>
     </section>
   </article>
 </div>

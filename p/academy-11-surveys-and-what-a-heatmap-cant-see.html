@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>What a Radio Actually Sends</title>
-<meta name="description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
+<title>Surveys and What a Heatmap Can&#x27;t See</title>
+<meta name="description" content="A heatmap is a record of what one instrument heard, on the channels it was told to listen to, on the day. What each kind of survey proves, what the picture leaves out, and the habit of reading the AP&#x27;s real channel from the controller before you believe the map.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/academy-11-surveys-and-what-a-heatmap-cant-see.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="What a Radio Actually Sends">
-<meta property="og:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
+<meta property="og:title" content="Surveys and What a Heatmap Can&#x27;t See">
+<meta property="og:description" content="A heatmap is a record of what one instrument heard, on the channels it was told to listen to, on the day. What each kind of survey proves, what the picture leaves out, and the habit of reading the AP&#x27;s real channel from the controller before you believe the map.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/academy-11-surveys-and-what-a-heatmap-cant-see.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/academy-11-surveys-and-what-a-heatmap-cant-see.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="What a Radio Actually Sends">
-<meta name="twitter:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-10"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "What a Radio Actually Sends", "description": "Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.", "datePublished": "2026-09-10", "image": "https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html", "keywords": "Wireless, Academy, RF"}</script>
+<meta name="twitter:title" content="Surveys and What a Heatmap Can&#x27;t See">
+<meta name="twitter:description" content="A heatmap is a record of what one instrument heard, on the channels it was told to listen to, on the day. What each kind of survey proves, what the picture leaves out, and the habit of reading the AP&#x27;s real channel from the controller before you believe the map.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-11-surveys-and-what-a-heatmap-cant-see.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-10-04"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Surveys and What a Heatmap Can't See", "description": "A heatmap is a record of what one instrument heard, on the channels it was told to listen to, on the day. What each kind of survey proves, what the picture leaves out, and the habit of reading the AP's real channel from the controller before you believe the map.", "datePublished": "2026-10-04", "image": "https://networkfieldnotes.com/og/academy-11-surveys-and-what-a-heatmap-cant-see.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-11-surveys-and-what-a-heatmap-cant-see.html", "keywords": "Wireless, Academy, Survey"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -553,99 +553,173 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 10, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">What a Radio Actually Sends</h1>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Oct 4, 2026 &#183; 10 min</span></div>
+      <h1 class="h-hero">Surveys and What a Heatmap Can&#x27;t See</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A dBm ladder from 30 dBm (1 W) down to -90 dBm (1 pW) with the 3 dB, 10 dB and doubling-distance rules, and a wavelength comparison for 2.4, 5 and 6 GHz">
-  <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#F5A524;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
-    .bx{fill:rgba(0,0,0,0.45);stroke:rgba(255,255,255,0.12)}.bt{fill:#fff;font-size:13px;font-weight:600}.mut{fill:#8BA2AE;font-size:11px}
-  </style></defs>
-  <text x="30" y="36" class="t eyebrow">LESSON 1: WHAT A RADIO ACTUALLY SENDS</text>
-  <text x="30" y="66" class="t big">Three anchors, two rules, and you can do the math in your head.</text>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 11: Surveys and what a heatmap can't see. The same small room drawn twice as a signal heatmap. Left, all channels scanned: three access points on channels 36, 173 and 100, green everywhere. Right, channel 173 removed from the scan list: two access points and a grey hole where the third one was, labelled not heard. Beside it, the controller's own readout for that AP: channel 173, 80 MHz, EIRP 21 dBm, 14 clients, three days up. Caption: the hole is in the scan list, not the building.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .m  { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #EAF2F6; }
+      .md { font-family: 'JetBrains Mono', monospace; font-size: 11px; fill: #B0C4CF; }
+      .mh { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.5px; fill: #8BA2AE; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #8CE05E; font-weight: 600; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .room { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.25); stroke-width: 1.5; }
+      .wall { stroke: rgba(255,255,255,0.25); stroke-width: 1.5; }
+      .ap { fill: #EAF2F6; stroke: #0b1218; stroke-width: 1.5; }
+      .apl { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: #0b1218; font-weight: 600; }
+      .apx { fill: none; stroke: #8BA2AE; stroke-width: 1.5; stroke-dasharray: 2 2; }
+      .apx2 { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: #B0C4CF; }
+    </style>
+    <radialGradient id="heat" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8CE05E" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#8CE05E" stop-opacity="0.75"/>
+      <stop offset="75%" stop-color="#5ED2DA" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#5ED2DA" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hole" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8BA2AE" stop-opacity="0.35"/>
+      <stop offset="70%" stop-color="#8BA2AE" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#8BA2AE" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
 
-  <!-- the ladder -->
-  <g class="t">
-    <line x1="120" y1="96" x2="120" y2="306" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
-    <g font-size="12">
-      <circle cx="120" cy="100" r="5" fill="#F5A524"/><text x="136" y="104" class="mono" fill="#fff">+30 dBm</text><text x="216" y="104" class="mut">1 W, legal ceiling for most of what we do</text>
-      <circle cx="120" cy="134" r="5" fill="#F5A524"/><text x="136" y="138" class="mono" fill="#fff">+20 dBm</text><text x="216" y="138" class="mut">100 mW, an enterprise AP radio</text>
-      <circle cx="120" cy="168" r="5" fill="#F5A524"/><text x="136" y="172" class="mono" fill="#fff">  0 dBm</text><text x="216" y="172" class="mut">1 mW, the reference</text>
-      <circle cx="120" cy="202" r="4" fill="#8BA2AE"/><text x="136" y="206" class="mono" fill="#B0C4CF">-30 dBm</text><text x="216" y="206" class="mut">1 microwatt</text>
-      <circle cx="120" cy="236" r="5" fill="#8CE05E"/><text x="136" y="240" class="mono" fill="#fff">-67 dBm</text><text x="216" y="240" class="mut">a good client signal, two ten-millionths of a mW</text>
-      <circle cx="120" cy="270" r="4" fill="#8BA2AE"/><text x="136" y="274" class="mono" fill="#B0C4CF">-90 dBm</text><text x="216" y="274" class="mut">1 picowatt, where the noise floor lives</text>
-    </g>
-    <text x="30" y="104" class="mut">strong</text><text x="30" y="274" class="mut">weak</text>
-  </g>
+  <text x="24" y="36" class="eb">LESSON 11: SURVEYS AND WHAT A HEATMAP CAN'T SEE</text>
+  <text x="24" y="66" class="hl">Same room, same three APs. One channel left off the scan list.</text>
 
-  <!-- rules -->
-  <g class="t">
-    <rect x="560" y="92" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="115" class="bt">3 dB is double, or half.</text>
-    <text x="576" y="137" class="lbl">10 dB is ten times, or a tenth. 23 dBm is 200 mW.</text>
-    <rect x="560" y="162" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="185" class="bt">Double the distance, lose about 6 dB.</text>
-    <text x="576" y="207" class="lbl">Four times the distance, 12 dB. That is the lab.</text>
-    <rect x="560" y="232" width="310" height="74" rx="10" class="bx"/>
-    <text x="576" y="255" class="bt">Wavelength picks the behaviour.</text>
-    <text x="576" y="276" class="mono" fill="#B0C4CF">2.4 GHz  12.5 cm     5 GHz  6 cm     6 GHz  5 cm</text>
-    <text x="576" y="296" class="lbl">Shorter gets through gaps, loses more in walls.</text>
-  </g>
+  <text x="24" y="96" class="mh">ALL CHANNELS SCANNED</text>
+  <text x="346" y="96" class="mh">CHANNEL 173 NOT IN THE SCAN LIST</text>
+<clipPath id="clipa"><rect x="24" y="108" width="300" height="170" rx="6"/></clipPath>
+<rect x="24" y="108" width="300" height="170" rx="6" class="room"/>
+<g clip-path="url(#clipa)">
+<circle cx="84" cy="150" r="118" fill="url(#heat)"/>
+<circle cx="250" cy="150" r="118" fill="url(#heat)"/>
+<circle cx="170" cy="238" r="118" fill="url(#heat)"/>
+</g>
+<line x1="174.0" y1="108" x2="174.0" y2="184.5" class="wall"/>
+<line x1="24" y1="213.4" x2="123.0" y2="213.4" class="wall"/>
+<circle cx="84" cy="150" r="5" class="ap"/>
+<text x="84" y="140" text-anchor="middle" class="apl">ch 36</text>
+<circle cx="250" cy="150" r="5" class="ap"/>
+<text x="250" y="140" text-anchor="middle" class="apl">ch 173</text>
+<circle cx="170" cy="238" r="5" class="ap"/>
+<text x="170" y="228" text-anchor="middle" class="apl">ch 100</text>
+<clipPath id="clipb"><rect x="346" y="108" width="300" height="170" rx="6"/></clipPath>
+<rect x="346" y="108" width="300" height="170" rx="6" class="room"/>
+<g clip-path="url(#clipb)">
+<circle cx="572" cy="150" r="92" fill="url(#hole)"/>
+<circle cx="406" cy="150" r="118" fill="url(#heat)"/>
+<circle cx="492" cy="238" r="118" fill="url(#heat)"/>
+</g>
+<line x1="496.0" y1="108" x2="496.0" y2="184.5" class="wall"/>
+<line x1="346" y1="213.4" x2="445.0" y2="213.4" class="wall"/>
+<circle cx="406" cy="150" r="5" class="ap"/>
+<text x="406" y="140" text-anchor="middle" class="apl">ch 36</text>
+<circle cx="492" cy="238" r="5" class="ap"/>
+<text x="492" y="228" text-anchor="middle" class="apl">ch 100</text>
+<circle cx="572" cy="150" r="5" class="apx"/>
+<text x="572" y="140" text-anchor="middle" class="apx2">not heard</text>
 
-  <text x="30" y="326" class="t mono" fill="#F5A524">An AP at +20 dBm heard at -67 dBm: 87 dB of path loss. That number is the whole design.</text>
+  <!-- controller readout -->
+  <rect x="668" y="86" width="208" height="192" rx="8" class="box"/>
+  <text x="684" y="106" class="mh">WHAT THE CONTROLLER SAYS</text>
+  <text x="684" y="124" class="ts">show ap bss-table, that AP</text>
+  <line x1="680" y1="132" x2="864" y2="132" stroke="rgba(255,255,255,0.12)"/>
+  <text x="684" y="152" class="md">ch/EIRP/max-EIRP</text>
+  <text x="684" y="170" class="mo">173E/21/24</text>
+  <text x="684" y="194" class="md">cur-cl</text>
+  <text x="684" y="212" class="mg">14</text>
+  <text x="684" y="236" class="md">tot-t</text>
+  <text x="684" y="254" class="m">259200 s</text>
+  <text x="684" y="272" class="ts">Radiating fine. Not listened to.</text>
+
+  <text x="24" y="320" class="cap">The hole is in the scan list, not the building. Read the AP's real channel before you trust the map.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 1. Fundamentals first, then a lab on real gear</div>
-      <div class="prose"><p>This is the first lesson of the Wireless Academy, and it starts with the thing every wireless conversation eventually gets stuck on: the numbers. RSSI is -67 dBm. Is that good? The AP is at 20 dBm. Is that a lot? Somebody wants "more signal." How much more, and what does more even mean?</p>
-<p>By the end of this one you'll be able to answer those without a calculator, and you'll have measured it yourself on an AP you own.</p>
-<h2>What's actually leaving the antenna</h2>
-<p>A Wi-Fi radio sends an electromagnetic wave. Three things describe it. Frequency is how many times a second it oscillates, and it's what picks the band: 2.4 GHz, 5 GHz, 6 GHz. Wavelength is how long one cycle is in space, and it falls out of frequency directly: the speed of light divided by the frequency. At 2.4 GHz that's about 12.5 cm. At 5 GHz it's about 6 cm, and at 6 GHz about 5 cm.</p>
-<p>That matters more than it sounds. A shorter wavelength interacts with objects differently. It gets through gaps more easily but loses more energy going through walls, and it doesn't bend around corners as well. Most of the "5 GHz doesn't reach as far as 2.4" gap is wavelength. The frequency term in free space loss alone costs about 6 dB going from 2.4 to 5 GHz. It isn't all of it, though. Regulatory caps differ by band, and so does whatever per-band power your APs are actually set to.</p>
-<p>Amplitude is how strong the wave is, and that's the one we spend our lives measuring. The problem is the range. The AP transmits something like 100 milliwatts. The client, a few rooms away, receives something like a ten-billionth of that. Writing those two numbers next to each other in milliwatts is useless, so we don't.</p>
-<h2>The number that matters: dBm</h2>
-<p>We use decibels relative to one milliwatt, dBm. The definition is 10 times the log of the power in milliwatts, and you don't need to remember that. You need to remember three anchors and two rules.</p>
-<p>Anchors: 0 dBm is 1 mW. 20 dBm is 100 mW, roughly what an enterprise AP radio transmits. 30 dBm is 1 W. In the US that's the FCC ceiling for an AP at 2.4 GHz and in U-NII-1 and U-NII-3, while U-NII-2A and 2C cap you at 24 dBm. Indoor 6 GHz is a different kind of limit, 5 dBm per MHz of EIRP, so a 20 MHz channel tops out around 18 dBm EIRP and only a 320 MHz one gets near 30. Treat 30 dBm as the outer wall, not a number you're entitled to.</p>
-<p>Rule one: 3 dB doubles or halves the power. Rule two: 10 dB is ten times or a tenth. Everything else is those two combined. 23 dBm is 20 plus 3, so 200 mW. 13 dBm is 10 plus 3, so 20 mW. Going down, -70 dBm is seven tens below 1 mW, which is one ten-millionth of a milliwatt. That's a workable data signal, although most designs want -67 dBm or better once voice or density is involved, and it's why we don't write it in milliwatts.</p>
-<p>When two dBm numbers are compared you get a plain dB difference. An AP at 20 dBm and a client hearing it at -67 dBm are 87 dB apart. That 87 dB is the total link loss, path loss plus whatever the two antennas gave back or took away, and it's the number a wireless design lives or dies on.</p>
-<p>One rule for free space that you'll use constantly: every time you double the distance, you lose about 6 dB. Four times the distance is 12 dB. That's what the lab is about.</p>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 11. Fundamentals first, then a lab on real gear</div>
+      <div class="prose"><p>Last week was how much a cell can carry. This week is the map everybody points at when they argue about it.</p>
+<p>Somebody hands you a heatmap. Green everywhere. The users say the Wi-Fi is bad. Both are telling the truth. A survey is a record of what one instrument heard, on the channels it was told to listen to, at the speed you walked, on that day. Every clause in that sentence is a place the map can be right and the building can still be wrong.</p>
+<h2>Three surveys, three proofs</h2>
+<p><strong>Predictive.</strong> A floor plan, wall types with attenuation values, a model AP dragged onto the drawing, and the software works out where the signal should go. Ekahau AI Pro does this well. It proves nothing on its own. It's a plan. The model only knows the walls you drew and the losses you gave them, and lesson 3 was an hour of me finding that a glass door I'd have put down at a few dB measured nothing.</p>
+<p><strong>AP-on-a-stick.</strong> One real AP on a pole at a spot the plan picked, and you walk it. Ekahau's docs call it the checkpoint between the plan and the finished build: survey, freeze the AP in the project, move it to the next candidate spot, repeat. It proves one location at a time with real walls and a real radio. It can't prove the neighbour APs won't fight it, because they aren't there yet.</p>
+<p><strong>Validation.</strong> The network is built and you walk all of it. Ekahau calls it a post-deployment survey and says there's nothing special to do, just survey. It's the only one that measures what the network actually radiates, and it's where the heatmap in the argument usually came from.</p>
+<p>Two ways to walk any of them. A <strong>passive</strong> survey listens: the Sidekick hops through its channel list and records every beacon it hears, from every AP, yours and the neighbours', without joining anything. That's where signal strength maps come from. An <strong>active</strong> survey associates: your laptop joins the SSID and the software pings a host or runs throughput against an iperf server as you walk. Ekahau's table of which visualisation needs which survey is blunt: ping round trip, packet loss and associated AP only come from active, signal and SNR from passive. Most walks run both at once.</p>
+<h2>The number that matters</h2>
+<p>Two, because a survey has two knobs nobody thinks about: how long you stood still and how fast you walked.</p>
+<p>Lesson 3 had you take twenty samples at a taped spot and compute the standard deviation. Mine was 2 dB. The uncertainty of the mean of n samples is that spread over the square root of n:</p>
+<pre><code>uncertainty of the mean = sigma / sqrt(n)
+
+sigma 2 dB, 1 sample:    2 / sqrt(1)  = 2.0 dB
+sigma 2 dB, 4 samples:   2 / sqrt(4)  = 1.0 dB
+sigma 2 dB, 16 samples:  2 / sqrt(16) = 0.5 dB
+</code></pre>
+<p>One sample is a 2 dB guess. A doorway that shows -67 on one sample could be -65 or -69, and that's two MCS rungs.</p>
+<p>The second is how far you move between samples of the same channel. A scanning radio dwells D milliseconds on each of C channels, split across R radios, so one full sweep takes D x C / R, and at walking speed you cover that much floor before the same channel gets heard again:</p>
+<pre><code>sweep time = D x C / R
+
+D = 105 ms  (Ekahau's documented default channel scan time; check your tool)
+C = 95      (US: 11 at 2.4 GHz, 25 at 5 GHz without U-NII-4, 59 at 6 GHz)
+R = 4       (Sidekick 2 radios)
+
+sweep = 105 x 95 / 4 = 2494 ms, about 2.5 s
+at 1 m/s:    2.5 m between samples of one channel
+at 0.5 m/s:  1.25 m
+</code></pre>
+<p>The 105 isn't arbitrary. The default beacon interval is 100 time units, 102.4 ms, so a dwell just over that catches one beacon from every AP on the channel, most of the time. Ekahau's guidance is a slow, steady walk, and now you know why. At a normal pace every AP on the map is sampled about every 2.5 m, once, and interpolated in between. The smooth gradient is the software being polite.</p>
+<h2>What a heatmap can't see</h2>
+<p>The signal map is beacon RSSI measured by the survey tool's own radios. The Sidekick 2 has nine antennas Ekahau says are lab calibrated for omnidirectional consistency, which is the point: it's a repeatable instrument. It is not your client. The badge reader with one antenna behind a metal bracket hears a different number, and lesson 3 found 15 dB between the model and a laptop on a shelf. The map is what a very good radio heard. Nobody on the floor is carrying one.</p>
+<p>Then the things a beacon can't say.</p>
+<p><strong>Airtime and retries.</strong> A beacon says the AP exists and how loud it is, not how busy the channel was between beacons or who was on it. Ekahau's airtime utilisation map is a capacity simulation from the client devices you assigned to areas in the project, not a measurement, and the doc says so. A green heatmap of a network that has run out of airtime is still green. Lesson 5 was the whole reason that matters.</p>
+<p><strong>Noise and non-Wi-Fi interference.</strong> Ekahau's spectrum utilisation and channel power maps come from the spectrum analyser, which only contributes if it was running during the walk. Wi-Fi radios don't see the microwave. That was lesson 7.</p>
+<p><strong>Channels it wasn't listening to.</strong> This is the one that got me. A passive survey only hears the channels in its scan list. An AP on a channel the tool skipped isn't weak on the map, it's absent, and the map fills the space with whatever it did hear, so the hole looks like a hole in the building. I wrote up a floor with two radios on channel 173 that two survey files had never scanned, in <a href="channel-173-survey-blind-spot.html">Your Survey Tool Can't See Channel 173</a>. Both surveys were clean. Both were missing two radios. Nothing in the output said so.</p>
 <h2>What the gear shows you</h2>
-<p>Every platform reports received signal strength for a connected client, and they mostly agree on the unit even when they disagree on the name.</p>
-<p>In Aruba Central, open the client from the Clients list and watch the labels. The client detail gives you Signal Quality as SNR in dB, Device Health as a signal strength percentage, and the actual dBm figure as RSSI in the Roaming Experience table further down. Two of those are the received power in different clothes; SNR is that power measured against the noise floor. On the AP itself, <code>show ap debug client-table</code> lists every associated client, but its signal columns are <code>Last_ACK_SNR</code> and <code>Last_Rx_SNR</code>: SNR, dB above the noise floor, not dBm, and that's true on AOS 8, Instant and AOS 10 alike. On an AOS 8 controller the command also takes an <code>ap-name</code>. So don't be surprised when it's a small positive number, and if you want a dBm figure you're going back to Central for it. Same physics, different reference.</p>
-<p>In Mist, open the client from the Clients list and follow its Client Insights link. The status block gives you RSSI and SNR as current values; the charts of both over time need the Marvis for Wireless subscription. The graphed form is the useful one, because a single reading lies and a trend doesn't.</p>
-<p>On the Sidekick, Ekahau lists every AP it can hear with its signal strength (the Network Overview in the Analyzer app), which is the one measurement in this list that doesn't depend on your client's radio. The Sidekick has calibrated radios of its own, and that independence is the whole reason it exists.</p>
+<p>Ekahau's names as of September 2026, since they've moved. The design tool is Ekahau AI Pro, with a web version called Ekahau AI Pro Online. The app that does the walk with the Sidekick 2 on iOS or Android is Ekahau Survey, with Auto-Pilot, Continuous, Stop-and-Go, Just Go and GPS modes. Ekahau Analyzer is the troubleshooting app with the spectrum view. The Sidekick 2 has four tri-band radios and a spectrum analyser from 2.4 to 7.125 GHz.</p>
+<p>The channel list is editable on both ends. In AI Pro the Devices dialog has a Scan default channels toggle; off, a cog beside each band lets you pick channels, and the doc says the default covers all channels on all frequencies, split across the Sidekick's radios. In the Survey app, tapping the Sidekick status icon shows serial, battery, firmware and storage, and the doc says you configure scan channels there too. The dwell time is no longer adjustable in the UI; Ekahau's doc says the 105 ms default is fixed so people don't distort their own results, which is a fair opinion of us. Stop-and-Go samples for five seconds by default, under File &gt; Preferences.</p>
+<p>Now the network's own truth, which is the habit. Before you trust the survey's picture of an AP, read what channel and power the AP says it's on.</p>
+<p><strong>Aruba Central.</strong> Open the AP. The Summary tab's Radios section lists each radio's Mode, Status, Channel and Power. The RF tab is the part the heatmap can't see: Channel Utilization split into Transmitting, Receiving and Non-Wifi Interference, a Noise Floor graph, and Frames with Drops, Errors and Retries.</p>
+<p><strong>AOS CLI.</strong> <code>show ap bss-table</code> has a column headed ch/EIRP/max-EIRP: channel, current EIRP and maximum EIRP per BSS. <code>show ap active</code> gives it per AP with a width suffix on the channel: a plus or minus sign for 40 MHz, E for 80, S for 160. Lesson 3 settled that the Aruba figure is EIRP, so it's the number the survey should read minus path loss.</p>
+<p><strong>Mist.</strong> Site &gt; Radio Management, Current Radio Values, lists each AP's radio settings for the band you pick; Radio Events shows channel, bandwidth and power changes and what triggered them. The AP's Insights page has a Channels section with utilisation per band. From the API, <code>GET /api/v1/sites/{site_id}/stats/devices</code> returns <code>radio_stat</code> with <code>band_24</code>, <code>band_5</code> and <code>band_6</code>, each carrying <code>channel</code>, <code>bandwidth</code>, <code>power</code>, <code>noise_floor</code> and <code>util_all</code>. <code>power</code> is per chain on Mist. One request prints the real channel next to the survey's:</p>
+<pre><code class="language-python">url = f&quot;https://{HOST}/api/v1/sites/{SITE}/stats/devices&quot;
+r = requests.get(url, headers={&quot;Authorization&quot;: f&quot;Token {TOKEN}&quot;}, timeout=30)
+for ap in r.json():
+    b5 = (ap.get(&quot;radio_stat&quot;) or {}).get(&quot;band_5&quot;) or {}
+    print(ap.get(&quot;name&quot;), b5.get(&quot;channel&quot;), b5.get(&quot;bandwidth&quot;),
+          b5.get(&quot;power&quot;), b5.get(&quot;noise_floor&quot;), b5.get(&quot;util_all&quot;))
+</code></pre>
+<p>Placeholder host, token and site id; use your region's API host.</p>
 <h2>The lab</h2>
-<p>One AP, one client, a tape measure, and forty minutes. Outdoors or a large open room, because walls will make the numbers lie and that's next lesson's problem.</p>
+<p>One room, one AP of yours, whatever neighbours you can hear, the Sidekick 2 and the Survey app. Under an hour.</p>
 <ol>
-<li>Note the AP's transmit power. Central shows it per radio; Mist shows it on the AP's radio settings. Fix it if it's on auto, so it doesn't change during the lab.</li>
-<li>Stand 2 m from the AP with the client associated on 5 GHz. Wait a minute for the reading to settle, then record RSSI from the platform and from the Sidekick.</li>
-<li>Move to 4 m. Record again. Then 8 m, then 16 m.</li>
-<li>Put the four numbers in a row.</li>
+<li>Pin the AP: fixed channel, width and power. Write down the channel and power from Central or Mist and from the CLI. That's your truth.</li>
+<li>New project in Ekahau Survey. Photograph or sketch the room and set the scale from a wall you've measured. Get the scale wrong and every distance is off by the same factor and nothing will tell you.</li>
+<li>Check the scan list on the Sidekick icon, defaults on. Note which channels it offers. If your AP's channel isn't there, you've already found the lesson.</li>
+<li>Stop-and-Go on lesson 1's four tape marks: tap, wait for the sampling to finish, move. Then one Continuous pass round the room at a slow walk, tapping at every turn.</li>
+<li>Read it back. View tab, the RSSI heatmap, then tap your AP for its details, channel included. Inspect tab, tap a route point and read what the Sidekick heard there.</li>
+<li>Cross-check the survey's channel against <code>show ap bss-table</code> or <code>radio_stat.band_5.channel</code>, and its signal at the nearest tape mark against EIRP minus the FSPL from lesson 3.</li>
+<li>Break the map. Turn Scan default channels off and remove your AP's channel. If your build won't let you, move the AP to 173 and leave the list alone, which is the version I did by accident. Re-walk the same four spots and the loop.</li>
 </ol>
-<p>What you should see: each step drops by something close to 6 dB. Not exactly. Reflections, the client's antenna, and the fact that you're standing there will push it around by a couple of dB, and that's fine.</p>
-<figure class="wide">
-<div class="pan"><img src="../media/academy-01-six-db.png" alt="Four link budget strips at 2, 4, 8 and 16 metres reading minus 27, minus 33, minus 39 and minus 45 dBm, each step 6 dB below the one above" width="1204" height="1176" loading="lazy"></div>
-<figcaption>The same link modelled in free space at your four distances, for a 26 dBm EIRP radio on 5 GHz: -27, -33, -39, -45 dBm, and 6.02 dB between each one. A 20 dBm radio starts 6 dB lower and steps the same. That is the whole rule. Your room will read lower than these and the steps will be bigger, which is next week's lesson and not a bad measurement.</figcaption>
-</figure>
-
-<figure>
-<video controls playsinline preload="metadata" poster="../media/academy-01-six-db.jpg" src="../media/academy-01-six-db.mp4" width="1280" height="600"></video>
-<figcaption>The same walk without stopping, 2 m out to 16 m, with the received power tracking it down the curve.</figcaption>
-</figure>
-
-<p>You can drive this one yourself in the <a href="../simulator.html">simulator</a>.</p>
-<p>What means something's off: a drop of 15 dB on one step usually means you walked behind something, or the client roamed to another AP, which the platform will show you. A reading that doesn't change at all across two steps means the number you're reading is being averaged too slowly, or the client picked a different radio. Check the BSSID the client is on before you trust any step.</p>
-<p>Then do it once on 2.4 GHz. The steps still drop about 6 dB each, and at the same transmit power they start from a higher number. Check the 2.4 GHz radio's power before you compare, because APs are routinely set lower on 2.4 to stop the cell swallowing the building, and that alone can erase the gap you're looking for. Match the power and the gap that's left is the wavelength difference from the top of this lesson, and now you've measured it.</p>
+<p><strong>What you should see.</strong> The survey's channel matches the controller's, and at the tape marks the signal sits within a few dB of the lesson 3 prediction with a spread around 2 dB. The Continuous pass has fewer samples at any one spot than five seconds of Stop-and-Go did. After step 7 your AP is gone. Not weaker. Gone, and the room fills with the neighbours' colour or grey, while the controller still shows it up, on its channel, at its power, with clients.</p>
+<p><strong>What means it's broken.</strong> A survey channel that doesn't match the controller's means the AP moved mid walk; check Channel Changes on Central or Radio Events on Mist and pin it harder. A signal 10 dB or more off the prediction with a small spread is lesson 3 again, the antenna pattern or the path, not the survey. A spread over 3 dB standing still is something moving. And an AP that never appears in step 5 with the default list is the real finding: compare the channel it's on with the channels the list offers, and if it's above 165 or in a DFS block the list skipped, the hole is in the scan list, not the building.</p>
 <h2>Three questions</h2>
-<p>Is 100 mW more or less than 23 dBm, and by how much? A client's signal went from -60 to -66 dBm; what happened to the received power? You've moved to four times your original distance from the AP; roughly how much signal did you give up?</p>
-<p>Answers: less, by 3 dB. It dropped to a quarter. About 12 dB.</p>
+<ol>
+<li>A validation survey shows -70 dBm in a corridor from one sample and the requirement is -67. Pass or fail, and what do you do first?</li>
+<li>The heatmap is green across a floor where users say the Wi-Fi is slow at 10 am. Name two things the passive survey didn't measure, and the screen that shows each.</li>
+<li>Your Sidekick's channel list stops at 165 and the controller shows a radio on 177. What does the heatmap show at that AP, and what do you change first?</li>
+</ol>
+<p>Answers: neither yet; one sample with a 2 dB spread is -70 plus or minus 2, so stand there and take enough that the mean's uncertainty is under a dB. Airtime and retries: Central's RF tab Channel Utilization and Frames, or Mist's Channels on the AP Insights page and <code>util_all</code> from the API; the survey heard beacons, not the traffic between them. Nothing, not a weak nothing but a gap filled by the neighbours; add the channel to the scan list if your tool offers it, otherwise take it out of the AP's auto-channel pool until it does, and redo the walk either way.</p>
 <h2>Next week</h2>
-<p>Bands, channels and widths. Where 2.4, 5 and 6 GHz live, what the U-NII blocks are, and what you pay for a wider channel. The lab is the same AP with the width changed, and the client's rate table telling you what it cost.</p></div>
+<p>Lesson 12 is the method: client, RF, infrastructure, upstream, and which tool shows which layer. Break it three ways, find each one with the right tool.</p></div>
       
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 1 of 11</span></h3><div class="ser-steps"><a class="ser-step here" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-01-what-a-radio-actually-sends" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 10 of 11</span></h3><div class="ser-steps"><a class="ser-step" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span></a><a class="ser-step" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step here" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span><span class="ser-tag">Next</span></a></div></section>
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-11-surveys-and-what-a-heatmap-cant-see" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -805,7 +879,7 @@ html.qam-fs .rig{display:none}
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="channel-173-survey-blind-spot.html"><span class="eyebrow">Older</span>Your Survey Tool Can&#x27;t See Channel 173</a><a class="pn g-card" href="how-the-banner-works.html"><span class="eyebrow">Newer</span>The Banner Is a Wi-Fi Link You Can Break</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-10-capacity-not-coverage.html"><span class="eyebrow">Older</span>Capacity, Not Coverage</a><a class="pn g-card" href="academy-12-a-troubleshooting-method.html"><span class="eyebrow">Newer</span>A Troubleshooting Method</a></div>
     </section>
   </article>
 </div>

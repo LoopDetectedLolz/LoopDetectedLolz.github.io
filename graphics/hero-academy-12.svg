@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 12: A troubleshooting method. Four stacked layers, client, RF, infrastructure and upstream, each with what lives in it, the tool that proves it on the right, and in green the counter that clears it. Caption: a clean counter rules a layer out, and ruling layers out is most of the job.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .ln { font-family: 'Instrument Sans', sans-serif; font-size: 15px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .mh { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.5px; fill: #8BA2AE; }
+      .mt { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; fill: #5ED2DA; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; fill: #8CE05E; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .num { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .grid { stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+    </style>
+  </defs>
+
+  <text x="24" y="36" class="eb">LESSON 12: A TROUBLESHOOTING METHOD</text>
+  <text x="24" y="66" class="hl">Find the layer first. Then one change at a time.</text>
+
+  <!-- column headers -->
+  <text x="40" y="92" class="mh">LAYER</text>
+  <text x="196" y="92" class="mh">WHAT LIVES THERE</text>
+  <text x="458" y="92" class="mh">THE TOOL THAT PROVES IT</text>
+  <text x="686" y="92" class="mh">THE COUNTER THAT CLEARS IT</text>
+
+  <!-- row 1: client -->
+  <rect x="24" y="100" width="852" height="46" rx="8" class="box"/>
+  <text x="40" y="123" class="num">1</text>
+  <text x="56" y="123" class="ln">Client</text>
+  <text x="196" y="119" class="t">adapter, driver, rates, streams,</text>
+  <text x="196" y="134" class="t">what it decided to do (lessons 4, 9)</text>
+  <text x="458" y="119" class="mt">Client Capabilities (Central)</text>
+  <text x="458" y="134" class="mt">Current Values (Mist)</text>
+  <text x="686" y="119" class="mg">Tx|Rx Rate on a row</text>
+  <text x="686" y="134" class="mg">of the MCS table</text>
+
+  <!-- row 2: RF -->
+  <rect x="24" y="152" width="852" height="46" rx="8" class="box"/>
+  <text x="40" y="175" class="num">2</text>
+  <text x="56" y="175" class="ln">RF</text>
+  <text x="196" y="171" class="t">signal, SNR, noise floor, airtime,</text>
+  <text x="196" y="186" class="t">co-channel (lessons 1, 3, 5, 6, 7)</text>
+  <text x="458" y="171" class="mt">Retry Frames, Signal Quality</text>
+  <text x="458" y="186" class="mt">Sidekick spectrum view</text>
+  <text x="686" y="171" class="mg">retries flat, SNR at</text>
+  <text x="686" y="186" class="mg">the baseline number</text>
+
+  <!-- row 3: infrastructure -->
+  <rect x="24" y="204" width="852" height="46" rx="8" class="box"/>
+  <text x="40" y="227" class="num">3</text>
+  <text x="56" y="227" class="ln">Infrastructure</text>
+  <text x="196" y="223" class="t">AP, controller, the join, the auth,</text>
+  <text x="196" y="238" class="t">the VLAN, DHCP (lesson 8)</text>
+  <text x="458" y="223" class="mt">Access Tracker (ClearPass)</text>
+  <text x="458" y="238" class="mt">Client Events (Mist, Central)</text>
+  <text x="686" y="223" class="mg">Accept, then</text>
+  <text x="686" y="238" class="mg">DHCP Acknowledged</text>
+
+  <!-- row 4: upstream -->
+  <rect x="24" y="256" width="852" height="46" rx="8" class="box"/>
+  <text x="40" y="279" class="num">4</text>
+  <text x="56" y="279" class="ln">Upstream</text>
+  <text x="196" y="275" class="t">switch port, PoE, uplink, DNS,</text>
+  <text x="196" y="290" class="t">the internet (not the Academy's)</text>
+  <text x="458" y="275" class="mt">AP Health SLE (Mist)</text>
+  <text x="458" y="290" class="mt">the switch, not the AP</text>
+  <text x="686" y="275" class="mg">an address, a DNS answer,</text>
+  <text x="686" y="290" class="mg">a ping past the gateway</text>
+
+  <text x="24" y="326" class="cap">A clean counter rules a layer out. Ruling layers out is most of the job.</text>
+</svg>
