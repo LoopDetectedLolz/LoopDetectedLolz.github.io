@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CX command notes · Network Field Notes</title>
+<meta name="description" content="Every command the CX Sandbox has a note for: what it does, examples to type, what changed from AOS-CX 10.15 to 10.18, where the sandbox fakes hardware, and diagrams of 802.1X, LLDP-MED, LACP and a phone with a PC behind it.">
+<link rel="canonical" href="https://networkfieldnotes.com/cx-notes.html">
+<link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
+<meta property="og:site_name" content="Network Field Notes">
+<meta property="og:title" content="CX command notes · Network Field Notes">
+<meta property="og:description" content="Every command the CX Sandbox has a note for: what it does, examples to type, what changed from AOS-CX 10.15 to 10.18, where the sandbox fakes hardware, and diagrams of 802.1X, LLDP-MED, LACP and a phone with a PC behind it.">
+<meta property="og:url" content="https://networkfieldnotes.com/cx-notes.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/cx-notes.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CX command notes · Network Field Notes">
+<meta name="twitter:description" content="Every command the CX Sandbox has a note for: what it does, examples to type, what changed from AOS-CX 10.15 to 10.18, where the sandbox fakes hardware, and diagrams of 802.1X, LLDP-MED, LACP and a phone with a PC behind it.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/cx-notes.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
+:root{
+  --ink:#061019; --navy:#0E2A3C; --blue:#2FA8E0; --blue-light:#4FBDEA;
+  --teal:#5ED2DA; --green:#8CE05E; --orange:#F5A524; --red:#F0705F; --text:#EAF2F6; --text-dim:#B0C4CF; --text-muted:#8BA2AE;
+  --solid:rgba(3,10,16,0.55); --line:rgba(255,255,255,0.10);
+  --r-pill:999px; --r-inner:16px; --r-chrome:22px; --r-card:26px; --r-hero:32px;
+  --s1:6px; --s2:10px; --s3:14px; --s4:20px; --s5:24px; --s6:28px; --s7:44px;
+  --gutter:20px; --maxw:1120px; --measure:68ch;
+  --ease:cubic-bezier(0.32,0.72,0,1);
+  --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --gb:6px; --veil:0.80;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0;overflow-x:hidden;overscroll-behavior-y:none}
+body{min-height:100vh;min-height:100svh;background:var(--ink);color:var(--text);font-family:var(--sans);
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.ground{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+  radial-gradient(900px 620px at 12% -6%,rgba(47,168,224,0.42),transparent 62%),
+  radial-gradient(760px 560px at 88% 8%,rgba(140,224,94,0.26),transparent 60%),
+  radial-gradient(1000px 700px at 60% 108%,rgba(23,138,168,0.34),transparent 62%),var(--ink)}
+/* topographic ground: .ground is the fallback floor, the canvas is the map, .gx-pane is the
+   glass, .gx-grain is the frost. Frost stays sharp on purpose; scatter lives on the pane. */
+#nfn-fx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block;
+  filter:blur(var(--gb));transform:scale(1.10);transform-origin:center}
+.gx-pane{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--veil);
+  background:linear-gradient(158deg,rgba(255,255,255,0.038) 0%,rgba(255,255,255,0.010) 36%,rgba(255,255,255,0) 60%),
+             radial-gradient(1500px 950px at 50% 122%,rgba(3,10,16,0.22),transparent 72%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(255,255,255,0.04)}
+.gx-grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:calc(var(--veil) * 0.46);
+  mix-blend-mode:overlay;background-size:170px 170px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23n)'/%3E%3C/svg%3E")}
+.page{position:relative;z-index:1}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(var(--gutter),env(safe-area-inset-left));padding-right:max(var(--gutter),env(safe-area-inset-right))}
+.narrow{max-width:900px;margin:0 auto}
+
+/* glass: three levels, never nested */
+.g-chrome{background:rgba(255,255,255,0.07);-webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.16);border-radius:var(--r-chrome);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),inset 0 -1px 0 rgba(255,255,255,0.06),0 18px 44px -22px rgba(0,0,0,0.8)}
+.g-card{background:rgba(255,255,255,0.065);-webkit-backdrop-filter:blur(26px) saturate(175%);backdrop-filter:blur(26px) saturate(175%);
+  border:1px solid rgba(255,255,255,0.14);border-radius:var(--r-card);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 26px 54px -30px rgba(0,0,0,0.8)}
+.g-hero{background:rgba(255,255,255,0.075);-webkit-backdrop-filter:blur(34px) saturate(185%);backdrop-filter:blur(34px) saturate(185%);
+  border:1px solid rgba(255,255,255,0.17);border-radius:var(--r-hero);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.3),0 40px 80px -34px rgba(0,0,0,0.85)}
+.panel{background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+
+/* type */
+h1,h2,h3{margin:0;letter-spacing:-0.025em;text-wrap:pretty;font-weight:700}
+p{text-wrap:pretty;margin:0}
+.eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.16em;color:var(--text-muted)}
+.h-hero{font-size:clamp(30px,6vw,46px);line-height:1.06;letter-spacing:-0.035em}
+.h-card{font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-0.02em}
+.meta{font-family:var(--mono);font-size:13px;color:var(--text-muted)}
+.dim{color:var(--text-dim)}
+a{color:#a9ea82;text-decoration:none}
+a:hover{color:#cbf4b3}
+
+/* header */
+.hdr{position:sticky;top:var(--s4);z-index:40;margin:var(--s4) 0 var(--s6)}
+.hdr-in{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2);padding:var(--s2) var(--s3) var(--s2) var(--s3);
+  transition:background 320ms var(--ease),transform 320ms var(--ease),box-shadow 320ms var(--ease)}
+.hdr.scrolled .hdr-in{background:rgba(255,255,255,0.11);transform:scale(0.985);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 22px 54px -22px rgba(0,0,0,0.9)}
+.brand{display:flex;align-items:center;gap:var(--s2);min-height:44px;color:var(--text);font-weight:700;font-size:17px;letter-spacing:-0.02em}
+.brand:hover{color:var(--text)}
+.brand .mk{width:38px;height:38px;border-radius:12px;background:var(--solid);border:1px solid var(--line);display:grid;place-items:center}
+.brand .mk img{width:26px;height:26px;display:block}
+.brand .wm{white-space:nowrap}
+.nav{margin-left:auto;display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 var(--s3);border-radius:var(--r-pill);
+  border:1px solid transparent;color:var(--text-dim);font-size:15px;font-weight:500;
+  transition:transform 180ms var(--ease),background 220ms var(--ease),color 220ms var(--ease)}
+.pill:hover{color:var(--text);background:rgba(255,255,255,0.06)}
+.pill:active{transform:scale(0.94)}
+.pill.on{position:relative;color:var(--text);font-weight:700;background:rgba(245,165,36,0.12);
+  border-color:rgba(245,165,36,0.9);border-bottom-color:transparent;
+  box-shadow:0 0 0 1px rgba(245,165,36,0.25),0 10px 26px -10px rgba(245,165,36,0.85),inset 0 1px 0 rgba(255,255,255,0.18)}
+.pill.on:hover{color:var(--text);background:rgba(245,165,36,0.16)}
+.pill.soft{background:rgba(255,255,255,0.10);color:var(--text)}
+.pill.outline{border-color:rgba(255,255,255,0.16);background:rgba(255,255,255,0.05);font-family:var(--sans);color:var(--text-muted)}
+.pill.outline svg{width:15px;height:15px}
+.search{display:none;margin:var(--s3) 0 0;width:100%}
+.search input{width:100%;min-height:44px;font:16px var(--sans);color:var(--text);background:var(--solid);border:1px solid var(--line);
+  border-radius:var(--r-pill);padding:0 var(--s4);outline:none}
+.search input:focus{border-color:rgba(79,189,234,0.55)}
+.search.open{display:block}
+
+/* status + category pills */
+a.tag{text-decoration:none;transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+@media (pointer:coarse){a.tag{min-height:38px}#qam-dl{display:inline-flex;align-items:center;min-height:38px}}
+a.tag:hover{transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(0,0,0,0.7)}
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--blue-light);border:1px solid rgba(79,189,234,0.45);background:rgba(47,168,224,0.10);border-radius:var(--r-pill);padding:5px 12px;white-space:nowrap}
+.tag.green{color:#bdf29c;border-color:rgba(140,224,94,0.45);background:rgba(140,224,94,0.10)}
+.tag.c-green{color:#bdf29c;border-color:rgba(140,224,94,0.55);background:rgba(140,224,94,0.12)}
+.tag.c-blue{color:#a8d9f2;border-color:rgba(79,189,234,0.6);background:rgba(47,168,224,0.14)}
+.tag.c-red{color:#ffb3a8;border-color:rgba(240,112,95,0.6);background:rgba(240,112,95,0.14)}
+.chip.c-green{color:#bdf29c;border-color:rgba(140,224,94,0.45)}
+.chip.c-blue{color:#a8d9f2;border-color:rgba(79,189,234,0.5)}
+.chip.c-red{color:#ffb3a8;border-color:rgba(240,112,95,0.5)}
+.chip.on.c-green{background:rgba(140,224,94,0.16)}
+.chip.on.c-blue{background:rgba(47,168,224,0.18)}
+.chip.on.c-red{background:rgba(240,112,95,0.18)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(140,224,94,0.18)}
+
+/* hero = featured post */
+.hero{position:relative;overflow:hidden;padding:var(--s7) var(--s7) var(--s6);margin-bottom:var(--s6)}
+.hero .h-hero{margin:var(--s4) 0 var(--s3);max-width:20ch}
+.hero .lede{max-width:var(--measure)}
+.lede{color:var(--text-dim);font-size:18px;line-height:1.55}
+.sheen{position:absolute;top:-40%;left:0;width:38%;height:180%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,0.13),transparent);filter:blur(14px);animation:nfnSheen 7s linear infinite}
+.glow{position:absolute;right:-8%;top:-30%;width:55%;height:160%;pointer-events:none;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(255,255,255,0.10),transparent 70%)}
+.row{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;margin-top:var(--s5)}
+.btn{display:inline-flex;align-items:center;min-height:46px;padding:0 var(--s5);border-radius:var(--r-pill);
+  border:1px solid rgba(255,255,255,0.16);background:rgba(255,255,255,0.06);color:var(--text);font-weight:600;font-size:16px;
+  transition:transform 180ms var(--ease),background 220ms var(--ease)}
+.btn:hover{background:rgba(255,255,255,0.11);color:var(--text)}
+.btn:active{transform:scale(0.94)}
+.btn.cta{background:linear-gradient(180deg,rgba(255,255,255,0.55),rgba(255,255,255,0) 55%),var(--green);color:#06202A;border-color:transparent;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.65),0 14px 30px -14px rgba(140,224,94,0.9)}
+.btn.cta:hover{color:#06202A}
+
+/* filter */
+/* the home page runs wider than an article, because it carries the rail */
+.wrap.wide{max-width:1320px}
+
+/* browse: category rail beside the grid above 1180, a scroller below it */
+.browse{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s4);margin-top:var(--s6)}
+@media (min-width:1180px){.browse{grid-template-columns:190px minmax(0,1fr);gap:var(--s6);align-items:start}}
+.browse-main .grid{margin-top:0}
+.cat-rail{display:flex;gap:var(--s2);overflow-x:auto;padding:2px 2px var(--s2);scrollbar-width:none}
+.cat-rail::-webkit-scrollbar{display:none}
+.cat-rail .eyebrow{display:none}
+@media (min-width:1180px){
+  .cat-rail{position:sticky;top:92px;flex-direction:column;gap:5px;overflow:visible;padding:0}
+  .cat-rail .eyebrow{display:block;margin:0 0 var(--s2) 13px}
+}
+.cat{--c:rgba(255,255,255,0.30);display:inline-flex;align-items:center;gap:10px;flex:none;min-height:40px;
+  padding:0 var(--s3);border:1px solid rgba(255,255,255,0.16);border-radius:var(--r-pill);
+  background:rgba(255,255,255,0.05);color:var(--text-muted);font:600 13.5px var(--sans);
+  white-space:nowrap;cursor:pointer;-webkit-appearance:none;appearance:none;
+  transition:background 220ms var(--ease),color 220ms var(--ease),transform 180ms var(--ease)}
+.cat i{width:3px;height:16px;border-radius:2px;background:var(--c);flex:none}
+.cat b{margin-left:auto;padding-left:8px;font:600 11.5px var(--mono);color:var(--text-muted);font-variant-numeric:tabular-nums}
+.cat:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.cat:active{transform:scale(0.96)}
+.cat.on{background:rgba(255,255,255,0.13);color:var(--text);border-color:rgba(255,255,255,0.26)}
+.cat.on i{box-shadow:0 0 10px var(--c)}
+.cat.on b{color:var(--text-dim)}
+@media (min-width:1180px){.cat{width:100%;border-radius:12px;min-height:42px}.cat i{height:18px}}
+
+/* a series collapses into one tile: name, part count, the parts as links */
+.series-card{gap:var(--s2)}
+.series-card:active{transform:none}
+.series-card .parts{font:600 11.5px var(--mono);color:var(--text-muted)}
+.series-list{list-style:none;margin:var(--s2) 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.series-list a{display:flex;gap:10px;align-items:baseline;padding:7px 9px;margin:0 -9px;border-radius:10px;
+  color:var(--text-dim);font-size:14.5px;line-height:1.45;text-decoration:none;
+  transition:background 200ms var(--ease),color 200ms var(--ease)}
+.series-list a:hover{background:rgba(255,255,255,0.07);color:var(--text)}
+.series-list b{font:600 11px var(--mono);color:var(--text-muted);min-width:13px;flex:none}
+
+.filter{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;margin:0 0 var(--s5)}
+.filter .eyebrow{margin-right:var(--s1)}
+.chip{display:inline-flex;align-items:center;min-height:38px;padding:0 var(--s3);border-radius:var(--r-pill);border:1px solid rgba(255,255,255,0.16);
+  background:rgba(255,255,255,0.05);color:var(--text-dim);font-size:14px;font-weight:500;cursor:pointer;
+  transition:transform 180ms var(--ease),background 220ms var(--ease),color 220ms var(--ease)}
+.chip:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.chip:active{transform:scale(0.94)}
+.chip.on{background:rgba(255,255,255,0.14);color:var(--text);border-color:rgba(255,255,255,0.28)}
+
+/* cards */
+.grid{margin-top:var(--s7);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:var(--s4);position:relative}
+.card{position:relative;display:flex;flex-direction:column;gap:var(--s3);padding:var(--s5);color:var(--text);
+  transition:transform 260ms var(--ease),background 260ms var(--ease)}
+.card:hover{color:var(--text)}
+.card:active{transform:scale(0.975)}
+@media (hover:hover){.card:hover{transform:translateY(-4px);background:rgba(255,255,255,0.10)}}
+.card.hidden{display:none}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)}
+.card .h-card{margin:var(--s1) 0 0}
+.card p{color:var(--text-dim);font-size:15px;line-height:1.55}
+.card-foot{margin-top:auto;padding-top:var(--s3);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:var(--s2);
+  font-family:var(--mono);font-size:12.5px;color:var(--text-muted)}
+.card-foot b{color:var(--green);font-weight:600}
+.src{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:14px;color:var(--text-dim)}
+.src svg{width:14px;height:14px;color:var(--green)}
+.empty{display:none;padding:var(--s7) var(--s5);text-align:center;color:var(--text-muted)}
+.empty.show{display:block}
+
+/* bottom band */
+.band{position:relative;margin-top:var(--s7);padding:var(--s6) var(--s6);display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}
+.band h3{font-size:22px;letter-spacing:-0.02em}
+.band p{color:var(--text-dim);margin-top:4px}
+.band .row{margin-top:0}
+
+/* post page */
+.backbar{margin:0 0 var(--s4)}
+.post-head{padding:var(--s7) var(--s7) var(--s6)}
+.post-head .h-hero{margin:var(--s4) 0 0;max-width:24ch}
+.post-body{padding:var(--s7);margin-top:var(--s4)}
+.prose{max-width:var(--measure);font-size:16.5px;line-height:1.65}
+.prose h2{font-size:26px;margin:var(--s7) 0 var(--s3);letter-spacing:-0.03em}
+.prose h2:first-child{margin-top:0}
+.prose h3{font-size:19px;margin:var(--s6) 0 var(--s2);font-weight:600}
+.prose p{margin:0 0 var(--s4)}
+.prose strong{color:#fff}
+.prose ul,.prose ol{margin:0 0 var(--s4);padding-left:var(--s4)}
+.prose li{margin:var(--s1) 0}
+.prose blockquote,.callout{margin:0 0 var(--s4);padding:var(--s3) var(--s4);border:1px solid rgba(140,224,94,0.45);
+  background:rgba(140,224,94,0.08);border-radius:var(--r-inner);color:#e6f6db}
+.prose blockquote p:last-child{margin:0}
+.prose pre{background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);padding:var(--s4) var(--s5);overflow-x:auto;
+  -webkit-overflow-scrolling:touch;margin:0 0 var(--s4)}
+.prose code,.prose pre{font-family:var(--mono);font-size:14px;line-height:1.7}
+.prose :not(pre)>code{background:var(--solid);border:1px solid var(--line);border-radius:8px;padding:1px 6px;color:var(--green);font-size:0.88em}
+.prose pre code{background:none;border:0;padding:0;color:#D3E3EC}
+.prose table{width:100%;border-collapse:collapse;margin:0 0 var(--s4);font-size:14.5px;display:block;overflow-x:auto}
+.prose th{background:var(--solid);color:var(--blue-light);text-align:left;padding:var(--s2) var(--s3);border:1px solid var(--line);font-family:var(--mono);font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase}
+.prose td{padding:var(--s2) var(--s3);border:1px solid var(--line);vertical-align:top;color:var(--text-dim)}
+.figure{margin:0 0 var(--s5);padding:var(--s4);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.figure svg{display:block;width:100%;height:auto;min-width:0}
+.figure figcaption{margin-top:var(--s3);font-family:var(--mono);font-size:11.5px;line-height:1.65;color:var(--text-muted)}
+/* body figures carry detail: let them scroll on a phone rather than shrink past reading size */
+@media (max-width:700px){figure.figure svg{min-width:600px}figure.figure{padding:var(--s3)}}
+.origin{margin:0 0 var(--s5)}
+.origin .eyebrow{display:block;color:var(--teal);margin-bottom:4px}
+.end{position:relative;margin-top:var(--s4);padding:var(--s6) var(--s7)}
+.end h3{font-size:22px}
+.end p{color:var(--text-dim);margin-top:4px}
+.postnav{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--s3);margin-top:var(--s4)}
+.pn{padding:var(--s3) var(--s4);color:var(--text);font-weight:600;font-size:15px;transition:transform 180ms var(--ease),background 220ms var(--ease)}
+.pn:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.pn:active{transform:scale(0.975)}
+.pn .eyebrow{display:block;margin-bottom:2px}
+
+/* about + socials */
+.about{padding:var(--s7);display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s5)}
+.about .prose{max-width:var(--measure)}
+.chips{display:flex;gap:var(--s1);flex-wrap:wrap}
+.chips .tag{color:var(--text-dim);border-color:var(--line);background:var(--solid)}
+.socials{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:var(--s4);margin-top:var(--s5)}
+.social{display:flex;align-items:center;gap:var(--s3);padding:var(--s5);color:var(--text);transition:transform 260ms var(--ease),background 260ms var(--ease)}
+.social:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.social:active{transform:scale(0.975)}
+.social b{display:block;font-size:17px}
+.social span{font-size:14px;color:var(--text-muted)}
+.social-ico{width:44px;height:44px;flex:0 0 44px;border-radius:var(--r-inner);background:var(--solid);display:grid;place-items:center;border:1px solid var(--line)}
+
+/* mascot: one Rig per page, fixed in the lower-right, above everything */
+.rig{position:fixed;z-index:60;display:block;width:104px;line-height:0;
+  right:max(20px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));
+  filter:drop-shadow(0 14px 24px rgba(0,0,0,0.55));transition:transform 200ms var(--ease)}
+.rig img{display:block;width:100%;height:auto}
+.rig:hover{transform:translateY(-4px)}
+.rig:active{transform:scale(0.92)}
+@media (prefers-reduced-motion:no-preference){.rig img{animation:botFloat 5s ease-in-out infinite}}
+@media (max-width:520px){.rig{width:84px}}
+/* the page always ends with room for him, so nothing is permanently covered */
+.page{min-height:100vh;min-height:100svh;display:flex;flex-direction:column}
+.page>main{flex:1 0 auto;width:100%;padding-bottom:calc(104px + 40px)}  /* width:100% because the auto side margins would otherwise stop the flex stretch */
+
+footer{padding:var(--s6) 0 var(--s4);color:var(--text-muted);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--s2);padding-right:calc(104px + 40px)}
+
+/* motion */
+@keyframes nfnSheen{0%{transform:translateX(-120%)}100%{transform:translateX(220%)}}
+@keyframes botFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes nfnRise{from{opacity:0;transform:translate3d(0,22px,0) scale(0.985)}to{opacity:1;transform:none}}
+@keyframes nfnPush{from{opacity:0.4;transform:translate3d(28px,0,0)}to{opacity:1;transform:none}}
+@keyframes nfnPop{from{opacity:0.4;transform:translate3d(-22px,0,0)}to{opacity:1;transform:none}}
+@keyframes nfnZoom{from{opacity:0;transform:scale(0.78)}60%{opacity:1}to{opacity:1;transform:none}}
+@keyframes nfnGenie{0%{opacity:0;transform:scale(0.07,0.02) skewX(-14deg)}35%{opacity:1;transform:scale(0.42,0.55) skewX(-7deg)}70%{transform:scale(0.92,1.03) skewX(-1.5deg)}to{opacity:1;transform:none}}
+.rise{animation:nfnRise 520ms var(--ease) both}
+.hero.rise{animation-duration:560ms}
+.zoom{animation:nfnZoom 480ms var(--ease) both;will-change:transform}
+.genie{animation:nfnGenie 560ms var(--ease) both;will-change:transform}
+.pop{animation:nfnPop 420ms var(--ease) both}
+@media (prefers-reduced-motion:reduce){
+  @keyframes nfnRise{from{opacity:0}to{opacity:1}}@keyframes nfnPush{from{opacity:0}to{opacity:1}}@keyframes nfnPop{from{opacity:0}to{opacity:1}}
+  @keyframes nfnZoom{from{opacity:0}to{opacity:1}}@keyframes nfnGenie{from{opacity:0}to{opacity:1}}
+  @keyframes nfnSheen{0%,100%{opacity:0}}@keyframes botFloat{0%,100%{transform:none}}
+}
+
+/* narrow screens */
+@media (max-width:700px){
+  .nav .cat{display:none}
+  /* six pills at 360 px: tighter, and a nav that would not fit scrolls sideways instead of clipping the last one */
+  .nav{flex:1 0 100%;margin-left:0;flex-wrap:nowrap;justify-content:space-between;gap:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{display:none}
+  .hdr .wrap{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+  .hdr-in{padding-left:8px;padding-right:8px}
+  .pill{padding:0 6px;font-size:13px;letter-spacing:-0.01em;white-space:nowrap;flex:0 0 auto}
+  .pill.outline{padding:0 8px;gap:0}.pill.outline span{display:none}
+  .hero{padding:var(--s6) var(--s4)}
+  .post-head,.post-body,.about,.end{padding:var(--s6) var(--s4)}
+  .band{padding:var(--s5) var(--s4)}
+}
+
+/* ── what the box said ─────────────────────────────────────────────────── */
+.term{margin:var(--s5) 0;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);overflow:hidden}
+.term-bar{display:flex;align-items:center;gap:6px;padding:9px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,0.03)}
+.term-bar i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.12)}
+.term-bar i:first-child{background:rgba(140,224,94,0.45)}
+.term-bar b{margin-left:8px;font:600 11px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}
+.prose .term pre{margin:0;border:0;border-radius:0;background:none;padding:var(--s3) var(--s4)}
+.term .ln{display:block;padding:0 6px;margin:0 -6px;border-radius:6px}
+.term .pr{color:var(--green);font-weight:500}
+.term .ln.hot{background:rgba(140,224,94,0.10);border-left:3px solid var(--green);border-radius:0 6px 6px 0;padding-left:3px;color:var(--text)}
+
+/* ── interactive widgets ───────────────────────────────────────────────── */
+.widget{margin:var(--s5) 0 var(--s4);padding:var(--s4) var(--s5);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+.w-head{display:flex;flex-direction:column;gap:4px;margin-bottom:var(--s4)}
+.w-head b{font-size:17px;letter-spacing:-0.01em}
+.w-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:var(--s3) var(--s4);margin-bottom:var(--s4)}
+.w-controls label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-dim)}
+.w-controls select,.w-controls input[type=number]{font:14px var(--sans);color:var(--text);background:rgba(3,10,16,0.7);border:1px solid var(--line);border-radius:10px;min-height:40px;padding:0 10px}
+.w-controls input[type=number]{width:96px;display:inline-block}
+.w-unit{display:flex;align-items:center;gap:8px}
+.w-slider>span b{color:var(--green);font-size:15px;margin-left:6px}
+.w-slider{grid-column:1/-1}
+.w-controls input[type=range]{width:100%;accent-color:var(--green);min-height:32px}
+.w-bar{position:relative;height:18px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid var(--line);overflow:hidden;display:flex}
+.w-fill{height:100%;background:var(--green);transition:width 240ms var(--ease)}
+.w-fill.other{background:var(--teal);opacity:0.8}
+.widget.tight .w-fill{background:var(--orange)}
+.widget.over .w-fill{background:var(--orange)}
+.widget.over .w-bar{border-color:rgba(245,165,36,0.6);box-shadow:0 0 0 3px rgba(245,165,36,0.15)}
+.w-read{margin-top:var(--s3);font-size:15px;color:var(--text)}
+.w-read b{color:var(--green)}
+.widget.over .w-read b:first-child{color:var(--orange)}
+.w-note{margin-top:var(--s2);font-size:13px;color:var(--text-dim);line-height:1.6}
+/* the 5 GHz spectrum strip in the channel 173 post. NOT .band: that is the call-to-action card */
+.spectrum{position:relative;height:64px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);overflow:hidden}
+.band-scan{position:absolute;left:0;top:0;bottom:0;width:90.6%;background:repeating-linear-gradient(135deg,rgba(94,210,218,0.10) 0 6px,transparent 6px 12px);border-right:2px dashed rgba(94,210,218,0.7);pointer-events:none}
+.blk{position:absolute;top:8px;bottom:8px;left:var(--l);width:var(--w);font:600 11px var(--mono);letter-spacing:0.04em;color:var(--text-dim);background:rgba(3,10,16,0.55);border:1px solid rgba(255,255,255,0.14);border-radius:8px;cursor:pointer;padding:0;overflow:hidden;white-space:nowrap;transition:transform 200ms var(--ease),background 200ms var(--ease)}
+.blk:hover{transform:translateY(-1px)}
+.blk.on{color:#06202A;background:var(--teal);border-color:var(--teal)}
+.blk.hot{color:#bdf29c;border-color:rgba(140,224,94,0.6);font-size:9px}
+.blk.hot.on{color:#06202A;background:var(--green);border-color:var(--green)}
+.band-axis{position:relative;height:18px;margin-top:6px;font:11px var(--mono);color:var(--text-muted)}
+.band-axis span{position:absolute;transform:translateX(-50%)}
+.band-axis span:nth-child(1){left:0;transform:none}.band-axis span:nth-child(2){left:26.85%}.band-axis span:nth-child(3){left:42.95%}
+.band-axis span:nth-child(4){left:77.18%}.band-axis span:nth-child(5){left:93.96%}.band-axis span:nth-child(6){left:100%;transform:translateX(-100%)}
+@media (max-width:520px){.band-axis span:nth-child(2),.band-axis span:nth-child(3),.band-axis span:nth-child(5){display:none}
+  /* the narrow blocks cannot hold 'U-NII-2A' at this width, so show the number alone */
+  .blk{font-size:0}.blk::after{content:attr(data-short);font:600 11px var(--mono);letter-spacing:0.04em}.blk.hot::after{font-size:11px}}
+
+/* ── field kit ─────────────────────────────────────────────────────────── */
+.kit{margin-top:var(--s5);padding:var(--s5)}
+.kit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:var(--s3);margin-top:var(--s3)}
+.kit-item{position:relative;display:flex;flex-direction:column;gap:8px;padding:var(--s4);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);min-height:120px;outline:none;transition:transform 200ms var(--ease),border-color 200ms var(--ease)}
+.kit-item:hover,.kit-item:focus{transform:translateY(-2px);border-color:rgba(140,224,94,0.45)}
+.kit-ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(140,224,94,0.10);border:1px solid rgba(140,224,94,0.3)}
+.kit-ico svg{width:22px;height:22px;fill:none;stroke:var(--green);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kit-item b{font-size:14px}
+.kit-line{font-size:13px;color:var(--text-dim);line-height:1.5;opacity:0;transform:translateY(4px);transition:opacity 220ms var(--ease),transform 220ms var(--ease)}
+.kit-item:hover .kit-line,.kit-item:focus .kit-line{opacity:1;transform:none}
+@media (hover:none){.kit-line{opacity:1;transform:none}}
+
+/* ── RF motif on radio posts ───────────────────────────────────────────── */
+.post-head{position:relative;overflow:hidden}
+.post-head.cat-Wireless::before,.post-head.cat-RF-survey::before{content:"";position:absolute;right:-90px;top:-120px;width:420px;height:420px;pointer-events:none;opacity:0.10;
+  background:repeating-radial-gradient(circle at center,var(--teal) 0 1.5px,transparent 1.5px 26px)}
+.post-head>*{position:relative}
+
+/* ── reading path ──────────────────────────────────────────────────────── */
+.series{padding:var(--s5);margin-bottom:var(--s4)}
+.series h3{margin:6px 0 var(--s3);font-size:18px}
+.series h3 .meta{margin-left:8px;font-weight:400}
+.ser-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:var(--s3)}
+.ser-step{position:relative;display:flex;flex-direction:column;gap:6px;padding:var(--s3) var(--s4);color:var(--text-dim);text-decoration:none;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);transition:transform 200ms var(--ease),border-color 200ms var(--ease)}
+.ser-step:hover{transform:translateY(-2px)}
+.ser-n{font:600 11px var(--mono);letter-spacing:0.12em;color:var(--text-muted)}
+.ser-t{font-size:14px;font-weight:600;color:var(--text)}
+.ser-tag{font:600 10px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}
+.ser-step.here{border-color:rgba(255,255,255,0.28);opacity:0.75}
+.ser-step.next{border-color:rgba(140,224,94,0.6);box-shadow:0 10px 26px -14px rgba(140,224,94,0.8)}
+.ser-step.next .ser-tag,.ser-step.next .ser-n{color:var(--green)}
+
+/* ── Rig reactions ─────────────────────────────────────────────────────── */
+.rig img{transition:opacity 220ms var(--ease)}
+.rig.swap img{opacity:0}
+
+/* ── Wireless Academy (orange, for Airheads) ───────────────────────────── */
+.tag.c-orange{color:#ffd28a;border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.14)}
+.tag.c-orange .dot{background:var(--orange);box-shadow:0 0 0 4px rgba(245,165,36,0.18)}
+.chip.c-orange{border-color:rgba(245,165,36,0.45);color:#ffd28a}
+.chip.on.c-orange{background:rgba(245,165,36,0.18);border-color:rgba(245,165,36,0.9);color:#ffe0ad}
+.acad-hero .glow{background:radial-gradient(circle at 80% 20%,rgba(245,165,36,0.28),transparent 60%)}
+.acad-hero .btn.cta{background:linear-gradient(180deg,#ffbf4d,var(--orange));color:#2a1600;box-shadow:0 12px 30px -12px rgba(245,165,36,0.9)}
+.acad-why{padding:var(--s5);margin:0 0 var(--s6);border-color:rgba(245,165,36,0.35)}
+.acad-why p{margin:8px 0 0;color:var(--text-dim);line-height:1.65}
+.lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--s4)}
+.lesson{display:flex;flex-direction:column;gap:10px;padding:var(--s5);color:var(--text);text-decoration:none;position:relative}
+.lesson b{font-size:18px;letter-spacing:-0.01em;line-height:1.25}
+.lesson p{margin:0;color:var(--text-dim);font-size:14px;line-height:1.6}
+.lesson .lab{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--text-dim);padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+.lesson .lab .eyebrow{color:#ffd28a}
+.lesson .ser-n{color:#ffd28a}
+.lesson.live{border-color:rgba(245,165,36,0.5);transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+.lesson.live:hover{transform:translateY(-3px);box-shadow:0 18px 40px -20px rgba(245,165,36,0.8)}
+.lesson.live .meta{margin-top:auto;padding-top:6px}
+.lesson.soon{opacity:0.6}
+.lesson.soon .ser-n{color:var(--text-muted)}
+.post-head.cat-Academy::before{content:"";position:absolute;right:-90px;top:-120px;width:420px;height:420px;pointer-events:none;opacity:0.10;
+  background:repeating-radial-gradient(circle at center,var(--orange) 0 1.5px,transparent 1.5px 26px)}
+.ser-step.next.acad{border-color:rgba(245,165,36,0.6)}
+
+/* ── Academy theme: orange ground, switch-chassis black glass ──────────── */
+body.acad{background:#07070A}
+body.acad .ground{background:
+  radial-gradient(900px 620px at 12% -6%,rgba(245,165,36,0.34),transparent 62%),
+  radial-gradient(760px 560px at 88% 8%,rgba(255,120,40,0.20),transparent 60%),
+  radial-gradient(1000px 700px at 60% 108%,rgba(160,80,20,0.28),transparent 62%),#07070A}
+body.acad .g-chrome,body.acad .g-card,body.acad .g-hero{background:rgba(6,6,9,0.62);border-color:rgba(255,255,255,0.10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.10),0 30px 70px -40px rgba(0,0,0,0.95)}
+body.acad .hdr.scrolled .hdr-in{background:rgba(6,6,9,0.78)}
+body.acad .panel,body.acad .search input,body.acad .term,body.acad .widget,body.acad .callout,body.acad .lesson .lab{background:rgba(0,0,0,0.45)}
+body.acad .btn.cta{background:linear-gradient(180deg,#ffbf4d,var(--orange));color:#2a1600;box-shadow:0 12px 30px -12px rgba(245,165,36,0.9)}
+body.acad .eyebrow{color:#ffd28a}
+body.acad .tag.green{color:#ffd28a;border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.14)}
+body.acad .tag.green .dot{background:var(--orange);box-shadow:0 0 0 4px rgba(245,165,36,0.18)}
+body.acad .ser-step.next{border-color:rgba(245,165,36,0.6);box-shadow:0 10px 26px -14px rgba(245,165,36,0.8)}
+body.acad .ser-step.next .ser-tag,body.acad .ser-step.next .ser-n{color:#ffd28a}
+body.acad .term-bar i:first-child{background:rgba(245,165,36,0.55)}
+body.acad .term .pr{color:#ffd28a}
+body.acad .term .ln.hot{background:rgba(245,165,36,0.10);border-left-color:var(--orange)}
+body.acad .prose a{color:#ffd28a}
+body.acad .rig{filter:drop-shadow(0 14px 24px rgba(0,0,0,0.75))}
+body.acad .backbar .btn:hover{border-color:rgba(245,165,36,0.5)}
+body.acad .callout.origin{border-color:rgba(245,165,36,0.45)}
+body.acad .callout.origin .eyebrow{color:#ffd28a}
+
+/* ── on-the-air QAM banner ─────────────────────────────────────────────── */
+.qam{margin:0 0 var(--s6);padding:var(--s4) var(--s5) var(--s3);cursor:pointer;outline:none;overflow:hidden}
+.qam:focus-visible{box-shadow:0 0 0 2px rgba(140,224,94,0.6)}
+.qam-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);flex-wrap:wrap}
+.qam-ctl{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;font-size:12px;color:var(--text-dim)}
+.qam-ctl label{display:inline-flex;align-items:center;gap:8px}
+.qam-ctl select{font:13px var(--sans);color:var(--text);background:rgba(3,10,16,0.7);border:1px solid var(--line);border-radius:10px;min-height:38px;padding:0 8px}
+.qam-speed{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:100%}.qam-speed input{width:150px;max-width:40vw;accent-color:var(--green)}
+.qam-speed b{font:600 12px var(--mono);color:var(--green);min-width:84px;white-space:nowrap}
+.qam-band{font:10px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);padding:2px 7px;border:1px solid var(--line);border-radius:999px;white-space:nowrap}
+.qam[data-band="frames"] .qam-band{color:#ffd28a;border-color:rgba(245,165,36,0.5)}.qam[data-band="symbols"] .qam-band{color:var(--green);border-color:rgba(140,224,94,0.5)}.qam[data-band="waves"] .qam-band{color:var(--blue-light);border-color:rgba(79,189,234,0.5)}.qam[data-band="photons"] .qam-band{color:var(--teal);border-color:rgba(94,210,218,0.5)}
+.qam-ctl .chip{min-height:40px;padding:0 12px}
+.qam-ctl .chip.on{border-color:rgba(94,210,218,0.9);color:#bfeff2;background:rgba(94,210,218,0.14)}
+.qam canvas{display:block;width:100%;height:280px;margin-top:var(--s2);touch-action:pan-y;cursor:crosshair;border-radius:var(--r-inner)}
+.qam-rx{margin-top:8px;padding:8px 12px 10px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);cursor:default}
+.qam-rx-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px 14px;flex-wrap:wrap}
+.qam-rx-top a{font:11px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--blue-light);text-decoration:none;border-bottom:1px solid rgba(79,189,234,0.35)}
+.qam-rx-top a:hover{color:var(--text);border-color:var(--text)}
+.qam-key{display:flex;gap:10px;flex-wrap:wrap;font:10px var(--mono);letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)}
+.qam-key i{font-style:normal;display:inline-flex;align-items:center;gap:5px}.qam-key i::before{content:"";width:8px;height:8px;border-radius:2px;background:currentColor}
+.qam-hex{margin-top:8px;font:12px var(--mono);line-height:1.45;color:var(--text-muted)}
+.qam-row{display:grid;grid-template-columns:38px repeat(16,minmax(22px,28px)) minmax(0,1fr);gap:0 3px;align-items:baseline}
+.qam-row .off{color:var(--text-muted);opacity:0.55;font-size:10px;line-height:inherit}
+.qam-row .asc{margin-left:14px;color:var(--text);white-space:pre;overflow:hidden;letter-spacing:0.04em}.qam-row .asc .garble{color:#ffd28a;background:rgba(245,165,36,0.16);border-radius:3px}
+.qam-hex i.pad{visibility:hidden}
+.qam-hex i{font-style:normal;text-align:center;border-radius:4px;opacity:0.28;transition:opacity 0.2s,background 0.2s}
+.qam-hex i.rx{opacity:1}
+.f-mac{color:#5ED2DA}.f-llc{color:#8BA2AE}.f-ip{color:#4FBDEA}.f-icmp{color:#8CE05E}.f-pay{color:#EAF2F6}.f-fcs{color:#B0C4CF}.f-bad{color:#ffd28a}
+.qam-hex i.bad{color:#ffd28a;background:rgba(245,165,36,0.18)}
+.qam-hex i.hl{background:rgba(255,255,255,0.12);opacity:1}
+.qam-fld{margin-top:6px;font:12px var(--mono);color:var(--text-dim);min-height:18px;line-height:1.5}
+.qam-hit{margin-top:6px;padding:6px 10px;font:12px var(--mono);color:var(--text-dim);line-height:1.55;border-left:2px solid var(--green);background:rgba(140,224,94,0.06);border-radius:0 8px 8px 0}.qam-hit b{color:var(--text)}.qam-hit b.ok{color:var(--green)}.qam-hit b.warn{color:#ffd28a}.qam-hit code{color:#D3E3EC}.qam-hit a{color:var(--text-muted);margin-left:6px;text-decoration:underline}
+.qam-hex i.sel{outline:1px solid rgba(140,224,94,0.9);outline-offset:-1px;opacity:1}
+.qam-lbrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;padding:8px 12px;font-size:12px;color:var(--text-dim);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);cursor:default}.qam-lbrow label{display:inline-flex;align-items:center;gap:8px}.qam-lbrow input{width:130px;accent-color:var(--green)}.qam-lbrow b{font:600 12px var(--mono);color:var(--green);min-width:40px}.qam-lbrow[hidden]{display:none}
+.sim-intro{margin:0 0 var(--s4)}.sim-intro h1{margin:10px 0 12px}@media (max-width:700px){.sim-intro{padding:0 var(--s1)}.sim-intro .h-hero{font-size:30px}}.sim-intro .lede{max-width:820px}.sim-intro a{color:var(--blue-light)}
+.post-body video{display:block;width:100%;max-width:100%;margin:var(--s4) 0;border-radius:var(--r-inner);border:1px solid var(--line);background:#061019}
+.post-body img{display:block;width:100%;height:auto;border-radius:var(--r-inner);border:1px solid var(--line)}
+.post-body figure{margin:var(--s5) 0}
+.post-body figure video,.post-body figure img{margin:0}
+.post-body figcaption{margin-top:10px;font-size:13px;color:var(--text-muted);line-height:1.65}
+/* a dense figure stays legible on a phone by scrolling sideways, the way the tables do. the caption stays put. */
+.post-body figure.wide>.pan{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-radius:var(--r-inner)}
+.post-body figure.wide img{min-width:620px}
+/* a tall photo would run a thousand pixels down the page at full column width */
+.post-body figure.portrait{max-width:420px;margin-inline:auto}
+.qam-app{display:grid;grid-template-columns:minmax(240px,2fr) 3fr;gap:10px;margin-top:8px;cursor:default}
+@media (max-width:760px){.qam-app{grid-template-columns:1fr}}
+.qam-tile{padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);font-size:12.5px;color:var(--text-dim);line-height:1.5;min-height:110px}
+.qam-tile .eyebrow{display:block;margin-bottom:6px}.qam-tile p{margin:6px 0 0}.qam-tile b{color:var(--text)}.qam-tile b.ok{color:var(--green)}.qam-tile b.warn{color:#ffd28a}.qam-tile code{font-family:var(--mono);color:#D3E3EC}
+.qam-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px;margin-top:8px}.qam-metrics div{background:rgba(255,255,255,0.04);border-radius:8px;padding:6px 8px;text-align:center}.qam-metrics small{display:block;font:9px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:2px}.qam-metrics b{font:600 16px var(--mono)}.qam-metrics .meta{font-size:11px}.qam-stars{display:block;font-size:10px;color:#ffd28a;letter-spacing:1px}
+.qam-term{font:12px var(--mono);color:#D3E3EC;white-space:pre-wrap;margin:0;line-height:1.5}
+.qam-chat{display:flex;flex-direction:column;gap:6px}.qam-msg{max-width:82%;padding:6px 10px;border-radius:12px;background:rgba(255,255,255,0.06);color:var(--text);font-size:13px;line-height:1.4;align-self:flex-start}.qam-msg b{display:block;font:600 10px var(--mono);letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1px}.qam-msg.you{align-self:flex-end;background:rgba(79,189,234,0.16)}.qam-msg.pending{opacity:0.3}.qam-msg.sending{border:1px dashed rgba(255,255,255,0.35)}.qam-msg small{display:block;font:10px var(--mono);color:var(--text-muted);margin-top:3px}.qam-msg .qam-t{font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px;opacity:0.8}.qam-msg.delivered small{color:var(--green)}.qam-msg.retx small{color:#ffd28a}
+.qam-wave{display:block;width:100%;height:44px;margin-top:8px;background:rgba(255,255,255,0.03);border-radius:8px}
+.qam-avatar{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--navy);color:var(--text);align-items:center;justify-content:center;font:600 10px var(--sans);margin-right:8px;vertical-align:middle}.qam-lbrow .chip{min-height:40px;padding:0 10px;font-size:12px}.qam-lbnote{font-size:11px;color:var(--text-muted);flex-basis:100%}.qam-fld b{color:var(--text)}.qam-fld b.ok{color:var(--green)}.qam-fld b.warn{color:#ffd28a}.qam-fld code{color:#D3E3EC}
+.qam-ascii{display:flex;align-items:baseline;gap:12px;margin-top:6px;overflow:hidden}
+.qam-title{font:600 15px var(--sans);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qam-title.bad{color:var(--text)}
+.qam-title .garble{color:#ffd28a;background:rgba(245,165,36,0.16);border-radius:3px;padding:0 1px}
+@media (max-width:600px){.qam-hex{font-size:10px}.qam-row{grid-template-columns:repeat(16,minmax(0,1fr));gap:0 1px}.qam-row .off,.qam-row .asc,.qam-hex i.pad{display:none}.qam-key{display:none}.qam-title{font-size:14px}}
+.qam-stat{margin-top:8px;font-size:13px;color:var(--text-dim);line-height:1.6}.qam-stat b{color:var(--text)}.qam-stat b.warn{color:#ffd28a}
+.qam-time{margin-top:6px;font-size:13px;color:var(--text-dim);line-height:1.6}.qam-time b{color:var(--text)}
+.qam-table{margin-top:var(--s4);padding-top:var(--s3);border-top:1px solid var(--line);cursor:default}
+.qam-table .tbl{overflow-x:auto;margin-top:8px}.qam-table table{border-collapse:collapse;width:100%;font-size:13px;min-width:560px}
+.qam-table th,.qam-table td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.qam-table th{font:600 10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+.qam-table tr[data-m]{cursor:pointer}.qam-table tr[data-m]:hover td{background:rgba(255,255,255,0.04)}.qam-table tr.on td{background:rgba(140,224,94,0.10);color:var(--text)}.qam-table tr.on td:first-child{box-shadow:inset 3px 0 0 var(--green)}
+.qam-table .meta{margin-top:8px;font-size:12px}
+.qam-hint{font:11px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);text-align:center;margin-top:4px}
+.qam-x{margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid var(--line);color:var(--text-dim);font-size:14px;line-height:1.65;cursor:default}
+.qam-x p{margin:8px 0}.qam-x ol{margin:8px 0 0;padding-left:22px}.qam-x li{margin:6px 0}.qam-x code{font-family:var(--mono);font-size:12.5px;color:#D3E3EC;background:var(--solid);padding:1px 6px;border-radius:6px}
+.qam-x b{color:var(--text)}
+@media (max-width:600px){.qam canvas{height:260px}.qam-ctl{width:100%;justify-content:space-between}}
+
+/* ── QAM banner fullscreen (pseudo, works on iPhone too) ───────────────── */
+.qam.fs{position:fixed;inset:0;z-index:120;margin:0;border-radius:0;overflow:auto;padding:12px 14px;background:#061019;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;animation:none;opacity:1}
+.qam.fs canvas{touch-action:none;height:56vh}
+html.qam-fs,html.qam-fs body{overflow:hidden}
+html.qam-fs .rig{display:none}
+</style></head>
+<body>
+<div class="ground"></div>
+<canvas id="nfn-fx" aria-hidden="true"></canvas>
+<div class="gx-pane" aria-hidden="true"></div>
+<div class="gx-grain" aria-hidden="true"></div>
+<div class="page">
+<header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
+  <a class="brand" href="/"><span class="mk"><img src="logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
+  <nav class="nav"><a class="pill" href="/">Posts</a><a class="pill on" href="academy.html">Academy</a><a class="pill" href="tools.html">Tools</a><a class="pill" href="about.html">About</a><a class="pill outline" href="index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  
+</div></div></header>
+<main class="wrap">
+<style>.cx-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s4)}.cx-tools .pill{font-weight:600}.cx-tools .pill.soft{box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18)}</style>
+<style>
+.cxn-bar{margin:0 0 var(--s3)}
+.cxn-bar input{width:100%;max-width:520px;min-height:44px;font:16px var(--sans);color:var(--text);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-pill);padding:0 var(--s4);outline:none}
+.cxn-bar input:focus{border-color:var(--blue-light)}
+.cxn-groups{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s5)}
+.cxn-groups .pill{min-height:40px}
+.cxn-group{margin:0 0 var(--s7)}
+.cxn-group h2{font-size:24px;letter-spacing:-0.02em;margin:0 0 var(--s4)}
+.cxn-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:var(--s4)}
+.cxn{padding:var(--s4) var(--s5);min-width:0}
+.cxn-syn code{font:13px/1.5 var(--mono);color:var(--text);overflow-wrap:anywhere}
+.cxn-syn i{font-style:normal;color:var(--text-muted)}
+.cxn h3{font-size:17px;margin:6px 0 6px;letter-spacing:-0.01em}
+.cxn p{color:var(--text-dim);font-size:15px;line-height:1.6;margin:0 0 10px}
+.cxn .cxn-rel{font:12px/1.5 var(--mono);color:var(--text-muted)}
+.cxn-call{font-size:14px;line-height:1.55;color:var(--text-dim);padding:8px 12px;margin:0 0 8px;border-left:3px solid var(--blue-light);background:rgba(79,189,234,0.08);border-radius:0 10px 10px 0}
+.cxn-call b{color:var(--text)}
+.cxn-call.fake{border-left-color:var(--teal);background:rgba(94,210,218,0.08)}
+.cxn-call.tip{border-left-color:var(--green);background:rgba(140,224,94,0.07)}
+.cxn .term{margin:var(--s3) 0 var(--s2)}
+.cxn .term pre{margin:0;border:0;border-radius:0;background:none;padding:var(--s3) var(--s4);overflow:auto;font:13px/1.55 var(--mono)}
+.cxn-see{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px}
+.cxn-see span{font:600 11px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}
+.cxn-see a{font:12.5px var(--mono);color:var(--blue-light);display:inline-flex;align-items:center;min-height:38px}
+.cxn-fig{margin:0 0 var(--s5)}
+.cxn-tips{margin:var(--s3) 0 0;padding-left:1.2em;color:var(--text-dim);font-size:14.5px;line-height:1.6}
+.cxn-tips li{margin:0 0 4px}
+.cxn-none{color:var(--text-muted);display:none}
+@media (max-width:700px){.cxn{padding:var(--s3) var(--s4)}}
+</style>
+<section class="sim-intro">
+  <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
+  <h1 class="h-hero">The commands, one note each</h1>
+  <p class="lede">What each command does, two or three examples you can type into the <a href="sandbox.html">sandbox</a>, what changed between AOS-CX 10.15 and 10.18, and where the sandbox fakes hardware instead of reproducing it. Every example is run through the sandbox before this page is built, and every release line comes from the command lists I pulled off the Switch Simulator for each release. The same notes show up beside the terminal as you type.</p>
+</section>
+<nav class="cx-tools" aria-label="CX Sandbox pages"><a class="pill outline" href="sandbox.html">Sandbox</a><a class="pill soft" href="cx-notes.html" aria-current="page">Command notes</a><a class="pill outline" href="cx-check.html">Config checker</a><a class="pill outline" href="cx-build.html">Script builder</a><a class="pill outline" href="cx-guide.html">Releases and hardening</a></nav>
+<div class="cxn-bar"><input type="search" id="cxn-q" placeholder="Filter: lacp, radius, voice, 1/1/1" aria-label="Filter the command notes" autocomplete="off"></div>
+<nav class="cxn-groups" aria-label="Groups"><a class="pill outline" href="#g-basics">Basics</a><a class="pill outline" href="#g-vlans">VLANs</a><a class="pill outline" href="#g-interfaces">Interfaces</a><a class="pill outline" href="#g-lags-and-lacp">LAGs and LACP</a><a class="pill outline" href="#g-spanning-tree">Spanning tree</a><a class="pill outline" href="#g-lldp">LLDP</a><a class="pill outline" href="#g-radius">RADIUS</a><a class="pill outline" href="#g-port-access">Port access</a><a class="pill outline" href="#g-tunnelling">Tunnelling</a><a class="pill outline" href="#g-device-profiles">Device profiles</a><a class="pill outline" href="#g-routing">Routing</a><a class="pill outline" href="#g-stacking">Stacking</a><a class="pill outline" href="#g-diagnostics">Diagnostics</a><a class="pill outline" href="#g-rest">REST</a><a class="pill outline" href="#g-sandbox">Sandbox</a></nav>
+<section class="cxn-group" id="g-basics"><h2>Basics</h2><div class="cxn-list"><article class="cxn g-card" id="n-configure-terminal" data-q="configure terminal get into configuration mode everything that changes the switch starts here. the prompt grows (config) and stays until you type end. unique abbreviations work: conf t is the same thing. basics configure terminal hostname access-01 end conf t vlan 10 end"><div class="cxn-syn"><code>configure terminal</code></div><h3>Get into configuration mode</h3><p>Everything that changes the switch starts here. The prompt grows (config) and stays until you type end. Unique abbreviations work: conf t is the same thing.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> Take a checkpoint before a change you might want to undo: copy running-config checkpoint before-change.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">configure terminal</span><span class="ln">hostname access-01</span><span class="ln">end</span><span class="ln"></span><span class="ln">conf t</span><span class="ln">vlan 10</span><span class="ln">end</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-end">end</a><a href="#n-copy-running-config-checkpoint-x">copy running-config checkpoint &lt;WORD&gt;</a></p></article><article class="cxn g-card" id="n-end" data-q="end back to the # prompt leaves whatever context you are in and drops you at the exec prompt. exit goes up one level; end goes all the way. basics configure terminal interface 1/1/1 end configure terminal vlan 10 exit end"><div class="cxn-syn"><code>end</code></div><h3>Back to the # prompt</h3><p>Leaves whatever context you are in and drops you at the exec prompt. exit goes up one level; end goes all the way.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">configure terminal</span><span class="ln">interface 1/1/1</span><span class="ln">end</span><span class="ln"></span><span class="ln">configure terminal</span><span class="ln">vlan 10</span><span class="ln">exit</span><span class="ln">end</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-configure-terminal">configure terminal</a></p></article><article class="cxn g-card" id="n-hostname-x" data-q="hostname &lt;word&gt; name the switch sets the name in the prompt, in lldp and in logs. letters, digits, dots and dashes, no spaces. basics hostname access-01 hostname idf2-sw1"><div class="cxn-syn"><code>hostname <i>&lt;WORD&gt;</i></code></div><h3>Name the switch</h3><p>Sets the name in the prompt, in LLDP and in logs. Letters, digits, dots and dashes, no spaces.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> Put the location in the name. You will read it in an LLDP table at 2 a.m. someday.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">hostname access-01</span><span class="ln"></span><span class="ln">hostname idf2-sw1</span></code></pre></div></article><article class="cxn g-card" id="n-write-memory" data-q="write memory save the running config copies the running configuration to the startup configuration so it survives a reboot. copy running-config startup-config does the same. basics write memory copy running-config startup-config"><div class="cxn-syn"><code>write memory</code></div><h3>Save the running config</h3><p>Copies the running configuration to the startup configuration so it survives a reboot. copy running-config startup-config does the same.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> Save after the change is proven, not before. Until then a reboot is your rollback.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">write memory</span><span class="ln"></span><span class="ln">copy running-config startup-config</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-show-startup-config">show startup-config</a></p></article><article class="cxn g-card" id="n-show-running-config" data-q="show running-config what the switch is running the whole active configuration. add interface 1/1/5 to see one port&#x27;s block. pipe it to cut it down: | begin, | include. basics show running-config show running-config interface 1/1/5 show running-config | begin &quot;port-access role&quot;"><div class="cxn-syn"><code>show running-config</code></div><h3>What the switch is running</h3><p>The whole active configuration. Add interface 1/1/5 to see one port&#x27;s block. Pipe it to cut it down: | begin, | include.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call ver"><b>Changed:</b> 10.16 added server priority lines and the built-in radius group to the output; 10.15 printed neither.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show running-config</span><span class="ln"></span><span class="ln">show running-config interface 1/1/5</span><span class="ln"></span><span class="ln">show running-config | begin &quot;port-access role&quot;</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-show-startup-config">show startup-config</a><a href="#n-show-checkpoint">show checkpoint</a></p></article><article class="cxn g-card" id="n-show-startup-config" data-q="show startup-config what it will boot with the saved configuration, the one a reboot loads. if it differs from the running config, something has not been saved yet, on purpose or not. basics show startup-config checkpoint diff startup-config running-config"><div class="cxn-syn"><code>show startup-config</code></div><h3>What it will boot with</h3><p>The saved configuration, the one a reboot loads. If it differs from the running config, something has not been saved yet, on purpose or not.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show startup-config</span><span class="ln"></span><span class="ln">checkpoint diff startup-config running-config</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-write-memory">write memory</a><a href="#n-show-running-config">show running-config</a></p></article><article class="cxn g-card" id="n-show-version" data-q="show version which release it runs the aos-cx release and build. the first two letters say the platform: ml for the 6200, fl for the 6300. the release picker in the sandbox changes what this says. basics show version show version | include version"><div class="cxn-syn"><code>show version</code></div><h3>Which release it runs</h3><p>The AOS-CX release and build. The first two letters say the platform: ML for the 6200, FL for the 6300. The release picker in the sandbox changes what this says.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show version</span><span class="ln"></span><span class="ln">show version | include Version</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-show-system">show system</a></p></article><article class="cxn g-card" id="n-show-system" data-q="show system model, serial, uptime product name and part number, serial, base mac, uptime and cpu. the part number is how you tell a 6200f 12-port from a 24-port when nobody wrote it down. basics show system show system | include product"><div class="cxn-syn"><code>show system</code></div><h3>Model, serial, uptime</h3><p>Product name and part number, serial, base MAC, uptime and CPU. The part number is how you tell a 6200F 12-port from a 24-port when nobody wrote it down.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call ver"><b>Changed:</b> 10.18 added CPU idle, user and system lines; 10.17 printed CPU utilisation only.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show system</span><span class="ln"></span><span class="ln">show system | include Product</span></code></pre></div></article><article class="cxn g-card" id="n-no-page" data-q="no page stop the more prompt turns off paging for this session, so long output scrolls instead of stopping every screen. every script and screen capture should start with it. basics no page page 40"><div class="cxn-syn"><code>no page</code></div><h3>Stop the more prompt</h3><p>Turns off paging for this session, so long output scrolls instead of stopping every screen. Every script and screen capture should start with it.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">no page</span><span class="ln"></span><span class="ln">page 40</span></code></pre></div></article><article class="cxn g-card" id="n-copy-running-config-checkpoint-x" data-q="copy running-config checkpoint &lt;word&gt; a named restore point saves the running config under a name. if the running config is identical to a checkpoint that exists, 10.18 refuses with an identical checkpoint already exists. basics copy running-config checkpoint before-change show checkpoint"><div class="cxn-syn"><code>copy running-config checkpoint <i>&lt;WORD&gt;</i></code></div><h3>A named restore point</h3><p>Saves the running config under a name. If the running config is identical to a checkpoint that exists, 10.18 refuses with An identical checkpoint already exists.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> The box also makes system checkpoints (CPC...) after changes on its own. Name yours so you can find them.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">copy running-config checkpoint before-change</span><span class="ln"></span><span class="ln">show checkpoint</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-checkpoint-rollback-x">checkpoint rollback &lt;WORD&gt;</a><a href="#n-show-checkpoint">show checkpoint</a></p></article><article class="cxn g-card" id="n-checkpoint-rollback-x" data-q="checkpoint rollback &lt;word&gt; go back to a checkpoint replaces the running config with the checkpoint. it does not ask. checkpoint diff checkpoint &lt;name&gt; running-config shows the difference first, and that is worth doing. basics copy running-config checkpoint before-change checkpoint rollback before-change checkpoint rollback startup-config"><div class="cxn-syn"><code>checkpoint rollback <i>&lt;WORD&gt;</i></code></div><h3>Go back to a checkpoint</h3><p>Replaces the running config with the checkpoint. It does not ask. checkpoint diff checkpoint &lt;name&gt; running-config shows the difference first, and that is worth doing.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">copy running-config checkpoint before-change</span><span class="ln">checkpoint rollback before-change</span><span class="ln"></span><span class="ln">checkpoint rollback startup-config</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-copy-running-config-checkpoint-x">copy running-config checkpoint &lt;WORD&gt;</a><a href="#n-show-checkpoint">show checkpoint</a></p></article><article class="cxn g-card" id="n-show-checkpoint" data-q="show checkpoint list the checkpoints every checkpoint, newest first, with the startup config among them by date. show checkpoint &lt;name&gt; prints one. there is no show checkpoint list on 10.18: the box reads list as a checkpoint name. basics show checkpoint show checkpoint before-change"><div class="cxn-syn"><code>show checkpoint</code></div><h3>List the checkpoints</h3><p>Every checkpoint, newest first, with the startup config among them by date. show checkpoint &lt;name&gt; prints one. There is no show checkpoint list on 10.18: the box reads list as a checkpoint name.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show checkpoint</span><span class="ln"></span><span class="ln">show checkpoint before-change</span></code></pre></div></article><article class="cxn g-card" id="n-checkpoint-diff-x-x" data-q="checkpoint diff &lt;from&gt; &lt;to&gt; what changed between two configs compares any two of running-config, startup-config and checkpoint &lt;name&gt; as a unified diff: a line starting with a plus is only in the second, one starting with a minus only in the first. no difference in configs. means they match. worth running before every rollback. basics copy running-config checkpoint before-change checkpoint diff checkpoint before-change running-config checkpoint diff startup-config running-config"><div class="cxn-syn"><code>checkpoint diff <i>&lt;from&gt;</i> <i>&lt;to&gt;</i></code></div><h3>What changed between two configs</h3><p>Compares any two of running-config, startup-config and checkpoint &lt;name&gt; as a unified diff: a line starting with a plus is only in the second, one starting with a minus only in the first. No difference in configs. means they match. Worth running before every rollback.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> checkpoint diff startup-config running-config before you walk away tells you whether anything is unsaved.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">copy running-config checkpoint before-change</span><span class="ln">checkpoint diff checkpoint before-change running-config</span><span class="ln"></span><span class="ln">checkpoint diff startup-config running-config</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-checkpoint-rollback-x">checkpoint rollback &lt;WORD&gt;</a><a href="#n-show-checkpoint">show checkpoint</a></p></article></div></section><section class="cxn-group" id="g-vlans"><h2>VLANs</h2><div class="cxn-list"><article class="cxn g-card" id="n-vlan-x" data-q="vlan &lt;1-4094&gt; create a vlan creates the vlan and enters its context. name it there. a port cannot use a vlan that does not exist. vlans vlan 10 name staff vlan 30 name voice voice"><div class="cxn-syn"><code>vlan <i>&lt;1-4094&gt;</i></code></div><h3>Create a VLAN</h3><p>Creates the VLAN and enters its context. Name it there. A port cannot use a VLAN that does not exist.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">vlan 10</span><span class="ln">name STAFF</span><span class="ln"></span><span class="ln">vlan 30</span><span class="ln">name VOICE</span><span class="ln">voice</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-show-vlan">show vlan</a><a href="#n-name-x">name &lt;WORD&gt;</a></p></article><article class="cxn g-card" id="n-name-x" data-q="name &lt;word&gt; name the vlan shows in show vlan and in lldp. one word here; the box takes a longer line too. vlans vlan 20 name printers vlan 99 name ap-mgmt"><div class="cxn-syn"><code>name <i>&lt;WORD&gt;</i></code></div><h3>Name the VLAN</h3><p>Shows in show vlan and in LLDP. One word here; the box takes a longer line too.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">vlan 20</span><span class="ln">name PRINTERS</span><span class="ln"></span><span class="ln">vlan 99</span><span class="ln">name AP-MGMT</span></code></pre></div></article><article class="cxn g-card" id="n-voice" data-q="voice mark the voice vlan tells lldp-med this vlan carries voice. phones that speak lldp-med learn it from the network policy the switch sends on ports that tag it: vlan, priority 6, dscp 46 with nothing else configured. vlans vlan 30 voice show vlan voice"><div class="cxn-syn"><code>voice</code></div><h3>Mark the voice VLAN</h3><p>Tells LLDP-MED this VLAN carries voice. Phones that speak LLDP-MED learn it from the network policy the switch sends on ports that tag it: VLAN, priority 6, DSCP 46 with nothing else configured.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> Tag the voice VLAN on the phone port and leave the data VLAN native, so the PC behind the phone needs nothing.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">vlan 30</span><span class="ln">voice</span><span class="ln"></span><span class="ln">show vlan voice</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-lldp-med-network-policy">lldp med network-policy</a><a href="#n-show-lldp-neighbor-info">show lldp neighbor-info</a></p></article><article class="cxn g-card" id="n-show-vlan" data-q="show vlan vlans and their ports every vlan, up or down, and which ports carry it. down with no_member_port means no port is in it; no_member_forwarding means ports are in it but none is up. a role a client holds adds its vlans to that port here. vlans show vlan show vlan 30 show vlan | include voice"><div class="cxn-syn"><code>show vlan</code></div><h3>VLANs and their ports</h3><p>Every VLAN, up or down, and which ports carry it. Down with no_member_port means no port is in it; no_member_forwarding means ports are in it but none is up. A role a client holds adds its VLANs to that port here.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show vlan</span><span class="ln"></span><span class="ln">show vlan 30</span><span class="ln"></span><span class="ln">show vlan | include VOICE</span></code></pre></div></article></div></section><section class="cxn-group" id="g-interfaces"><h2>Interfaces</h2><div class="cxn-list"><article class="cxn g-card" id="n-interface-x" data-q="interface &lt;ifname&gt; configure a port or a range enters one port (1/1/5) or a range (1/1/1-1/1/8). member/slot/port: 1/1/5 is member 1, slot 1, port 5. interfaces interface 1/1/5 description printer interface 1/1/1-1/1/8 no shutdown"><div class="cxn-syn"><code>interface <i>&lt;IFNAME&gt;</i></code></div><h3>Configure a port or a range</h3><p>Enters one port (1/1/5) or a range (1/1/1-1/1/8). Member/slot/port: 1/1/5 is member 1, slot 1, port 5.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/5</span><span class="ln">description printer</span><span class="ln"></span><span class="ln">interface 1/1/1-1/1/8</span><span class="ln">no shutdown</span></code></pre></div></article><article class="cxn g-card" id="n-shutdown" data-q="shutdown turn a port off admin down. no shutdown turns it back on and also clears an error-disabled port. a port nobody configured may be shut: show interface brief says administratively down. interfaces interface 1/1/11 shutdown interface 1/1/8 no shutdown"><div class="cxn-syn"><code>shutdown</code></div><h3>Turn a port off</h3><p>Admin down. no shutdown turns it back on and also clears an error-disabled port. A port nobody configured may be shut: show interface brief says Administratively down.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/11</span><span class="ln">shutdown</span><span class="ln"></span><span class="ln">interface 1/1/8</span><span class="ln">no shutdown</span></code></pre></div></article><article class="cxn g-card" id="n-description-x" data-q="description &lt;line&gt; say what is on the port free text on the port, shown in show interface brief and lldp. interfaces interface 1/1/7 description desk 7, pair 3-6 open at 23 m interface lag 1 description uplink to core"><div class="cxn-syn"><code>description <i>&lt;LINE&gt;</i></code></div><h3>Say what is on the port</h3><p>Free text on the port, shown in show interface brief and LLDP.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> Describe uplinks and anything odd. The next person reads the brief, not your ticket.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/7</span><span class="ln">description desk 7, pair 3-6 open at 23 m</span><span class="ln"></span><span class="ln">interface lag 1</span><span class="ln">description uplink to core</span></code></pre></div></article><article class="cxn g-card" id="n-no-routing" data-q="no routing make it a switch port a routed port takes an ip address; a switched port takes vlans. no routing makes it switched. some platforms (and the switch simulator) start every port routed, so check before you assign a vlan. interfaces interface 1/1/1 no routing vlan access 10 interface 1/1/12 routing ip address 203.0.113.129/25"><div class="cxn-syn"><code>no routing</code></div><h3>Make it a switch port</h3><p>A routed port takes an ip address; a switched port takes VLANs. no routing makes it switched. Some platforms (and the Switch Simulator) start every port routed, so check before you assign a VLAN.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/1</span><span class="ln">no routing</span><span class="ln">vlan access 10</span><span class="ln"></span><span class="ln">interface 1/1/12</span><span class="ln">routing</span><span class="ln">ip address 203.0.113.129/25</span></code></pre></div></article><article class="cxn g-card" id="n-vlan-access-x" data-q="vlan access &lt;1-4094&gt; one untagged vlan makes the port an access port in that vlan. the vlan has to exist. interfaces interface 1/1/5 vlan access 20 interface 1/1/1-1/1/4 vlan access 10"><div class="cxn-syn"><code>vlan access <i>&lt;1-4094&gt;</i></code></div><h3>One untagged VLAN</h3><p>Makes the port an access port in that VLAN. The VLAN has to exist.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/5</span><span class="ln">vlan access 20</span><span class="ln"></span><span class="ln">interface 1/1/1-1/1/4</span><span class="ln">vlan access 10</span></code></pre></div></article><article class="cxn g-card" id="n-vlan-trunk-allowed-x" data-q="vlan trunk allowed &lt;vlist&gt; tag vlans on a port makes the port a trunk and adds vlans to its allowed list. it adds: vlan trunk allowed 10 then vlan trunk allowed 20 leaves 10,20, as the lab switch did. no vlan trunk allowed 10 takes one out. interfaces interface 1/1/3 vlan trunk native 10 vlan trunk allowed 10,30 interface lag 1 vlan trunk allowed 10,20,30"><div class="cxn-syn"><code>vlan trunk allowed <i>&lt;VLIST&gt;</i></code></div><h3>Tag VLANs on a port</h3><p>Makes the port a trunk and adds VLANs to its allowed list. It adds: vlan trunk allowed 10 then vlan trunk allowed 20 leaves 10,20, as the lab switch did. no vlan trunk allowed 10 takes one out.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> A trunk prints vlan trunk native 1 even when you never set it. Set the native VLAN on purpose.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/3</span><span class="ln">vlan trunk native 10</span><span class="ln">vlan trunk allowed 10,30</span><span class="ln"></span><span class="ln">interface lag 1</span><span class="ln">vlan trunk allowed 10,20,30</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-vlan-trunk-native-x">vlan trunk native &lt;1-4094&gt;</a></p></article><article class="cxn g-card" id="n-vlan-trunk-native-x" data-q="vlan trunk native &lt;1-4094&gt; the untagged vlan on a trunk the vlan whose frames cross the trunk untagged. on a phone port it is the pc&#x27;s data vlan; the phone tags voice. interfaces interface 1/1/3 vlan trunk native 10 vlan trunk allowed 30 interface 1/1/13 vlan trunk native 99 vlan trunk allowed 10,20,99"><div class="cxn-syn"><code>vlan trunk native <i>&lt;1-4094&gt;</i></code></div><h3>The untagged VLAN on a trunk</h3><p>The VLAN whose frames cross the trunk untagged. On a phone port it is the PC&#x27;s data VLAN; the phone tags voice.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/3</span><span class="ln">vlan trunk native 10</span><span class="ln">vlan trunk allowed 30</span><span class="ln"></span><span class="ln">interface 1/1/13</span><span class="ln">vlan trunk native 99</span><span class="ln">vlan trunk allowed 10,20,99</span></code></pre></div></article><article class="cxn g-card" id="n-speed-auto" data-q="speed auto port speed and auto-negotiation speed auto offers every speed the port can do; speed auto 1g 2.5g offers only those; speed 1000-full fixes it and turns auto-negotiation off. since 10.09 the cli hides speeds the hardware lacks. interfaces interface 1/1/1 speed auto interface 1/1/1 speed auto 1g 2.5g 5g interface 1/1/2 no speed"><div class="cxn-syn"><code>speed auto</code></div><h3>Port speed and auto-negotiation</h3><p>speed auto offers every speed the port can do; speed auto 1g 2.5g offers only those; speed 1000-full fixes it and turns auto-negotiation off. Since 10.09 the CLI hides speeds the hardware lacks.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call fake"><b>Where the sandbox pretends:</b> The sandbox models the hardware. The Switch Simulator has virtual ports and hides speed entirely; the syntax is from HPE&#x27;s fundamentals guide.</div><div class="cxn-call tip"><b>Habit:</b> Leave Smart Rate ports on speed auto. Pinning an AP to 1G to fix a flap hides the real problem, usually the cable.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/1</span><span class="ln">speed auto</span><span class="ln"></span><span class="ln">interface 1/1/1</span><span class="ln">speed auto 1g 2.5g 5g</span><span class="ln"></span><span class="ln">interface 1/1/2</span><span class="ln">no speed</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-show-interface-x-physical">show interface &lt;PORT&gt; physical</a><a href="#n-diag-cable-diagnostic-test-x">diag cable-diagnostic test &lt;PORT&gt;</a></p></article><article class="cxn g-card" id="n-show-interface-brief" data-q="show interface brief every port on one screen native vlan, mode, enabled, up or down, why it is down, speed and description. read the reason column first. interfaces show interface brief show interface brief | include down"><div class="cxn-syn"><code>show interface brief</code></div><h3>Every port on one screen</h3><p>Native VLAN, mode, enabled, up or down, why it is down, speed and description. Read the Reason column first.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show interface brief</span><span class="ln"></span><span class="ln">show interface brief | include down</span></code></pre></div></article><article class="cxn g-card" id="n-show-interface-x" data-q="show interface &lt;port&gt; one port in detail state, why it is down (state information), vlans and counters. blocked by port access security means the link is up but no client has authenticated. interfaces show interface 1/1/5 show interface 1/1/5 | include state"><div class="cxn-syn"><code>show interface <i>&lt;PORT&gt;</i></code></div><h3>One port in detail</h3><p>State, why it is down (State information), VLANs and counters. Blocked by Port Access Security means the link is up but no client has authenticated.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call ver"><b>Changed:</b> 10.15 says how long the link has been up; 10.16 says up; 10.17 added the Hardware port line.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show interface 1/1/5</span><span class="ln"></span><span class="ln">show interface 1/1/5 | include State</span></code></pre></div></article><article class="cxn g-card" id="n-show-interface-x-physical" data-q="show interface &lt;port&gt; physical speed, poe and state link and admin state, the speed it runs at next to what it is configured to allow, flow control, poe draw. interfaces show interface 1/1/1 physical show interface physical"><div class="cxn-syn"><code>show interface <i>&lt;PORT&gt;</i> physical</code></div><h3>Speed, PoE and state</h3><p>Link and admin state, the speed it runs at next to what it is configured to allow, flow control, PoE draw.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call fake"><b>Where the sandbox pretends:</b> The PoE column is the sandbox&#x27;s: the lab&#x27;s virtual ports draw nothing.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show interface 1/1/1 physical</span><span class="ln"></span><span class="ln">show interface physical</span></code></pre></div></article><article class="cxn g-card" id="n-show-mac-address-table" data-q="show mac-address-table who is behind which port learned macs by vlan and port. port-access-security means the mac was learned through port-access. filter by vlan or interface, or pipe it. interfaces show mac-address-table show mac-address-table interface 1/1/6 show mac-address-table | include 53:4c"><div class="cxn-syn"><code>show mac-address-table</code></div><h3>Who is behind which port</h3><p>Learned MACs by VLAN and port. port-access-security means the MAC was learned through port-access. Filter by vlan or interface, or pipe it.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show mac-address-table</span><span class="ln"></span><span class="ln">show mac-address-table interface 1/1/6</span><span class="ln"></span><span class="ln">show mac-address-table | include 53:4c</span></code></pre></div></article></div></section><section class="cxn-group" id="g-lags-and-lacp"><h2>LAGs and LACP</h2><figure class="figure panel cxn-fig" id="fig-cx-lacp"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 486" role="img" aria-label="LACP forming a two-port LAG between an access switch and a core switch. LACPDUs go both ways on each member, every 30 seconds or every second with lacp rate fast. Three stages: both ends active and aggregable, then in sync, then collecting and distributing, when show lacp interfaces reads ALFNCD on both ends. Gotchas: two passive ends never start, a new LAG on 10.18 is administratively down until no shutdown, and a static LAG sends no LACPDUs so a miscabled member still forwards.">
+  <defs>
+    <style>
+      .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+      .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+      .hd{fill:#fff;font-size:15px;font-weight:700}
+      .bx{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
+      .who{fill:#EAF2F6;font-size:14px;font-weight:700}
+      .sub{fill:#8BA2AE;font-size:11px}
+      .lbl{fill:#EAF2F6;font-size:12.5px}
+      .det{fill:#8BA2AE;font-size:11.5px}
+      .note{fill:#B0C4CF;font-size:12px}
+      .port{fill:#B0C4CF;font-size:11px}
+    </style>
+    <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5ED2DA"/></marker>
+  </defs>
+
+  <text x="20" y="28" class="t hd">LACP: both ends have to agree before a member carries traffic</text>
+
+  <rect x="40" y="48" width="190" height="104" rx="10" class="bx"/>
+  <text x="56" y="72" class="t who">access-01</text>
+  <text x="56" y="92" class="m port">interface lag 1</text>
+  <text x="56" y="110" class="m port">lacp mode active</text>
+  <text x="56" y="128" class="m port">members 1/1/13-14</text>
+  <circle cx="214" cy="66" r="9" fill="#F5A524"/>
+  <text x="214" y="70" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <rect x="670" y="48" width="190" height="104" rx="10" class="bx"/>
+  <text x="686" y="72" class="t who">core</text>
+  <text x="686" y="92" class="m port">interface lag 1</text>
+  <text x="686" y="110" class="m port">lacp mode active</text>
+  <text x="686" y="128" class="m port">members 1/1/49-50</text>
+
+  <line x1="232" y1="84" x2="668" y2="84" stroke="#5ED2DA" stroke-width="2" marker-start="url(#at)" marker-end="url(#at)"/>
+  <line x1="232" y1="126" x2="668" y2="126" stroke="#5ED2DA" stroke-width="2" marker-start="url(#at)" marker-end="url(#at)"/>
+  <text x="450" y="110" class="t det" text-anchor="middle">LACPDUs both ways on each member: every 30 s, or 1 s with lacp rate fast</text>
+  <circle cx="450" cy="148" r="9" fill="#F5A524"/>
+  <text x="450" y="152" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">3</text>
+
+  <rect x="40" y="182" width="260" height="120" rx="10" class="bx"/>
+  <text x="56" y="206" class="t lbl" font-weight="700">1. Hello: both ends active</text>
+  <text x="56" y="226" class="t det">each sends system id, key and port</text>
+  <text x="95" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">A</text>
+  <text x="125" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">L</text>
+  <text x="155" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">F</text>
+  <text x="185" y="276" class="m" font-size="17" font-weight="700" fill="#8BA2AE" fill-opacity="0.35" text-anchor="middle">N</text>
+  <text x="215" y="276" class="m" font-size="17" font-weight="700" fill="#8BA2AE" fill-opacity="0.35" text-anchor="middle">C</text>
+  <text x="245" y="276" class="m" font-size="17" font-weight="700" fill="#8BA2AE" fill-opacity="0.35" text-anchor="middle">D</text>
+
+  <rect x="320" y="182" width="260" height="120" rx="10" class="bx"/>
+  <text x="336" y="206" class="t lbl" font-weight="700">2. In sync: same aggregation</text>
+  <text x="336" y="226" class="t det">each agrees the other belongs in lag 1</text>
+  <text x="375" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">A</text>
+  <text x="405" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">L</text>
+  <text x="435" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">F</text>
+  <text x="465" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">N</text>
+  <text x="495" y="276" class="m" font-size="17" font-weight="700" fill="#8BA2AE" fill-opacity="0.35" text-anchor="middle">C</text>
+  <text x="525" y="276" class="m" font-size="17" font-weight="700" fill="#8BA2AE" fill-opacity="0.35" text-anchor="middle">D</text>
+
+  <rect x="600" y="182" width="260" height="120" rx="10" class="bx"/>
+  <text x="616" y="206" class="t lbl" font-weight="700">3. Up: collecting, distributing</text>
+  <text x="616" y="226" class="t det">only now does the member carry traffic</text>
+  <text x="655" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">A</text>
+  <text x="685" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">L</text>
+  <text x="715" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">F</text>
+  <text x="745" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">N</text>
+  <text x="775" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">C</text>
+  <text x="805" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">D</text>
+
+  <circle cx="290" cy="202" r="9" fill="#F5A524"/>
+  <text x="290" y="206" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+
+  <text x="40" y="326" class="t det">A active, P passive · L long timeout, S short · F aggregable · N in sync · C collecting · D distributing</text>
+
+  <circle cx="30" cy="362" r="9" fill="#F5A524"/>
+  <text x="30" y="366" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <text x="48" y="366" class="t note">Passive on both ends: nobody starts, nothing forms. One end active is enough; both active is the habit.</text>
+  <circle cx="30" cy="390" r="9" fill="#F5A524"/>
+  <text x="30" y="394" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <text x="48" y="394" class="t note">A new LAG on 10.18 is administratively down. Nothing forms until no shutdown on interface lag 1.</text>
+  <circle cx="30" cy="418" r="9" fill="#F5A524"/>
+  <text x="30" y="422" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">3</text>
+  <text x="48" y="422" class="t note">No lacp mode means a static LAG: no LACPDUs, so a member cabled to the wrong box still forwards.</text>
+  <text x="48" y="452" class="t det">Proof: show lacp interfaces reads ALFNCD for actor and partner on every member; show lacp aggregates lists them.</text>
+</svg><figcaption>LACP bringing up a two-member LAG, and the flags that prove it.</figcaption><ul class="cxn-tips"><li>Build the LAG first, then add members, then no shutdown the LAG. Settings live on the LAG.</li><li>lacp mode active on both ends. A static LAG only where the far end cannot speak LACP.</li><li>lacp rate fast on both ends notices a dead member in about three seconds instead of ninety.</li><li>Done means ALFNCD for actor and partner on every member in show lacp interfaces.</li></ul></figure><div class="cxn-list"><article class="cxn g-card" id="n-interface-lag-x" data-q="interface lag &lt;1-256&gt; create a link aggregation creates lagn and enters it. on 10.18 a new lag is administratively down: nothing forms until no shutdown. lags and lacp interface lag 1 no shutdown no routing vlan trunk allowed 10,20 lacp mode active"><div class="cxn-syn"><code>interface lag <i>&lt;1-256&gt;</i></code></div><h3>Create a link aggregation</h3><p>Creates lagN and enters it. On 10.18 a new LAG is administratively down: nothing forms until no shutdown.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> Configure the LAG first, then put ports in it. Settings live on the LAG, not the members.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface lag 1</span><span class="ln">no shutdown</span><span class="ln">no routing</span><span class="ln">vlan trunk allowed 10,20</span><span class="ln">lacp mode active</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-lag-x">lag &lt;1-256&gt;</a><a href="#n-lacp-mode-x">lacp mode &lt;active|passive&gt;</a></p></article><article class="cxn g-card" id="n-lag-x" data-q="lag &lt;1-256&gt; put a port in a lag makes the port a member. its vlan settings come from the lag from then on. lags and lacp interface 1/1/13-1/1/14 lag 1"><div class="cxn-syn"><code>lag <i>&lt;1-256&gt;</i></code></div><h3>Put a port in a LAG</h3><p>Makes the port a member. Its VLAN settings come from the LAG from then on.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/13-1/1/14</span><span class="ln">lag 1</span></code></pre></div></article><article class="cxn g-card" id="n-lacp-mode-x" data-q="lacp mode &lt;active|passive&gt; run lacp active sends lacpdus; passive only answers. two passive ends never form a lag. without lacp mode the lag is static: no lacp at all. lags and lacp interface lag 1 lacp mode active interface lag 1 lacp mode passive"><div class="cxn-syn"><code>lacp mode <i>&lt;active|passive&gt;</i></code></div><h3>Run LACP</h3><p>active sends LACPDUs; passive only answers. Two passive ends never form a LAG. Without lacp mode the LAG is static: no LACP at all.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface lag 1</span><span class="ln">lacp mode active</span><span class="ln"></span><span class="ln">interface lag 1</span><span class="ln">lacp mode passive</span></code></pre></div></article><article class="cxn g-card" id="n-lacp-rate-x" data-q="lacp rate &lt;fast|slow&gt; lacpdus every second asks the partner for a short timeout: a dead link is noticed in about three seconds instead of ninety. the s in psfncd is the partner asking for the same. lags and lacp interface lag 1 lacp rate fast interface lag 1 no lacp rate"><div class="cxn-syn"><code>lacp rate <i>&lt;fast|slow&gt;</i></code></div><h3>LACPDUs every second</h3><p>Asks the partner for a short timeout: a dead link is noticed in about three seconds instead of ninety. The S in PSFNCD is the partner asking for the same.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface lag 1</span><span class="ln">lacp rate fast</span><span class="ln"></span><span class="ln">interface lag 1</span><span class="ln">no lacp rate</span></code></pre></div></article><article class="cxn g-card" id="n-show-lacp-interfaces" data-q="show lacp interfaces did the partner agree actor and partner state per member. alfncd is what you want: active, long timeout, aggregable, in sync, collecting, distributing. an empty partner line means nothing is talking back. lags and lacp show lacp interfaces show lacp interfaces 1/1/13"><div class="cxn-syn"><code>show lacp interfaces</code></div><h3>Did the partner agree</h3><p>Actor and partner state per member. ALFNCD is what you want: Active, Long timeout, aggregable, in sync, collecting, distributing. An empty partner line means nothing is talking back.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call ver"><b>Changed:</b> 10.18 added IE (LACP fallback active) to the legend; 10.17 has no such line.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show lacp interfaces</span><span class="ln"></span><span class="ln">show lacp interfaces 1/1/13</span></code></pre></div></article><article class="cxn g-card" id="n-show-lacp-aggregates" data-q="show lacp aggregates each lag, its members and mode members, heartbeat rate, hash and mode per lag. lags and lacp show lacp aggregates show interface lag 1"><div class="cxn-syn"><code>show lacp aggregates</code></div><h3>Each LAG, its members and mode</h3><p>Members, heartbeat rate, hash and mode per LAG.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show lacp aggregates</span><span class="ln"></span><span class="ln">show interface lag 1</span></code></pre></div></article></div></section><section class="cxn-group" id="g-spanning-tree"><h2>Spanning tree</h2><div class="cxn-list"><article class="cxn g-card" id="n-spanning-tree" data-q="spanning-tree turn on spanning tree mstp by default. without it an accidental loop takes the vlan down. mode rpvst switches to rapid pvst+. spanning tree spanning-tree spanning-tree spanning-tree priority 4"><div class="cxn-syn"><code>spanning-tree</code></div><h3>Turn on spanning tree</h3><p>MSTP by default. Without it an accidental loop takes the VLAN down. mode rpvst switches to Rapid PVST+.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> Decide who is root and set their priority low. Leave it to chance and the oldest switch wins.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">spanning-tree</span><span class="ln"></span><span class="ln">spanning-tree</span><span class="ln">spanning-tree priority 4</span></code></pre></div></article><article class="cxn g-card" id="n-spanning-tree-port-type-admin-edge" data-q="spanning-tree port-type admin-edge an edge port a port where only end devices live: it forwards at once instead of waiting through listening and learning. spanning tree interface 1/1/1-1/1/12 spanning-tree port-type admin-edge"><div class="cxn-syn"><code>spanning-tree port-type admin-edge</code></div><h3>An edge port</h3><p>A port where only end devices live: it forwards at once instead of waiting through listening and learning.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/1-1/1/12</span><span class="ln">spanning-tree port-type admin-edge</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-spanning-tree-bpdu-guard">spanning-tree bpdu-guard</a></p></article><article class="cxn g-card" id="n-spanning-tree-bpdu-guard" data-q="spanning-tree bpdu-guard shut the port if a switch appears a bpdu arriving on the port error-disables it. pair it with admin-edge on every access port. no shutdown brings it back once the switch is gone. spanning tree interface 1/1/1-1/1/12 spanning-tree bpdu-guard"><div class="cxn-syn"><code>spanning-tree bpdu-guard</code></div><h3>Shut the port if a switch appears</h3><p>A BPDU arriving on the port error-disables it. Pair it with admin-edge on every access port. no shutdown brings it back once the switch is gone.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> Access ports: admin-edge plus bpdu-guard. Uplinks: neither.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/1-1/1/12</span><span class="ln">spanning-tree bpdu-guard</span></code></pre></div></article><article class="cxn g-card" id="n-loop-protect" data-q="loop-protect catch loops spanning tree cannot see sends probes and error-disables the port if one comes back, which catches a loop through an unmanaged switch that drops bpdus. spanning tree interface 1/1/1-1/1/12 loop-protect"><div class="cxn-syn"><code>loop-protect</code></div><h3>Catch loops spanning tree cannot see</h3><p>Sends probes and error-disables the port if one comes back, which catches a loop through an unmanaged switch that drops BPDUs.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/1-1/1/12</span><span class="ln">loop-protect</span></code></pre></div></article><article class="cxn g-card" id="n-show-spanning-tree" data-q="show spanning-tree root, role and state per port who is root, which port leads there, and each port&#x27;s role and state. spanning tree show spanning-tree show spanning-tree | include root"><div class="cxn-syn"><code>show spanning-tree</code></div><h3>Root, role and state per port</h3><p>Who is root, which port leads there, and each port&#x27;s role and state.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show spanning-tree</span><span class="ln"></span><span class="ln">show spanning-tree | include Root</span></code></pre></div></article></div></section><section class="cxn-group" id="g-lldp"><h2>LLDP</h2><figure class="figure panel cxn-fig" id="fig-cx-lldp-med"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" role="img" aria-label="LLDP-MED negotiation on a phone port. The IP phone sends an LLDPDU with LLDP-MED TLVs first; only then does the switch answer with a network policy for voice on VLAN 30, tagged, priority 6, DSCP 46. The phone then tags voice into VLAN 30 while the PC behind it stays untagged in native VLAN 10. The switch side is vlan 30 marked voice and port 1/1/3 as a trunk with native 10 and allowed 10 and 30. Gotchas: the switch waits for the phone's MED TLVs, and port-access ports drop LLDP from unauthenticated devices unless allow-lldp-bpdu is set.">
+  <defs>
+    <style>
+      .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+      .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+      .hd{fill:#fff;font-size:15px;font-weight:700}
+      .bx{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
+      .who{fill:#EAF2F6;font-size:14px;font-weight:700}
+      .sub{fill:#8BA2AE;font-size:11px}
+      .lbl{fill:#EAF2F6;font-size:12.5px}
+      .det{fill:#8BA2AE;font-size:11px}
+      .detG{fill:#8CE05E;font-size:11.5px}
+      .note{fill:#B0C4CF;font-size:12px}
+      .cfg{fill:#EAF2F6;font-size:11.5px}
+      .life{stroke:#ffffff;stroke-opacity:0.16;stroke-dasharray:3 5}
+    </style>
+    <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#B0C4CF"/></marker>
+    <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5ED2DA"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8CE05E"/></marker>
+  </defs>
+
+  <text x="20" y="28" class="t hd">LLDP-MED: the phone speaks first, then the switch hands it the voice VLAN</text>
+
+  <rect x="50" y="46" width="180" height="46" rx="10" class="bx"/>
+  <text x="140" y="66" class="t who" text-anchor="middle">IP phone</text>
+  <text x="140" y="83" class="t sub" text-anchor="middle">MED endpoint, PC behind it</text>
+  <rect x="420" y="46" width="180" height="46" rx="10" class="bx"/>
+  <text x="510" y="66" class="t who" text-anchor="middle">Switch 1/1/3</text>
+  <text x="510" y="83" class="t sub" text-anchor="middle">network connectivity device</text>
+  <line x1="140" y1="94" x2="140" y2="362" class="life"/>
+  <line x1="510" y1="94" x2="510" y2="362" class="life"/>
+
+  <line x1="148" y1="136" x2="502" y2="136" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <text x="325" y="127" class="t lbl" text-anchor="middle">LLDPDU with LLDP-MED TLVs</text>
+  <text x="325" y="153" class="m det" text-anchor="middle">capabilities, class III, inventory, PoE</text>
+  <circle cx="448" cy="123" r="9" fill="#F5A524"/>
+  <text x="448" y="127" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+
+  <line x1="502" y1="202" x2="148" y2="202" stroke="#8CE05E" stroke-width="1.8" marker-end="url(#ag)"/>
+  <text x="325" y="193" class="t lbl" text-anchor="middle">LLDPDU with a network policy</text>
+  <circle cx="436" cy="189" r="9" fill="#F5A524"/>
+  <text x="436" y="193" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <text x="325" y="220" class="m detG" text-anchor="middle">voice: VLAN 30, tagged, prio 6, DSCP 46</text>
+
+  <rect x="58" y="238" width="262" height="40" rx="9" fill="rgba(140,224,94,0.08)" stroke="#8CE05E" stroke-opacity="0.5"/>
+  <text x="189" y="262" class="t lbl" text-anchor="middle">Phone tags voice 30, DHCPs there</text>
+
+  <line x1="148" y1="306" x2="502" y2="306" stroke="#5ED2DA" stroke-width="1.6" marker-end="url(#at)"/>
+  <text x="325" y="298" class="t lbl" text-anchor="middle">voice frames, tagged 30</text>
+  <line x1="148" y1="346" x2="502" y2="346" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <text x="325" y="338" class="t lbl" text-anchor="middle">PC frames, untagged: native VLAN 10</text>
+
+  <rect x="640" y="46" width="240" height="206" rx="10" class="bx"/>
+  <text x="656" y="68" class="t sub" letter-spacing="1.2">ON THE SWITCH</text>
+  <text x="656" y="94" class="m cfg">vlan 30</text>
+  <text x="684" y="112" class="m cfg">name VOICE</text>
+  <text x="684" y="130" class="m cfg" fill="#8CE05E">voice</text>
+  <text x="656" y="156" class="m cfg">interface 1/1/3</text>
+  <text x="684" y="174" class="m cfg">vlan trunk native 10</text>
+  <text x="684" y="192" class="m cfg">vlan trunk allowed 10,30</text>
+  <text x="656" y="218" class="t sub">lldp med network-policy is on</text>
+  <text x="656" y="234" class="t sub">by default on every port</text>
+
+  <rect x="640" y="268" width="240" height="94" rx="10" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-dasharray="4 4"/>
+  <text x="656" y="290" class="t sub" letter-spacing="1.2">WHAT PROVES IT</text>
+  <text x="656" y="314" class="m cfg">show lldp neighbor-info 1/1/3</text>
+  <text x="656" y="334" class="m cfg">show vlan voice</text>
+  <text x="656" y="354" class="m cfg">show mac-address-table</text>
+
+  <circle cx="30" cy="398" r="9" fill="#F5A524"/>
+  <text x="30" y="402" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <text x="48" y="402" class="t note">The policy goes out only after the switch hears the phone's MED TLVs. 10.18 added lldp med force-send.</text>
+  <circle cx="30" cy="428" r="9" fill="#F5A524"/>
+  <text x="30" y="432" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <text x="48" y="432" class="t note">On a port-access port, LLDP from a device that has not authenticated is dropped. allow-lldp-bpdu lets it in.</text>
+  <text x="48" y="456" class="t det">No MED from the phone, no network policy back: check the phone's LLDP setting before the switch.</text>
+</svg><figcaption>LLDP-MED on a phone port: the phone speaks first, the switch answers with the voice VLAN.</figcaption><ul class="cxn-tips"><li>Make the voice VLAN a real VLAN with voice set, tag it on the phone port, and leave the data VLAN native.</li><li>No network policy on the phone? Check the phone sends LLDP-MED before touching the switch.</li><li>On a NAC port add allow-lldp-bpdu, or LLDP from the phone is dropped before anything reads it.</li></ul></figure><div class="cxn-list"><article class="cxn g-card" id="n-lldp-med-network-policy" data-q="lldp med network-policy send voice vlan policy to phones on by default. on a port that tags a voice vlan the switch sends lldp-med network policy, but only after it has heard the endpoint&#x27;s own lldp-med tlvs. no lldp med network-policy stops it. lldp interface 1/1/3 lldp med network-policy interface 1/1/3 no lldp med network-policy"><div class="cxn-syn"><code>lldp med network-policy</code></div><h3>Send voice VLAN policy to phones</h3><p>On by default. On a port that tags a voice VLAN the switch sends LLDP-MED network policy, but only after it has heard the endpoint&#x27;s own LLDP-MED TLVs. no lldp med network-policy stops it.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call ver"><b>Changed:</b> New in 10.18: lldp med force-send. By default MED TLVs go out only after the endpoint&#x27;s own arrive (HPE&#x27;s guide and the lab agree); the sandbox does not model force-send.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/3</span><span class="ln">lldp med network-policy</span><span class="ln"></span><span class="ln">interface 1/1/3</span><span class="ln">no lldp med network-policy</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-voice">voice</a></p></article><article class="cxn g-card" id="n-lldp-x" data-q="lldp &lt;transmit|receive&gt; lldp on a port lldp sends and listens on every port by default. no lldp transmit and no lldp receive turn each half off. lldp interface 1/1/9 no lldp transmit interface 1/1/9 lldp transmit lldp receive"><div class="cxn-syn"><code>lldp <i>&lt;transmit|receive&gt;</i></code></div><h3>LLDP on a port</h3><p>LLDP sends and listens on every port by default. no lldp transmit and no lldp receive turn each half off.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/9</span><span class="ln">no lldp transmit</span><span class="ln"></span><span class="ln">interface 1/1/9</span><span class="ln">lldp transmit</span><span class="ln">lldp receive</span></code></pre></div></article><article class="cxn g-card" id="n-show-lldp-neighbor-info" data-q="show lldp neighbor-info who is plugged in where the lldp table: port, chassis, remote port, name. give a port for the full record: capabilities, power it asks for, lldp-med class and network policy. lldp show lldp neighbor-info show lldp neighbor-info 1/1/3 show lldp neighbor-info | include cam"><div class="cxn-syn"><code>show lldp neighbor-info</code></div><h3>Who is plugged in where</h3><p>The LLDP table: port, chassis, remote port, name. Give a port for the full record: capabilities, power it asks for, LLDP-MED class and network policy.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> On a port-access port the switch drops LLDP from a client that has not authenticated, unless the port has allow-lldp-bpdu. An empty neighbour on a phone port is often that.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show lldp neighbor-info</span><span class="ln"></span><span class="ln">show lldp neighbor-info 1/1/3</span><span class="ln"></span><span class="ln">show lldp neighbor-info | include CAM</span></code></pre></div></article></div></section><section class="cxn-group" id="g-radius"><h2>RADIUS</h2><figure class="figure panel cxn-fig" id="fig-cx-radius"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 604" role="img" aria-label="Sequence diagram of 802.1X against ClearPass. The switch asks the laptop for its identity, relays EAP to ClearPass inside RADIUS Access-Requests on UDP 1812, the PEAP or EAP-TLS exchange runs laptop to ClearPass over several round trips, ClearPass answers Access-Accept carrying Aruba-User-Role EMPLOYEE, the switch sends EAP-Success and opens the port in that role's VLAN, and later ClearPass sends a CoA on UDP 3799 that the switch acknowledges. Two gotchas: a wrong shared secret looks like a timeout, and CoA needs a dyn-authorization client line.">
+  <defs>
+    <style>
+      .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+      .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+      .hd{fill:#fff;font-size:15px;font-weight:700}
+      .bx{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
+      .who{fill:#EAF2F6;font-size:14px;font-weight:700}
+      .sub{fill:#8BA2AE;font-size:11px}
+      .lbl{fill:#EAF2F6;font-size:12.5px}
+      .det{fill:#8BA2AE;font-size:11px}
+      .detT{fill:#5ED2DA;font-size:11px}
+      .detG{fill:#8CE05E;font-size:11.5px}
+      .note{fill:#B0C4CF;font-size:12px}
+      .life{stroke:#ffffff;stroke-opacity:0.16;stroke-dasharray:3 5}
+    </style>
+    <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#B0C4CF"/></marker>
+    <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5ED2DA"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8CE05E"/></marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4FBDEA"/></marker>
+  </defs>
+
+  <text x="20" y="28" class="t hd">802.1X against ClearPass: who says what, in order</text>
+
+  <rect x="40" y="46" width="180" height="46" rx="10" class="bx"/>
+  <text x="130" y="66" class="t who" text-anchor="middle">Laptop</text>
+  <text x="130" y="83" class="t sub" text-anchor="middle">supplicant</text>
+  <rect x="360" y="46" width="180" height="46" rx="10" class="bx"/>
+  <text x="450" y="66" class="t who" text-anchor="middle">Switch 1/1/1</text>
+  <text x="450" y="83" class="t sub" text-anchor="middle">authenticator, relays only</text>
+  <rect x="680" y="46" width="180" height="46" rx="10" class="bx"/>
+  <text x="770" y="66" class="t who" text-anchor="middle">ClearPass</text>
+  <text x="770" y="83" class="t sub" text-anchor="middle">RADIUS server, decides</text>
+  <line x1="130" y1="94" x2="130" y2="530" class="life"/>
+  <line x1="450" y1="94" x2="450" y2="530" class="life"/>
+  <line x1="770" y1="94" x2="770" y2="530" class="life"/>
+
+  <line x1="442" y1="132" x2="138" y2="132" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <text x="290" y="123" class="t lbl" text-anchor="middle">EAP-Request, Identity</text>
+  <text x="290" y="149" class="m det" text-anchor="middle">EAPOL on the wire; link came up</text>
+
+  <line x1="138" y1="184" x2="442" y2="184" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <text x="290" y="175" class="t lbl" text-anchor="middle">EAP-Response, Identity</text>
+  <text x="290" y="201" class="m det" text-anchor="middle">the outer identity only</text>
+
+  <line x1="458" y1="236" x2="762" y2="236" stroke="#5ED2DA" stroke-width="1.6" marker-end="url(#at)"/>
+  <text x="610" y="227" class="t lbl" text-anchor="middle">RADIUS Access-Request</text>
+  <circle cx="695" cy="223" r="9" fill="#F5A524"/>
+  <text x="695" y="227" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <text x="610" y="253" class="m detT" text-anchor="middle">EAP inside, UDP 1812, shared secret</text>
+
+  <rect x="96" y="276" width="708" height="58" rx="10" fill="rgba(94,210,218,0.06)" stroke="#5ED2DA" stroke-opacity="0.55" stroke-dasharray="5 5"/>
+  <line x1="138" y1="296" x2="762" y2="296" stroke="#5ED2DA" stroke-opacity="0.5" stroke-width="1.2" marker-start="url(#at)" marker-end="url(#at)"/>
+  <text x="450" y="290" class="t lbl" text-anchor="middle">PEAP or EAP-TLS: Access-Challenge and Access-Request, several round trips</text>
+  <text x="450" y="318" class="t det" text-anchor="middle">the TLS tunnel runs from the laptop to ClearPass; the switch never sees inside it</text>
+
+  <line x1="762" y1="370" x2="458" y2="370" stroke="#8CE05E" stroke-width="1.8" marker-end="url(#ag)"/>
+  <text x="610" y="361" class="t lbl" text-anchor="middle">RADIUS Access-Accept</text>
+  <text x="610" y="388" class="m detG" text-anchor="middle">Aruba-User-Role = EMPLOYEE</text>
+
+  <line x1="442" y1="420" x2="138" y2="420" stroke="#8CE05E" stroke-width="1.8" marker-end="url(#ag)"/>
+  <text x="290" y="411" class="t lbl" text-anchor="middle">EAP-Success</text>
+  <text x="290" y="437" class="m det" text-anchor="middle">port opens in the role's VLAN</text>
+
+  <line x1="762" y1="470" x2="458" y2="470" stroke="#4FBDEA" stroke-width="1.6" marker-end="url(#ab)"/>
+  <text x="610" y="461" class="t lbl" text-anchor="middle">CoA-Request, UDP 3799</text>
+  <circle cx="695" cy="457" r="9" fill="#F5A524"/>
+  <text x="695" y="461" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <text x="610" y="487" class="m det" text-anchor="middle">new role, or end the session</text>
+  <line x1="458" y1="520" x2="762" y2="520" stroke="#4FBDEA" stroke-width="1.6" marker-end="url(#ab)"/>
+  <text x="610" y="512" class="t lbl" text-anchor="middle">CoA-ACK</text>
+
+  <circle cx="30" cy="556" r="9" fill="#F5A524"/>
+  <text x="30" y="560" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <text x="48" y="560" class="t note">A wrong shared secret looks like a dead server: ClearPass drops the request and the switch counts a timeout.</text>
+  <circle cx="30" cy="584" r="9" fill="#F5A524"/>
+  <text x="30" y="588" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <text x="48" y="588" class="t note">On 10.18 a CoA needs radius dyn-authorization client with that server's address, or it is dropped as invalid.</text>
+</svg><figcaption>802.1X against ClearPass, from link up to a change of authorization.</figcaption><ul class="cxn-tips"><li>Two RADIUS servers in the group before go-live. One server is a single point of failure for every port.</li><li>A critical role on every port-access port, so a ClearPass outage ends somewhere you chose.</li><li>radius dyn-authorization client for each ClearPass node, or CoA and Disconnect fail without a sound.</li><li>Auth failing? Look in Access Tracker first. No entry at all means the request never arrived: secret, address or VRF.</li></ul></figure><div class="cxn-list"><article class="cxn g-card" id="n-radius-server-host-x-key-plaintext-x" data-q="radius-server host &lt;a.b.c.d&gt; key plaintext &lt;word&gt; point the switch at clearpass defines a radius server and the shared secret. the running config shows the key as ciphertext. a wrong key looks like a dead server: the server drops the request and the switch times out. radius radius-server host 192.0.2.10 key plaintext cppm-lab-key radius-server host 192.0.2.11 key plaintext cppm-lab-key vrf mgmt"><div class="cxn-syn"><code>radius-server host <i>&lt;A.B.C.D&gt;</i> key plaintext <i>&lt;WORD&gt;</i></code></div><h3>Point the switch at ClearPass</h3><p>Defines a RADIUS server and the shared secret. The running config shows the key as ciphertext. A wrong key looks like a dead server: the server drops the request and the switch times out.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> Use a group (aaa group server radius) even with one server, so adding the second is one line.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">radius-server host 192.0.2.10 key plaintext cppm-lab-key</span><span class="ln"></span><span class="ln">radius-server host 192.0.2.11 key plaintext cppm-lab-key vrf mgmt</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-aaa-group-server-radius-x">aaa group server radius &lt;WORD&gt;</a><a href="#n-show-radius-server">show radius-server</a></p></article><article class="cxn g-card" id="n-aaa-group-server-radius-x" data-q="aaa group server radius &lt;word&gt; a group of radius servers port-access points at a group, not a server. servers are tried in priority order; entered without a priority they number themselves in the order you add them. radius aaa group server radius clearpass server 192.0.2.10 server 192.0.2.11 aaa group server radius clearpass server 192.0.2.11 priority 1"><div class="cxn-syn"><code>aaa group server radius <i>&lt;WORD&gt;</i></code></div><h3>A group of RADIUS servers</h3><p>Port-access points at a group, not a server. Servers are tried in priority order; entered without a priority they number themselves in the order you add them.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call ver"><b>Changed:</b> 10.16 added server &lt;ip&gt; priority &lt;n&gt;; 10.15 has no priority in a group.</div><div class="cxn-call ver"><b>Changed:</b> 10.18 added load-balancing-mode (round-robin or priority-based) in the group.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">aaa group server radius CLEARPASS</span><span class="ln">server 192.0.2.10</span><span class="ln">server 192.0.2.11</span><span class="ln"></span><span class="ln">aaa group server radius CLEARPASS</span><span class="ln">server 192.0.2.11 priority 1</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-radius-server-host-x-key-plaintext-x">radius-server host &lt;A.B.C.D&gt; key plaintext &lt;WORD&gt;</a></p></article><article class="cxn g-card" id="n-show-radius-server" data-q="show radius-server servers and whether they answer each server with its ports and vrf. a star in front means the switch has marked it unreachable. radius show radius-server show radius-server detail"><div class="cxn-syn"><code>show radius-server</code></div><h3>Servers and whether they answer</h3><p>Each server with its ports and VRF. A star in front means the switch has marked it unreachable.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show radius-server</span><span class="ln"></span><span class="ln">show radius-server detail</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-show-radius-server-statistics-authentication">show radius-server statistics authentication</a></p></article><article class="cxn g-card" id="n-show-radius-server-statistics-authentication" data-q="show radius-server statistics authentication requests, accepts, rejects, timeouts counters per server. timeouts climbing with no accepts usually means the shared secret. show radius-server statistics on its own is incomplete on 10.18. radius show radius-server statistics authentication show radius-server statistics authentication | include timeouts"><div class="cxn-syn"><code>show radius-server statistics authentication</code></div><h3>Requests, accepts, rejects, timeouts</h3><p>Counters per server. Timeouts climbing with no accepts usually means the shared secret. show radius-server statistics on its own is incomplete on 10.18.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show radius-server statistics authentication</span><span class="ln"></span><span class="ln">show radius-server statistics authentication | include Timeouts</span></code></pre></div></article><article class="cxn g-card" id="n-radius-dyn-authorization-enable" data-q="radius dyn-authorization enable listen for coa lets clearpass change or end a session after the fact (rfc 5176). on 10.18 that is two pieces: enable it, and name each server allowed to send with radius dyn-authorization client. without the client line requests are dropped and counted as invalid client addresses. radius radius dyn-authorization enable radius dyn-authorization client 192.0.2.10 secret-key plaintext cppm-lab-key"><div class="cxn-syn"><code>radius dyn-authorization enable</code></div><h3>Listen for CoA</h3><p>Lets ClearPass change or end a session after the fact (RFC 5176). On 10.18 that is two pieces: enable it, and name each server allowed to send with radius dyn-authorization client. Without the client line requests are dropped and counted as invalid client addresses.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">radius dyn-authorization enable</span><span class="ln">radius dyn-authorization client 192.0.2.10 secret-key plaintext cppm-lab-key</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-show-radius-dyn-authorization">show radius dyn-authorization</a></p></article><article class="cxn g-card" id="n-show-radius-dyn-authorization" data-q="show radius dyn-authorization coa counters and clients whether dynamic authorization is on, the port (3799), the invalid-address counters, and per client the coa and disconnect requests, acks and naks. radius show radius dyn-authorization"><div class="cxn-syn"><code>show radius dyn-authorization</code></div><h3>CoA counters and clients</h3><p>Whether dynamic authorization is on, the port (3799), the invalid-address counters, and per client the CoA and disconnect requests, ACKs and NAKs.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show radius dyn-authorization</span></code></pre></div></article></div></section><section class="cxn-group" id="g-port-access"><h2>Port access</h2><figure class="figure panel cxn-fig" id="fig-cx-mda"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" role="img" aria-label="Multi-domain authentication on one switch port with an IP phone and a PC behind it. The phone gets in by MAC authentication or an LLDP device profile and receives role VOICE, whose device-traffic-class voice makes it the voice device: VLAN 30 tagged with 10 native. The PC authenticates with 802.1X through the phone and receives role EMPLOYEE: VLAN 10 untagged. Gotchas: the default client limit is one, the voice device is whoever holds a voice-class role, and LLDP from an unauthenticated phone is dropped unless allow-lldp-bpdu is set.">
+  <defs>
+    <style>
+      .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+      .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+      .hd{fill:#fff;font-size:15px;font-weight:700}
+      .bx{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
+      .who{fill:#EAF2F6;font-size:14px;font-weight:700}
+      .sub{fill:#8BA2AE;font-size:11px}
+      .lbl{fill:#EAF2F6;font-size:12.5px}
+      .det{fill:#8BA2AE;font-size:11.5px}
+      .note{fill:#B0C4CF;font-size:12px}
+      .ok{fill:#8CE05E;font-size:12px}
+      .lane{fill:#5ED2DA;font-size:11px;letter-spacing:1.4px}
+    </style>
+    <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#B0C4CF"/></marker>
+  </defs>
+
+  <text x="20" y="28" class="t hd">One port, a phone and a PC: multi-domain authentication</text>
+
+  <rect x="40" y="46" width="150" height="50" rx="10" class="bx"/>
+  <text x="115" y="67" class="t who" text-anchor="middle">PC</text>
+  <text x="115" y="84" class="t sub" text-anchor="middle">plugged into the phone</text>
+  <line x1="190" y1="71" x2="250" y2="71" stroke="#B0C4CF" stroke-opacity="0.5" stroke-width="2"/>
+  <rect x="250" y="46" width="170" height="50" rx="10" class="bx"/>
+  <text x="335" y="67" class="t who" text-anchor="middle">IP phone</text>
+  <text x="335" y="84" class="t sub" text-anchor="middle">no supplicant</text>
+  <line x1="420" y1="71" x2="480" y2="71" stroke="#B0C4CF" stroke-opacity="0.5" stroke-width="2"/>
+  <rect x="480" y="46" width="200" height="50" rx="10" class="bx" stroke="#5ED2DA" stroke-opacity="0.6"/>
+  <text x="580" y="67" class="t who" text-anchor="middle">Switch 1/1/6</text>
+  <text x="580" y="84" class="m sub" text-anchor="middle">auth-mode multi-domain</text>
+  <circle cx="666" cy="50" r="9" fill="#F5A524"/>
+  <text x="666" y="54" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <line x1="680" y1="71" x2="730" y2="71" stroke="#B0C4CF" stroke-opacity="0.5" stroke-width="2" stroke-dasharray="4 4"/>
+  <rect x="730" y="46" width="130" height="50" rx="10" class="bx"/>
+  <text x="795" y="67" class="t who" text-anchor="middle">ClearPass</text>
+  <text x="795" y="84" class="t sub" text-anchor="middle">names the roles</text>
+
+  <text x="40" y="132" class="m lane">VOICE DOMAIN</text>
+  <rect x="40" y="140" width="250" height="68" rx="10" class="bx"/>
+  <text x="56" y="164" class="t who">Phone</text>
+  <text x="56" y="184" class="t det">MAC auth, or an LLDP device profile</text>
+  <circle cx="276" cy="154" r="9" fill="#F5A524"/>
+  <text x="276" y="158" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">3</text>
+  <line x1="292" y1="174" x2="326" y2="174" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <rect x="330" y="140" width="260" height="68" rx="10" class="bx"/>
+  <text x="346" y="164" class="m ok">Accept, role VOICE</text>
+  <text x="346" y="184" class="m det">device-traffic-class voice</text>
+  <circle cx="576" cy="154" r="9" fill="#F5A524"/>
+  <text x="576" y="158" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <line x1="592" y1="174" x2="626" y2="174" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <rect x="630" y="140" width="230" height="68" rx="10" fill="rgba(140,224,94,0.07)" stroke="#8CE05E" stroke-opacity="0.5"/>
+  <text x="646" y="164" class="t lbl" font-weight="700">The voice device</text>
+  <text x="646" y="184" class="m det">VLAN 30 tagged, 10 native</text>
+
+  <text x="40" y="240" class="m lane">DATA DOMAIN</text>
+  <rect x="40" y="248" width="250" height="68" rx="10" class="bx"/>
+  <text x="56" y="272" class="t who">PC</text>
+  <text x="56" y="292" class="t det">802.1X, straight through the phone</text>
+  <line x1="292" y1="282" x2="326" y2="282" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <rect x="330" y="248" width="260" height="68" rx="10" class="bx"/>
+  <text x="346" y="272" class="m ok">Accept, role EMPLOYEE</text>
+  <text x="346" y="292" class="m det">vlan access 10</text>
+  <line x1="592" y1="282" x2="626" y2="282" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <rect x="630" y="248" width="230" height="68" rx="10" fill="rgba(140,224,94,0.07)" stroke="#8CE05E" stroke-opacity="0.5"/>
+  <text x="646" y="272" class="t lbl" font-weight="700">The data device</text>
+  <text x="646" y="292" class="m det">VLAN 10 untagged</text>
+
+  <text x="40" y="350" class="t det">show port-access clients lists both on 1/1/6. show vlan counts 1/1/6 in 10 and in 30.</text>
+
+  <circle cx="30" cy="386" r="9" fill="#F5A524"/>
+  <text x="30" y="390" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <text x="48" y="390" class="t note">A port takes one client by default. The PC is refused until the port is multi-domain or client-limit 2.</text>
+  <circle cx="30" cy="414" r="9" fill="#F5A524"/>
+  <text x="30" y="418" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <text x="48" y="418" class="t note">The voice device is whoever holds a voice-class role. Without it the phone is one more data client.</text>
+  <circle cx="30" cy="442" r="9" fill="#F5A524"/>
+  <text x="30" y="446" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">3</text>
+  <text x="48" y="446" class="t note">LLDP from a phone that has not authenticated is dropped, so a device profile never sees it without allow-lldp-bpdu.</text>
+  <text x="48" y="476" class="t det">A client that fails authentication does not use up a place; only the ones that got in count.</text>
+</svg><figcaption>Multi-domain authentication: a phone and the PC behind it, each with its own role.</figcaption><ul class="cxn-tips"><li>Multi-domain is one voice device plus one data device. More PCs behind a phone: raise client-limit multi-domain.</li><li>The phone&#x27;s role carries device-traffic-class voice, a native data VLAN and the voice VLAN tagged.</li><li>Test the failure path before users do: take ClearPass away and read what the phone and the PC get.</li></ul></figure><div class="cxn-list"><article class="cxn g-card" id="n-aaa-authentication-port-access-dot1x-authenticator" data-q="aaa authentication port-access dot1x authenticator 802.1x, switch-wide global switch for 802.1x plus the radius group it uses. it needs enable here and on each port: either one off and nothing authenticates. port access aaa authentication port-access dot1x authenticator radius server-group clearpass enable interface 1/1/1-1/1/8 aaa authentication port-access dot1x authenticator enable"><div class="cxn-syn"><code>aaa authentication port-access dot1x authenticator</code></div><h3>802.1X, switch-wide</h3><p>Global switch for 802.1X plus the RADIUS group it uses. It needs enable here and on each port: either one off and nothing authenticates.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">aaa authentication port-access dot1x authenticator</span><span class="ln">radius server-group CLEARPASS</span><span class="ln">enable</span><span class="ln"></span><span class="ln">interface 1/1/1-1/1/8</span><span class="ln">aaa authentication port-access dot1x authenticator</span><span class="ln">enable</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-aaa-authentication-port-access-mac-auth">aaa authentication port-access mac-auth</a><a href="#n-show-port-access-clients">show port-access clients</a></p></article><article class="cxn g-card" id="n-aaa-authentication-port-access-mac-auth" data-q="aaa authentication port-access mac-auth mac authentication, switch-wide the same pattern as 802.1x: a global block with the group and enable, and enable per port. the switch sends the mac as username and password, 00005e005305 style by default. port access aaa authentication port-access mac-auth radius server-group clearpass enable interface 1/1/5 aaa authentication port-access mac-auth enable"><div class="cxn-syn"><code>aaa authentication port-access mac-auth</code></div><h3>MAC authentication, switch-wide</h3><p>The same pattern as 802.1X: a global block with the group and enable, and enable per port. The switch sends the MAC as username and password, 00005e005305 style by default.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">aaa authentication port-access mac-auth</span><span class="ln">radius server-group CLEARPASS</span><span class="ln">enable</span><span class="ln"></span><span class="ln">interface 1/1/5</span><span class="ln">aaa authentication port-access mac-auth</span><span class="ln">enable</span></code></pre></div></article><article class="cxn g-card" id="n-aaa-authentication-port-access-client-limit-x" data-q="aaa authentication port-access client-limit &lt;1-256&gt; how many clients a port takes one by default. a pc behind a phone needs two, or a multi-domain port. only clients that got in take a place. port access interface 1/1/3 aaa authentication port-access client-limit 2"><div class="cxn-syn"><code>aaa authentication port-access client-limit <i>&lt;1-256&gt;</i></code></div><h3>How many clients a port takes</h3><p>One by default. A PC behind a phone needs two, or a multi-domain port. Only clients that got in take a place.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call ver"><b>Changed:</b> 10.18 added client-limit device-mode &lt;n&gt; on the port and in a role.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/3</span><span class="ln">aaa authentication port-access client-limit 2</span></code></pre></div></article><article class="cxn g-card" id="n-aaa-authentication-port-access-auth-precedence-x" data-q="aaa authentication port-access auth-precedence &lt;order&gt; which method goes first dot1x then mac-auth is the default. a device with no supplicant waits out the 802.1x timeout before mac auth starts; mac-auth first is faster for printers and slower for laptops. port access interface 1/1/5 aaa authentication port-access auth-precedence mac-auth dot1x interface 1/1/1 aaa authentication port-access auth-precedence dot1x mac-auth"><div class="cxn-syn"><code>aaa authentication port-access auth-precedence <i>&lt;order&gt;</i></code></div><h3>Which method goes first</h3><p>dot1x then mac-auth is the default. A device with no supplicant waits out the 802.1X timeout before MAC auth starts; mac-auth first is faster for printers and slower for laptops.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/5</span><span class="ln">aaa authentication port-access auth-precedence mac-auth dot1x</span><span class="ln"></span><span class="ln">interface 1/1/1</span><span class="ln">aaa authentication port-access auth-precedence dot1x mac-auth</span></code></pre></div></article><article class="cxn g-card" id="n-aaa-authentication-port-access-critical-role-x" data-q="aaa authentication port-access critical-role &lt;word&gt; a role when radius is down if every radius server times out, clients get this role instead of nothing. reject-role is the same for a reject. port access interface 1/1/1 aaa authentication port-access critical-role quarantine interface 1/1/1 aaa authentication port-access reject-role guest"><div class="cxn-syn"><code>aaa authentication port-access critical-role <i>&lt;WORD&gt;</i></code></div><h3>A role when RADIUS is down</h3><p>If every RADIUS server times out, clients get this role instead of nothing. reject-role is the same for a reject.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> Decide what a building does when ClearPass is unreachable before it happens. Critical role is that decision written down.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/1</span><span class="ln">aaa authentication port-access critical-role QUARANTINE</span><span class="ln"></span><span class="ln">interface 1/1/1</span><span class="ln">aaa authentication port-access reject-role GUEST</span></code></pre></div></article><article class="cxn g-card" id="n-aaa-authentication-port-access-auth-mode-multi-domain" data-q="aaa authentication port-access auth-mode multi-domain a phone and a pc on one port one voice device and one data device (client-limit multi-domain raises the data count). the voice device is whoever holds a role with device-traffic-class voice. port access interface 1/1/6 aaa authentication port-access auth-mode multi-domain interface 1/1/6 aaa authentication port-access client-limit multi-domain 2"><div class="cxn-syn"><code>aaa authentication port-access auth-mode multi-domain</code></div><h3>A phone and a PC on one port</h3><p>One voice device and one data device (client-limit multi-domain raises the data count). The voice device is whoever holds a role with device-traffic-class voice.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/6</span><span class="ln">aaa authentication port-access auth-mode multi-domain</span><span class="ln"></span><span class="ln">interface 1/1/6</span><span class="ln">aaa authentication port-access client-limit multi-domain 2</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-device-traffic-class-voice">device-traffic-class voice</a><a href="#n-aaa-authentication-port-access-allow-lldp-bpdu">aaa authentication port-access allow-lldp-bpdu</a></p></article><article class="cxn g-card" id="n-aaa-authentication-port-access-allow-lldp-bpdu" data-q="aaa authentication port-access allow-lldp-bpdu hear lldp before authentication a port-access port drops lldp from a client that has not authenticated. a phone that never authenticates is then invisible to lldp, its device profile never matches, and it gets no voice vlan. this lets lldp through. found the hard way on the lab switch on 2026-09-28. port access interface 1/1/6 aaa authentication port-access allow-lldp-bpdu"><div class="cxn-syn"><code>aaa authentication port-access allow-lldp-bpdu</code></div><h3>Hear LLDP before authentication</h3><p>A port-access port drops LLDP from a client that has not authenticated. A phone that never authenticates is then invisible to LLDP, its device profile never matches, and it gets no voice VLAN. This lets LLDP through. Found the hard way on the lab switch on 2026-09-28.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call ver"><b>Changed:</b> 10.17 added aaa authentication port-access lldp-loop-guard enable beside it.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/6</span><span class="ln">aaa authentication port-access allow-lldp-bpdu</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-debug-x-x">debug &lt;portaccess|radius|lldp&gt; &lt;what&gt;</a></p></article><article class="cxn g-card" id="n-port-access-role-x" data-q="port-access role &lt;word&gt; a local user role what a client gets once it is in: an access vlan, or a native vlan and a tagged list, and more on 10.18. radius names the role; the switch must have it or the client fails authorization. port access port-access role employee vlan access 10 port-access role ap-trunk vlan trunk native 99 vlan trunk allowed 10,20,99"><div class="cxn-syn"><code>port-access role <i>&lt;WORD&gt;</i></code></div><h3>A local user role</h3><p>What a client gets once it is in: an access VLAN, or a native VLAN and a tagged list, and more on 10.18. RADIUS names the role; the switch must have it or the client fails authorization.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call ver"><b>Changed:</b> 10.18 added speed, voice-vlan, stp-bpdu-guard, rate-limits, toggle-link and client-limit device-mode to a role.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">port-access role EMPLOYEE</span><span class="ln">vlan access 10</span><span class="ln"></span><span class="ln">port-access role AP-TRUNK</span><span class="ln">vlan trunk native 99</span><span class="ln">vlan trunk allowed 10,20,99</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-show-port-access-role">show port-access role</a></p></article><article class="cxn g-card" id="n-device-traffic-class-voice" data-q="device-traffic-class voice this role is the voice device on a multi-domain port the client holding this role is the voice device. pair it with a native data vlan and the voice vlan tagged. port access port-access role voice device-traffic-class voice vlan trunk native 10 vlan trunk allowed 30"><div class="cxn-syn"><code>device-traffic-class voice</code></div><h3>This role is the voice device</h3><p>On a multi-domain port the client holding this role is the voice device. Pair it with a native data VLAN and the voice VLAN tagged.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">port-access role VOICE</span><span class="ln">device-traffic-class voice</span><span class="ln">vlan trunk native 10</span><span class="ln">vlan trunk allowed 30</span></code></pre></div></article><article class="cxn g-card" id="n-show-port-access-clients" data-q="show port-access clients who is on and how one line per client: port, name, role, vlan, and four flags: how it got in (1x, ma, dp), mode (c, d, m), device type (d, v) and status (s, f, p). --|c|-|f is a failure. add detail for the history, interface, mac or role to filter. port access show port-access clients show port-access clients interface 1/1/6 detail show port-access clients onboarding-method device-profile"><div class="cxn-syn"><code>show port-access clients</code></div><h3>Who is on and how</h3><p>One line per client: port, name, role, VLAN, and four flags: how it got in (1x, ma, dp), mode (c, d, m), device type (d, v) and status (s, f, p). --|c|-|f is a failure. Add detail for the history, interface, mac or role to filter.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> Read Auth History in the detail view bottom to top: it is the order things happened.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show port-access clients</span><span class="ln"></span><span class="ln">show port-access clients interface 1/1/6 detail</span><span class="ln"></span><span class="ln">show port-access clients onboarding-method device-profile</span></code></pre></div></article><article class="cxn g-card" id="n-show-aaa-authentication-port-access-interface-all-client-status" data-q="show aaa authentication port-access interface all client-status client status, compact the authentication and authorization blocks for every client, without vlan and macsec detail. port access show aaa authentication port-access interface all client-status show aaa authentication port-access interface 1/1/1 client-status"><div class="cxn-syn"><code>show aaa authentication port-access interface all client-status</code></div><h3>Client status, compact</h3><p>The authentication and authorization blocks for every client, without VLAN and MACsec detail.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show aaa authentication port-access interface all client-status</span><span class="ln"></span><span class="ln">show aaa authentication port-access interface 1/1/1 client-status</span></code></pre></div></article><article class="cxn g-card" id="n-show-port-access-role" data-q="show port-access role the roles and what they carry each local role: vlans, device type, gateway zone. show port-access role name x for one. port access show port-access role show port-access role name voice"><div class="cxn-syn"><code>show port-access role</code></div><h3>The roles and what they carry</h3><p>Each local role: VLANs, device type, gateway zone. show port-access role name X for one.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show port-access role</span><span class="ln"></span><span class="ln">show port-access role name VOICE</span></code></pre></div></article><article class="cxn g-card" id="n-port-access-reauthenticate-interface-x" data-q="port-access reauthenticate interface &lt;ifname&gt; make clients authenticate again 10.18 has no clear port-access clients. to start clients over: reauthenticate a port, or log one off by mac, port or role. port access port-access reauthenticate interface 1/1/1 port-access log-off client mac 00:00:5e:00:53:01 port-access log-off client role guest"><div class="cxn-syn"><code>port-access reauthenticate interface <i>&lt;IFNAME&gt;</i></code></div><h3>Make clients authenticate again</h3><p>10.18 has no clear port-access clients. To start clients over: reauthenticate a port, or log one off by MAC, port or role.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">port-access reauthenticate interface 1/1/1</span><span class="ln"></span><span class="ln">port-access log-off client mac 00:00:5e:00:53:01</span><span class="ln"></span><span class="ln">port-access log-off client role GUEST</span></code></pre></div></article><article class="cxn g-card" id="n-port-access-fallback-role-x" data-q="port-access fallback-role &lt;word&gt; a role for whatever is on the port the role a client gets when nothing else gives it one. with no authentication on the port that is everything plugged in: with a gateway zone in the role, that is port-based tunnelling. port access interface 1/1/4 port-access fallback-role pbt-iot"><div class="cxn-syn"><code>port-access fallback-role <i>&lt;WORD&gt;</i></code></div><h3>A role for whatever is on the port</h3><p>The role a client gets when nothing else gives it one. With no authentication on the port that is everything plugged in: with a gateway zone in the role, that is port-based tunnelling.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface 1/1/4</span><span class="ln">port-access fallback-role PBT-IOT</span></code></pre></div></article></div></section><section class="cxn-group" id="g-tunnelling"><h2>Tunnelling</h2><div class="cxn-list"><article class="cxn g-card" id="n-gateway-zone-zone-x-gateway-role-x" data-q="gateway-zone zone &lt;word&gt; gateway-role &lt;word&gt; tunnel this role&#x27;s traffic clients in this role are tunnelled to the gateway cluster of the zone, where the gateway role applies. that is user-based tunnelling when radius assigns the role, port-based when a port&#x27;s fallback role does. tunnelling port-access role tunnel-employee gateway-zone zone campus gateway-role authenticated port-access role pbt-iot gateway-zone zone campus gateway-role iot"><div class="cxn-syn"><code>gateway-zone zone <i>&lt;WORD&gt;</i> gateway-role <i>&lt;WORD&gt;</i></code></div><h3>Tunnel this role&#x27;s traffic</h3><p>Clients in this role are tunnelled to the gateway cluster of the zone, where the gateway role applies. That is user-based tunnelling when RADIUS assigns the role, port-based when a port&#x27;s fallback role does.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">port-access role TUNNEL-EMPLOYEE</span><span class="ln">gateway-zone zone CAMPUS gateway-role authenticated</span><span class="ln"></span><span class="ln">port-access role PBT-IOT</span><span class="ln">gateway-zone zone CAMPUS gateway-role iot</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-ubt-zone-x-vrf-x">ubt zone &lt;WORD&gt; vrf &lt;WORD&gt;</a><a href="#n-port-access-fallback-role-x">port-access fallback-role &lt;WORD&gt;</a></p></article><article class="cxn g-card" id="n-ubt-client-vlan-x" data-q="ubt-client-vlan &lt;1-4094&gt; the vlan tunnelled clients use in local-vlan mode (what show ubt reports) this is the reserved vlan all tunnelled client traffic uses to reach the gateway. create it first and use it for nothing else, as hpe&#x27;s guide says. tunnelling vlan 666 name ubt-transport exit ubt-client-vlan 666"><div class="cxn-syn"><code>ubt-client-vlan <i>&lt;1-4094&gt;</i></code></div><h3>The VLAN tunnelled clients use</h3><p>In local-vlan mode (what show ubt reports) this is the reserved VLAN all tunnelled client traffic uses to reach the gateway. Create it first and use it for nothing else, as HPE&#x27;s guide says.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">vlan 666</span><span class="ln">name UBT-TRANSPORT</span><span class="ln">exit</span><span class="ln">ubt-client-vlan 666</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-ubt-zone-x-vrf-x">ubt zone &lt;WORD&gt; vrf &lt;WORD&gt;</a></p></article><article class="cxn g-card" id="n-ubt-zone-x-vrf-x" data-q="ubt zone &lt;word&gt; vrf &lt;word&gt; where the tunnels go a zone names the gateway cluster: primary and backup controller addresses, reached in a vrf, and enable. show ubt says whether it is up. tunnelling ubt zone campus vrf default primary-controller ip 192.0.2.50 backup-controller ip 192.0.2.51 enable"><div class="cxn-syn"><code>ubt zone <i>&lt;WORD&gt;</i> vrf <i>&lt;WORD&gt;</i></code></div><h3>Where the tunnels go</h3><p>A zone names the gateway cluster: primary and backup controller addresses, reached in a VRF, and enable. show ubt says whether it is up.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call ver"><b>Changed:</b> 10.16 took IPv6 controller addresses.</div><div class="cxn-call fake"><b>Where the sandbox pretends:</b> The gateway is a bench device in the sandbox; a zone is up when the switch can reach it.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">ubt zone CAMPUS vrf default</span><span class="ln">primary-controller ip 192.0.2.50</span><span class="ln">backup-controller ip 192.0.2.51</span><span class="ln">enable</span></code></pre></div></article><article class="cxn g-card" id="n-show-ubt" data-q="show ubt zone state each zone&#x27;s controllers, vlan, admin and operational state. brief is one line per zone; users all lists who is tunnelled. tunnelling show ubt show ubt brief show ubt users all"><div class="cxn-syn"><code>show ubt</code></div><h3>Zone state</h3><p>Each zone&#x27;s controllers, VLAN, admin and operational state. brief is one line per zone; users all lists who is tunnelled.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show ubt</span><span class="ln"></span><span class="ln">show ubt brief</span><span class="ln"></span><span class="ln">show ubt users all</span></code></pre></div></article></div></section><section class="cxn-group" id="g-device-profiles"><h2>Device profiles</h2><div class="cxn-list"><article class="cxn g-card" id="n-port-access-lldp-group-x" data-q="port-access lldp-group &lt;word&gt; recognise a device by its lldp ordered match and ignore rules; the first rule a neighbour hits decides. sysname is exact, sys-desc matches if the description contains the word (proved on the lab switch), vendor-oui plus type matches a tlv. rules without seq number themselves 10, 20, 30. device profiles port-access lldp-group aps match sys-desc ap-515 port-access lldp-group lldp-med-endpoints seq 10 match vendor-oui 0012bb type 1 port-access lldp-group core match sysname core1"><div class="cxn-syn"><code>port-access lldp-group <i>&lt;WORD&gt;</i></code></div><h3>Recognise a device by its LLDP</h3><p>Ordered match and ignore rules; the first rule a neighbour hits decides. sysname is exact, sys-desc matches if the description contains the word (proved on the lab switch), vendor-oui plus type matches a TLV. Rules without seq number themselves 10, 20, 30.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call ver"><b>Changed:</b> 10.18 added match chassis-id. sys-desc, sysname and vendor-oui are there from 10.15.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">port-access lldp-group APS</span><span class="ln">match sys-desc AP-515</span><span class="ln"></span><span class="ln">port-access lldp-group LLDP-MED-ENDPOINTS</span><span class="ln">seq 10 match vendor-oui 0012bb type 1</span><span class="ln"></span><span class="ln">port-access lldp-group CORE</span><span class="ln">match sysname core1</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-port-access-device-profile-x">port-access device-profile &lt;WORD&gt;</a></p></article><article class="cxn g-card" id="n-port-access-device-profile-x" data-q="port-access device-profile &lt;word&gt; give a recognised device a role ties an lldp group to a role, then enable. works on a port with no port-access at all; on a port-access port it applies when 802.1x and mac auth do not get the device in. the client shows as dp. device profiles port-access device-profile aps associate lldp-group aps associate role ap-trunk enable"><div class="cxn-syn"><code>port-access device-profile <i>&lt;WORD&gt;</i></code></div><h3>Give a recognised device a role</h3><p>Ties an LLDP group to a role, then enable. Works on a port with no port-access at all; on a port-access port it applies when 802.1X and MAC auth do not get the device in. The client shows as dp.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">port-access device-profile APS</span><span class="ln">associate lldp-group APS</span><span class="ln">associate role AP-TRUNK</span><span class="ln">enable</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-show-port-access-device-profile">show port-access device-profile</a></p></article><article class="cxn g-card" id="n-show-port-access-device-profile" data-q="show port-access device-profile profiles and who matched the profiles and their state. interface all lists each matched neighbour with its profile, group, role and whether it applied. device profiles show port-access device-profile show port-access device-profile interface all"><div class="cxn-syn"><code>show port-access device-profile</code></div><h3>Profiles and who matched</h3><p>The profiles and their state. interface all lists each matched neighbour with its profile, group, role and whether it applied.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show port-access device-profile</span><span class="ln"></span><span class="ln">show port-access device-profile interface all</span></code></pre></div></article></div></section><section class="cxn-group" id="g-routing"><h2>Routing</h2><div class="cxn-list"><article class="cxn g-card" id="n-interface-vlan-x" data-q="interface vlan &lt;1-4094&gt; an address on a vlan a switch virtual interface: the switch&#x27;s own address in that vlan, up only when a port in the vlan is up. routing interface vlan 10 ip address 192.0.2.1/24"><div class="cxn-syn"><code>interface vlan <i>&lt;1-4094&gt;</i></code></div><h3>An address on a VLAN</h3><p>A switch virtual interface: the switch&#x27;s own address in that VLAN, up only when a port in the VLAN is up.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">interface vlan 10</span><span class="ln">ip address 192.0.2.1/24</span></code></pre></div></article><article class="cxn g-card" id="n-ip-route-x-x" data-q="ip route &lt;a.b.c.d/m&gt; &lt;a.b.c.d&gt; a static route prefix and next hop. the default route is 0.0.0.0/0. routing ip route 0.0.0.0/0 203.0.113.1 ip route 198.51.100.0/24 203.0.113.1"><div class="cxn-syn"><code>ip route <i>&lt;A.B.C.D/M&gt;</i> <i>&lt;A.B.C.D&gt;</i></code></div><h3>A static route</h3><p>Prefix and next hop. The default route is 0.0.0.0/0.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">ip route 0.0.0.0/0 203.0.113.1</span><span class="ln"></span><span class="ln">ip route 198.51.100.0/24 203.0.113.1</span></code></pre></div></article><article class="cxn g-card" id="n-router-ospf-x" data-q="router ospf &lt;1-63&gt; start ospf the process, its router-id and areas. interfaces join with ip ospf &lt;process&gt; area &lt;area&gt;. both ends of a link must agree on the area. routing router ospf 1 router-id 203.0.113.2 area 0.0.0.0 exit interface vlan 100 ip ospf 1 area 0.0.0.0"><div class="cxn-syn"><code>router ospf <i>&lt;1-63&gt;</i></code></div><h3>Start OSPF</h3><p>The process, its router-id and areas. Interfaces join with ip ospf &lt;process&gt; area &lt;area&gt;. Both ends of a link must agree on the area.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">router ospf 1</span><span class="ln">router-id 203.0.113.2</span><span class="ln">area 0.0.0.0</span><span class="ln">exit</span><span class="ln">interface vlan 100</span><span class="ln">ip ospf 1 area 0.0.0.0</span></code></pre></div></article><article class="cxn g-card" id="n-show-ip-route" data-q="show ip route the routing table connected (c), local (l), static (s) and ospf (o) routes with next hop and interface. routing show ip route show ip ospf neighbors ping 198.51.100.10"><div class="cxn-syn"><code>show ip route</code></div><h3>The routing table</h3><p>Connected (C), local (L), static (S) and OSPF (O) routes with next hop and interface.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show ip route</span><span class="ln"></span><span class="ln">show ip ospf neighbors</span><span class="ln"></span><span class="ln">ping 198.51.100.10</span></code></pre></div></article></div></section><section class="cxn-group" id="g-stacking"><h2>Stacking</h2><div class="cxn-list"><article class="cxn g-card" id="n-vsf-member-x" data-q="vsf member &lt;1-8&gt; stack another switch virtual switching framework: pre-provision a member by part number and name the ports that form its stack links. a member&#x27;s links are its own ports, 2/1/x for member 2. member 1 is the switch you are on. vsf secondary-member picks the standby; without it there is none. stacking vsf member 2 type jl725a link 1 2/1/27 exit vsf secondary-member 2 vsf member 1 link 1 1/1/16"><div class="cxn-syn"><code>vsf member <i>&lt;1-8&gt;</i></code></div><h3>Stack another switch</h3><p>Virtual Switching Framework: pre-provision a member by part number and name the ports that form its stack links. A member&#x27;s links are its own ports, 2/1/x for member 2. Member 1 is the switch you are on. vsf secondary-member picks the standby; without it there is none.</p><p class="cxn-rel">Not in the Switch Simulator&#x27;s command set for 10.15 to 10.18. Syntax from HPE&#x27;s guides.</p><div class="cxn-call fake"><b>Where the sandbox pretends:</b> The Switch Simulator has no VSF, so nothing here was checked against a capture. The syntax is from HPE&#x27;s VSF guide; the sandbox never cables a second switch.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">vsf member 2</span><span class="ln">type jl725a</span><span class="ln">link 1 2/1/27</span><span class="ln">exit</span><span class="ln">vsf secondary-member 2</span><span class="ln"></span><span class="ln">vsf member 1</span><span class="ln">link 1 1/1/16</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-show-vsf">show vsf</a></p></article><article class="cxn g-card" id="n-show-vsf" data-q="show vsf the stack and its members each member with its role (conductor, standby, member), status and part number. show vsf link lists the stack links and whether they are up. stacking show vsf show vsf link"><div class="cxn-syn"><code>show vsf</code></div><h3>The stack and its members</h3><p>Each member with its role (conductor, standby, member), status and part number. show vsf link lists the stack links and whether they are up.</p><p class="cxn-rel">Not in the Switch Simulator&#x27;s command set for 10.15 to 10.18. Syntax from HPE&#x27;s guides.</p><div class="cxn-call fake"><b>Where the sandbox pretends:</b> The layout is the sandbox&#x27;s own: the Switch Simulator has no VSF to capture. A provisioned member shows Not Present because no second switch is ever cabled.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show vsf</span><span class="ln"></span><span class="ln">show vsf link</span></code></pre></div></article></div></section><section class="cxn-group" id="g-diagnostics"><h2>Diagnostics</h2><div class="cxn-list"><article class="cxn g-card" id="n-debug-x-x" data-q="debug &lt;portaccess|radius|lldp&gt; &lt;what&gt; log what port-access does writes port-access events to the debug buffer, the default destination. debug radius all and debug lldp event add those modules. show debug lists what is on; no debug all turns it off. diagnostics debug portaccess all debug lldp event show debug buffer module portaccess show debug buffer module lldp | include 1/1/6"><div class="cxn-syn"><code>debug <i>&lt;portaccess|radius|lldp&gt;</i> <i>&lt;what&gt;</i></code></div><h3>Log what port-access does</h3><p>Writes port-access events to the debug buffer, the default destination. debug radius all and debug lldp event add those modules. show debug lists what is on; no debug all turns it off.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call tip"><b>Habit:</b> Clear the buffer, turn debug on, reproduce once, read, turn it off. A busy switch fills the buffer in seconds.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">debug portaccess all</span><span class="ln">debug lldp event</span><span class="ln">show debug buffer module portaccess</span><span class="ln"></span><span class="ln">show debug buffer module lldp | include 1/1/6</span></code></pre></div><p class="cxn-see"><span>Goes with</span><a href="#n-show-debug-buffer">show debug buffer</a></p></article><article class="cxn g-card" id="n-show-debug-buffer" data-q="show debug buffer read the debug log everything logged, oldest first. module portaccess, radius or lldp narrows it; a pipe narrows it further. diagnostics show debug buffer show debug buffer module portaccess | include deviceprofile clear debug buffer"><div class="cxn-syn"><code>show debug buffer</code></div><h3>Read the debug log</h3><p>Everything logged, oldest first. module portaccess, radius or lldp narrows it; a pipe narrows it further.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call fake"><b>Where the sandbox pretends:</b> The sandbox logs the lines that tell a client&#x27;s story, in the lab&#x27;s format; the box logs far more.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">show debug buffer</span><span class="ln"></span><span class="ln">show debug buffer module portaccess | include DEVICEPROFILE</span><span class="ln"></span><span class="ln">clear debug buffer</span></code></pre></div></article><article class="cxn g-card" id="n-diag-cable-diagnostic-test-x" data-q="diag cable-diagnostic test &lt;port&gt; test the cable from the switch a tdr test on a copper port: per pair good, open or short, the cable length or the distance to the fault. it drops the link while it runs and asks first. show prints the result; clear forgets it. diagnostics diag cable-diagnostic test 1/1/7 diag cable-diagnostic show 1/1/7 diag cable-diagnostic clear 1/1/7"><div class="cxn-syn"><code>diag cable-diagnostic test <i>&lt;PORT&gt;</i></code></div><h3>Test the cable from the switch</h3><p>A TDR test on a copper port: per pair good, open or short, the cable length or the distance to the fault. It drops the link while it runs and asks first. show prints the result; clear forgets it.</p><p class="cxn-rel">In every release here, 10.15 to 10.18.</p><div class="cxn-call ver"><b>Changed:</b> Introduced in 10.11 (HPE&#x27;s diagnostics guide).</div><div class="cxn-call fake"><b>Where the sandbox pretends:</b> Faked hardware. The Switch Simulator has no PHY and refuses the command; the sandbox builds the result from the lab&#x27;s description of the cable, in the guide&#x27;s layout.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">diag cable-diagnostic test 1/1/7</span><span class="ln">diag cable-diagnostic show 1/1/7</span><span class="ln"></span><span class="ln">diag cable-diagnostic clear 1/1/7</span></code></pre></div></article></div></section><section class="cxn-group" id="g-rest"><h2>REST</h2><div class="cxn-list"><article class="cxn g-card" id="n-sim-rest-post-rest-v10-18-login" data-q="sim rest post /rest/v10.18/login the same switch through rest sim rest is a laptop calling the rest api: log in, then get, post, patch or delete under /rest/v10.18, and post /rest/v10.18/cli for anycli, which runs only the exact commands get /rest/v10.18/cli/commands lists. each answer names its cli twin. rest sim rest post /rest/v10.18/login sim rest get /rest/v10.18/system/vlans?depth=2&amp;attributes=id,name sim rest post /rest/v10.18/cli {&quot;cmd&quot;:&quot;show vlan&quot;}"><div class="cxn-syn"><code>sim rest post /rest/v10.18/login</code></div><h3>The same switch through REST</h3><p>sim rest is a laptop calling the REST API: log in, then GET, POST, PATCH or DELETE under /rest/v10.18, and POST /rest/v10.18/cli for AnyCLI, which runs only the exact commands GET /rest/v10.18/cli/commands lists. Each answer names its CLI twin.</p><p class="cxn-rel">A sandbox command, not a switch command.</p><div class="cxn-call fake"><b>Where the sandbox pretends:</b> A sandbox command, not a switch command: the shapes are the lab switch&#x27;s REST answers from 2026-09-28.</div><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">sim rest post /rest/v10.18/login</span><span class="ln">sim rest get /rest/v10.18/system/vlans?depth=2&amp;attributes=id,name</span><span class="ln"></span><span class="ln">sim rest post /rest/v10.18/cli {&quot;cmd&quot;:&quot;show vlan&quot;}</span></code></pre></div></article></div></section><section class="cxn-group" id="g-sandbox"><h2>Sandbox</h2><div class="cxn-list"><article class="cxn g-card" id="n-sim-connect-x" data-q="sim connect &lt;dev&gt; plug a device in the sandbox talking, not the switch. sim connect and sim disconnect plug bench devices in and out, sim coa has the fake clearpass send a change of authorization, sim release picks the aos-cx release, sim status shows what is plugged in. sandbox sim status sim connect phone sim release 10.16"><div class="cxn-syn"><code>sim connect <i>&lt;DEV&gt;</i></code></div><h3>Plug a device in</h3><p>The sandbox talking, not the switch. sim connect and sim disconnect plug bench devices in and out, sim coa has the fake ClearPass send a change of authorization, sim release picks the AOS-CX release, sim status shows what is plugged in.</p><p class="cxn-rel">A sandbox command, not a switch command.</p><div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code><span class="ln">sim status</span><span class="ln"></span><span class="ln">sim connect phone</span><span class="ln"></span><span class="ln">sim release 10.16</span></code></pre></div></article></div></section>
+<p class="cxn-none" id="cxn-none">Nothing matches that. Try a shorter word.</p>
+<script>
+(function(){
+  var q=document.getElementById('cxn-q'),cards=document.querySelectorAll('.cxn'),groups=document.querySelectorAll('.cxn-group'),none=document.getElementById('cxn-none');
+  function run(){var v=q.value.trim().toLowerCase(),shown=0;cards.forEach(function(c){var on=!v||c.getAttribute('data-q').indexOf(v)>=0;c.hidden=!on;if(on)shown++;});
+    groups.forEach(function(g){var any=g.querySelector('.cxn:not([hidden])');g.hidden=!!v&&!any;var f=g.querySelectorAll('.cxn-fig');f.forEach(function(x){x.hidden=!!v;});});
+    none.style.display=shown?'none':'block';}
+  q.addEventListener('input',run);
+})();
+</script>
+</main>
+<a class="rig" href="socials.html" data-origin="genie" aria-label="Where else to find me"><img src="character/nfn-bot-switchwork.svg" alt="" width="104" height="104"></a>
+<footer><div class="wrap">
+  <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
+  <span><a href="/rss.xml">RSS</a></span>
+</div></footer>
+</div>
+<script>/* Network Field Notes. Only opacity and transform are animated. */
+(function () {
+  var KEY = 'nfn:origin';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
+
+  /* header tightens past 12px */
+  var hdr = $('.hdr');
+  if (hdr) {
+    var onScroll = function () { hdr.classList.toggle('scrolled', (window.scrollY || 0) > 12); };
+    onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  /* entrance, staggered 60ms, capped at 340ms */
+  $$('[data-rise]').forEach(function (el, i) {
+    el.style.animationDelay = Math.min(i * 60, 340) + 'ms';
+    el.classList.add('rise');
+  });
+
+
+  /* Rig reacts: sleeps when the tab is hidden, thinks when search is empty, waves at the bottom */
+  var rig = $('.rig img');
+  if (rig && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var base = rig.getAttribute('src'), dir = base.replace(/[^\/]+$/, '');
+    var pose = function (n) { return dir + 'nfn-bot-' + n + '.svg'; };
+    ['sleep', 'think', 'wave'].forEach(function (n) { var i = new Image(); i.src = pose(n); });
+    var cur = base, timer = null;
+    var setPose = function (src) {
+      if (src === cur) return; cur = src;
+      var a = rig.parentNode; a.classList.add('swap');
+      setTimeout(function () { rig.setAttribute('src', src); a.classList.remove('swap'); }, 220);
+    };
+    document.addEventListener('visibilitychange', function () {
+      setPose(document.hidden ? pose('sleep') : base);
+    });
+    window.addEventListener('nfn:empty', function (e) { setPose(e.detail ? pose('think') : base); });
+    var waved = false;
+    window.addEventListener('scroll', function () {
+      var atEnd = window.innerHeight + window.scrollY >= document.body.scrollHeight - 40;
+      if (atEnd && !waved) {
+        waved = true; setPose(pose('wave'));
+        clearTimeout(timer); timer = setTimeout(function () { setPose(base); waved = false; }, 3500);
+      }
+    }, { passive: true });
+  }
+
+  /* remember where a card or mascot was tapped, in page coordinates */
+  $$('[data-origin]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      var r = e.currentTarget.getBoundingClientRect();
+      try {
+        sessionStorage.setItem(KEY, JSON.stringify({
+          x: r.left + r.width / 2 + window.scrollX, y: r.top + r.height / 2 + window.scrollY,
+          kind: e.currentTarget.getAttribute('data-origin') || 'zoom'
+        }));
+      } catch (err) {}
+    });
+  });
+
+  /* incoming view: pin transform-origin to the tapped point */
+  var view = $('[data-view]');
+  if (view) {
+    var saved = null;
+    try { var raw = sessionStorage.getItem(KEY); if (raw) { saved = JSON.parse(raw); sessionStorage.removeItem(KEY); } } catch (err) {}
+    var wants = view.getAttribute('data-view');
+    var cls = wants === 'genie' ? 'genie' : wants === 'zoom' ? 'zoom' : 'pop';
+    if (saved && saved.kind === wants) {
+      var clamp = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
+      var box = view.getBoundingClientRect();
+      view.style.transformOrigin = clamp(saved.x - (box.left + window.scrollX), 0, box.width) + 'px ' +
+                                   clamp(saved.y - (box.top + window.scrollY), 0, box.height) + 'px';
+    }
+    view.classList.add(cls);
+  }
+
+  /* index only: category filter + search */
+  var grid = $('#posts');
+  if (!grid) return;
+  var cards = $$('.card[data-cat]', grid), chips = $$('.cat[data-cat]'), empty = $('.empty');
+  var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
+  var cat = 'all', q = '';
+
+  function apply() {
+    var shown = 0;
+    cards.forEach(function (c) {
+      /* data-cat is pipe separated: a series tile sits in every category its parts do */
+      var okCat = cat === 'all' ||
+        ('|' + (c.getAttribute('data-cat') || '') + '|').indexOf('|' + cat + '|') !== -1;
+      var on;
+      if (c.hasAttribute('data-series')) {
+        /* a series tile stands in for its parts, but a search wants the parts themselves */
+        on = okCat && !q;
+      } else {
+        var okQ = !q || (c.getAttribute('data-text') || '').indexOf(q) !== -1;
+        /* the featured post lives in the hero; only surface its card while a filter or search is active */
+        var okFeat = !c.hasAttribute('data-featured') || cat !== 'all' || !!q;
+        /* a post inside a series hides behind its tile until someone searches */
+        var okSeries = !c.hasAttribute('data-inseries') || !!q;
+        on = okCat && okQ && okFeat && okSeries;
+      }
+      c.classList.toggle('hidden', !on); if (on) shown++;
+    });
+    chips.forEach(function (ch) { ch.classList.toggle('on', ch.getAttribute('data-cat') === cat); });
+    if (empty) empty.classList.toggle('show', shown === 0);
+    try { window.dispatchEvent(new CustomEvent('nfn:empty', { detail: shown === 0 && !!q })); } catch (e) {}
+  }
+  chips.forEach(function (ch) {
+    ch.addEventListener('click', function () {
+      cat = ch.getAttribute('data-cat');
+      /* keep the URL honest so back/forward and the nav agree with the chips */
+      var h = cat === 'all' ? '' : '#cat=' + encodeURIComponent(cat);
+      if (history.replaceState) history.replaceState(null, '', location.pathname + h); else location.hash = h;
+      apply();
+      /* the tab takes you to the posts, but only when they are not already in view */
+      var r = grid.getBoundingClientRect();
+      if (r.top > window.innerHeight * 0.4) {
+        var soft = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: window.scrollY + r.top - 92, behavior: soft ? 'smooth' : 'auto' });
+      }
+    });
+  });
+  if (toggle && box && input) {
+    toggle.addEventListener('click', function (e) {
+      e.preventDefault(); box.classList.toggle('open');
+      if (box.classList.contains('open')) input.focus();
+    });
+    input.addEventListener('input', function () { q = input.value.trim().toLowerCase(); apply(); });
+  }
+  /* deep link: index.html#cat=NAC, on load AND on every hash change (nav pills, back/forward) */
+  function fromHash() {
+    var h = location.hash || '';
+    var m = h.match(/cat=([^&]+)/);
+    cat = m ? decodeURIComponent(m[1]) : 'all';
+    if (h.indexOf('search') !== -1 && box) { box.classList.add('open'); if (input) input.focus(); }
+    apply();
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+<script>/* Network Field Notes: the topographic ground.
+   A hypsometric elevation map on a canvas behind every page, drifting on a clock-derived
+   phase so it resumes mid-motion on a reload instead of restarting. Settings are fixed
+   here; the tuning surface lives in the preview, not on the live site.
+   Falls back to the .ground gradients when WebGL is missing, and renders one still frame
+   under prefers-reduced-motion. */
+(function () {
+  var cv = document.getElementById("nfn-fx");
+  if (!cv) return;
+
+  var TINT = 0.44,    // how far the flat elevation classes pull away from the site gradients
+      SCALE = 1.20,   // terrain scale: low means big sweeping landforms
+      BANDS = 13,     // contour interval, and every fifth boundary is an index contour
+      AMT = 0.75,     // contour brightness
+      WT = 0.70,      // line weight, in screen pixels
+      SPEED = 3.00,   // drift multiplier
+      CYCLE = 600;    // seconds; every term in the terrain is a whole multiple of this
+
+  function off() { cv.style.display = "none"; }
+
+  var gl = null;
+  try {
+    gl = cv.getContext("webgl", { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: "low-power" });
+  } catch (e) { gl = null; }
+  if (!gl) { off(); return; }
+
+  var deriv = gl.getExtension("OES_standard_derivatives");
+
+  var VERT = "attribute vec2 a;void main(){gl_Position=vec4(a,0.0,1.0);}";
+
+  var FRAG = [
+    deriv ? "#extension GL_OES_standard_derivatives : enable\n#define HAS_FW 1" : "",
+    "precision highp float;",
+    "uniform vec2 uRes;uniform float uPh;",
+    "const float TINT=" + TINT.toFixed(3) + ",SCALE=" + SCALE.toFixed(3) + ",BANDS=" + BANDS.toFixed(1) +
+      ",AMT=" + AMT.toFixed(3) + ",WT=" + WT.toFixed(3) + ";",
+
+    "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}",
+    "float vn(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.0-2.0*f);",
+    " return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x),u.y);}",
+    "float fbm(vec2 p){float s=0.0,a=0.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);",
+    " for(int i=0;i<5;i++){s+=a*vn(p);p=m*p;a*=0.5;}return s;}",
+
+    /* terrain: two-stage domain warp, so contours curl like a survey rather than lying in stripes */
+    "float H(vec2 p,vec2 dr){vec2 q=vec2(fbm(p+dr),fbm(p+dr+vec2(5.2,1.3)));",
+    " return fbm(p+(1.35+0.22*sin(uPh*2.0))*q+dr*0.55);}",
+
+    /* the site's own three radial gradients, so the map sits on the ground the site already has */
+    "float rg(vec2 px,vec2 c,vec2 r,float stop){return clamp(1.0-length((px-c)/r)/stop,0.0,1.0);}",
+    "vec3 ground(vec2 px,vec2 res){vec3 col=vec3(0.0235,0.0627,0.0980);",
+    " col=mix(col,vec3(0.1843,0.6588,0.8784),0.42*rg(px,vec2(res.x*0.12,res.y*-0.06),res.y*vec2(1.10,0.76),0.62));",
+    " col=mix(col,vec3(0.5490,0.8784,0.3686),0.26*rg(px,vec2(res.x*0.88,res.y*0.08),res.y*vec2(0.93,0.68),0.60));",
+    " col=mix(col,vec3(0.0902,0.5412,0.6588),0.34*rg(px,vec2(res.x*0.60,res.y*1.08),res.y*vec2(1.22,0.86),0.62));",
+    " return col;}",
+
+    /* hypsometric ramp, sampled at the CLASS so every band is one flat tone */
+    "vec3 hyps(float t){",
+    " vec3 c0=vec3(0.014,0.038,0.062);",
+    " vec3 c1=vec3(0.028,0.112,0.176);",
+    " vec3 c2=vec3(0.050,0.212,0.262);",
+    " vec3 c3=vec3(0.112,0.300,0.232);",
+    " vec3 c=mix(c0,c1,smoothstep(0.00,0.36,t));",
+    " c=mix(c,c2,smoothstep(0.32,0.70,t));",
+    " return mix(c,c3,smoothstep(0.66,1.00,t));}",
+
+    "void main(){",
+    " vec2 px=vec2(gl_FragCoord.x,uRes.y-gl_FragCoord.y);",
+    " vec2 uv=px/uRes.y;",
+    /* both harmonics are whole multiples of the cycle, so the wrap is invisible */
+    " vec2 dr=vec2(cos(uPh),sin(uPh))*0.30+vec2(cos(3.0*uPh+1.7),sin(2.0*uPh+0.6))*0.11;",
+    " float h=H(uv*SCALE,dr);",
+    /* fbm lands around 0.48 give or take 0.12, never 0 to 1, so remap before classing it */
+    " h=clamp((h-0.26)*2.05,0.0,1.0);",
+    " float e=h*BANDS;",
+    "#ifdef HAS_FW",
+    " float w=max(fwidth(e),1e-4);",
+    "#else",
+    " float ep=1.6/uRes.y;",
+    " float w=max(abs(H((uv+vec2(ep,0.0))*SCALE,dr)-h)+abs(H((uv+vec2(0.0,ep))*SCALE,dr)-h),1e-4)*BANDS;",
+    "#endif",
+
+    /* flat elevation classes: floor() before the ramp is what makes the step hard */
+    " float lvl=clamp(floor(e)/BANDS,0.0,1.0);",
+    " vec3 col=mix(ground(px,uRes),hyps(lvl),TINT);",
+
+    /* contours on the integer crossings, widths in screen pixels, every fifth one an index line */
+    " float fr=fract(e);float d=min(fr,1.0-fr);",
+    " float idx=step(mod(floor(e+0.5),5.0),0.5);",
+    " float wdt=w*WT*mix(1.0,2.6,idx);",
+    " float line=1.0-smoothstep(wdt,wdt+w*1.15,d);",
+    " vec3 lcol=mix(vec3(0.252,0.560,0.652),vec3(0.560,0.830,0.878),idx);",
+    " col+=lcol*line*(0.07+0.36*AMT)*mix(0.70,1.0,idx);",
+
+    " col+=(hash(gl_FragCoord.xy+uPh)-0.5)/255.0;",
+    " gl_FragColor=vec4(col,1.0);}"
+  ].join("\n") + "\n";
+
+  function sh(type, src) {
+    var s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+  }
+  var vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, FRAG);
+  if (!vs || !fs) { off(); return; }
+  var pr = gl.createProgram();
+  gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { off(); return; }
+  gl.useProgram(pr);
+
+  var buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  var loc = gl.getAttribLocation(pr, "a");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  var uRes = gl.getUniformLocation(pr, "uRes"), uPh = gl.getUniformLocation(pr, "uPh");
+  var W = 0, H = 0;
+
+  function resize() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var s = (window.innerWidth < 760 ? 0.66 : 0.92) - 6 * 0.013;
+    var w = Math.max(2, Math.round(window.innerWidth * dpr * s));
+    var h = Math.max(2, Math.round(window.innerHeight * dpr * s));
+    var cap = 1600, m = Math.max(w, h);
+    if (m > cap) { w = Math.round(w * cap / m); h = Math.round(h * cap / m); }
+    if (w === W && h === H) return;
+    W = w; H = h; cv.width = w; cv.height = h;
+    gl.viewport(0, 0, w, h);
+    gl.uniform2f(uRes, w, h);
+  }
+
+  function draw() {
+    gl.uniform1f(uPh, (((Date.now() / 1000) * SPEED % CYCLE) / CYCLE) * Math.PI * 2);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var last = 0, running = false;
+
+  function frame(now) {
+    if (!running) return;
+    requestAnimationFrame(frame);
+    if (now - last < 33) return;      /* 30 fps is plenty for something this slow */
+    last = now;
+    resize(); draw();
+  }
+  function still() { resize(); draw(); }
+  function start() {
+    if (reduced.matches) { running = false; still(); return; }
+    if (running) return;
+    running = true; last = 0; requestAnimationFrame(frame);
+  }
+  function stop() { running = false; }
+
+  window.addEventListener("resize", function () { if (!running) still(); });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stop(); else start();   /* resumes at the clock's phase, not where it paused */
+  });
+  if (reduced.addEventListener) reduced.addEventListener("change", function () { stop(); start(); });
+
+  start();
+})();
+</script>
+</body></html>
