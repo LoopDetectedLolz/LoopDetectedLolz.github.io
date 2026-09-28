@@ -1,0 +1,1159 @@
+{
+ "source": "HPE Aruba Networking Switching Feature Navigator, feature-navigator.arubanetworking.hpe.com, /api/switchReleaseCompatibility with licenses 1 and 2",
+ "fetched": "2026-09-28",
+ "products": {
+  "6200": 50,
+  "6300": 44
+ },
+ "compared": [
+  "10.13.1000",
+  "10.14.1000",
+  "10.15.0005",
+  "10.15.1005",
+  "10.16.1006",
+  "10.17.0001"
+ ],
+ "note": "A feature is listed under the first release of the comparison where the navigator says Yes for that product. 10.18 is not in the navigator yet.",
+ "features": [
+  {
+   "type": "BGP",
+   "name": "BGP p2p peering over IP Unnumbered Interface for IPV4",
+   "6200": null,
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "BGP",
+   "name": "Route Map: Multiple Communities",
+   "6200": null,
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Container",
+   "name": "Container infrastructure: Hardening",
+   "6200": null,
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Container",
+   "name": "Support for networking constructs other than NAT for CX Containers",
+   "6200": null,
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "CX Edge Insights",
+   "name": "Application Based Role to Role Policy",
+   "6200": null,
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "L2 features",
+   "name": "MACsec Extensions for WAN: Custom Ether Type",
+   "6200": null,
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "L3 features",
+   "name": "IP Unnumbered Interface",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "L3 features",
+   "name": "TCP Maximum Segment Size on interface (ROP, SVI, sub-interface, L3 GRE tunnel)",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "L3 features",
+   "name": "UDP Forwarding Helper per interface",
+   "6200": "10.14.1000",
+   "6300": null
+  },
+  {
+   "type": "Management: security",
+   "name": "Certificate import via REST API with certificate passphrase",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Management",
+   "name": "Firmware upgrade: site distribution CLI",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Management",
+   "name": "Reporting Average instantaneous POE drawn power per chassis or LC or VSF",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Management",
+   "name": "Show PSU Pin and Pout values",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Management",
+   "name": "SNMP trap filter",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Management",
+   "name": "SNMPv3 Enable: without v2 Community",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Management",
+   "name": "XCVR MIB Support",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Multicast",
+   "name": "PIM BIDIR , Phantom RP , Dynamic RP",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "OSPFv2",
+   "name": "Configure different AD for multiple OSPF process in a VRF",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "OSPFv2",
+   "name": "OSPF p2p peering over IP Unnumbered Interface for IPV4",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "OSPFv2",
+   "name": "Process ID Range",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "OSPFv3",
+   "name": "Configure different AD for multiple OSPF process in a VRF",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "OSPFv3",
+   "name": "Process ID Range",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Policy",
+   "name": "remark",
+   "6200": "10.14.1000",
+   "6300": null
+  },
+  {
+   "type": "Port Access Security",
+   "name": "Role-Based IPFIX(IPv4 + IPv6)",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Port",
+   "name": "LLDP TLV for IP unnumbered interface",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Supportability",
+   "name": "Front panel security factory reset",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "Telemetry",
+   "name": "IPFIX",
+   "6200": "10.14.1000",
+   "6300": null
+  },
+  {
+   "type": "Telemetry",
+   "name": "IPFIX: max number of collectors",
+   "6200": "10.14.1000",
+   "6300": null
+  },
+  {
+   "type": "Telemetry",
+   "name": "IPFIX: max number of monitored IPv4 flows",
+   "6200": "10.14.1000",
+   "6300": null
+  },
+  {
+   "type": "Telemetry",
+   "name": "IPFIX: max number of monitored IPv6 flows",
+   "6200": "10.14.1000",
+   "6300": null
+  },
+  {
+   "type": "Telemetry",
+   "name": "IPFIX mode: interface context (Port Based IPFIX)",
+   "6200": "10.14.1000",
+   "6300": null
+  },
+  {
+   "type": "Telemetry",
+   "name": "Traffic-Insight: application-flows monitor",
+   "6200": "10.14.1000",
+   "6300": null
+  },
+  {
+   "type": "VXLAN",
+   "name": "ACL applied to L3VNI",
+   "6200": null,
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "VXLAN",
+   "name": "Anycast RP/MSDP IPv4 Overlay multicast",
+   "6200": null,
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "VXLAN",
+   "name": "Known Overlay Multicast replication in underlay using PIM BIDIR",
+   "6200": null,
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "VXLAN",
+   "name": "Overlay BUM, replication in underlay using PIM BIDIR",
+   "6200": null,
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "VXLAN",
+   "name": "static VXLAN Tunnel: Multicast",
+   "6200": "10.14.1000",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "BGP",
+   "name": "Clear BGP soft out",
+   "6200": null,
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "L3 features: security",
+   "name": "DHCP Snooping logs reporting Rogue Server IP and Ports",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "L3 features: tunnels",
+   "name": "BGP over GRE IPv4 tunnels with IVRL",
+   "6200": null,
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Management: security",
+   "name": "AAA Troubleshoot Test-Server",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Management: security",
+   "name": "Privelege-Elevation for Administrators user group",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Management: security",
+   "name": "Subject Alternative Name Extensions in CSR",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Management",
+   "name": "IPSLA: IPv6 Support",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Management",
+   "name": "IPv6 DHCP client",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Management",
+   "name": "NAE Lite: Support for Date/Time & Hostname in Redirection",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Management",
+   "name": "NAE Lite: Support for SFTP/SCP Transfer",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Management",
+   "name": "SFTP server support for external firmware push",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Management",
+   "name": "Support for “Overwrite” option in Copy Remote to Running Config",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Multicast",
+   "name": "Muticast inter VRF route leaking",
+   "6200": null,
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "OSPFv3",
+   "name": "address-family support",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Supportability",
+   "name": "Process Monitor & Statistics",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Telemetry",
+   "name": "Client-Insight: L2 and L3 On-going details per client",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "VSF",
+   "name": "Disable Egress shaping for VSF ports",
+   "6200": null,
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "ZTP / OTP",
+   "name": "ZTP IPV6 Support (Over OOBM Only)",
+   "6200": "10.15.0005",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Supportability",
+   "name": "show forwarding-info (egress path tracing for VXLAN)",
+   "6200": null,
+   "6300": "10.15.1005"
+  },
+  {
+   "type": "Supportability",
+   "name": "show forwarding-info (L2 and L3 egress path tracing for LAG and ECMP)",
+   "6200": "10.15.1005",
+   "6300": "10.15.1005"
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP",
+   "6200": "10.15.1005",
+   "6300": null
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP clock-step",
+   "6200": "10.15.1005",
+   "6300": null
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP Forward PTPv1 packets",
+   "6200": "10.15.1005",
+   "6300": null
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP lag-role",
+   "6200": "10.15.1005",
+   "6300": null
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP profile AES-67",
+   "6200": "10.15.1005",
+   "6300": null
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP profile AES-R16",
+   "6200": "10.15.1005",
+   "6300": null
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP profile SMPTE",
+   "6200": "10.15.1005",
+   "6300": null
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP transparent clock",
+   "6200": "10.15.1005",
+   "6300": null
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP transparent clock mode",
+   "6200": "10.15.1005",
+   "6300": null
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP transport protocol",
+   "6200": "10.15.1005",
+   "6300": null
+  },
+  {
+   "type": "BGP",
+   "name": "eBGP Unnumbered neighbor",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "BGP",
+   "name": "EVPN route-type 6 support (Tenant Routed Multicast)",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "BGP",
+   "name": "Route Target Rewrite across Fabrics",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Container",
+   "name": "Support for Docker Infrastructure",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "CX Edge Insights",
+   "name": "Application Based Policy (ABP): DSCP/Local Priority Remark and Mirror Actions",
+   "6200": "10.16.1006",
+   "6300": null
+  },
+  {
+   "type": "CX Edge Insights",
+   "name": "Application Based Policy (ABP): Permit/Deny Traffic",
+   "6200": "10.16.1006",
+   "6300": null
+  },
+  {
+   "type": "CX Edge Insights",
+   "name": "Application Recognition",
+   "6200": "10.16.1006",
+   "6300": null
+  },
+  {
+   "type": "CX Edge Insights",
+   "name": "Application Recognition: max number of active flows",
+   "6200": "10.16.1006",
+   "6300": null
+  },
+  {
+   "type": "CX Edge Insights",
+   "name": "Application Recognition: enablement",
+   "6200": "10.16.1006",
+   "6300": null
+  },
+  {
+   "type": "CX Edge Insights",
+   "name": "Application Recognition: Measure Application Experience",
+   "6200": "10.16.1006",
+   "6300": "10.15.1005"
+  },
+  {
+   "type": "CX Edge Insights",
+   "name": "Application Recognition: Mode",
+   "6200": "10.16.1006",
+   "6300": "10.14.1000"
+  },
+  {
+   "type": "CX Edge Insights",
+   "name": "Application Recognition: number of recognized applications",
+   "6200": "10.16.1006",
+   "6300": null
+  },
+  {
+   "type": "L3 features",
+   "name": "ARP Latency and failures to gateway",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "L3 features",
+   "name": "Local Proxy ARP",
+   "6200": "10.16.1006",
+   "6300": null
+  },
+  {
+   "type": "Management: security",
+   "name": "TLS 1.3 Support",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Management",
+   "name": "Hibernation mode",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Management",
+   "name": "IPSLA Customized Average Interval",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Management",
+   "name": "IPv6 only Preferred option for DHCPv4",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Management",
+   "name": "PSU Input voltage monitoring",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Management",
+   "name": "Route/resource tracking using IP SLA (Static Routes, without NAE)",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Management",
+   "name": "Support for \"Reload at\" and \"Reload after\"",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Management",
+   "name": "Support for Deep mode in Checkpoint Diff command",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Management",
+   "name": "XCVR MIB for Power/DOM details",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Multicast",
+   "name": "IGMP/MLD Snooping Global Enable",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Port Access Security",
+   "name": "Enable the AAA authentication command under interface persona",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Port Access Security",
+   "name": "IPV6 Support for UBT Tunnels",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Port Access Security",
+   "name": "RADIUS Proxy Support for Role Based Policy Enforcement",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Port Access Security",
+   "name": "Silent Client Probe",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Supportability",
+   "name": "Copy Support-files to Central",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Telemetry",
+   "name": "IPFIX: additional attributes export (local-priority, VRF, DSCP, interface details)",
+   "6200": "10.16.1006",
+   "6300": "10.15.0005"
+  },
+  {
+   "type": "Telemetry",
+   "name": "Traffic-Insight: Blocked Flow Visibility: Policy/Forwarding Details",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP profile 1588v2",
+   "6200": "10.16.1006",
+   "6300": null
+  },
+  {
+   "type": "VSX",
+   "name": "active-forwarding",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "active-forwarding SVI",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "active-gateway and DHCP relay",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "active-gateway and DHCP server",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "Configuration Synchronization (vsx-sync)",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "Dual-DR / proxy-DR",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "IGMP snooping",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "IGMP support",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "IGMP/MLD graceful-shutdown during upgrade",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "IGMP/MLD groups supported for Dual-DR (active/active)",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "IPv4 multicast routes for Dual-DR (active/active)",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "IPv6 multicast routes for Dual-DR (active/active)",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "LACP fallback: L2 control plane synchronization",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "LACP fallback: VSX LAG",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "LACP graceful-shutdown during upgrade",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "local first forwarding",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "max number of VSX LAGs",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "MLD",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "MLD snooping",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "nodes in VSX cluster",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "number of interfaces per VSX LAG per VSX cluster",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "number of interfaces per VSX LAG per VSX node",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "OSPF/BGP/VRRP graceful-shutdown during upgrade",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "PIM BIDIR",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "PIM graceful-shutdown during upgrade",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "PIM SM",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "PIM-SSM",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "recommended max number of VSX LAGs",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "static VSX LAG",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "sub-second VSX Live upgrade for multicast",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "sub-second VSX Live upgrade for unicast",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "VRRP support",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "VSX and MSTP",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "VSX and RPVST+",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "VSX keepalive IPv6 support",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "VSX keepalive over OOBM",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "VSX LAG ( MCLAG name in VSX technology)",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "VSX Live upgrade: API",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "VSX Live upgrade: CLI command",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "VSX shut-on-split",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "vsx-configmate",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "VSX",
+   "name": "VSX-VRRP Active-Active on Data Plane",
+   "6200": null,
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "ZTP / OTP",
+   "name": "ZTP using USB",
+   "6200": "10.16.1006",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "ACL",
+   "name": "VSF Member ACL Logging Support with Full Details",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "BGP",
+   "name": "BGP route selection option within BGP RIB",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "BGP",
+   "name": "Optimized Inter Subnet Multicast Support for VXLAN (OISM)",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "CX Edge Insights",
+   "name": "Display and report CPS excursions per ARC client",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "CX Edge Insights",
+   "name": "Reporting flow congestion probability",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "L2 features",
+   "name": "Persona Support on Lag interfaces",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "L3 features: tunnels",
+   "name": "6in4 tunnel support with sub-interface in the underlay",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "L3 features: tunnels",
+   "name": "6in6 tunnel support with sub-interface in the underlay",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "L3 features: tunnels",
+   "name": "GRE tunnel support with sub-interface in the underlay",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "L3 features",
+   "name": "Active-Active DHCP-Relay support on VSX based with CLI",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "L3 features",
+   "name": "DHCPv4 Relay option82 Remote-Id support with CLI",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "L3 features",
+   "name": "Selective Exemption of specific IP address from ARP/ND suppression",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "L3 features",
+   "name": "Selective Exemption of specific IP address from LPA",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Management: Security",
+   "name": "Disable Local Admin Account",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Management",
+   "name": "Apply non-failsafe updates during boot",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Management",
+   "name": "Local Packet capture with filters",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Management",
+   "name": "Support for DHCP on all VLANS",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Management",
+   "name": "Using DOT & _ (underscore) in CX hostname",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Multicast",
+   "name": "IGMP control packet forwarding in HW",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Multicast",
+   "name": "Multicast: BudNode Support for Underlay EVPN VXLAN",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Multicast",
+   "name": "Multicast: IVRL Dynamic RP Support",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Multicast",
+   "name": "Multicast: IVRL Group based filtering",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Multicast",
+   "name": "Multicast: IVRL Increase Scale (Sources and VRFs)",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Multicast",
+   "name": "Multicast: OISM Optimized Inter Subnet Multicast support for VXLAN",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Multicast",
+   "name": "Multicast: SM support in underlay for EVPN VXLAN",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Multicast",
+   "name": "PIM BiDir IPv6 Support",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Port Access Security",
+   "name": "Auto Generation of Probe File for Silent Client Authentication",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Port Access Security",
+   "name": "FQDN Support for Port Access Policy: LUR/DUR/Aruba-NAS-Filter-Rule",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Port Access Security",
+   "name": "sticky mac clear command",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Port",
+   "name": "Front panel port mapping with ASIC ports",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "QoS",
+   "name": "Queue Congestion History",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Supportability",
+   "name": "CX Assistant support for system troubleshooting",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Supportability",
+   "name": "Enable prompt to save config when logging out",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Supportability",
+   "name": "Event trap disable CLI",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Telemetry",
+   "name": "gNMI: Enable secure connectivity via HTTP2 gNMI gRPC APIs",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Telemetry",
+   "name": "gNMI: OpenConfig Interfaces YANG models",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Telemetry",
+   "name": "gNMI: OpenConfig Platform YANG models",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Telemetry",
+   "name": "gNMI: OpenConfig System YANG models",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Telemetry",
+   "name": "gNMI: Subscribe and Capabilities methods",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Telemetry",
+   "name": "IP Flow Path Trace",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Telemetry",
+   "name": "IPFIX: drop exception/mirror on drop",
+   "6200": "10.17.0001",
+   "6300": "10.16.1006"
+  },
+  {
+   "type": "Telemetry",
+   "name": "Support for IPFIX configuration on out interface using IP Flow table",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "NTP Client/Conductor Authentication: AES128 Support",
+   "6200": "10.17.0001",
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP Boundary Clock Support with VSF Stack",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP Multi-VLAN support",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "Timing Protocol",
+   "name": "PTP Transparent Clock on VSF (Peer to Peer Delay mechanism only)",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "VXLAN",
+   "name": "Per VLAN ARP/ND suppression",
+   "6200": null,
+   "6300": "10.17.0001"
+  },
+  {
+   "type": "VXLAN",
+   "name": "VXLAN Tunnel support with sub-interface in the underlay",
+   "6200": null,
+   "6300": "10.17.0001"
+  }
+ ]
+}
