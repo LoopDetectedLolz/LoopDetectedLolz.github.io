@@ -51,7 +51,9 @@ has(s.exec("show system").out, "Product Name           : JL725A", "show system m
 eq(s.exec("show checkpoint list").out, "Checkpoint list doesn't exist", "10.18 reads `list` as a checkpoint name");
 has(s.exec("show checkpoint").out, "startup-config                    startup", "show checkpoint lists the startup config");
 eq(s.exec("copy running-config checkpoint before").out, "Copying configuration: [Success]", "checkpoint written");
-has(s.exec("show checkpoint").out, "before                            latest", "the new checkpoint is the latest");
+var ckl = s.exec("show checkpoint").out.split("\n");
+has(ckl[1], "before                            checkpoint  User", "the new checkpoint is listed first, TYPE checkpoint, as the lab's listing had them");
+ok(ckl.some(function (l) { return /^startup-config {20}startup {5}User/.test(l); }), "the startup config is in the list by date");
 run(s, ["conf t", "vlan 44", "name TEMP", "end"]);
 has(s.exec("show vlan").out, "TEMP", "vlan 44 exists");
 eq(s.exec("checkpoint rollback before").out, "Copying configuration: [Success]", "rollback message");
@@ -111,6 +113,12 @@ has(px.exec("show port-access role").out, "Attributes overridden by RADIUS are p
 has(px.exec("show port-access role").out, "    Access VLAN                         : 10", "role vlan line");
 has(px.exec("show aaa server-groups").out, "******* AAA Mechanism TACACS+ *******", "server groups header");
 has(px.exec("show ip route").out, "Total Route Count : ", "route table footer");
+// ? in a sub-context: that context's words plus end, exit, list, no and show, as captured in config-if-macauth
+var hq = CX.create(lesson("sandbox")); run(hq, ["conf t", "interface 1/1/1", "aaa authentication port-access mac-auth"]);
+eq(hq.help("").split("\n").map(function (l) { return l.trim().split(/\s+/)[0]; }).join(" "),
+  "cached-reauth cached-reauth-period disable enable end exit list no quiet-period radius reauth reauth-period show", "? lists the sub-context only, as the box does");
+ok(hq.help("").split("\n").every(function (l) { return l.length <= 79; }), "? lines stay within 79 characters");
+eq(hq.help("").split("\n")[0].indexOf("Real"), 24, "the word column is the longest word (cached-reauth-period) plus two");
 
 // ── port-access views in 10.18.1002's layout (lab captures 2026-09-26 and 2026-09-28) ───
 section = "clients";
@@ -185,7 +193,7 @@ ok(pp.history().indexOf("show vlan | include VOICE") >= 0, "the whole piped line
 // ── real commands the sandbox does not model answer like the box (corpus 10.18) ─
 section = "corpus";
 var cc = CX.create(lesson("sandbox"));
-has(cc.exec("show lldp neighbor-info detail").out, "not used in this scenario", "real show, not modelled");
+has(cc.exec("show lldp local-device").out, "not used in this scenario", "real show, not modelled");
 eq(cc.exec("show lldp foo").out, "Invalid input: foo", "names the first token the box would refuse");
 eq(cc.exec("shw vlan").out, "Invalid input: shw", "a typo in the first word");
 has(cc.exec("show running-config json").out, "not used in this scenario", "real variant of a modelled command");
@@ -196,7 +204,7 @@ cc.exec("conf t");
 has(cc.exec("ntp server 192.0.2.5").out, "not used in this scenario", "real config command");
 eq(cc.exec("ntp bogus").out, "Invalid input: bogus", "wrong keyword under a real command");
 cc.exec("interface 1/1/1");
-has(cc.exec("lldp med network-policy").out, "not used in this scenario", "real interface command, not modelled");
+has(cc.exec("lldp med poe").out, "not used in this scenario", "real interface command, not modelled");
 eq(cc.exec("lldp med-tlv-select network-policy").out, "Invalid input: med-tlv-select", "not 10.18 syntax");
 has(cc.exec("speed auto 1g 2.5g").out, "not used in this scenario", "speed is hardware-only (hardware.txt), the simulator hides it");
 eq(cc.exec("speed banana").out, "Invalid input: banana", "speed still checks its words");

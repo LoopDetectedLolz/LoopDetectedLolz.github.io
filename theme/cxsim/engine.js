@@ -97,7 +97,15 @@
     this.radius = [];                       // {host, key, port, vrf}
     this.groups = {};                       // name -> {type:'radius', servers:[]}
     this.pa = { roles: {}, macAuth: false, dot1x: false, macAuthGroup: "", dot1xGroup: "", dynAuth: false, dynClients: {},
-      dynStats: { badCoa: 0, badDisc: 0, coaReq: 0, coaAck: 0, coaNak: 0 } };
+      dynStats: { badCoa: 0, badDisc: 0, coaReq: 0, coaAck: 0, coaNak: 0 },
+      lldpGroups: {},                       // name -> {rules: [{seq, act, sysDesc, sysName, oui, type, value, chassis}]}
+      profiles: {} };                       // name -> {groups: [], role: "", enable: false}
+    this.ubt = { clientVlan: 0, zones: {} }; // zone name -> {vrf, primary, backup, enable}
+    this.dbg = { dest: "", on: {}, buf: [], id: 1600 };   // debug destination, modules on, the buffer
+    this.diag = {};                         // port -> cable test result
+    this.pending = null;                    // a (y/n) question waiting for its answer
+    this.restLog = [];
+    this.coaRoles = {};                     // devId -> role a CoA moved it to, for as long as it stays plugged in
     this.stp = { enable: false, mode: "mstp", priority: 8 };
     this.routes = [];                       // {prefix, len, nh, ifname}
     this.ospf = {};                         // proc -> {routerId, areas:{}, passive:[]}
@@ -109,11 +117,16 @@
     (this.lesson.devices || []).forEach(function (d) { self.devices[d.id] = { connected: !!d.connected }; });
   };
 
+  // a local user role: an access VLAN, or a native and allowed trunk list, plus what 10.18 lets a role carry
+  function newRole() { return { vlan: 0, desc: "", native: 0, trunk: null, voice: false, gwZone: "", gwRole: "", authMode: "" }; }
+
   Switch.prototype.newIface = function (p) {
     return { name: p.name, type: p.type, copper: p.copper, shutdown: false, routing: false, mode: "access", access: 1,
       trunk: null, native: 1, nativeTag: false, lag: 0, desc: "", clientLimit: 0, precedence: null,
       macAuth: false, dot1x: false, critRole: "", rejectRole: "", adminEdge: false, bpduGuard: false, loopProtect: false,
-      ip: null, ospf: null, mtu: 1500 };
+      ip: null, ospf: null, mtu: 1500,
+      authMode: "", mdLimit: 0, allowLldp: false, lldpTx: true, lldpRx: true, medPolicy: true, medCaps: true,
+      speed: null, fallbackRole: "", dpBlock: false };
   };
 
   Switch.prototype.now = function () { return Date.now() + this.tick * 1000; };
@@ -176,14 +189,41 @@
       o.push("vlan " + v);
       if (self.vlans[v].name && !(v === 1 && self.vlans[v].name === "DEFAULT_VLAN_1")) o.push("    name " + self.vlans[v].name);
       if (self.vlans[v].desc) o.push("    description " + self.vlans[v].desc);
+      if (self.vlans[v].voice) o.push("    voice");
     });
     if (this.stp.enable) { o.push("spanning-tree"); if (this.stp.mode !== "mstp") o.push("spanning-tree mode " + this.stp.mode); if (this.stp.priority !== 8) o.push("spanning-tree priority " + this.stp.priority); }
     if (!showKeys) o.push("interface mgmt", "    no shutdown", "    ip dhcp");
-    Object.keys(this.pa.roles).forEach(function (r) {
+    // UBT, LLDP groups, roles and device profiles, in the order the lab printed them (captures of 2026-09-28);
+    // roles come out sorted by name, and an LLDP group's rules sit five spaces in, as the box has them
+    if (this.ubt.clientVlan) o.push("ubt-client-vlan " + this.ubt.clientVlan);
+    Object.keys(this.ubt.zones).sort().forEach(function (z) {
+      var zz = self.ubt.zones[z];
+      o.push("ubt zone " + z + " vrf " + zz.vrf);
+      if (zz.primary) o.push("    primary-controller ip " + zz.primary);
+      if (zz.backup) o.push("    backup-controller ip " + zz.backup);
+      o.push(zz.enable ? "    enable" : "    no enable");
+    });
+    Object.keys(this.pa.lldpGroups).sort().forEach(function (g) {
+      o.push("port-access lldp-group " + g);
+      self.pa.lldpGroups[g].rules.forEach(function (r) { o.push("     seq " + r.seq + " " + ruleText(r)); });
+    });
+    Object.keys(this.pa.roles).sort().forEach(function (r) {
       var role = self.pa.roles[r];
       o.push("port-access role " + r);
       if (role.desc) o.push("    description " + role.desc);
+      if (role.authMode) o.push("    auth-mode " + role.authMode);
+      if (role.gwZone) o.push("    gateway-zone zone " + role.gwZone + (role.gwRole ? " gateway-role " + role.gwRole : ""));
+      if (role.voice) o.push("    device-traffic-class voice");
       if (role.vlan) o.push("    vlan access " + role.vlan);
+      if (role.native) o.push("    vlan trunk native " + role.native);
+      if (role.trunk) o.push("    vlan trunk allowed " + role.trunk.slice().sort(function (a, b) { return a - b; }).join(","));
+    });
+    Object.keys(this.pa.profiles).sort().forEach(function (n) {
+      var pr = self.pa.profiles[n];
+      o.push("port-access device-profile " + n);
+      if (pr.enable) o.push("    enable");
+      if (pr.role) o.push("    associate role " + pr.role);
+      pr.groups.forEach(function (g) { o.push("    associate lldp-group " + g); });
     });
     if (this.pa.dot1x || this.pa.dot1xGroup) {
       o.push("aaa authentication port-access dot1x authenticator");
@@ -215,13 +255,23 @@
       if (i.desc) o.push("    description " + i.desc);
       if (i.lag) { if (!i.shutdown) o.push("    no shutdown"); o.push("    lag " + i.lag); return; }
       o.push(i.shutdown ? "    shutdown" : "    no shutdown");
+      if (i.speed) o.push("    speed " + (i.speed.fixed || ("auto" + (i.speed.auto && i.speed.auto.length ? " " + i.speed.auto.join(" ") : ""))));
       if (i.routing) { if (i.ip) o.push("    ip address " + i.ip); if (i.ospf) o.push("    ip ospf " + i.ospf.proc + " area " + i.ospf.area); return; }
       o.push("    no routing");
       self.l2Lines(i, o);
       if (i.bpduGuard) o.push("    spanning-tree bpdu-guard");
       if (i.adminEdge) o.push("    spanning-tree port-type admin-edge");
       if (i.loopProtect) o.push("    loop-protect");
+      if (!i.lldpTx) o.push("    no lldp transmit");
+      if (!i.lldpRx) o.push("    no lldp receive");
+      if (!i.medPolicy) o.push("    no lldp med network-policy");
+      if (!i.medCaps) o.push("    no lldp med capability");
+      if (i.fallbackRole) o.push("    port-access fallback-role " + i.fallbackRole);
+      if (i.dpBlock) { if (showKeys) o.push("    port-access device-profile mode block-until-profile-applied"); else o.push("    port-access device-profile", "        mode block-until-profile-applied"); }
       if (i.clientLimit) o.push("    aaa authentication port-access client-limit " + i.clientLimit);
+      if (i.mdLimit) o.push("    aaa authentication port-access client-limit multi-domain " + i.mdLimit);
+      if (i.authMode) o.push("    aaa authentication port-access auth-mode " + i.authMode);
+      if (i.allowLldp) o.push("    aaa authentication port-access allow-lldp-bpdu");
       if (i.critRole) o.push("    aaa authentication port-access critical-role " + i.critRole);
       if (i.rejectRole) o.push("    aaa authentication port-access reject-role " + i.rejectRole);
       if (i.dot1x) o.push("    aaa authentication port-access dot1x authenticator", "        enable");
@@ -251,7 +301,7 @@
   Switch.prototype.l2Lines = function (i, o, isLag) {
     if (i.mode === "access") o.push("    vlan access " + i.access);
     else {
-      if (i.native !== 1 || i.nativeTag || isLag) o.push("    vlan trunk native " + i.native + (i.nativeTag ? " tag" : ""));
+      o.push("    vlan trunk native " + i.native + (i.nativeTag ? " tag" : ""));   // printed even when it is 1, as the box does
       o.push("    vlan trunk allowed " + (i.trunk ? i.trunk.slice().sort(function (a, b) { return a - b; }).join(",") : "all"));
     }
   };
@@ -345,6 +395,10 @@
     "<WORD>": ["Name", function (t) { return /^\S+$/.test(t); }],
     "<LINE>": ["Text", function () { return true; }],
     "<MAC>": ["MAC address, e.g. 00:00:5e:00:53:01", function (t) { return /^([0-9a-f]{2}[:-]?){5}[0-9a-f]{2}$/i.test(t); }],
+    "<OUI>": ["Vendor OUI, six hex digits, e.g. 0012bb", function (t) { return /^[0-9a-f]{2}([:-]?[0-9a-f]{2}){2}$/i.test(t); }],
+    "<1-255>": ["Subtype 1 to 255", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 255; }],
+    "<1-4294967295>": ["Sequence number", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 4294967295; }],
+    "<1-5>": ["1 to 5", function (t) { return /^[1-5]$/.test(t); }],
     "<DEV>": ["Device id from the Devices panel", function (t) { return /^\S+$/.test(t); }]
   };
 
@@ -400,6 +454,9 @@
       case "macauth-if": return h + "(config-if-macauth)# ";
       case "vsf": return h + "(config-vsf-member-" + c.id + ")# ";
       case "ospf": return h + "(config-ospf-" + c.id + ")# ";
+      case "lldpg": return h + "(config-lldp-group)# ";
+      case "dprof": return h + "(config-device-profile)# ";
+      case "ubtz": return h + "(config-ubt-" + c.id + ")# ";
     }
     return h + "# ";
   };
@@ -494,6 +551,9 @@
         case "role": ok = !!self.pa.roles[c.id]; break;
         case "vsf": ok = !!self.vsf.members[c.id]; break;
         case "ospf": ok = !!self.ospf[c.id]; break;
+        case "lldpg": ok = !!self.pa.lldpGroups[c.id]; break;
+        case "dprof": ok = !!self.pa.profiles[c.id]; break;
+        case "ubtz": ok = !!self.ubt.zones[c.id]; break;
       }
       if (ok) keep.push(c); else alive = false;
     });
@@ -591,7 +651,7 @@
     return acc;
   }
   var CORPUS_CTX = { exec: "exec", config: "config", "if": "if", lag: "lag", vlan: "vlan", svi: "svi", role: "pa-role", dot1x: "dot1x", macauth: "macauth",
-    "dot1x-if": "if-dot1x", "macauth-if": "if-macauth", sg: "sg", ospf: "ospf" };
+    "dot1x-if": "if-dot1x", "macauth-if": "if-macauth", sg: "sg", ospf: "ospf", lldpg: "lldp-group", dprof: "device-profile", ubtz: "ubt-zone" };
   // the corpus contexts a line can come from, nearest first; show works from any context on the box
   Switch.prototype.realCtxs = function (toks) {
     var self = this, out = [], cur = this.ctx().ctx;
@@ -629,8 +689,9 @@
   // real next words for "?": keywords plus placeholder classes, and <cr> when the line is already complete
   Switch.prototype.realNext = function (toks, partialTok) {
     var C = corpus(), out = {}; if (!C || this.ctx().ctx === "vsf") return out;
-    var self = this, pt = (partialTok || "").toLowerCase();
-    this.realCtxs(toks.length ? toks : [partialTok || ""]).forEach(function (ctx) {
+    var self = this, pt = (partialTok || "").toLowerCase(), all = this.realCtxs(toks.length ? toks : [partialTok || ""]);
+    // only this context's words (and exec's for show), like ? on the box
+    all.filter(function (c, i) { return i === 0 || c === "exec"; }).forEach(function (ctx) {
       var bit = relBit(C, self.release, ctx);
       if (C.roots[ctx] === undefined || !bit) return;
       reachReal(C.roots[ctx], toks, 0, [], bit).forEach(function (ni) {
@@ -685,19 +746,19 @@
   Switch.prototype.exec = Switch.prototype.run;
 
   // "?" help for a partial line. `line` is what the user typed before the ?
+  // The box's ? layout (10.18, `diag ?`, `speed ?` and `show vlan | ?` on 2026-09-28): two spaces, the words
+  // padded to the longest plus two, the description wrapped so no line passes 80 characters, continuation
+  // lines under the description column.
   function fmtRows(rows) {
-    var w = Math.max(22, Math.max.apply(null, rows.map(function (r) { return r[0].length; })) + 2);
-    return rows.map(function (r) { return "  " + pad(r[0], w) + r[1] + " "; }).join("\n");
-  }
-  // the pipe's own ? list, laid out the way 10.18 printed it: a 13-wide name column, descriptions wrapped
-  function fmtPipe(rows) {
+    var w = Math.max.apply(null, rows.map(function (r) { return r[0].length; })) + 2;
     return rows.map(function (r) {
       var out = [], cur = "";
-      r[1].split(" ").forEach(function (w) { if (cur && (cur + " " + w).length > 64) { out.push(cur); cur = w; } else cur = cur ? cur + " " + w : w; });
+      String(r[1] || "").split(" ").forEach(function (word) { if (cur && 2 + w + (cur + " " + word).length > 79) { out.push(cur); cur = word; } else cur = cur ? cur + " " + word : word; });
       out.push(cur);
-      return out.map(function (t, i) { return (i ? pad("", 15) : "  " + pad(r[0], 13)) + t + " "; }).join("\n");
+      return out.map(function (t, i) { return (i ? pad("", 2 + w) : "  " + (t ? pad(r[0], w) : r[0])) + t + (t ? " " : ""); }).join("\n");
     }).join("\n");
   }
+  var fmtPipe = fmtRows;
   Switch.prototype.help = function (line) {
     if (splitPipe(line).piped) {
       var tail = line.slice(line.lastIndexOf("|") + 1), tt = tokens(tail), open = /\s$/.test(tail) || !tt.length;
@@ -708,8 +769,12 @@
       return fmtRows([["WORD", "Pattern to match, a regular expression (quote it when it has spaces)"]]);
     }
     var toks = tokens(line), trailing = /\s$/.test(line) || !toks.length, partialTok = trailing ? "" : toks.pop();
-    var seen = {}, rows = [];
+    var seen = {}, rows = [], here = this.stack.length - 1;
+    // ? lists what this context offers, and in a config context only end, exit and show besides, as the box
+    // does (captured in config-if-macauth, 2026-09-25); a parent's commands still run from here, unlisted
     this.candidates().forEach(function (c) {
+      if (c.level !== here && c.level !== -1) return;
+      if (c.level === -1 && here > 0 && ["end", "exit", "show"].indexOf(c.cmd.p[0]) < 0) return;
       var m = matchPattern(c.cmd.p, toks);
       if (m.state === "no") return;
       var at = toks.length;
@@ -773,8 +838,8 @@
   cmd("*", "end", function () { this.stack = [this.stack[0]]; });
   cmd("*", "configure terminal", function () { if (this.ctx().ctx !== "exec") return ""; this.push({ ctx: "config" }); });
   cmd("*", "configure", function () { if (this.ctx().ctx !== "exec") return ""; this.push({ ctx: "config" }); });
-  cmd("*", "write memory", function () { this.startup = this.runningConfig(); this.startupKeys = this.runningConfig(true); return "Copying configuration: [Success]"; });
-  cmd("*", "copy running-config startup-config", function () { this.startup = this.runningConfig(); this.startupKeys = this.runningConfig(true); return "Copying configuration: [Success]"; });
+  cmd("*", "write memory", function () { this.startup = this.runningConfig(); this.startupKeys = this.runningConfig(true); this.startupAt = this.now(); return "Copying configuration: [Success]"; });
+  cmd("*", "copy running-config startup-config", function () { this.startup = this.runningConfig(); this.startupKeys = this.runningConfig(true); this.startupAt = this.now(); return "Copying configuration: [Success]"; });
   cmd("*", "copy running-config checkpoint <WORD>", function (a) {
     var cfg = this.runningConfig(true);
     if (this.checkpoints.some(function (c) { return c.config === cfg; })) return "Copying configuration: [Failure]\n\nAn identical checkpoint already exists";
@@ -856,7 +921,7 @@
   cmd("config", "no aaa authentication port-access dot1x authenticator", function () { this.pa.dot1x = false; this.pa.dot1xGroup = ""; this.reauthAll(); });
   cmd("config", "aaa authentication port-access mac-auth", function () { this.push({ ctx: "macauth" }); });
   cmd("config", "no aaa authentication port-access mac-auth", function () { this.pa.macAuth = false; this.pa.macAuthGroup = ""; this.reauthAll(); });
-  cmd("config", "port-access role <WORD>", function (a) { if (!this.pa.roles[a[2]]) this.pa.roles[a[2]] = { vlan: 0, desc: "" }; this.push({ ctx: "role", id: a[2] }); });
+  cmd("config", "port-access role <WORD>", function (a) { if (!this.pa.roles[a[2]]) this.pa.roles[a[2]] = newRole(); this.push({ ctx: "role", id: a[2] }); });
   cmd("config", "no port-access role <WORD>", function (a) { delete this.pa.roles[a[3]]; this.reauthAll(); });
   cmd("config", "spanning-tree", function () { this.stp.enable = true; this.recheckL2(); });
   cmd("config", "no spanning-tree", function () { this.stp.enable = false; });
@@ -893,11 +958,13 @@
     cmd(ctx, "vlan trunk allowed <VLIST>", function (a) {
       var list = parseVlist(a[3]), self = this, missing = list ? list.filter(function (v) { return !self.vlans[v]; }) : [];
       if (missing.length) return "VLAN " + missing[0] + " does not exist. Create it first with `vlan " + missing[0] + "`.";
-      var bad = ""; this.eachTarget(function (i) { if (i.routing) bad = "Interface " + i.name + " is a routed port. Use `no routing` first."; else { i.mode = "trunk"; i.trunk = list; } }); this.reauthAll(); return bad;
+      // additive, as on the box: `vlan trunk allowed 10` then `vlan trunk allowed 20` leaves 10,20 (lab, 2026-09-28)
+      var bad = ""; this.eachTarget(function (i) { if (i.routing) bad = "Interface " + i.name + " is a routed port. Use `no routing` first."; else { var was = i.mode === "trunk" && i.trunkSet ? i.trunk : []; i.mode = "trunk"; i.trunkSet = true; i.trunk = list === null || was === null ? null : was.concat(list).filter(function (v, k, arr) { return arr.indexOf(v) === k; }); } }); this.reauthAll(); return bad;
     });
-    cmd(ctx, "no vlan trunk allowed", function () { this.eachTarget(function (i) { i.mode = "access"; i.trunk = null; }); });
-    cmd(ctx, "vlan trunk native <1-4094>", function (a) { var v = +a[3]; if (!this.vlans[v]) return "VLAN " + v + " does not exist."; this.eachTarget(function (i) { i.mode = "trunk"; i.native = v; i.nativeTag = false; if (!i.trunk) i.trunk = null; }); });
-    cmd(ctx, "vlan trunk native <1-4094> tag", function (a) { var v = +a[3]; if (!this.vlans[v]) return "VLAN " + v + " does not exist."; this.eachTarget(function (i) { i.mode = "trunk"; i.native = v; i.nativeTag = true; }); });
+    cmd(ctx, "no vlan trunk allowed", function () { this.eachTarget(function (i) { i.mode = "access"; i.trunk = null; i.trunkSet = false; }); this.reauthAll(); });
+    cmd(ctx, "no vlan trunk allowed <VLIST>", function (a) { var gone = parseVlist(a[4]) || []; this.eachTarget(function (i) { if (i.mode !== "trunk" || !i.trunk) return; i.trunk = i.trunk.filter(function (v) { return gone.indexOf(v) < 0; }); }); this.reauthAll(); });
+    cmd(ctx, "vlan trunk native <1-4094>", function (a) { var v = +a[3]; if (!this.vlans[v]) return "VLAN " + v + " does not exist."; this.eachTarget(function (i) { if (i.mode !== "trunk") { i.trunk = null; i.trunkSet = false; } i.mode = "trunk"; i.native = v; i.nativeTag = false; }); });
+    cmd(ctx, "vlan trunk native <1-4094> tag", function (a) { var v = +a[3]; if (!this.vlans[v]) return "VLAN " + v + " does not exist."; this.eachTarget(function (i) { if (i.mode !== "trunk") { i.trunk = null; i.trunkSet = false; } i.mode = "trunk"; i.native = v; i.nativeTag = true; }); });
     cmd(ctx, "no vlan trunk native", function () { this.eachTarget(function (i) { i.native = 1; i.nativeTag = false; }); });
   }
   Switch.prototype.eachTarget = function (fn) { var c = this.ctx(); if (c.ctx === "lag") fn(this.lags[c.id], "lag" + c.id); else this.eachIf(fn); };
@@ -993,6 +1060,157 @@
   cmd("role", "vlan access <1-4094>", function (a) { var v = +a[2]; if (!this.vlans[v]) return "VLAN " + v + " does not exist. Create it first with `vlan " + v + "`."; this.pa.roles[this.ctx().id].vlan = v; this.reauthAll(); });
   cmd("role", "no vlan access", function () { this.pa.roles[this.ctx().id].vlan = 0; this.reauthAll(); });
   cmd("role", "description <LINE>", function (a) { this.pa.roles[this.ctx().id].desc = a[1]; });
+  cmd("role", "no description", function () { this.pa.roles[this.ctx().id].desc = ""; });
+
+  // ── roles that trunk, voice VLANs, LLDP groups and device profiles ──────
+  // Shapes from the lab on 2026-09-28: a VOICE role (native 10, allowed 30, device-traffic-class voice) handed
+  // to an LLDP-MED phone by a device profile on a multi-domain port, and an UPLINK-TRUNK role handed to a core
+  // switch by `match sysname`.
+  Switch.prototype.missingVlan = function (list) { var self = this, bad = (list || []).filter(function (v) { return !self.vlans[v]; })[0]; return bad ? "VLAN " + bad + " does not exist. Create it first with `vlan " + bad + "`." : ""; };
+  Switch.prototype.curRole = function () { return this.pa.roles[this.ctx().id]; };
+  cmd("role", "vlan trunk native <1-4094>", function (a) { var e = this.missingVlan([+a[3]]); if (e) return e; this.curRole().native = +a[3]; this.reauthAll(); });
+  cmd("role", "no vlan trunk native", function () { this.curRole().native = 0; this.reauthAll(); });
+  cmd("role", "no vlan trunk native <1-4094>", function () { this.curRole().native = 0; this.reauthAll(); });
+  cmd("role", "vlan trunk allowed <VLIST>", function (a) {
+    var list = parseVlist(a[3]), r = this.curRole(), e = this.missingVlan(list); if (e) return e;
+    r.trunk = list === null ? null : (r.trunk || []).concat(list).filter(function (v, i, arr) { return arr.indexOf(v) === i; });
+    this.reauthAll();
+  });
+  cmd("role", "no vlan trunk allowed", function () { this.curRole().trunk = null; this.reauthAll(); });
+  cmd("role", "no vlan trunk allowed <VLIST>", function (a) { var gone = parseVlist(a[4]) || [], r = this.curRole(); if (r.trunk) r.trunk = r.trunk.filter(function (v) { return gone.indexOf(v) < 0; }); if (r.trunk && !r.trunk.length) r.trunk = null; this.reauthAll(); });
+  cmd("role", "device-traffic-class voice", function () { this.curRole().voice = true; this.reauthAll(); });
+  cmd("role", "no device-traffic-class", function () { this.curRole().voice = false; this.reauthAll(); });
+  cmd("role", "no device-traffic-class voice", function () { this.curRole().voice = false; this.reauthAll(); });
+  ["client-mode", "device-mode", "multi-domain"].forEach(function (m) {
+    cmd("role", "auth-mode " + m, function () { this.curRole().authMode = m; this.reauthAll(); });
+    cmd("role", "no auth-mode " + m, function () { this.curRole().authMode = ""; this.reauthAll(); });
+  });
+  cmd("role", "no auth-mode", function () { this.curRole().authMode = ""; this.reauthAll(); });
+  cmd("vlan", "voice", function () { this.vlans[this.ctx().id].voice = true; this.reauthAll(); });
+  cmd("vlan", "no voice", function () { this.vlans[this.ctx().id].voice = false; this.reauthAll(); });
+
+  // An LLDP group is an ordered list of match and ignore rules; the first rule a neighbour hits decides.
+  // Entered without seq, a rule takes the next multiple of ten, as the box numbered `match sysname core1` 10.
+  cmd("config", "port-access lldp-group <WORD>", function (a) { if (!this.pa.lldpGroups[a[2]]) this.pa.lldpGroups[a[2]] = { rules: [] }; this.push({ ctx: "lldpg", id: a[2] }); });
+  cmd("config", "no port-access lldp-group <WORD>", function (a) { delete this.pa.lldpGroups[a[3]]; this.reauthAll(); });
+  Switch.prototype.addRule = function (seq, act, spec) {
+    var g = this.pa.lldpGroups[this.ctx().id];
+    if (!seq) seq = (g.rules.reduce(function (m, r) { return Math.max(m, r.seq); }, 0) + 10);
+    g.rules = g.rules.filter(function (r) { return r.seq !== seq; });
+    spec.seq = seq; spec.act = act; g.rules.push(spec);
+    g.rules.sort(function (x, y) { return x.seq - y.seq; });
+    this.reauthAll();
+  };
+  ["match", "ignore"].forEach(function (act) {
+    [["", 0], ["seq <1-4294967295> ", 2]].forEach(function (pre) {
+      var at = pre[1], base = pre[0] + act + " ";
+      function seqOf(a) { return at ? +a[1] : 0; }
+      cmd("lldpg", base + "vendor-oui <OUI> type <1-255>", function (a) { return this.addRule(seqOf(a), act, { oui: a[at + 2].toLowerCase().replace(/[^0-9a-f]/g, ""), type: +a[at + 4] }); });
+      cmd("lldpg", base + "vendor-oui <OUI> type <1-255> value <WORD>", function (a) { return this.addRule(seqOf(a), act, { oui: a[at + 2].toLowerCase().replace(/[^0-9a-f]/g, ""), type: +a[at + 4], value: a[at + 6] }); });
+      cmd("lldpg", base + "sys-desc <WORD>", function (a) { return this.addRule(seqOf(a), act, { sysDesc: a[at + 2] }); });
+      cmd("lldpg", base + "sysname <WORD>", function (a) { return this.addRule(seqOf(a), act, { sysName: a[at + 2] }); });
+      cmd("lldpg", base + "chassis-id <MAC> type mac-address", function (a) { return this.addRule(seqOf(a), act, { chassis: macCx(a[at + 2]) }); });
+    });
+  });
+  cmd("lldpg", "no seq <1-4294967295>", function (a) { var g = this.pa.lldpGroups[this.ctx().id], s = +a[2]; g.rules = g.rules.filter(function (r) { return r.seq !== s; }); this.reauthAll(); });
+  function ruleText(r) {
+    return r.act + " " + (r.oui ? "vendor-oui " + r.oui + " type " + r.type + (r.value ? " value " + r.value : "") : r.sysDesc ? "sys-desc " + r.sysDesc : r.sysName ? "sysname " + r.sysName : "chassis-id " + r.chassis + " type mac-address");
+  }
+  // What a neighbour's LLDP says, for matching: sysname, sys-desc, chassis and the org-specific TLVs it sends.
+  // sysname and chassis match exactly; sys-desc matches as a substring (the box's documentation calls it a
+  // partial match; the lab only proved sysname); vendor-oui plus type matches any TLV with that OUI and subtype.
+  function ruleHits(r, dev) {
+    var l = dev.lldp || {};
+    if (r.oui) return (l.tlvs || []).concat(l.med ? [{ oui: "0012bb", type: 1 }] : []).some(function (t) { return t.oui === r.oui && +t.type === r.type && (!r.value || t.value === r.value); });
+    if (r.sysDesc) return String(l.desc || "").indexOf(r.sysDesc) >= 0;
+    if (r.sysName) return String(l.sys || "") === r.sysName;
+    if (r.chassis) return macCx(l.chassis || dev.mac) === r.chassis;
+    return false;
+  }
+  Switch.prototype.groupMatches = function (gname, dev) {
+    var g = this.pa.lldpGroups[gname]; if (!g) return false;
+    for (var i = 0; i < g.rules.length; i++) if (ruleHits(g.rules[i], dev)) return g.rules[i].act === "match";
+    return false;
+  };
+  cmd("config", "port-access device-profile <WORD>", function (a) { if (!this.pa.profiles[a[2]]) this.pa.profiles[a[2]] = { groups: [], role: "", enable: false }; this.push({ ctx: "dprof", id: a[2] }); });
+  cmd("config", "no port-access device-profile <WORD>", function (a) { delete this.pa.profiles[a[3]]; this.reauthAll(); });
+  Switch.prototype.curProf = function () { return this.pa.profiles[this.ctx().id]; };
+  cmd("dprof", "enable", function () { this.curProf().enable = true; this.reauthAll(); });
+  cmd("dprof", "no enable", function () { this.curProf().enable = false; this.reauthAll(); });
+  cmd("dprof", "disable", function () { this.curProf().enable = false; this.reauthAll(); });
+  cmd("dprof", "associate role <WORD>", function (a) { this.curProf().role = a[2]; this.reauthAll(); });
+  cmd("dprof", "no associate role", function () { this.curProf().role = ""; this.reauthAll(); });
+  cmd("dprof", "no associate role <WORD>", function () { this.curProf().role = ""; this.reauthAll(); });
+  cmd("dprof", "associate lldp-group <WORD>", function (a) { var p = this.curProf(); if (p.groups.indexOf(a[2]) < 0) p.groups.push(a[2]); this.reauthAll(); });
+  cmd("dprof", "no associate lldp-group", function () { this.curProf().groups = []; this.reauthAll(); });
+  cmd("dprof", "no associate lldp-group <WORD>", function (a) { var p = this.curProf(); p.groups = p.groups.filter(function (g) { return g !== a[3]; }); this.reauthAll(); });
+  // the enabled profile a neighbour matches, by profile name
+  Switch.prototype.profileFor = function (dev) {
+    var self = this, names = Object.keys(this.pa.profiles).sort();
+    for (var i = 0; i < names.length; i++) {
+      var p = this.pa.profiles[names[i]];
+      if (!p.enable || !p.role) continue;
+      for (var k = 0; k < p.groups.length; k++) if (self.groupMatches(p.groups[k], dev)) return { name: names[i], group: p.groups[k], role: p.role };
+    }
+    return null;
+  };
+
+  // per-port port-access and LLDP knobs
+  ["client-mode", "device-mode", "multi-domain"].forEach(function (m) {
+    cmd("if", "aaa authentication port-access auth-mode " + m, function () { this.eachIf(function (i) { i.authMode = m === "client-mode" ? "" : m; }); this.reauthAll(); });
+    cmd("if", "no aaa authentication port-access auth-mode " + m, function () { this.eachIf(function (i) { i.authMode = ""; }); this.reauthAll(); });
+  });
+  cmd("if", "aaa authentication port-access client-limit multi-domain <1-5>", function (a) { this.eachIf(function (i) { i.mdLimit = +a[5]; }); this.reauthAll(); });
+  cmd("if", "no aaa authentication port-access client-limit multi-domain", function () { this.eachIf(function (i) { i.mdLimit = 0; }); this.reauthAll(); });
+  cmd("if", "aaa authentication port-access allow-lldp-bpdu", function () { this.eachIf(function (i) { i.allowLldp = true; }); this.lldpEvents(); this.reauthAll(); });
+  cmd("if", "no aaa authentication port-access allow-lldp-bpdu", function () { this.eachIf(function (i) { i.allowLldp = false; }); this.reauthAll(); });
+  cmd("if", "lldp transmit", function () { this.eachIf(function (i) { i.lldpTx = true; }); this.reauthAll(); });
+  cmd("if", "no lldp transmit", function () { this.eachIf(function (i) { i.lldpTx = false; }); this.reauthAll(); });
+  cmd("if", "lldp receive", function () { this.eachIf(function (i) { i.lldpRx = true; }); this.reauthAll(); });
+  cmd("if", "no lldp receive", function () { this.eachIf(function (i) { i.lldpRx = false; }); this.reauthAll(); });
+  cmd("if", "lldp med network-policy", function () { this.eachIf(function (i) { i.medPolicy = true; }); this.reauthAll(); });
+  cmd("if", "no lldp med network-policy", function () { this.eachIf(function (i) { i.medPolicy = false; }); this.reauthAll(); });
+  cmd("if", "lldp med capability", function () { this.eachIf(function (i) { i.medCaps = true; }); this.reauthAll(); });
+  cmd("if", "no lldp med capability", function () { this.eachIf(function (i) { i.medCaps = false; }); this.reauthAll(); });
+  cmd("if", "port-access fallback-role <WORD>", function (a) { this.eachIf(function (i) { i.fallbackRole = a[2]; }); this.reauthAll(); });
+  cmd("if", "no port-access fallback-role", function () { this.eachIf(function (i) { i.fallbackRole = ""; }); this.reauthAll(); });
+  cmd("if", "no port-access fallback-role <WORD>", function () { this.eachIf(function (i) { i.fallbackRole = ""; }); this.reauthAll(); });
+  cmd("if", "port-access device-profile mode block-until-profile-applied", function () { this.eachIf(function (i) { i.dpBlock = true; }); this.reauthAll(); });
+  cmd("if", "no port-access device-profile mode block-until-profile-applied", function () { this.eachIf(function (i) { i.dpBlock = false; }); this.reauthAll(); });
+
+  // ── LLDP as the switch hears it and speaks it ───────────────────────────
+  // A port with port-access on drops LLDP from a client that has not authenticated, unless allow-lldp-bpdu is
+  // set: the lab's phone never became a neighbour until it was, and the debug log showed
+  // `lldp_receive_neighbor_clear: intf 1/1/6` meanwhile.
+  Switch.prototype.lldpHeard = function (d, p, authed) {
+    var i = this.ifaces[p]; if (!i || !d.lldp || !this.linkUp(p) || !i.lldpRx) return false;
+    if (d.kind === "switch" || d.kind === "router" || i.lag) return true;
+    var nac = this.nacOn(i); if (!nac.any || i.allowLldp) return true;
+    if (authed !== undefined) return !!authed;
+    var c = this.clients[d.id]; return !!(c && c.status === "Success" && c.method !== "device-profile");
+  };
+  // The voice VLAN a port tags for a device: the port's own trunk list, or the trunk list of the role the
+  // device holds, crossed with the VLANs marked `voice`.
+  Switch.prototype.voiceVlanFor = function (p, d) {
+    var self = this, i = this.ifaces[p], c = d ? this.clients[d.id] : null, role = c && c.status === "Success" && c.role ? this.pa.roles[c.role] : null;
+    var tagged = role && role.trunk ? role.trunk : (i.mode === "trunk" ? (i.trunk || Object.keys(this.vlans).map(Number)) : []);
+    return tagged.filter(function (v) { return self.vlans[v] && self.vlans[v].voice; })[0] || 0;
+  };
+  // What the switch sends an LLDP-MED endpoint: nothing TIA until it has heard the endpoint's own MED TLVs
+  // (captured before and after allow-lldp-bpdu), then capabilities and, for a voice VLAN it tags, a network
+  // policy with priority 6 and DSCP 46 (the values the lab switch sent with nothing configured).
+  Switch.prototype.medSent = function (p, d) {
+    var i = this.ifaces[p]; if (!i || !i.lldpTx || !d.lldp || !d.lldp.med || !this.lldpHeard(d, p)) return null;
+    var v = i.medPolicy ? this.voiceVlanFor(p, d) : 0;
+    return { caps: i.medCaps, policy: v ? { vlan: v, prio: 6, dscp: 46, tagged: true } : null };
+  };
+  // What the endpoint says back: a phone that was handed a policy re-advertises it (modelled on how SIP phones
+  // behave; the lab's emulator did not). Before that it advertises voice with an unknown VLAN, as the lab's did.
+  Switch.prototype.medAdvertised = function (p, d) {
+    var m = d.lldp && d.lldp.med; if (!m) return null;
+    var got = this.medSent(p, d), pol = got && got.policy;
+    return { cls: m.class || "III", poe: m.poe, policy: pol ? { app: "voice", vlan: pol.vlan, prio: pol.prio, dscp: pol.dscp, unknown: false, tagged: true } : { app: "voice", vlan: 0, prio: 0, dscp: 0, unknown: true, tagged: false } };
+  };
   cmd("vsf", "type <WORD>", function (a) {
     var m = this.vsf.members[this.ctx().id], id = this.ctx().id, self = this, pn = a[1].toUpperCase();
     var mid = Object.keys(MODELS).filter(function (k) { return MODELS[k].pn === pn; })[0];
@@ -1046,7 +1264,7 @@
     if (answer.role) {
       var role = this.pa.roles[answer.role];
       if (!role) { rec.reason = "Role " + answer.role + " returned by RADIUS is not defined on the switch"; rec.outcome = "authz"; return rec; }
-      rec.role = answer.role; rec.vlan = role.vlan || iface.access;
+      this.setRecRole(rec, answer.role, iface);
     } else if (answer.vlan) {
       if (!this.vlans[answer.vlan]) { rec.reason = "VLAN " + answer.vlan + " returned by RADIUS does not exist on the switch"; rec.outcome = "authz"; return rec; }
       rec.vlan = answer.vlan;
@@ -1056,7 +1274,9 @@
   // Every method failed: the critical role on a timeout, the reject role on a reject, when the port has one.
   Switch.prototype.applyFallback = function (rec, iface, kind) {
     var roleName = kind === "critical" ? iface.critRole : iface.rejectRole;
-    if (roleName && this.pa.roles[roleName]) { rec.status = "Success"; rec.role = roleName; rec.vlan = this.pa.roles[roleName].vlan || iface.access; rec.reason += "; " + (kind === "critical" ? "critical" : "reject") + " role applied"; rec.fallback = kind; }
+    if (roleName && this.pa.roles[roleName]) { rec.status = "Success"; this.setRecRole(rec, roleName, iface); rec.reason += "; " + (kind === "critical" ? "critical" : "reject") + " role applied"; rec.fallback = kind; }
+    // the port's fallback role, when nothing else gave the client one
+    else if (iface.fallbackRole && this.pa.roles[iface.fallbackRole]) { rec.status = "Success"; this.setRecRole(rec, iface.fallbackRole, iface); rec.reason += "; fallback role applied"; rec.fallback = "fallback"; }
     return rec;
   };
 
@@ -1067,15 +1287,22 @@
 
   // re-run every connected endpoint through the current config
   Switch.prototype.reauthAll = function () {
-    var self = this, perPort = {};
+    var self = this, count = {}, before = this.clients || {}, after = {};
     (this.lesson.devices || []).forEach(function (d) {
-      var st = self.devices[d.id]; if (!st || !st.connected) { delete self.clients[d.id]; return; }
-      if (d.kind === "switch" || d.kind === "router" || d.kind === "loop") { delete self.clients[d.id]; return; }
-      var iface = self.ifaces[d.port]; if (!iface || !self.linkUp(d.port)) { delete self.clients[d.id]; return; }
-      var nac = self.nacOn(iface);
-      if (!nac.any) { self.clients[d.id] = { dev: d.id, port: d.port, mac: macCx(d.mac), method: "none", status: "Open", role: "", vlan: iface.mode === "access" ? iface.access : iface.native, reason: iface.routing ? "Routed port, no VLAN" : "No port-access on this port, the client is just on VLAN " + iface.access, at: self.now(), user: "" }; return; }
-      perPort[d.port] = (perPort[d.port] || 0) + 1;
-      if (perPort[d.port] > (iface.clientLimit || 1)) { self.clients[d.id] = { dev: d.id, port: d.port, mac: macCx(d.mac), method: "none", status: "Failed", role: "", vlan: 0, reason: "Client limit " + (iface.clientLimit || 1) + " reached on " + d.port, at: self.now(), user: "" }; return; }
+      var st = self.devices[d.id]; if (!st || !st.connected) return;
+      var port = d.port || (d.ports || [])[0], iface = self.ifaces[port];
+      if (!iface || !self.linkUp(port)) return;
+      var infra = d.kind === "switch" || d.kind === "router" || d.kind === "loop";
+      var nac = infra ? { any: false } : self.nacOn(iface), mode = iface.authMode === "multi-domain" ? "m" : (iface.authMode === "device-mode" ? "d" : "c");
+      // No port-access on the port: a device profile still hands out its role (the lab's core switch got
+      // UPLINK-TRUNK, dp|c|-|s, on a port with nothing else configured).
+      if (!nac.any) {
+        var dpo = !iface.routing && !iface.lag && d.kind !== "loop" && self.lldpHeard(d, port, true) ? self.profileFor(d) : null;
+        if (dpo) { after[d.id] = self.dpRecord(d, port, dpo, mode, [], {}, []); return; }
+        if (infra) return;
+        after[d.id] = { dev: d.id, port: port, mac: macCx(d.mac), method: "none", status: "Open", role: "", vlan: iface.mode === "access" ? iface.access : iface.native, reason: iface.routing ? "Routed port, no VLAN" : "No port-access on this port, the client is just on VLAN " + iface.access, at: self.now(), user: "" };
+        return;
+      }
       // Methods run in precedence order until one authenticates. A device with no supplicant never answers
       // the EAP identity request, so 802.1X ends in Supplicant-Timeout without RADIUS ever seeing it. The
       // history and per-method states are what 10.18 prints in `show port-access clients detail`.
@@ -1092,12 +1319,50 @@
         rec = r; last = r;
         if (authed) break;
       }
-      if (!rec) rec = { dev: d.id, port: d.port, mac: macCx(d.mac), method: "dot1x", status: "Failed", role: "", vlan: 0, server: "", tried: [], outcome: "noeap",
+      if (!rec) rec = { dev: d.id, port: port, mac: macCx(d.mac), method: "dot1x", status: "Failed", role: "", vlan: 0, server: "", tried: [], outcome: "noeap",
         reason: nac.dot1x && !nac.mac ? "Client never answered the EAP identity request (no supplicant) and mac-auth is off" : "Client never answered the EAP identity request (no supplicant)", at: self.now(), user: "" };
-      if (rec.outcome !== "accept" && rec.outcome !== "authz") self.applyFallback(rec, iface, last && last.outcome === "timeout" ? "critical" : "reject");
-      rec.hist = hist; rec.prec = prec; rec.order = methods; rec.mode = "c"; rec.speaks = speaks; rec.user = speaks ? (d.user || "") : "";
-      self.clients[d.id] = rec;
+      rec.hist = hist; rec.prec = prec; rec.order = methods; rec.speaks = speaks; rec.user = speaks ? (d.user || "") : "";
+      // Nothing authenticated: a matching device profile applies its role. The lab's phone: dot1x timed out,
+      // mac-auth was rejected and held, then "Bypass role is set ... to role VOICE" and dp|m|v|s. It only
+      // matches if the switch can hear the phone's LLDP, which on a port-access port takes allow-lldp-bpdu.
+      if (rec.outcome !== "accept" && rec.outcome !== "authz") {
+        var dp = self.lldpHeard(d, port, false) ? self.profileFor(d) : null;
+        if (dp) rec = self.dpRecord(d, port, dp, mode, hist, prec, methods);
+        else self.applyFallback(rec, iface, last && last.outcome === "timeout" ? "critical" : "reject");
+      }
+      // a CoA the fake ClearPass sent earlier stays with the session while it lasts
+      var co = self.coaRoles[d.id];
+      if (co && rec.outcome === "accept" && !rec.fallback && rec.method !== "device-profile" && self.pa.roles[co]) self.setRecRole(rec, co, iface, "CoA applied");
+      else if (co && rec.outcome !== "accept") delete self.coaRoles[d.id];   // the session the CoA changed is gone
+      rec.mode = mode;
+      var role = rec.role && self.pa.roles[rec.role];
+      rec.voice = mode === "m" && !!(role && role.voice);
+      // limits: one client per port by default; multi-domain takes one voice device and client-limit
+      // multi-domain data devices (1 unless set) beside it
+      var lim = mode === "m" ? (rec.voice ? 1 : (iface.mdLimit || iface.clientLimit || 1)) : (iface.clientLimit || 1), key = port + (mode === "m" && rec.voice ? "|v" : "|d");
+      count[key] = (count[key] || 0) + 1;
+      if (count[key] > lim) rec = { dev: d.id, port: port, mac: macCx(d.mac), method: "none", status: "Failed", role: "", vlan: 0, reason: "Client limit " + lim + " reached on " + port, at: self.now(), user: "", mode: mode };
+      after[d.id] = rec;
     });
+    this.clients = after;
+    this.dbgClients(before, after);
+  };
+  // a role onto an auth record: its access VLAN, or its native VLAN and tagged list
+  Switch.prototype.setRecRole = function (rec, name, iface, why) {
+    var role = this.pa.roles[name];
+    rec.role = name;
+    if (role.vlan || role.native || role.trunk) { rec.vlan = role.vlan || role.native || iface.access; rec.native = role.native || 0; rec.trunk = role.trunk || null; }
+    else if (iface.mode === "trunk") { rec.vlan = iface.native; rec.native = iface.native; rec.trunk = iface.trunk || Object.keys(this.vlans).map(Number); }
+    else { rec.vlan = iface.access; rec.native = 0; rec.trunk = null; }
+    if (why) rec.reason = why;
+  };
+  Switch.prototype.dpRecord = function (d, port, dp, mode, hist, prec, methods) {
+    var role = this.pa.roles[dp.role], iface = this.ifaces[port];
+    var rec = { dev: d.id, port: port, mac: macCx(d.mac), method: "device-profile", status: role ? "Success" : "Failed", role: "", profile: dp.name, group: dp.group, dpRole: dp.role,
+      vlan: 0, reason: role ? "device profile " + dp.name + " matched through LLDP group " + dp.group : "device profile " + dp.name + " names role " + dp.role + ", which is not defined on the switch",
+      outcome: role ? "accept" : "authz", at: this.now(), user: "", hist: hist, prec: prec, order: methods, tried: [] };
+    if (role) this.setRecRole(rec, dp.role, iface);
+    return rec;
   };
 
   Switch.prototype.connect = function (id) {
@@ -1118,7 +1383,7 @@
   };
   Switch.prototype.disconnect = function (id) {
     var d = this.dev(id); if (!d) return "No device called " + id + " in this lab.";
-    this.devices[id].connected = false; delete this.clients[id]; this.tick++;
+    this.devices[id].connected = false; delete this.clients[id]; delete this.coaRoles[id]; this.tick++;
     this.recheckL2(); this.reauthAll();
     return d.name + " unplugged from " + (d.ports || [d.port]).join(" and ") + ".";
   };
@@ -1133,7 +1398,7 @@
     st.coaReq++;
     if (!this.pa.roles[role]) { st.coaNak++; return "CoA-NAK: role " + role + " is not defined on the switch."; }
     st.coaAck++;
-    c.role = role; c.vlan = this.pa.roles[role].vlan || this.ifaces[c.port].access; c.reason = "CoA applied"; c.at = this.now();
+    this.coaRoles[id] = role; this.setRecRole(c, role, this.ifaces[c.port], "CoA applied"); c.at = this.now();
     return "CoA-ACK: " + d.name + " moved to role " + role + ", VLAN " + c.vlan + ".";
   };
 
@@ -1282,6 +1547,10 @@
     var self = this, out = [];
     this.portNames().forEach(function (n) { var i = self.ifaces[n]; if (i.routing || i.lag) return; if (i.mode === "access" ? i.access === v : (i.native === v || !i.trunk || i.trunk.indexOf(v) >= 0)) out.push(n); });
     Object.keys(this.lags).forEach(function (l) { var i = self.lags[l]; if (i.mode === "access" ? i.access === v : (i.native === v || !i.trunk || i.trunk.indexOf(v) >= 0)) out.push("lag" + l); });
+    Object.keys(this.clients).forEach(function (k) {
+      var c = self.clients[k]; if (c.status !== "Success" || c.method === "none" || out.indexOf(c.port) >= 0) return;
+      if (c.vlan === v || c.native === v || (c.trunk && c.trunk.indexOf(v) >= 0)) out.push(c.port);
+    });
     return out;
   };
   Switch.prototype.showVlan = function (only) {
@@ -1389,10 +1658,11 @@
         var i = self.ifaces[p]; if (!i || !self.linkUp(p) || i.routing) return;
         var vlan, via = i.lag ? "lag" + i.lag : p;
         if (i.lag) { var lu = self.lagUp(i.lag); if (!lu.up || lu.active.indexOf(p) < 0) return; if (rows.some(function (r) { return r[0] === macCx(d.mac) && r[2] === via; })) return; }
-        var c = self.clients[d.id];
+        var c = self.clients[d.id], med = self.medAdvertised(p, d);
         if (c) { if (c.status === "Failed") return; vlan = c.vlan; }
         else vlan = i.mode === "access" ? i.access : (d.vlan || i.native);
-        rows.push([macCx(d.mac), vlan, via, "dynamic"]);
+        if (med && med.policy.vlan) vlan = med.policy.vlan;
+        rows.push([macCx(d.mac), vlan, via, c && c.method !== "none" && self.nacOn(i).any ? "port-access-security" : "dynamic"]);
       });
     });
     return rows;
@@ -1407,27 +1677,61 @@
   cmd("*", "show mac-address-table interface <PORT>", function (a) { return macTable(this.macRows().filter(function (r) { return r[2] === a[3]; }), "Interface"); });
   cmd("*", "show lldp neighbor-info", function () { return this.showLldp(null); });
   cmd("*", "show lldp neighbor-info <PORT>", function (a) { return this.showLldp(a[3]); });
-  Switch.prototype.showLldp = function (only) {
+  cmd("*", "show lldp neighbor-info detail", function () { return this.showLldp(null, true); });
+  // Neighbours the switch has heard, with what each one advertised. Layouts from the lab on 2026-09-28: an
+  // LLDP-MED phone (PoE over MED, class III, network policy), a core switch (DOT3 power, Mac-Phy), an empty port.
+  Switch.prototype.lldpRows = function (only) {
     var self = this, rows = [];
     (this.lesson.devices || []).forEach(function (d) {
       var st = self.devices[d.id]; if (!st || !st.connected || !d.lldp) return;
       (d.ports || [d.port]).forEach(function (p, k) {
-        if (only && p !== only) return; if (!self.linkUp(p)) return;
+        if (only && p !== only) return; if (!self.lldpHeard(d, p)) return;
         var rp = Array.isArray(d.lldp.port) ? d.lldp.port[k] : d.lldp.port;
-        rows.push({ port: p, chassis: d.lldp.chassis || macCx(d.mac), pid: rp || "", sys: d.lldp.sys || d.name, caps: d.lldp.caps || "", dev: d });
+        rows.push({ port: p, chassis: d.lldp.chassis || macCx(d.mac), pid: rp || macCx(d.mac), sys: d.lldp.sys || d.name, caps: d.lldp.caps || "", dev: d });
       });
     });
-    if (only) {
-      if (!rows.length) return ["Port                           : " + only, "Neighbor Entries               : 0", "Neighbor Entries Deleted       : 0", "Neighbor Entries Dropped       : 0", "Neighbor Entries Aged-Out      : 0"].join("\n");
-      var r = rows[0], capName = { B: "Bridge", R: "Router", T: "Telephone", S: "Station", W: "WLAN Access Point" };
-      var caps = r.caps.split(",").map(function (c) { return capName[c.trim()] || c.trim(); }).filter(Boolean).join(", ");
-      return ["Port                           : " + only, "Neighbor Entries               : 1", "Neighbor Entries Deleted       : 0", "Neighbor Entries Dropped       : 0", "Neighbor Entries Aged-Out      : 0",
-        "Neighbor System-Name           : " + r.sys, "Neighbor System-Description    : " + (r.dev.lldp.desc || ""), "Neighbor Chassis-ID            : " + r.chassis, "Neighbor Management-Address    : " + (r.dev.ip || ""),
-        "Chassis Capabilities Available : " + caps, "Chassis Capabilities Enabled   : " + caps, "Neighbor Port-ID               : " + r.pid, "Neighbor Port-Desc             : " + r.pid, "Neighbor Port VLAN ID          : " + (r.dev.vlan || 1), "TTL                            : 120"].join("\n");
+    return rows.sort(function (a, b) { return portKey(a.port) - portKey(b.port); });
+  };
+  var CAP_NAME = { B: "Bridge", R: "Router", T: "Telephone", S: "Station", W: "WLAN Access Point", O: "Other", P: "Repeater", C: "DOCSIS Cable Device" };
+  function capList(s) { return String(s || "").split(",").map(function (c) { return CAP_NAME[c.trim()] || c.trim(); }).filter(Boolean).join(", "); }
+  function lf(label, v) { return pad(label, 31) + ": " + (v === undefined || v === null ? "" : v); }
+  Switch.prototype.lldpBlock = function (port, r) {
+    if (!r) return [lf("Port", port), lf("Neighbor Entries", 0), lf("Neighbor Entries Deleted", 0), lf("Neighbor Entries Dropped", 0), lf("Neighbor Entries Aged-Out", 0),
+      lf("Neighbor System-Name", ""), lf("Neighbor System-Description", ""), lf("Neighbor Chassis-ID", ""), lf("Neighbor Management-Address", ""), lf("Chassis Capabilities Available", ""),
+      lf("Chassis Capabilities Enabled", ""), lf("Neighbor Port-ID", ""), lf("Neighbor Port-Desc", ""), lf("Neighbor Port VLAN ID", ""), lf("TTL", ""), lf("Neighbor Self-Seen", "")];
+    var d = r.dev, l = d.lldp, sw = d.kind === "switch" || d.kind === "router", med = this.medAdvertised(port, d), self = this;
+    var vnames = sw && l.vlans ? l.vlans.map(function (v) { return (self.vlans[v] && self.vlans[v].name) || ("VLAN" + v); }).join(",") : "";
+    var o = [lf("Port", port), lf("Neighbor Entries", 1), lf("Neighbor Entries Deleted", 0), lf("Neighbor Entries Dropped", 0), lf("Neighbor Entries Aged-Out", 0),
+      lf("Neighbor System-Name", r.sys), lf("Neighbor System-Description", l.desc || ""), lf("Neighbor Chassis-ID", r.chassis), lf("Neighbor Management-Address", l.mgmt || d.ip || ""),
+      lf("Chassis Capabilities Available", capList(l.caps)), lf("Chassis Capabilities Enabled", capList(l.capsOn || l.caps)), lf("Neighbor Port-ID", r.pid), lf("Neighbor Port-Desc", l.portDesc || r.pid),
+      lf("Neighbor Port VLAN ID", sw ? (l.pvid || 1) : (l.pvid || "")), lf("Neighbor Port VLAN Name", vnames), lf("Neighbor Port MFS", 0),
+      lf("Link aggregation supported", sw ? "Yes" : ""), lf("Link aggregation enabled", sw ? (d.lacp ? "Yes" : "No") : ""), lf("Aggregation port ID", sw ? 0 : ""), lf("TTL", 120), lf("Neighbor Self-Seen", "No")];
+    if (med) {
+      var poe = med.poe || {};
+      o.push("", lf("Neighbor PoE information", "MED"), lf("Neighbor Power Type", "PD"), lf("Neighbor Power Priority", poe.prio || "Low"), lf("Neighbor Power Source", "PSE"),
+        lf("PD Requested Power Value", (poe.w || 0).toFixed(2) + " W"), lf("PSE Allocated Power Value", (poe.w || 0).toFixed(2) + " W"), lf("PD Associated TLV", "med"), lf("PD Requested TLV types", "med"),
+        "", "Neighbor MED Capabilities", lf("Neighbor Device class", "CLASS_" + (med.cls || "III")), lf("MED capabilities enabled", "Capabilities, Network Policy, PD, Inventory"),
+        lf("MED capabilities supported", "Capabilities, Network Policy, PD, Inventory"), "", "Neighbor Med Network Policy", lf("Neighbor Med Application type", med.policy.app),
+        lf("Neighbor Med Policy VLAN ID", med.policy.vlan), lf("Neighbor Med Policy Priority", med.policy.prio), lf("Neighbor Med Policy DSCP", med.policy.dscp),
+        lf("Neighbor Med Policy Unknown", med.policy.unknown ? "true" : "false"), lf("Neighbor Med Policy Tagged", med.policy.tagged ? "true" : "false"));
+    } else if (sw || l.dot3poe) {
+      var dp = l.dot3poe || {};
+      o.push("", lf("Neighbor PoE information", "DOT3"), lf("Neighbor Power Type", sw ? "PSE" : "PD"), lf("Neighbor Power Priority", dp.prio || "Unknown"), lf("Neighbor Power Source", sw ? "Unknown" : "PSE"),
+        lf("PD Requested Power Value", (dp.w || 0).toFixed(2) + " W"), lf("PSE Allocated Power Value", (dp.w || 0).toFixed(2) + " W"), lf("Neighbor Power Supported", "Yes"), lf("Neighbor Power Enabled", "Yes"),
+        lf("Neighbor Power Class", "Class" + (dp.cls || 0)), lf("Neighbor Power Paircontrol", "No"), lf("PSE Power Pairs", "SIGNAL"), lf("Neighbor Power Down Request", ""), lf("PD Associated TLV", "dot3"),
+        lf("PD Requested TLV types", dp.w ? "dot3" : "None"), "", "Neighbor Mac-Phy details", lf("Neighbor Auto-neg Supported", "false"), lf("Neighbor Auto-Neg Enabled", "false"),
+        lf("Neighbor Auto-Neg Advertised", "Other"), lf("Neighbor MAU type", " "));
     }
-    var out = ["", "LLDP Neighbor Information ", "=========================", "", "Total Neighbor Entries          : " + rows.length, "Total Neighbor Entries Deleted  : 0", "Total Neighbor Entries Dropped  : 0", "Total Neighbor Entries Aged-Out : 0", "",
-      pad("LOCAL-PORT", 12) + pad("CHASSIS-ID", 19) + pad("PORT-ID", 29) + pad("PORT-DESC", 29) + pad("TTL", 9) + "SYS-NAME    ", pad("", 107).replace(/ /g, "-")];
-    rows.forEach(function (r) { out.push(pad(r.port, 12) + pad(r.chassis, 19) + pad(r.pid, 29) + pad(r.pid, 29) + pad("120", 9) + r.sys); });
+    o.push("", lf("Neighbor EEE information", "DOT3"), lf("Neighbor TX Wake time", "0 us"), lf("Neighbor RX Wake time", "0 us"), lf("Neighbor Fallback time", "0 us"), lf("Neighbor TX Echo time", "0 us"), lf("Neighbor RX Echo time", "0 us"));
+    return o;
+  };
+  Switch.prototype.showLldp = function (only, detail) {
+    var self = this, rows = this.lldpRows(only);
+    if (only) return [""].concat(this.lldpBlock(only, rows[0])).join("\n") + "\n";
+    var out = ["", "LLDP Neighbor Information ", "=========================", "", "Total Neighbor Entries          : " + rows.length, "Total Neighbor Entries Deleted  : 0", "Total Neighbor Entries Dropped  : 0", "Total Neighbor Entries Aged-Out : 0", ""];
+    if (detail) { rows.forEach(function (r) { out.push(pad("", 80).replace(/ /g, "-"), ""); out = out.concat(self.lldpBlock(r.port, r)); out.push(""); }); return out.join("\n"); }
+    out.push(pad("LOCAL-PORT", 12) + pad("CHASSIS-ID", 19) + pad("PORT-ID", 29) + pad("PORT-DESC", 29) + pad("TTL", 9) + "SYS-NAME    ", pad("", 107).replace(/ /g, "-"));
+    rows.forEach(function (r) { out.push(pad(r.port, 12) + pad(r.chassis, 19) + pad(r.pid, 29) + pad(r.dev.lldp.portDesc || r.pid, 29) + pad("120", 9) + r.sys); });
     return out.join("\n");
   };
   cmd("*", "show lacp aggregates", function () {
@@ -1593,6 +1897,7 @@
       if (filter && filter.port && c.port !== filter.port) return;
       if (filter && filter.mac && c.mac !== filter.mac) return;
       if (filter && filter.role && c.role !== filter.role) return;
+      if (filter && filter.method && c.method !== filter.method) return;
       rows.push(c);
     });
     return rows.sort(function (a, b) { return portKey(a.port) - portKey(b.port); });
@@ -1602,10 +1907,13 @@
     var meth = c.fallback || !authed ? "--" : ({ dot1x: "1x", "mac-auth": "ma", "device-profile": "dp" }[c.method] || "--");
     var mode = c.mode || "c", dtype = mode === "m" ? (c.voice ? "v" : "d") : "-";
     var why = (c.hist && c.hist[0] && c.hist[0].why) || (c.outcome === "timeout" ? "Server-Timeout" : "Server-Reject");
-    var name = c.user || (authed && c.method === "mac-auth" ? c.mac.replace(/:/g, "") : c.mac);
+    var name = c.method === "device-profile" ? c.mac : (c.user || (authed && c.method === "mac-auth" ? c.mac.replace(/:/g, "") : c.mac));
     var fb = c.fallback === "critical" ? "Critical" : (c.fallback === "reject" ? "Reject" : "");
+    // a trunk role reads (u)native,(t)tagged when one VLAN is tagged beside the native, and multi when more are
+    // (lab: VOICE native 10 allowed 30 showed (u)10,(t)30; UPLINK-TRUNK native 1 allowed 1,10,20 showed multi)
+    var tagged = (c.trunk || []).filter(function (v) { return v !== c.native; }), vcol = !ok ? "" : (c.trunk ? (tagged.length === 1 ? "(u)" + (c.native || c.vlan) + ",(t)" + tagged[0] : "multi") : "(u)" + c.vlan);
     return {
-      name: name, flags: meth + "|" + mode + "|" + dtype + "|" + (ok ? "s" : "f"), vlan: ok ? "(u)" + c.vlan : "",
+      name: name, flags: meth + "|" + mode + "|" + dtype + "|" + (ok ? "s" : "f"), vlan: vcol,
       role: ok ? (c.role ? c.role + (fb ? ", " + fb : "") : "") : "", roleDetail: ok && c.role ? c.role + (fb ? ", " + fb + " role" : "") : "",
       status: authed ? c.method + " Authenticated" : "Authentication Failed, " + why,
       authz: c.outcome === "authz" ? "Invalid" : (ok ? "Applied" : ""), devType: mode === "m" ? (c.voice ? "voice" : "data") : ""
@@ -1628,8 +1936,9 @@
     var hist = (c.hist || []).map(function (h, i) { return h.m + " - " + (h.ok ? "Authenticated" : "Unauthenticated") + (h.why ? ", " + h.why : "") + ", " + (secs + i * 5) + "s ago"; });
     var o = [head, pad("", head.length).replace(/ /g, "="), "  Session Details", "  ---------------", "    Port         : " + c.port, "    Session Time : " + secs + "s",
       "    IPv4 Address : ", "    IPv6 Address : ", "    Device Type  : " + v.devType, ""];
-    if (full) o.push("  VLAN Details", "  ------------", "    VLAN Group Name : ", "    VLANs Assigned  : " + (ok ? c.vlan : ""), "      Access          : " + (ok ? c.vlan : ""),
-      "      Native Untagged : ", "      Allowed Trunk   : ", "");
+    var trunkRole = ok && c.trunk;
+    if (full) o.push("  VLAN Details", "  ------------", "    VLAN Group Name : ", "    VLANs Assigned  : " + (ok ? (trunkRole ? [c.native].concat(c.trunk.filter(function (v) { return v !== c.native; })).join(",") : c.vlan) : ""),
+      "      Access          : " + (ok && !trunkRole ? c.vlan : ""), "      Native Untagged : " + (trunkRole ? c.native : ""), "      Allowed Trunk   : " + (trunkRole ? c.trunk.join(",") : ""), "");
     o.push("  Authentication Details", "  ----------------------", "    Status          : " + v.status, "    Auth Precedence : " + prec,
       "    Auth History    : " + (hist.length ? hist.join("\n                      ") : ""), "");
     if (full) o.push("  MACsec Details", "  --------------", "    MKA Session Status : ", "    MACsec Status      : ", "");
@@ -1646,7 +1955,12 @@
       var role = self.pa.roles[r]; if (!role) return;
       o.push("Name  : " + r, "Type  : local", "----------------------------------------------");
       if (role.desc) o.push("    Description                         : " + role.desc);
+      if (role.gwZone) o.push("    Gateway Zone                        : " + role.gwZone);
+      if (role.gwRole) o.push("    UBT Gateway Role                    : " + role.gwRole);
       if (role.vlan) o.push("    Access VLAN                         : " + role.vlan);
+      if (role.native) o.push("    Native VLAN                         : " + role.native);
+      if (role.trunk) o.push("    Allowed Trunk VLANs                 : " + role.trunk.slice().sort(function (a, b) { return a - b; }).join(","));
+      if (role.voice) o.push("    Device Type                         : voice");
       o.push("");
     });
     return o;
@@ -1659,7 +1973,11 @@
     }
     if (!detail) return this.clientTable(rows);
     var roles = [];
-    var o = rows.map(function (c) { if (c.role && c.status === "Success" && roles.indexOf(c.role) < 0) roles.push(c.role); return ["", "Port Access Client Status Details:", "", "RADIUS overridden user roles are suffixed with '*'", "", self.clientBlock(c, true), ""].join("\n"); });
+    var o = rows.map(function (c) {
+      if (c.role && c.status === "Success" && roles.indexOf(c.role) < 0) roles.push(c.role);
+      if (c.method === "device-profile") return ["", "Device-Profile Client Status Details:", "", self.dpBlock(c), ""].join("\n");
+      return ["", "Port Access Client Status Details:", "", "RADIUS overridden user roles are suffixed with '*'", "", self.clientBlock(c, true), ""].join("\n");
+    });
     if (roles.length) o.push(["", "Role Information:", ""].concat(this.roleInfo(roles)).join("\n"));
     return o.join("\n");
   };
@@ -1670,6 +1988,41 @@
   cmd("*", "show port-access clients mac <MAC>", function (a) { return this.showClients({ mac: macCx(a[4]) }, false); });
   cmd("*", "show port-access clients mac <MAC> detail", function (a) { return this.showClients({ mac: macCx(a[4]) }, true); });
   cmd("*", "show port-access clients role <WORD>", function (a) { return this.showClients({ role: a[4] }, false); });
+  ["device-profile", "dot1x", "mac-auth"].forEach(function (m) {
+    cmd("*", "show port-access clients onboarding-method " + m, function () { return this.showClients({ method: m }, false); });
+  });
+  // a device-profile client's block and the device-profile views, in 10.18.1002's layout (lab, 2026-09-28)
+  Switch.prototype.dpBlock = function (c) {
+    return ["  Port " + c.port + ", Neighbor-Mac  " + c.mac, "    Profile Name:           : " + (c.profile || ""), "    LLDP Group:             : " + (c.group || ""),
+      "    CDP Group:              : ", "    MAC Group:              : ", "    Role:                   : " + (c.dpRole || c.role || ""),
+      "    State:                  : " + (c.status === "Success" ? "applied" : "failed"), "    Failure Reason:         : " + (c.status === "Success" ? "" : "role-not-found")].join("\n") +
+      (c.status === "Success" ? "" : "\n\n  (sandbox: " + c.reason + ")");
+  };
+  cmd("*", "show port-access device-profile", function () {
+    var self = this, names = Object.keys(this.pa.profiles).sort();
+    if (!names.length) return "No device profiles configured.";
+    return names.map(function (n) { var p = self.pa.profiles[n]; return ["", "    Profile Name            : " + n, "    LLDP Groups             : " + p.groups.join(", "), "    CDP Groups              : ", "    MAC Groups              : ", "    Role                    : " + p.role, "    State                   : " + (p.enable ? "Enabled" : "Disabled")].join("\n"); }).join("\n");
+  });
+  cmd("*", "show port-access device-profile name <WORD>", function (a) {
+    var p = this.pa.profiles[a[4]]; if (!p) return "Device profile " + a[4] + " is not configured.";
+    return ["", "    Profile Name            : " + a[4], "    LLDP Groups             : " + p.groups.join(", "), "    CDP Groups              : ", "    MAC Groups              : ", "    Role                    : " + p.role, "    State                   : " + (p.enable ? "Enabled" : "Disabled")].join("\n");
+  });
+  Switch.prototype.dpClients = function (port) {
+    var self = this, rows = this.clientRows(port ? { port: port } : null).filter(function (c) { return c.method === "device-profile"; });
+    return rows.length ? rows.map(function (c) { return self.dpBlock(c); }).join("\n") : "No device-profile clients found.";
+  };
+  cmd("*", "show port-access device-profile interface all", function () { return this.dpClients(null); });
+  cmd("*", "show port-access device-profile interface <PORT>", function (a) { return this.dpClients(a[4]); });
+  cmd("*", "show vlan voice", function () {
+    var self = this, voice = Object.keys(this.vlans).map(Number).filter(function (v) { return self.vlans[v].voice; });
+    var all = this.showVlan(null).split("\n");
+    return all.slice(0, 4).concat(all.slice(4).filter(function (l) { return voice.indexOf(parseInt(l, 10)) >= 0; })).join("\n");
+  });
+
+  // ── debug ───────────────────────────────────────────────────────────────
+  // Filled in below; the port-access and LLDP code calls these whether or not anything is being logged.
+  Switch.prototype.dbgClients = function () {};
+  Switch.prototype.lldpEvents = function () {};
   Switch.prototype.clientStatus = function (port) {
     var self = this, rows = this.clientRows(port ? { port: port } : null);
     if (!rows.length) return "No aaa clients found.";
@@ -1687,11 +2040,13 @@
   // checkpoints: `show checkpoint` lists them; `show checkpoint <name>` prints one. There is no `show checkpoint
   // list` on 10.18: the box reads "list" as a checkpoint name, hence "Checkpoint list doesn't exist".
   cmd("*", "show checkpoint", function () {
-    var self = this, rows = this.checkpoints.slice().sort(function (a, b) { return b.at - a.at; }).map(function (c, i) {
-      return pad(c.name, 34) + pad(i === 0 ? "latest" : "checkpoint", 12) + pad("User", 8) + pad(new Date(c.at).toISOString().replace(/\.\d+Z$/, "Z"), 22) + self.version;
-    });
-    rows.push(pad("startup-config", 34) + pad("startup", 12) + pad("User", 8) + pad(new Date(this.boot).toISOString().replace(/\.\d+Z$/, "Z"), 22) + this.version);
-    return [pad("NAME", 34) + pad("TYPE", 12) + pad("WRITER", 8) + pad("DATE(YYYY/MM/DD)", 22) + "IMAGE VERSION"].concat(rows).join("\n");
+    // every entry is TYPE checkpoint and the startup config sits among them by date, newest first, as the lab's
+    // listing did; the box also keeps system checkpoints (CPC...) after each change, which the sandbox does not
+    var self = this, all = this.checkpoints.map(function (c) { return { name: c.name, type: "checkpoint", at: c.at }; });
+    all.push({ name: "startup-config", type: "startup", at: this.startupAt || this.boot });
+    return [pad("NAME", 34) + pad("TYPE", 12) + pad("WRITER", 8) + pad("DATE(YYYY/MM/DD)", 22) + "IMAGE VERSION"].concat(all.sort(function (a, b) { return b.at - a.at; }).map(function (c) {
+      return pad(c.name, 34) + pad(c.type, 12) + pad("User", 8) + pad(new Date(c.at).toISOString().replace(/\.\d+Z$/, "Z"), 22) + self.version;
+    })).join("\n");
   });
   cmd("*", "show checkpoint <WORD>", function (a) {
     if (a[2] === "startup-config") return this.startup.replace(/^Current configuration:/, "Checkpoint configuration:");
