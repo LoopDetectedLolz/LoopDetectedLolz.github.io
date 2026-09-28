@@ -1,7 +1,7 @@
 ---
 title: Surveys and What a Heatmap Can't See
 slug: academy-11-surveys-and-what-a-heatmap-cant-see
-date: 2026-10-04
+date: 2026-09-27
 tags: Wireless, Academy, Survey
 hero: hero-academy-11.svg
 academy: 11
@@ -115,6 +115,6 @@ One room, one AP of yours, whatever neighbours you can hear, the Sidekick 2 and 
 
 Answers: neither yet; one sample with a 2 dB spread is -70 plus or minus 2, so stand there and take enough that the mean's uncertainty is under a dB. Airtime and retries: Central's RF tab Channel Utilization and Frames, or Mist's Channels on the AP Insights page and `util_all` from the API; the survey heard beacons, not the traffic between them. Nothing, not a weak nothing but a gap filled by the neighbours; add the channel to the scan list if your tool offers it, otherwise take it out of the AP's auto-channel pool until it does, and redo the walk either way.
 
-## Next week
+## Next lesson
 
 Lesson 12 is the method: client, RF, infrastructure, upstream, and which tool shows which layer. Break it three ways, find each one with the right tool.

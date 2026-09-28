@@ -88,6 +88,6 @@ And none of that counts the cost the game shows you, which is that you have fewe
 2. An AP on channel 100 stops serving clients for half an hour and then comes back on its own. What happened, and which band would have avoided it?
 3. Two APs are on 40 MHz channels that share one 20 MHz half. Is that better or worse than putting them both on the same 40 MHz channel, and why?
 
-## Next week
+## Next lesson
 
 Lesson 3 is the link budget: EIRP, antenna gain, receive sensitivity and free space path loss, and predicting the RSSI at 10 m before you go and measure it.

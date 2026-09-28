@@ -1,7 +1,7 @@
 ---
 title: Modulation and Data Rates
 slug: academy-04-modulation-and-data-rates
-date: 2026-09-28
+date: 2026-09-23
 tags: Wireless, Academy, PHY
 hero: hero-academy-04.svg
 academy: 4
@@ -108,6 +108,6 @@ Whatever laptop you use, it'll sit on the same rungs and stop at different place
 
 Answers: MCS 9, 256-QAM at 5/6. From 1201 Mbps to 866.7. 64-QAM, MCS 5 or 6 territory. 256-QAM wants somewhere in the mid twenties to mid thirties depending on the chart and the chipset, so at least a few more dB and possibly ten, which means closer than half the distance, or a cleaner channel.
 
-## Next week
+## Next lesson
 
 Airtime is the only resource. Why a 1201 Mbps link delivers 480, and why one slow client hurts everyone on the channel, with the mDNS post as the case study.

@@ -18,7 +18,7 @@
 <meta name="twitter:title" content="Roaming: the Client Decides">
 <meta name="twitter:description" content="The AP never moves a client. It can tell the client who its neighbours are, suggest a better one, or throw it off and hope. What the client is actually doing when it decides, what 802.11k, v and r each change, and a walk test to watch it happen on Mist and Central.">
 <meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-09-roaming-the-client-decides.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-10-02"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Roaming: the Client Decides", "description": "The AP never moves a client. It can tell the client who its neighbours are, suggest a better one, or throw it off and hope. What the client is actually doing when it decides, what 802.11k, v and r each change, and a walk test to watch it happen on Mist and Central.", "datePublished": "2026-10-02", "image": "https://networkfieldnotes.com/og/academy-09-roaming-the-client-decides.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-09-roaming-the-client-decides.html", "keywords": "Wireless, Academy, Roaming"}</script>
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-26"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Roaming: the Client Decides", "description": "The AP never moves a client. It can tell the client who its neighbours are, suggest a better one, or throw it off and hope. What the client is actually doing when it decides, what 802.11k, v and r each change, and a walk test to watch it happen on Mist and Central.", "datePublished": "2026-09-26", "image": "https://networkfieldnotes.com/og/academy-09-roaming-the-client-decides.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-09-roaming-the-client-decides.html", "keywords": "Wireless, Academy, Roaming"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -553,7 +553,7 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Oct 2, 2026 &#183; 9 min</span></div>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Lesson 9 &#183; 9 min</span></div>
       <h1 class="h-hero">Roaming: the Client Decides</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -675,7 +675,7 @@ standard roam, EAP:  auth 2 + assoc 2 + EAP-TLS (a dozen and up) + 4-way 4  = 20
 <li>ClientMatch wants a non-11v client off an AP. What does it actually do?</li>
 </ol>
 <p>Answers: Not yet. The iPhone's trigger is -70 dBm and it isn't looking until it crosses it, though once it does, 10 dB better clears the 8 dB bar. Four frames, FT authentication and FT reassociation, and RADIUS never hears about it; the key came from the PMK-R0 set up at the first join. It has every neighbouring radio except the target refuse the client for 5 seconds, waits 2, deauthenticates it, and relies on the client rejoining where it's allowed.</p>
-<h2>Next week</h2>
+<h2>Next lesson</h2>
 <p>Capacity, not coverage. Clients per radio, cell size and the minimum basic rate. We raise it on both platforms and watch the cell shrink.</p></div>
       
     </div>
@@ -840,7 +840,7 @@ standard roam, EAP:  auth 2 + assoc 2 + EAP-TLS (a dozen and up) + 4-way 4  = 20
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="academy-08-joining-a-network.html"><span class="eyebrow">Older</span>Joining a Network</a><a class="pn g-card" href="academy-10-capacity-not-coverage.html"><span class="eyebrow">Newer</span>Capacity, Not Coverage</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-08-joining-a-network.html"><span class="eyebrow">Older</span>Joining a Network</a><a class="pn g-card" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="eyebrow">Newer</span>Surveys and What a Heatmap Can&#x27;t See</a></div>
     </section>
   </article>
 </div>

@@ -1,7 +1,7 @@
 ---
 title: Roaming: the Client Decides
 slug: academy-09-roaming-the-client-decides
-date: 2026-10-02
+date: 2026-09-26
 tags: Wireless, Academy, Roaming
 hero: hero-academy-09.svg
 academy: 9
@@ -81,6 +81,6 @@ Two APs on different channels, one phone or laptop, a corridor, under an hour. P
 
 Answers: Not yet. The iPhone's trigger is -70 dBm and it isn't looking until it crosses it, though once it does, 10 dB better clears the 8 dB bar. Four frames, FT authentication and FT reassociation, and RADIUS never hears about it; the key came from the PMK-R0 set up at the first join. It has every neighbouring radio except the target refuse the client for 5 seconds, waits 2, deauthenticates it, and relies on the client rejoining where it's allowed.
 
-## Next week
+## Next lesson
 
 Capacity, not coverage. Clients per radio, cell size and the minimum basic rate. We raise it on both platforms and watch the cell shrink.

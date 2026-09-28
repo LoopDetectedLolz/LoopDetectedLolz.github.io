@@ -75,6 +75,6 @@ Is 100 mW more or less than 23 dBm, and by how much? A client's signal went from
 
 Answers: less, by 3 dB. It dropped to a quarter. About 12 dB.
 
-## Next week
+## Next lesson
 
 Bands, channels and widths. Where 2.4, 5 and 6 GHz live, what the U-NII blocks are, and what you pay for a wider channel. The lab is the same AP with the width changed, and the client's rate table telling you what it cost.

@@ -1,7 +1,7 @@
 ---
 title: Noise, SNR, and Why RSSI Lies
 slug: academy-07-noise-snr-and-why-rssi-lies
-date: 2026-09-30
+date: 2026-09-25
 tags: Wireless, Academy, RF
 hero: hero-academy-07.svg
 academy: 7
@@ -83,6 +83,6 @@ One AP, one laptop, a wired box for iperf3, a microwave oven, under an hour. A m
 
 Answers: 16 dB, MCS 4 on the site's floors, 16-QAM 3/4 and nowhere near the top of the table despite a strong-looking RSSI. About 6 dB lower, near -98, because two halvings of width take two lots of 3 dB off the thermal noise. SNR and Retry Frames, then the Sidekick; the client page shows you the symptom and the spectrum view shows you the oven.
 
-## Next week
+## Next lesson
 
 Joining a network. Probe, authentication, association, the 4-way handshake and EAP, captured on Mist and on Aruba, then the same join read back in ClearPass Access Tracker.

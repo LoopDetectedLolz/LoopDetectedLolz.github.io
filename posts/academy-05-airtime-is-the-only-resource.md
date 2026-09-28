@@ -1,7 +1,7 @@
 ---
 title: Airtime Is the Only Resource
 slug: academy-05-airtime-is-the-only-resource
-date: 2026-09-28
+date: 2026-09-24
 tags: Wireless, Academy, MAC
 hero: hero-academy-05.svg
 academy: 5
@@ -146,6 +146,6 @@ One AP, two laptops, a wired box running `iperf3 -s`, under an hour. Pin the AP'
 
 Answers: About 55 Mb/s. The packet's bits take 10 microseconds of a 218.5 microsecond turn; the rest is the gap, the count, the preamble, the padding in the last symbol, the 16 microsecond pause and the ACK. About 18.6 percent, and 12 Mb/s roughly halves it, to 9.8. Voice draws its number from 0 to 3, so with lots of busy radios in that queue most turns start with a collision and the real calls suffer. Priority only works while most traffic doesn't have it.
 
-## Next week
+## Next lesson
 
 Interference from yourself. Somebody asked under lesson 2 whether adding APs to a big open floor makes the cell edge worse. The answer is mostly about channel width, and it starts where this lesson stops: `util_rx_other_bss`.

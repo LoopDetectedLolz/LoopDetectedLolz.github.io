@@ -151,6 +151,6 @@ Same term that wrecked the bench, same AP, same posture, different instrument. O
 2. Your predicted RSSI is -45 and you measure -65 with a 2 dB standard deviation. Which term do you solve for, and why not path loss?
 3. You compare two APs against a calibrated receiver and they come back 5 dB apart. Name two explanations that have nothing to do with transmit power. Then say which of the two you could rule out without moving either AP, and which one you could not, because that second answer is the whole of this lesson.
 
-## Next week
+## Next lesson
 
 Modulation and data rates: why "speed" is a table, not a number, and why RSSI stops being the thing that matters.

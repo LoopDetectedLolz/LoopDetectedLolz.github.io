@@ -18,7 +18,7 @@
 <meta name="twitter:title" content="Interference From Yourself">
 <meta name="twitter:description" content="A reader with twelve APs on one big floor asked whether adding APs makes the edge worse, and whether anything self-tunes. The answer is that AP count was never the variable. Channel width is, and the automation only moves the two knobs you let it.">
 <meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-06-interference-from-yourself.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-29"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Interference From Yourself", "description": "A reader with twelve APs on one big floor asked whether adding APs makes the edge worse, and whether anything self-tunes. The answer is that AP count was never the variable. Channel width is, and the automation only moves the two knobs you let it.", "datePublished": "2026-09-29", "image": "https://networkfieldnotes.com/og/academy-06-interference-from-yourself.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-06-interference-from-yourself.html", "keywords": "Wireless, Academy, RF"}</script>
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-25"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Interference From Yourself", "description": "A reader with twelve APs on one big floor asked whether adding APs makes the edge worse, and whether anything self-tunes. The answer is that AP count was never the variable. Channel width is, and the automation only moves the two knobs you let it.", "datePublished": "2026-09-25", "image": "https://networkfieldnotes.com/og/academy-06-interference-from-yourself.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-06-interference-from-yourself.html", "keywords": "Wireless, Academy, RF"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -553,7 +553,7 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 29, 2026 &#183; 10 min</span></div>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Lesson 6 &#183; 10 min</span></div>
       <h1 class="h-hero">Interference From Yourself</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -718,7 +718,7 @@ two APs on one 80 MHz channel, client at MCS 9, two streams:
 <li>Two 80 MHz APs, one on primary 36, one on primary 44. Co-channel or adjacent? And if the second moves to 52?</li>
 </ol>
 <p>Answers: 12/12 = 1.0 before, 12/13 = 0.92 after, and the cheapest fix is to drop the width to 20 MHz on that floor, which makes it 25/13 and buys twelve spare channels for nothing. The RSSI doesn't move at all; the throughput roughly halves, because -70 is well above the -82 dBm preamble threshold so AP A and everything on it defers to AP B. Co-channel, since 36 and 44 are the same 80 MHz block; on 52 it becomes the adjacent block, nothing defers, and the cost shows up in the noise floor instead of in the airtime.</p>
-<h2>Next week</h2>
+<h2>Next lesson</h2>
 <p>Noise, SNR, and why RSSI lies. Step 6 raised the floor without touching the signal, and that's the whole lesson.</p></div>
       
     </div>
@@ -883,7 +883,7 @@ two APs on one 80 MHz channel, client at MCS 9, two streams:
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="wifi-takes-turns.html"><span class="eyebrow">Older</span>Your Wi-Fi Takes Turns, and the Slowest Talker Sets the Pace</a><a class="pn g-card" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="eyebrow">Newer</span>Noise, SNR, and Why RSSI Lies</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-05-airtime-is-the-only-resource.html"><span class="eyebrow">Older</span>Airtime Is the Only Resource</a><a class="pn g-card" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="eyebrow">Newer</span>Noise, SNR, and Why RSSI Lies</a></div>
     </section>
   </article>
 </div>
