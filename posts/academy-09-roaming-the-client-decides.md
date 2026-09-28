@@ -16,7 +16,7 @@ Somebody walks from their desk to the meeting room and the call breaks up halfwa
 
 A client watches the signal from the AP it's on. When it drops past a threshold the client chose, it scans the channels it thinks are worth scanning and moves if it finds something enough better. Every one of those numbers belongs to the client. Apple publishes theirs, which is why I can quote them. iPhone and iPad hold the current AP until the RSSI crosses -70 dBm. A Mac holds until -75. Once looking, an iPhone wants a candidate 8 dB stronger if it's passing traffic, 12 dB if idle. A Mac wants 12 dB either way. Microsoft doesn't publish a threshold that I can find. Intel adapters have a Roaming Aggressiveness setting, Lowest to Highest with Medium the default, described as moving the signal threshold where the adapter starts scanning. No number, and a driver setting survives nothing, so I don't build on it.
 
-That gap between "-70 dBm" and "8 dB better" is where sticky clients live. A phone at -71 next to a corridor AP that would give it -60 hasn't seen anything better because it hasn't scanned yet. It's always a laptop.
+That gap between "-70 dBm" and "8 dB better" is where sticky clients live. A Mac at -72 next to a corridor AP that would give it -60 hasn't moved, because it doesn't start looking until -75 and then wants 12 dB better. It's always a laptop.
 
 The standards give the AP three ways to help.
 
@@ -42,7 +42,7 @@ standard roam, EAP:  auth 2 + assoc 2 + EAP-TLS (a dozen and up) + 4-way 4  = 20
 11r roam, either:    FT auth 2 + FT reassoc 2                             =  4 frames
 ```
 
-That's the whole pitch for 11r on a voice SSID: a quarter of the frames of a PSK roam, a fifth or less of an EAP-TLS one, and no RADIUS in the path. Nobody publishes a roam time you can plan against, so I use what the platforms grade against. Mist's Roaming SLE calls an 11r roam slow past 400 ms and a standard or OKC roam slow past 2 seconds. Central flags a roam as high latency past 50 ms. Two vendors, two ideas of slow, and both are just the line they drew.
+That's the whole pitch for 11r on a voice SSID: half the frames of a PSK roam, a seventh of an EAP-TLS one, and no RADIUS in the path. Nobody publishes a roam time you can plan against, so I use what the platforms grade against. Mist's Roaming SLE calls an 11r roam slow past 400 ms and a standard or OKC roam slow past 2 seconds. Central flags a roam as high latency past 50 ms. Two vendors, two ideas of slow, and both are just the line they drew.
 
 ## What the gear shows you
 
@@ -69,7 +69,7 @@ Two APs on different channels, one phone or laptop, a corridor, under an hour. P
 5. Walk again. Mist should now say 11r Roam; Central's Roaming Type should change. Compare latency.
 6. Turn on 802.11v where it's a toggle and walk once more, watching for a transition request and whether the client took it. On Mist it's on by default, so you're comparing against what you already had.
 
-**What you should see.** Six roams at roughly the same RSSI every time, and on Apple gear at or below the -70 dBm line, not at the crossing. The 11r walk should cut the reported latency hard; the standard says a quarter of the frames, and the platforms grade it against 400 ms instead of 2 seconds. The roam point doesn't move with 11r. Only 11k and 11v can move it, and only if the client listens. Those are the model's expectations; the measured numbers replace them.
+**What you should see.** Six roams at roughly the same RSSI every time, and on Apple gear at or below the -70 dBm line, not at the crossing. The 11r walk should cut the reported latency hard; Mist's doc says half the frames of a PSK roam, and the platforms grade it against 400 ms instead of 2 seconds. The roam point doesn't move with 11r. 11k won't move it either; it only shortens the scan once the client starts. A BTM request the client acts on, or a shove, is the only thing that brings it earlier. Those are the model's expectations; the measured numbers replace them.
 
 **What means it's broken.** A client that never roams until the ping dies is sticky: compare its RSSI at the drop to the neighbour on the Sidekick trace. A roam to the weaker AP is Suboptimal Roam on Mist and usually a stale scan list; 11k is the fix. An 11r walk slower than the plain one means the client doesn't do FT and fell back, or the mobility domain doesn't match across APs; 11r Key Lookup Failure and 11r FBT Failure name it. A roam with no event at all is a disconnect and a rejoin, and the ping gap is last week's join sequence.
 

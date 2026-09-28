@@ -19,11 +19,11 @@ In the US there are three bands worth your time, and they are wildly different s
 
 **2.4 GHz** gives you eleven channels, and only three of them fit side by side without overlapping: 1, 6 and 11. The rest overlap their neighbours, which is why channel 3 is not a clever compromise, it is two problems at once. Everything else lives here too, so the band is loud before you arrive.
 
-**5 GHz** is the working band, and it comes in four blocks you should know by name. U-NII-1 is channels 36 to 48. U-NII-2A is 52 to 64. U-NII-2C is 100 to 144, the big one. U-NII-3 is 149 to 165. Twenty five channels of 20 MHz, which sounds like plenty until you start widening them.
+**5 GHz** is the working band, and it comes in four blocks you should know by name. U-NII-1 is channels 36 to 48. U-NII-2A is 52 to 64. U-NII-2C is 100 to 144, the big one. U-NII-3 is 149 to 165. Twenty five channels of 20 MHz, which sounds like plenty until you start widening them. That's the classic list. Since the FCC's 2020 order there is also U-NII-4, channels 169 to 177, indoors only. Your AP has to support it and so do your clients, and plenty don't yet, but where it works it adds a seventh 80 MHz channel and a third 160, and that 160 is the only one in 5 GHz that doesn't need DFS. The channel 173 field note on this site is about what happens when your survey gear hasn't caught up.
 
 The catch is DFS. Everything from 52 to 144 is shared with radar, mostly weather and military, and the rules are not negotiable: your AP has to listen before it transmits there, and if it hears a radar pattern it must leave that channel and stay off it for thirty minutes. That is real capacity, and you should use it, but it is borrowed rather than owned.
 
-**6 GHz** is the new room, and it is enormous: 5.925 to 7.125 GHz, fifty nine 20 MHz channels, and no DFS anywhere in it. Seven of those channels are 160 MHz wide, five more than 5 GHz can offer, and none of them need DFS. Outdoors at standard power you need AFC to tell you what you may use, and only Wi-Fi 6E and Wi-Fi 7 clients can see any of it at all.
+**6 GHz** is the new room, and it is enormous: 5.925 to 7.125 GHz, fifty nine 20 MHz channels, and no DFS anywhere in it. Seven of those channels are 160 MHz wide, at least four more than 5 GHz can offer, and none of them need DFS. Indoors at low power you can use all of it without asking anyone. Standard power, which is also the only way to go outdoors, needs AFC to tell you what you may use, and only exists in U-NII-5 and U-NII-7. And only Wi-Fi 6E and Wi-Fi 7 clients can see any of it at all.
 
 ## The number that matters
 
@@ -31,7 +31,7 @@ Doubling the width doubles the number of subcarriers, so it roughly doubles the 
 
 **Doubling the width raises the noise floor by 3 dB.** A wider channel is a bigger bucket, and it collects proportionally more noise. Your radio needs 3 dB more signal to hold the same modulation, so the cell gets smaller. Go from 20 to 80 MHz, four times the width, and you have given away 6 dB of link budget. That is the same 6 dB that costs you half your distance, from lesson one.
 
-And the part people feel last: **every doubling of width halves how many non-overlapping channels you have.** In 5 GHz that takes twenty five channels down to six at 80 MHz, and down to two at 160 MHz, both of which are DFS. A design is not a single cell, it is cells next to each other, and cells next to each other need different channels.
+And the part people feel last: **every doubling of width halves how many non-overlapping channels you have.** In 5 GHz that takes twenty five channels down to six at 80 MHz, and down to two at 160 MHz, both of them DFS, or three with U-NII-4. A design is not a single cell, it is cells next to each other, and cells next to each other need different channels.
 
 So the trade is not "wider is faster." The trade is wider is faster per cell, smaller per cell, and fewer cells. In a warehouse with four APs, fine. In a lecture hall with thirty, it is a way to build one slow network out of a lot of expensive hardware.
 
@@ -85,7 +85,7 @@ And none of that counts the cost the game shows you, which is that you have fewe
 ## Three questions
 
 1. Your site has fourteen APs in one open floor and the customer wants 80 MHz everywhere in 5 GHz. How many non-overlapping channels do you have without DFS, and what is the actual reuse distance you are asking for?
-2. An AP on channel 100 stops serving clients for half an hour and then comes back on its own. What happened, and which band would have avoided it?
+2. An AP on channel 100 suddenly moves to channel 36 and drags its clients with it, and channel 100 stays out of the plan for at least half an hour. What happened, and which band would have avoided it?
 3. Two APs are on 40 MHz channels that share one 20 MHz half. Is that better or worse than putting them both on the same 40 MHz channel, and why?
 
 ## Next lesson
