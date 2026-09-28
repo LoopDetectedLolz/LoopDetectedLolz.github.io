@@ -1,0 +1,132 @@
+{
+ "id": "sc-02-device-profiles",
+ "title": "Scenario 2: LLDP hands the AP its trunk",
+ "track": "Scenarios",
+ "number": 2,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "vlan 99",
+  "name AP-MGMT",
+  "interface 1/1/5",
+  "no shutdown",
+  "no routing",
+  "vlan access 20",
+  "interface 1/1/9-1/1/10",
+  "no shutdown",
+  "no routing",
+  "vlan access 10"
+ ],
+ "task": "Two access points sit on 1/1/9 and 1/1/10 as plain access ports. They need VLAN 99 untagged for management and VLANs 10 and 20 tagged, and the next one could land on any port. Instead of configuring ports, have the switch recognise an AP by what it says on LLDP and hand it a role: an LLDP group, a role AP-TRUNK and a device profile. The printer on 1/1/5 also speaks LLDP and must stay as it is.",
+ "hints": [
+  "`show lldp neighbor-info 1/1/9`: the System-Description has AP-515 in it and the printer's does not.",
+  "`port-access lldp-group APS`, then `match sys-desc AP-515`. sys-desc matches when the description contains the word (checked on the lab switch).",
+  "`port-access role AP-TRUNK`: `vlan trunk native 99`, `vlan trunk allowed 10,20,99`.",
+  "`port-access device-profile APS`: `associate lldp-group APS`, `associate role AP-TRUNK`, `enable`. No port-access is needed on the ports: the lab switch profiled a neighbour on a plain port."
+ ],
+ "devices": [
+  {
+   "id": "ap1",
+   "name": "Access point lab-ap-01",
+   "kind": "ap",
+   "port": "1/1/9",
+   "mac": "00:00:5e:00:53:09",
+   "lldp": {
+    "sys": "lab-ap-01",
+    "desc": "Lab AP-515 Wi-Fi 6, fw 10.7",
+    "port": "eth0",
+    "portDesc": "eth0",
+    "caps": "B,W",
+    "mgmt": "192.0.2.109",
+    "dot3poe": {
+     "w": 25.5,
+     "cls": 4
+    }
+   },
+   "connected": true
+  },
+  {
+   "id": "ap2",
+   "name": "Access point lab-ap-02",
+   "kind": "ap",
+   "port": "1/1/10",
+   "mac": "00:00:5e:00:53:0a",
+   "lldp": {
+    "sys": "lab-ap-02",
+    "desc": "Lab AP-515 Wi-Fi 6, fw 10.7",
+    "port": "eth0",
+    "portDesc": "eth0",
+    "caps": "B,W",
+    "mgmt": "192.0.2.110",
+    "dot3poe": {
+     "w": 25.5,
+     "cls": 4
+    }
+   },
+   "connected": true
+  },
+  {
+   "id": "printer",
+   "name": "Printer (LLDP)",
+   "kind": "printer",
+   "port": "1/1/5",
+   "mac": "00:00:5e:00:53:05",
+   "lldp": {
+    "sys": "lab-printer-05",
+    "desc": "Lab LaserJet, fw 2.4",
+    "port": "eth0",
+    "caps": "S"
+   },
+   "connected": true
+  }
+ ],
+ "checks": [
+  {
+   "desc": "AP-TRUNK carries 99 untagged",
+   "config": {
+    "context": "port-access role AP-TRUNK",
+    "has": "^vlan trunk native 99$"
+   }
+  },
+  {
+   "desc": "AP-TRUNK tags 10 and 20",
+   "config": {
+    "context": "port-access role AP-TRUNK",
+    "has": "^vlan trunk allowed 10,20(,99)?$"
+   }
+  },
+  {
+   "desc": "lab-ap-01 got AP-TRUNK from the profile",
+   "profile": {
+    "dev": "ap1",
+    "role": "AP-TRUNK"
+   }
+  },
+  {
+   "desc": "lab-ap-02 got AP-TRUNK from the profile",
+   "profile": {
+    "dev": "ap2",
+    "role": "AP-TRUNK"
+   }
+  },
+  {
+   "desc": "The printer was left alone",
+   "client": {
+    "dev": "printer",
+    "status": "Open"
+   }
+  }
+ ]
+}

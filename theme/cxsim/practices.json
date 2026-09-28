@@ -1,0 +1,152 @@
+{
+ "practices": [
+  {
+   "t": "Name everything",
+   "w": "Hostname with the location in it, a name on every VLAN, a description on every uplink and anything odd. At 2 a.m. the next person reads show interface brief and LLDP, not your ticket.",
+   "lines": [
+    "hostname idf2-sw1",
+    "vlan 10",
+    "    name STAFF",
+    "    exit",
+    "interface lag 1",
+    "    description uplink to core",
+    "    exit"
+   ],
+   "see": "hostname <WORD>"
+  },
+  {
+   "t": "Spanning tree on, and the root chosen",
+   "w": "MSTP on every switch. The root is the core, set on purpose with a low priority there; an access switch keeps the default so it never wins by accident.",
+   "lines": [
+    "spanning-tree"
+   ],
+   "see": "spanning-tree"
+  },
+  {
+   "t": "Edge ports protect themselves",
+   "w": "admin-edge so a laptop gets its address without waiting, BPDU guard so a switch plugged into a desk shuts the port, loop-protect for the loop through an unmanaged switch that swallows BPDUs.",
+   "lines": [
+    "interface 1/1/1-1/1/20",
+    "    spanning-tree port-type admin-edge",
+    "    spanning-tree bpdu-guard",
+    "    loop-protect",
+    "    exit"
+   ],
+   "see": "spanning-tree bpdu-guard"
+  },
+  {
+   "t": "Uplinks are LACP LAGs",
+   "w": "Two links in a LAG, LACP active on both ends so each checks the other, rate fast so a dead member is noticed in seconds. On 10.18 the LAG starts shut: no shutdown it.",
+   "lines": [
+    "interface lag 1",
+    "    no shutdown",
+    "    lacp mode active",
+    "    lacp rate fast",
+    "    exit",
+    "interface 1/1/27-1/1/28",
+    "    lag 1",
+    "    exit"
+   ],
+   "see": "interface lag <1-256>"
+  },
+  {
+   "t": "Trunks carry what they need",
+   "w": "An explicit allowed list, never all, and the native VLAN picked on purpose. VLAN 1 as native is how untagged frames end up somewhere nobody meant.",
+   "lines": [
+    "interface lag 1",
+    "    vlan trunk native 99",
+    "    vlan trunk allowed 10,30,99",
+    "    exit"
+   ],
+   "see": "vlan trunk allowed <VLIST>"
+  },
+  {
+   "t": "Two RADIUS servers in one group",
+   "w": "Port access points at a group. With one server in it, a ClearPass reboot is an outage for every desk.",
+   "lines": [
+    "radius-server host 192.0.2.10 key plaintext <SHARED-SECRET>",
+    "radius-server host 192.0.2.11 key plaintext <SHARED-SECRET>",
+    "aaa group server radius CLEARPASS",
+    "    server 192.0.2.10",
+    "    server 192.0.2.11",
+    "    exit"
+   ],
+   "see": "aaa group server radius <WORD>"
+  },
+  {
+   "t": "Decide what happens when ClearPass is down",
+   "w": "A critical role on every port-access port. Whether that means business as usual or a quarantine VLAN is a decision to make before the outage, not during it.",
+   "lines": [
+    "interface 1/1/1-1/1/20",
+    "    aaa authentication port-access critical-role CRITICAL",
+    "    exit"
+   ],
+   "see": "aaa authentication port-access critical-role <WORD>"
+  },
+  {
+   "t": "Let ClearPass change its mind",
+   "w": "CoA lets ClearPass re-role or kick a client after the fact, which posture and guest flows lean on. On 10.18 each ClearPass node needs its own client line.",
+   "lines": [
+    "radius dyn-authorization enable",
+    "radius dyn-authorization client 192.0.2.10 secret-key plaintext <SHARED-SECRET>"
+   ],
+   "see": "radius dyn-authorization enable"
+  },
+  {
+   "t": "Headless devices get in by what they are",
+   "w": "MAC auth for printers, device profiles for APs and phones matched on LLDP. On a port-access port, allow-lldp-bpdu lets that LLDP in before the device has authenticated.",
+   "lines": [
+    "port-access lldp-group APS",
+    "    seq 10 match sys-desc AP-515",
+    "    exit",
+    "port-access device-profile APS",
+    "    associate lldp-group APS",
+    "    associate role AP-TRUNK",
+    "    enable",
+    "    exit"
+   ],
+   "see": "port-access device-profile <WORD>"
+  },
+  {
+   "t": "Voice is a VLAN of its own",
+   "w": "Mark it voice so LLDP-MED can hand it to phones, tag it on the phone port, keep data native for the PC behind the phone, and make those ports multi-domain.",
+   "lines": [
+    "vlan 30",
+    "    name VOICE",
+    "    voice",
+    "    exit",
+    "interface 1/1/1-1/1/20",
+    "    aaa authentication port-access auth-mode multi-domain",
+    "    exit"
+   ],
+   "see": "voice"
+  },
+  {
+   "t": "Time and logs before anything breaks",
+   "w": "Two NTP servers and a syslog server. When something happens overnight, the switch's own log has rolled over by morning and the timestamps are what you correlate on.",
+   "lines": [
+    "ntp server 192.0.2.30 iburst",
+    "ntp server 192.0.2.31 iburst",
+    "ntp enable",
+    "logging 192.0.2.40"
+   ],
+   "see": null
+  },
+  {
+   "t": "Change with a way back",
+   "w": "A checkpoint before the change, checkpoint diff before any rollback, and write memory only once the change is proven. Until then a reboot is your rollback.",
+   "lines": [
+    "copy running-config checkpoint before-change",
+    "checkpoint diff checkpoint before-change running-config",
+    "write memory"
+   ],
+   "see": "checkpoint diff <from> <to>"
+  },
+  {
+   "t": "Stay on a release you have read about",
+   "w": "Pick a release the platform supports, read its release notes, and check the Feature Navigator for what it adds. The picker in the sandbox shows what the syntax did in each release.",
+   "lines": [],
+   "see": null
+  }
+ ]
+}

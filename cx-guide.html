@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CX releases and hardening · Network Field Notes</title>
+<meta name="description" content="What changed in AOS-CX from 10.15 to 10.18 for the 6200 and 6300, from HPE&#x27;s Feature Navigator and the command lists themselves; best practices for a campus access switch; and hardening mapped to the CIS benchmark by control number.">
+<link rel="canonical" href="https://networkfieldnotes.com/cx-guide.html">
+<link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
+<meta property="og:site_name" content="Network Field Notes">
+<meta property="og:title" content="CX releases and hardening · Network Field Notes">
+<meta property="og:description" content="What changed in AOS-CX from 10.15 to 10.18 for the 6200 and 6300, from HPE&#x27;s Feature Navigator and the command lists themselves; best practices for a campus access switch; and hardening mapped to the CIS benchmark by control number.">
+<meta property="og:url" content="https://networkfieldnotes.com/cx-guide.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/cx-guide.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CX releases and hardening · Network Field Notes">
+<meta name="twitter:description" content="What changed in AOS-CX from 10.15 to 10.18 for the 6200 and 6300, from HPE&#x27;s Feature Navigator and the command lists themselves; best practices for a campus access switch; and hardening mapped to the CIS benchmark by control number.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/cx-guide.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
+:root{
+  --ink:#061019; --navy:#0E2A3C; --blue:#2FA8E0; --blue-light:#4FBDEA;
+  --teal:#5ED2DA; --green:#8CE05E; --orange:#F5A524; --red:#F0705F; --text:#EAF2F6; --text-dim:#B0C4CF; --text-muted:#8BA2AE;
+  --solid:rgba(3,10,16,0.55); --line:rgba(255,255,255,0.10);
+  --r-pill:999px; --r-inner:16px; --r-chrome:22px; --r-card:26px; --r-hero:32px;
+  --s1:6px; --s2:10px; --s3:14px; --s4:20px; --s5:24px; --s6:28px; --s7:44px;
+  --gutter:20px; --maxw:1120px; --measure:68ch;
+  --ease:cubic-bezier(0.32,0.72,0,1);
+  --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --gb:6px; --veil:0.80;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0;overflow-x:hidden;overscroll-behavior-y:none}
+body{min-height:100vh;min-height:100svh;background:var(--ink);color:var(--text);font-family:var(--sans);
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.ground{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+  radial-gradient(900px 620px at 12% -6%,rgba(47,168,224,0.42),transparent 62%),
+  radial-gradient(760px 560px at 88% 8%,rgba(140,224,94,0.26),transparent 60%),
+  radial-gradient(1000px 700px at 60% 108%,rgba(23,138,168,0.34),transparent 62%),var(--ink)}
+/* topographic ground: .ground is the fallback floor, the canvas is the map, .gx-pane is the
+   glass, .gx-grain is the frost. Frost stays sharp on purpose; scatter lives on the pane. */
+#nfn-fx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block;
+  filter:blur(var(--gb));transform:scale(1.10);transform-origin:center}
+.gx-pane{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--veil);
+  background:linear-gradient(158deg,rgba(255,255,255,0.038) 0%,rgba(255,255,255,0.010) 36%,rgba(255,255,255,0) 60%),
+             radial-gradient(1500px 950px at 50% 122%,rgba(3,10,16,0.22),transparent 72%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(255,255,255,0.04)}
+.gx-grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:calc(var(--veil) * 0.46);
+  mix-blend-mode:overlay;background-size:170px 170px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23n)'/%3E%3C/svg%3E")}
+.page{position:relative;z-index:1}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(var(--gutter),env(safe-area-inset-left));padding-right:max(var(--gutter),env(safe-area-inset-right))}
+.narrow{max-width:900px;margin:0 auto}
+
+/* glass: three levels, never nested */
+.g-chrome{background:rgba(255,255,255,0.07);-webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.16);border-radius:var(--r-chrome);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),inset 0 -1px 0 rgba(255,255,255,0.06),0 18px 44px -22px rgba(0,0,0,0.8)}
+.g-card{background:rgba(255,255,255,0.065);-webkit-backdrop-filter:blur(26px) saturate(175%);backdrop-filter:blur(26px) saturate(175%);
+  border:1px solid rgba(255,255,255,0.14);border-radius:var(--r-card);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 26px 54px -30px rgba(0,0,0,0.8)}
+.g-hero{background:rgba(255,255,255,0.075);-webkit-backdrop-filter:blur(34px) saturate(185%);backdrop-filter:blur(34px) saturate(185%);
+  border:1px solid rgba(255,255,255,0.17);border-radius:var(--r-hero);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.3),0 40px 80px -34px rgba(0,0,0,0.85)}
+.panel{background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+
+/* type */
+h1,h2,h3{margin:0;letter-spacing:-0.025em;text-wrap:pretty;font-weight:700}
+p{text-wrap:pretty;margin:0}
+.eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.16em;color:var(--text-muted)}
+.h-hero{font-size:clamp(30px,6vw,46px);line-height:1.06;letter-spacing:-0.035em}
+.h-card{font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-0.02em}
+.meta{font-family:var(--mono);font-size:13px;color:var(--text-muted)}
+.dim{color:var(--text-dim)}
+a{color:#a9ea82;text-decoration:none}
+a:hover{color:#cbf4b3}
+
+/* header */
+.hdr{position:sticky;top:var(--s4);z-index:40;margin:var(--s4) 0 var(--s6)}
+.hdr-in{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2);padding:var(--s2) var(--s3) var(--s2) var(--s3);
+  transition:background 320ms var(--ease),transform 320ms var(--ease),box-shadow 320ms var(--ease)}
+.hdr.scrolled .hdr-in{background:rgba(255,255,255,0.11);transform:scale(0.985);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 22px 54px -22px rgba(0,0,0,0.9)}
+.brand{display:flex;align-items:center;gap:var(--s2);min-height:44px;color:var(--text);font-weight:700;font-size:17px;letter-spacing:-0.02em}
+.brand:hover{color:var(--text)}
+.brand .mk{width:38px;height:38px;border-radius:12px;background:var(--solid);border:1px solid var(--line);display:grid;place-items:center}
+.brand .mk img{width:26px;height:26px;display:block}
+.brand .wm{white-space:nowrap}
+.nav{margin-left:auto;display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 var(--s3);border-radius:var(--r-pill);
+  border:1px solid transparent;color:var(--text-dim);font-size:15px;font-weight:500;
+  transition:transform 180ms var(--ease),background 220ms var(--ease),color 220ms var(--ease)}
+.pill:hover{color:var(--text);background:rgba(255,255,255,0.06)}
+.pill:active{transform:scale(0.94)}
+.pill.on{position:relative;color:var(--text);font-weight:700;background:rgba(245,165,36,0.12);
+  border-color:rgba(245,165,36,0.9);border-bottom-color:transparent;
+  box-shadow:0 0 0 1px rgba(245,165,36,0.25),0 10px 26px -10px rgba(245,165,36,0.85),inset 0 1px 0 rgba(255,255,255,0.18)}
+.pill.on:hover{color:var(--text);background:rgba(245,165,36,0.16)}
+.pill.soft{background:rgba(255,255,255,0.10);color:var(--text)}
+.pill.outline{border-color:rgba(255,255,255,0.16);background:rgba(255,255,255,0.05);font-family:var(--sans);color:var(--text-muted)}
+.pill.outline svg{width:15px;height:15px}
+.search{display:none;margin:var(--s3) 0 0;width:100%}
+.search input{width:100%;min-height:44px;font:16px var(--sans);color:var(--text);background:var(--solid);border:1px solid var(--line);
+  border-radius:var(--r-pill);padding:0 var(--s4);outline:none}
+.search input:focus{border-color:rgba(79,189,234,0.55)}
+.search.open{display:block}
+
+/* status + category pills */
+a.tag{text-decoration:none;transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+@media (pointer:coarse){a.tag{min-height:38px}#qam-dl{display:inline-flex;align-items:center;min-height:38px}}
+a.tag:hover{transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(0,0,0,0.7)}
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--blue-light);border:1px solid rgba(79,189,234,0.45);background:rgba(47,168,224,0.10);border-radius:var(--r-pill);padding:5px 12px;white-space:nowrap}
+.tag.green{color:#bdf29c;border-color:rgba(140,224,94,0.45);background:rgba(140,224,94,0.10)}
+.tag.c-green{color:#bdf29c;border-color:rgba(140,224,94,0.55);background:rgba(140,224,94,0.12)}
+.tag.c-blue{color:#a8d9f2;border-color:rgba(79,189,234,0.6);background:rgba(47,168,224,0.14)}
+.tag.c-red{color:#ffb3a8;border-color:rgba(240,112,95,0.6);background:rgba(240,112,95,0.14)}
+.chip.c-green{color:#bdf29c;border-color:rgba(140,224,94,0.45)}
+.chip.c-blue{color:#a8d9f2;border-color:rgba(79,189,234,0.5)}
+.chip.c-red{color:#ffb3a8;border-color:rgba(240,112,95,0.5)}
+.chip.on.c-green{background:rgba(140,224,94,0.16)}
+.chip.on.c-blue{background:rgba(47,168,224,0.18)}
+.chip.on.c-red{background:rgba(240,112,95,0.18)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(140,224,94,0.18)}
+
+/* hero = featured post */
+.hero{position:relative;overflow:hidden;padding:var(--s7) var(--s7) var(--s6);margin-bottom:var(--s6)}
+.hero .h-hero{margin:var(--s4) 0 var(--s3);max-width:20ch}
+.hero .lede{max-width:var(--measure)}
+.lede{color:var(--text-dim);font-size:18px;line-height:1.55}
+.sheen{position:absolute;top:-40%;left:0;width:38%;height:180%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,0.13),transparent);filter:blur(14px);animation:nfnSheen 7s linear infinite}
+.glow{position:absolute;right:-8%;top:-30%;width:55%;height:160%;pointer-events:none;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(255,255,255,0.10),transparent 70%)}
+.row{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;margin-top:var(--s5)}
+.btn{display:inline-flex;align-items:center;min-height:46px;padding:0 var(--s5);border-radius:var(--r-pill);
+  border:1px solid rgba(255,255,255,0.16);background:rgba(255,255,255,0.06);color:var(--text);font-weight:600;font-size:16px;
+  transition:transform 180ms var(--ease),background 220ms var(--ease)}
+.btn:hover{background:rgba(255,255,255,0.11);color:var(--text)}
+.btn:active{transform:scale(0.94)}
+.btn.cta{background:linear-gradient(180deg,rgba(255,255,255,0.55),rgba(255,255,255,0) 55%),var(--green);color:#06202A;border-color:transparent;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.65),0 14px 30px -14px rgba(140,224,94,0.9)}
+.btn.cta:hover{color:#06202A}
+
+/* filter */
+/* the home page runs wider than an article, because it carries the rail */
+.wrap.wide{max-width:1320px}
+
+/* browse: category rail beside the grid above 1180, a scroller below it */
+.browse{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s4);margin-top:var(--s6)}
+@media (min-width:1180px){.browse{grid-template-columns:190px minmax(0,1fr);gap:var(--s6);align-items:start}}
+.browse-main .grid{margin-top:0}
+.cat-rail{display:flex;gap:var(--s2);overflow-x:auto;padding:2px 2px var(--s2);scrollbar-width:none}
+.cat-rail::-webkit-scrollbar{display:none}
+.cat-rail .eyebrow{display:none}
+@media (min-width:1180px){
+  .cat-rail{position:sticky;top:92px;flex-direction:column;gap:5px;overflow:visible;padding:0}
+  .cat-rail .eyebrow{display:block;margin:0 0 var(--s2) 13px}
+}
+.cat{--c:rgba(255,255,255,0.30);display:inline-flex;align-items:center;gap:10px;flex:none;min-height:40px;
+  padding:0 var(--s3);border:1px solid rgba(255,255,255,0.16);border-radius:var(--r-pill);
+  background:rgba(255,255,255,0.05);color:var(--text-muted);font:600 13.5px var(--sans);
+  white-space:nowrap;cursor:pointer;-webkit-appearance:none;appearance:none;
+  transition:background 220ms var(--ease),color 220ms var(--ease),transform 180ms var(--ease)}
+.cat i{width:3px;height:16px;border-radius:2px;background:var(--c);flex:none}
+.cat b{margin-left:auto;padding-left:8px;font:600 11.5px var(--mono);color:var(--text-muted);font-variant-numeric:tabular-nums}
+.cat:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.cat:active{transform:scale(0.96)}
+.cat.on{background:rgba(255,255,255,0.13);color:var(--text);border-color:rgba(255,255,255,0.26)}
+.cat.on i{box-shadow:0 0 10px var(--c)}
+.cat.on b{color:var(--text-dim)}
+@media (min-width:1180px){.cat{width:100%;border-radius:12px;min-height:42px}.cat i{height:18px}}
+
+/* a series collapses into one tile: name, part count, the parts as links */
+.series-card{gap:var(--s2)}
+.series-card:active{transform:none}
+.series-card .parts{font:600 11.5px var(--mono);color:var(--text-muted)}
+.series-list{list-style:none;margin:var(--s2) 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.series-list a{display:flex;gap:10px;align-items:baseline;padding:7px 9px;margin:0 -9px;border-radius:10px;
+  color:var(--text-dim);font-size:14.5px;line-height:1.45;text-decoration:none;
+  transition:background 200ms var(--ease),color 200ms var(--ease)}
+.series-list a:hover{background:rgba(255,255,255,0.07);color:var(--text)}
+.series-list b{font:600 11px var(--mono);color:var(--text-muted);min-width:13px;flex:none}
+
+.filter{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;margin:0 0 var(--s5)}
+.filter .eyebrow{margin-right:var(--s1)}
+.chip{display:inline-flex;align-items:center;min-height:38px;padding:0 var(--s3);border-radius:var(--r-pill);border:1px solid rgba(255,255,255,0.16);
+  background:rgba(255,255,255,0.05);color:var(--text-dim);font-size:14px;font-weight:500;cursor:pointer;
+  transition:transform 180ms var(--ease),background 220ms var(--ease),color 220ms var(--ease)}
+.chip:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.chip:active{transform:scale(0.94)}
+.chip.on{background:rgba(255,255,255,0.14);color:var(--text);border-color:rgba(255,255,255,0.28)}
+
+/* cards */
+.grid{margin-top:var(--s7);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:var(--s4);position:relative}
+.card{position:relative;display:flex;flex-direction:column;gap:var(--s3);padding:var(--s5);color:var(--text);
+  transition:transform 260ms var(--ease),background 260ms var(--ease)}
+.card:hover{color:var(--text)}
+.card:active{transform:scale(0.975)}
+@media (hover:hover){.card:hover{transform:translateY(-4px);background:rgba(255,255,255,0.10)}}
+.card.hidden{display:none}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)}
+.card .h-card{margin:var(--s1) 0 0}
+.card p{color:var(--text-dim);font-size:15px;line-height:1.55}
+.card-foot{margin-top:auto;padding-top:var(--s3);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:var(--s2);
+  font-family:var(--mono);font-size:12.5px;color:var(--text-muted)}
+.card-foot b{color:var(--green);font-weight:600}
+.src{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:14px;color:var(--text-dim)}
+.src svg{width:14px;height:14px;color:var(--green)}
+.empty{display:none;padding:var(--s7) var(--s5);text-align:center;color:var(--text-muted)}
+.empty.show{display:block}
+
+/* bottom band */
+.band{position:relative;margin-top:var(--s7);padding:var(--s6) var(--s6);display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}
+.band h3{font-size:22px;letter-spacing:-0.02em}
+.band p{color:var(--text-dim);margin-top:4px}
+.band .row{margin-top:0}
+
+/* post page */
+.backbar{margin:0 0 var(--s4)}
+.post-head{padding:var(--s7) var(--s7) var(--s6)}
+.post-head .h-hero{margin:var(--s4) 0 0;max-width:24ch}
+.post-body{padding:var(--s7);margin-top:var(--s4)}
+.prose{max-width:var(--measure);font-size:16.5px;line-height:1.65}
+.prose h2{font-size:26px;margin:var(--s7) 0 var(--s3);letter-spacing:-0.03em}
+.prose h2:first-child{margin-top:0}
+.prose h3{font-size:19px;margin:var(--s6) 0 var(--s2);font-weight:600}
+.prose p{margin:0 0 var(--s4)}
+.prose strong{color:#fff}
+.prose ul,.prose ol{margin:0 0 var(--s4);padding-left:var(--s4)}
+.prose li{margin:var(--s1) 0}
+.prose blockquote,.callout{margin:0 0 var(--s4);padding:var(--s3) var(--s4);border:1px solid rgba(140,224,94,0.45);
+  background:rgba(140,224,94,0.08);border-radius:var(--r-inner);color:#e6f6db}
+.prose blockquote p:last-child{margin:0}
+.prose pre{background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);padding:var(--s4) var(--s5);overflow-x:auto;
+  -webkit-overflow-scrolling:touch;margin:0 0 var(--s4)}
+.prose code,.prose pre{font-family:var(--mono);font-size:14px;line-height:1.7}
+.prose :not(pre)>code{background:var(--solid);border:1px solid var(--line);border-radius:8px;padding:1px 6px;color:var(--green);font-size:0.88em}
+.prose pre code{background:none;border:0;padding:0;color:#D3E3EC}
+.prose table{width:100%;border-collapse:collapse;margin:0 0 var(--s4);font-size:14.5px;display:block;overflow-x:auto}
+.prose th{background:var(--solid);color:var(--blue-light);text-align:left;padding:var(--s2) var(--s3);border:1px solid var(--line);font-family:var(--mono);font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase}
+.prose td{padding:var(--s2) var(--s3);border:1px solid var(--line);vertical-align:top;color:var(--text-dim)}
+.figure{margin:0 0 var(--s5);padding:var(--s4);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.figure svg{display:block;width:100%;height:auto;min-width:0}
+.figure figcaption{margin-top:var(--s3);font-family:var(--mono);font-size:11.5px;line-height:1.65;color:var(--text-muted)}
+/* body figures carry detail: let them scroll on a phone rather than shrink past reading size */
+@media (max-width:700px){figure.figure svg{min-width:600px}figure.figure{padding:var(--s3)}}
+.origin{margin:0 0 var(--s5)}
+.origin .eyebrow{display:block;color:var(--teal);margin-bottom:4px}
+.end{position:relative;margin-top:var(--s4);padding:var(--s6) var(--s7)}
+.end h3{font-size:22px}
+.end p{color:var(--text-dim);margin-top:4px}
+.postnav{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--s3);margin-top:var(--s4)}
+.pn{padding:var(--s3) var(--s4);color:var(--text);font-weight:600;font-size:15px;transition:transform 180ms var(--ease),background 220ms var(--ease)}
+.pn:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.pn:active{transform:scale(0.975)}
+.pn .eyebrow{display:block;margin-bottom:2px}
+
+/* about + socials */
+.about{padding:var(--s7);display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s5)}
+.about .prose{max-width:var(--measure)}
+.chips{display:flex;gap:var(--s1);flex-wrap:wrap}
+.chips .tag{color:var(--text-dim);border-color:var(--line);background:var(--solid)}
+.socials{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:var(--s4);margin-top:var(--s5)}
+.social{display:flex;align-items:center;gap:var(--s3);padding:var(--s5);color:var(--text);transition:transform 260ms var(--ease),background 260ms var(--ease)}
+.social:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.social:active{transform:scale(0.975)}
+.social b{display:block;font-size:17px}
+.social span{font-size:14px;color:var(--text-muted)}
+.social-ico{width:44px;height:44px;flex:0 0 44px;border-radius:var(--r-inner);background:var(--solid);display:grid;place-items:center;border:1px solid var(--line)}
+
+/* mascot: one Rig per page, fixed in the lower-right, above everything */
+.rig{position:fixed;z-index:60;display:block;width:104px;line-height:0;
+  right:max(20px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));
+  filter:drop-shadow(0 14px 24px rgba(0,0,0,0.55));transition:transform 200ms var(--ease)}
+.rig img{display:block;width:100%;height:auto}
+.rig:hover{transform:translateY(-4px)}
+.rig:active{transform:scale(0.92)}
+@media (prefers-reduced-motion:no-preference){.rig img{animation:botFloat 5s ease-in-out infinite}}
+@media (max-width:520px){.rig{width:84px}}
+/* the page always ends with room for him, so nothing is permanently covered */
+.page{min-height:100vh;min-height:100svh;display:flex;flex-direction:column}
+.page>main{flex:1 0 auto;width:100%;padding-bottom:calc(104px + 40px)}  /* width:100% because the auto side margins would otherwise stop the flex stretch */
+
+footer{padding:var(--s6) 0 var(--s4);color:var(--text-muted);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--s2);padding-right:calc(104px + 40px)}
+
+/* motion */
+@keyframes nfnSheen{0%{transform:translateX(-120%)}100%{transform:translateX(220%)}}
+@keyframes botFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes nfnRise{from{opacity:0;transform:translate3d(0,22px,0) scale(0.985)}to{opacity:1;transform:none}}
+@keyframes nfnPush{from{opacity:0.4;transform:translate3d(28px,0,0)}to{opacity:1;transform:none}}
+@keyframes nfnPop{from{opacity:0.4;transform:translate3d(-22px,0,0)}to{opacity:1;transform:none}}
+@keyframes nfnZoom{from{opacity:0;transform:scale(0.78)}60%{opacity:1}to{opacity:1;transform:none}}
+@keyframes nfnGenie{0%{opacity:0;transform:scale(0.07,0.02) skewX(-14deg)}35%{opacity:1;transform:scale(0.42,0.55) skewX(-7deg)}70%{transform:scale(0.92,1.03) skewX(-1.5deg)}to{opacity:1;transform:none}}
+.rise{animation:nfnRise 520ms var(--ease) both}
+.hero.rise{animation-duration:560ms}
+.zoom{animation:nfnZoom 480ms var(--ease) both;will-change:transform}
+.genie{animation:nfnGenie 560ms var(--ease) both;will-change:transform}
+.pop{animation:nfnPop 420ms var(--ease) both}
+@media (prefers-reduced-motion:reduce){
+  @keyframes nfnRise{from{opacity:0}to{opacity:1}}@keyframes nfnPush{from{opacity:0}to{opacity:1}}@keyframes nfnPop{from{opacity:0}to{opacity:1}}
+  @keyframes nfnZoom{from{opacity:0}to{opacity:1}}@keyframes nfnGenie{from{opacity:0}to{opacity:1}}
+  @keyframes nfnSheen{0%,100%{opacity:0}}@keyframes botFloat{0%,100%{transform:none}}
+}
+
+/* narrow screens */
+@media (max-width:700px){
+  .nav .cat{display:none}
+  /* six pills at 360 px: tighter, and a nav that would not fit scrolls sideways instead of clipping the last one */
+  .nav{flex:1 0 100%;margin-left:0;flex-wrap:nowrap;justify-content:space-between;gap:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{display:none}
+  .hdr .wrap{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+  .hdr-in{padding-left:8px;padding-right:8px}
+  .pill{padding:0 6px;font-size:13px;letter-spacing:-0.01em;white-space:nowrap;flex:0 0 auto}
+  .pill.outline{padding:0 8px;gap:0}.pill.outline span{display:none}
+  .hero{padding:var(--s6) var(--s4)}
+  .post-head,.post-body,.about,.end{padding:var(--s6) var(--s4)}
+  .band{padding:var(--s5) var(--s4)}
+}
+
+/* ── what the box said ─────────────────────────────────────────────────── */
+.term{margin:var(--s5) 0;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);overflow:hidden}
+.term-bar{display:flex;align-items:center;gap:6px;padding:9px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,0.03)}
+.term-bar i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.12)}
+.term-bar i:first-child{background:rgba(140,224,94,0.45)}
+.term-bar b{margin-left:8px;font:600 11px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}
+.prose .term pre{margin:0;border:0;border-radius:0;background:none;padding:var(--s3) var(--s4)}
+.term .ln{display:block;padding:0 6px;margin:0 -6px;border-radius:6px}
+.term .pr{color:var(--green);font-weight:500}
+.term .ln.hot{background:rgba(140,224,94,0.10);border-left:3px solid var(--green);border-radius:0 6px 6px 0;padding-left:3px;color:var(--text)}
+
+/* ── interactive widgets ───────────────────────────────────────────────── */
+.widget{margin:var(--s5) 0 var(--s4);padding:var(--s4) var(--s5);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+.w-head{display:flex;flex-direction:column;gap:4px;margin-bottom:var(--s4)}
+.w-head b{font-size:17px;letter-spacing:-0.01em}
+.w-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:var(--s3) var(--s4);margin-bottom:var(--s4)}
+.w-controls label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-dim)}
+.w-controls select,.w-controls input[type=number]{font:14px var(--sans);color:var(--text);background:rgba(3,10,16,0.7);border:1px solid var(--line);border-radius:10px;min-height:40px;padding:0 10px}
+.w-controls input[type=number]{width:96px;display:inline-block}
+.w-unit{display:flex;align-items:center;gap:8px}
+.w-slider>span b{color:var(--green);font-size:15px;margin-left:6px}
+.w-slider{grid-column:1/-1}
+.w-controls input[type=range]{width:100%;accent-color:var(--green);min-height:32px}
+.w-bar{position:relative;height:18px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid var(--line);overflow:hidden;display:flex}
+.w-fill{height:100%;background:var(--green);transition:width 240ms var(--ease)}
+.w-fill.other{background:var(--teal);opacity:0.8}
+.widget.tight .w-fill{background:var(--orange)}
+.widget.over .w-fill{background:var(--orange)}
+.widget.over .w-bar{border-color:rgba(245,165,36,0.6);box-shadow:0 0 0 3px rgba(245,165,36,0.15)}
+.w-read{margin-top:var(--s3);font-size:15px;color:var(--text)}
+.w-read b{color:var(--green)}
+.widget.over .w-read b:first-child{color:var(--orange)}
+.w-note{margin-top:var(--s2);font-size:13px;color:var(--text-dim);line-height:1.6}
+/* the 5 GHz spectrum strip in the channel 173 post. NOT .band: that is the call-to-action card */
+.spectrum{position:relative;height:64px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);overflow:hidden}
+.band-scan{position:absolute;left:0;top:0;bottom:0;width:90.6%;background:repeating-linear-gradient(135deg,rgba(94,210,218,0.10) 0 6px,transparent 6px 12px);border-right:2px dashed rgba(94,210,218,0.7);pointer-events:none}
+.blk{position:absolute;top:8px;bottom:8px;left:var(--l);width:var(--w);font:600 11px var(--mono);letter-spacing:0.04em;color:var(--text-dim);background:rgba(3,10,16,0.55);border:1px solid rgba(255,255,255,0.14);border-radius:8px;cursor:pointer;padding:0;overflow:hidden;white-space:nowrap;transition:transform 200ms var(--ease),background 200ms var(--ease)}
+.blk:hover{transform:translateY(-1px)}
+.blk.on{color:#06202A;background:var(--teal);border-color:var(--teal)}
+.blk.hot{color:#bdf29c;border-color:rgba(140,224,94,0.6);font-size:9px}
+.blk.hot.on{color:#06202A;background:var(--green);border-color:var(--green)}
+.band-axis{position:relative;height:18px;margin-top:6px;font:11px var(--mono);color:var(--text-muted)}
+.band-axis span{position:absolute;transform:translateX(-50%)}
+.band-axis span:nth-child(1){left:0;transform:none}.band-axis span:nth-child(2){left:26.85%}.band-axis span:nth-child(3){left:42.95%}
+.band-axis span:nth-child(4){left:77.18%}.band-axis span:nth-child(5){left:93.96%}.band-axis span:nth-child(6){left:100%;transform:translateX(-100%)}
+@media (max-width:520px){.band-axis span:nth-child(2),.band-axis span:nth-child(3),.band-axis span:nth-child(5){display:none}
+  /* the narrow blocks cannot hold 'U-NII-2A' at this width, so show the number alone */
+  .blk{font-size:0}.blk::after{content:attr(data-short);font:600 11px var(--mono);letter-spacing:0.04em}.blk.hot::after{font-size:11px}}
+
+/* ── field kit ─────────────────────────────────────────────────────────── */
+.kit{margin-top:var(--s5);padding:var(--s5)}
+.kit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:var(--s3);margin-top:var(--s3)}
+.kit-item{position:relative;display:flex;flex-direction:column;gap:8px;padding:var(--s4);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);min-height:120px;outline:none;transition:transform 200ms var(--ease),border-color 200ms var(--ease)}
+.kit-item:hover,.kit-item:focus{transform:translateY(-2px);border-color:rgba(140,224,94,0.45)}
+.kit-ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(140,224,94,0.10);border:1px solid rgba(140,224,94,0.3)}
+.kit-ico svg{width:22px;height:22px;fill:none;stroke:var(--green);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kit-item b{font-size:14px}
+.kit-line{font-size:13px;color:var(--text-dim);line-height:1.5;opacity:0;transform:translateY(4px);transition:opacity 220ms var(--ease),transform 220ms var(--ease)}
+.kit-item:hover .kit-line,.kit-item:focus .kit-line{opacity:1;transform:none}
+@media (hover:none){.kit-line{opacity:1;transform:none}}
+
+/* ── RF motif on radio posts ───────────────────────────────────────────── */
+.post-head{position:relative;overflow:hidden}
+.post-head.cat-Wireless::before,.post-head.cat-RF-survey::before{content:"";position:absolute;right:-90px;top:-120px;width:420px;height:420px;pointer-events:none;opacity:0.10;
+  background:repeating-radial-gradient(circle at center,var(--teal) 0 1.5px,transparent 1.5px 26px)}
+.post-head>*{position:relative}
+
+/* ── reading path ──────────────────────────────────────────────────────── */
+.series{padding:var(--s5);margin-bottom:var(--s4)}
+.series h3{margin:6px 0 var(--s3);font-size:18px}
+.series h3 .meta{margin-left:8px;font-weight:400}
+.ser-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:var(--s3)}
+.ser-step{position:relative;display:flex;flex-direction:column;gap:6px;padding:var(--s3) var(--s4);color:var(--text-dim);text-decoration:none;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);transition:transform 200ms var(--ease),border-color 200ms var(--ease)}
+.ser-step:hover{transform:translateY(-2px)}
+.ser-n{font:600 11px var(--mono);letter-spacing:0.12em;color:var(--text-muted)}
+.ser-t{font-size:14px;font-weight:600;color:var(--text)}
+.ser-tag{font:600 10px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}
+.ser-step.here{border-color:rgba(255,255,255,0.28);opacity:0.75}
+.ser-step.next{border-color:rgba(140,224,94,0.6);box-shadow:0 10px 26px -14px rgba(140,224,94,0.8)}
+.ser-step.next .ser-tag,.ser-step.next .ser-n{color:var(--green)}
+
+/* ── Rig reactions ─────────────────────────────────────────────────────── */
+.rig img{transition:opacity 220ms var(--ease)}
+.rig.swap img{opacity:0}
+
+/* ── Wireless Academy (orange, for Airheads) ───────────────────────────── */
+.tag.c-orange{color:#ffd28a;border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.14)}
+.tag.c-orange .dot{background:var(--orange);box-shadow:0 0 0 4px rgba(245,165,36,0.18)}
+.chip.c-orange{border-color:rgba(245,165,36,0.45);color:#ffd28a}
+.chip.on.c-orange{background:rgba(245,165,36,0.18);border-color:rgba(245,165,36,0.9);color:#ffe0ad}
+.acad-hero .glow{background:radial-gradient(circle at 80% 20%,rgba(245,165,36,0.28),transparent 60%)}
+.acad-hero .btn.cta{background:linear-gradient(180deg,#ffbf4d,var(--orange));color:#2a1600;box-shadow:0 12px 30px -12px rgba(245,165,36,0.9)}
+.acad-why{padding:var(--s5);margin:0 0 var(--s6);border-color:rgba(245,165,36,0.35)}
+.acad-why p{margin:8px 0 0;color:var(--text-dim);line-height:1.65}
+.lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--s4)}
+.lesson{display:flex;flex-direction:column;gap:10px;padding:var(--s5);color:var(--text);text-decoration:none;position:relative}
+.lesson b{font-size:18px;letter-spacing:-0.01em;line-height:1.25}
+.lesson p{margin:0;color:var(--text-dim);font-size:14px;line-height:1.6}
+.lesson .lab{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--text-dim);padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+.lesson .lab .eyebrow{color:#ffd28a}
+.lesson .ser-n{color:#ffd28a}
+.lesson.live{border-color:rgba(245,165,36,0.5);transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+.lesson.live:hover{transform:translateY(-3px);box-shadow:0 18px 40px -20px rgba(245,165,36,0.8)}
+.lesson.live .meta{margin-top:auto;padding-top:6px}
+.lesson.soon{opacity:0.6}
+.lesson.soon .ser-n{color:var(--text-muted)}
+.post-head.cat-Academy::before{content:"";position:absolute;right:-90px;top:-120px;width:420px;height:420px;pointer-events:none;opacity:0.10;
+  background:repeating-radial-gradient(circle at center,var(--orange) 0 1.5px,transparent 1.5px 26px)}
+.ser-step.next.acad{border-color:rgba(245,165,36,0.6)}
+
+/* ── Academy theme: orange ground, switch-chassis black glass ──────────── */
+body.acad{background:#07070A}
+body.acad .ground{background:
+  radial-gradient(900px 620px at 12% -6%,rgba(245,165,36,0.34),transparent 62%),
+  radial-gradient(760px 560px at 88% 8%,rgba(255,120,40,0.20),transparent 60%),
+  radial-gradient(1000px 700px at 60% 108%,rgba(160,80,20,0.28),transparent 62%),#07070A}
+body.acad .g-chrome,body.acad .g-card,body.acad .g-hero{background:rgba(6,6,9,0.62);border-color:rgba(255,255,255,0.10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.10),0 30px 70px -40px rgba(0,0,0,0.95)}
+body.acad .hdr.scrolled .hdr-in{background:rgba(6,6,9,0.78)}
+body.acad .panel,body.acad .search input,body.acad .term,body.acad .widget,body.acad .callout,body.acad .lesson .lab{background:rgba(0,0,0,0.45)}
+body.acad .btn.cta{background:linear-gradient(180deg,#ffbf4d,var(--orange));color:#2a1600;box-shadow:0 12px 30px -12px rgba(245,165,36,0.9)}
+body.acad .eyebrow{color:#ffd28a}
+body.acad .tag.green{color:#ffd28a;border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.14)}
+body.acad .tag.green .dot{background:var(--orange);box-shadow:0 0 0 4px rgba(245,165,36,0.18)}
+body.acad .ser-step.next{border-color:rgba(245,165,36,0.6);box-shadow:0 10px 26px -14px rgba(245,165,36,0.8)}
+body.acad .ser-step.next .ser-tag,body.acad .ser-step.next .ser-n{color:#ffd28a}
+body.acad .term-bar i:first-child{background:rgba(245,165,36,0.55)}
+body.acad .term .pr{color:#ffd28a}
+body.acad .term .ln.hot{background:rgba(245,165,36,0.10);border-left-color:var(--orange)}
+body.acad .prose a{color:#ffd28a}
+body.acad .rig{filter:drop-shadow(0 14px 24px rgba(0,0,0,0.75))}
+body.acad .backbar .btn:hover{border-color:rgba(245,165,36,0.5)}
+body.acad .callout.origin{border-color:rgba(245,165,36,0.45)}
+body.acad .callout.origin .eyebrow{color:#ffd28a}
+
+/* ── on-the-air QAM banner ─────────────────────────────────────────────── */
+.qam{margin:0 0 var(--s6);padding:var(--s4) var(--s5) var(--s3);cursor:pointer;outline:none;overflow:hidden}
+.qam:focus-visible{box-shadow:0 0 0 2px rgba(140,224,94,0.6)}
+.qam-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);flex-wrap:wrap}
+.qam-ctl{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;font-size:12px;color:var(--text-dim)}
+.qam-ctl label{display:inline-flex;align-items:center;gap:8px}
+.qam-ctl select{font:13px var(--sans);color:var(--text);background:rgba(3,10,16,0.7);border:1px solid var(--line);border-radius:10px;min-height:38px;padding:0 8px}
+.qam-speed{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:100%}.qam-speed input{width:150px;max-width:40vw;accent-color:var(--green)}
+.qam-speed b{font:600 12px var(--mono);color:var(--green);min-width:84px;white-space:nowrap}
+.qam-band{font:10px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);padding:2px 7px;border:1px solid var(--line);border-radius:999px;white-space:nowrap}
+.qam[data-band="frames"] .qam-band{color:#ffd28a;border-color:rgba(245,165,36,0.5)}.qam[data-band="symbols"] .qam-band{color:var(--green);border-color:rgba(140,224,94,0.5)}.qam[data-band="waves"] .qam-band{color:var(--blue-light);border-color:rgba(79,189,234,0.5)}.qam[data-band="photons"] .qam-band{color:var(--teal);border-color:rgba(94,210,218,0.5)}
+.qam-ctl .chip{min-height:40px;padding:0 12px}
+.qam-ctl .chip.on{border-color:rgba(94,210,218,0.9);color:#bfeff2;background:rgba(94,210,218,0.14)}
+.qam canvas{display:block;width:100%;height:280px;margin-top:var(--s2);touch-action:pan-y;cursor:crosshair;border-radius:var(--r-inner)}
+.qam-rx{margin-top:8px;padding:8px 12px 10px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);cursor:default}
+.qam-rx-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px 14px;flex-wrap:wrap}
+.qam-rx-top a{font:11px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--blue-light);text-decoration:none;border-bottom:1px solid rgba(79,189,234,0.35)}
+.qam-rx-top a:hover{color:var(--text);border-color:var(--text)}
+.qam-key{display:flex;gap:10px;flex-wrap:wrap;font:10px var(--mono);letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)}
+.qam-key i{font-style:normal;display:inline-flex;align-items:center;gap:5px}.qam-key i::before{content:"";width:8px;height:8px;border-radius:2px;background:currentColor}
+.qam-hex{margin-top:8px;font:12px var(--mono);line-height:1.45;color:var(--text-muted)}
+.qam-row{display:grid;grid-template-columns:38px repeat(16,minmax(22px,28px)) minmax(0,1fr);gap:0 3px;align-items:baseline}
+.qam-row .off{color:var(--text-muted);opacity:0.55;font-size:10px;line-height:inherit}
+.qam-row .asc{margin-left:14px;color:var(--text);white-space:pre;overflow:hidden;letter-spacing:0.04em}.qam-row .asc .garble{color:#ffd28a;background:rgba(245,165,36,0.16);border-radius:3px}
+.qam-hex i.pad{visibility:hidden}
+.qam-hex i{font-style:normal;text-align:center;border-radius:4px;opacity:0.28;transition:opacity 0.2s,background 0.2s}
+.qam-hex i.rx{opacity:1}
+.f-mac{color:#5ED2DA}.f-llc{color:#8BA2AE}.f-ip{color:#4FBDEA}.f-icmp{color:#8CE05E}.f-pay{color:#EAF2F6}.f-fcs{color:#B0C4CF}.f-bad{color:#ffd28a}
+.qam-hex i.bad{color:#ffd28a;background:rgba(245,165,36,0.18)}
+.qam-hex i.hl{background:rgba(255,255,255,0.12);opacity:1}
+.qam-fld{margin-top:6px;font:12px var(--mono);color:var(--text-dim);min-height:18px;line-height:1.5}
+.qam-hit{margin-top:6px;padding:6px 10px;font:12px var(--mono);color:var(--text-dim);line-height:1.55;border-left:2px solid var(--green);background:rgba(140,224,94,0.06);border-radius:0 8px 8px 0}.qam-hit b{color:var(--text)}.qam-hit b.ok{color:var(--green)}.qam-hit b.warn{color:#ffd28a}.qam-hit code{color:#D3E3EC}.qam-hit a{color:var(--text-muted);margin-left:6px;text-decoration:underline}
+.qam-hex i.sel{outline:1px solid rgba(140,224,94,0.9);outline-offset:-1px;opacity:1}
+.qam-lbrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;padding:8px 12px;font-size:12px;color:var(--text-dim);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);cursor:default}.qam-lbrow label{display:inline-flex;align-items:center;gap:8px}.qam-lbrow input{width:130px;accent-color:var(--green)}.qam-lbrow b{font:600 12px var(--mono);color:var(--green);min-width:40px}.qam-lbrow[hidden]{display:none}
+.sim-intro{margin:0 0 var(--s4)}.sim-intro h1{margin:10px 0 12px}@media (max-width:700px){.sim-intro{padding:0 var(--s1)}.sim-intro .h-hero{font-size:30px}}.sim-intro .lede{max-width:820px}.sim-intro a{color:var(--blue-light)}
+.post-body video{display:block;width:100%;max-width:100%;margin:var(--s4) 0;border-radius:var(--r-inner);border:1px solid var(--line);background:#061019}
+.post-body img{display:block;width:100%;height:auto;border-radius:var(--r-inner);border:1px solid var(--line)}
+.post-body figure{margin:var(--s5) 0}
+.post-body figure video,.post-body figure img{margin:0}
+.post-body figcaption{margin-top:10px;font-size:13px;color:var(--text-muted);line-height:1.65}
+/* a dense figure stays legible on a phone by scrolling sideways, the way the tables do. the caption stays put. */
+.post-body figure.wide>.pan{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-radius:var(--r-inner)}
+.post-body figure.wide img{min-width:620px}
+/* a tall photo would run a thousand pixels down the page at full column width */
+.post-body figure.portrait{max-width:420px;margin-inline:auto}
+.qam-app{display:grid;grid-template-columns:minmax(240px,2fr) 3fr;gap:10px;margin-top:8px;cursor:default}
+@media (max-width:760px){.qam-app{grid-template-columns:1fr}}
+.qam-tile{padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);font-size:12.5px;color:var(--text-dim);line-height:1.5;min-height:110px}
+.qam-tile .eyebrow{display:block;margin-bottom:6px}.qam-tile p{margin:6px 0 0}.qam-tile b{color:var(--text)}.qam-tile b.ok{color:var(--green)}.qam-tile b.warn{color:#ffd28a}.qam-tile code{font-family:var(--mono);color:#D3E3EC}
+.qam-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px;margin-top:8px}.qam-metrics div{background:rgba(255,255,255,0.04);border-radius:8px;padding:6px 8px;text-align:center}.qam-metrics small{display:block;font:9px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:2px}.qam-metrics b{font:600 16px var(--mono)}.qam-metrics .meta{font-size:11px}.qam-stars{display:block;font-size:10px;color:#ffd28a;letter-spacing:1px}
+.qam-term{font:12px var(--mono);color:#D3E3EC;white-space:pre-wrap;margin:0;line-height:1.5}
+.qam-chat{display:flex;flex-direction:column;gap:6px}.qam-msg{max-width:82%;padding:6px 10px;border-radius:12px;background:rgba(255,255,255,0.06);color:var(--text);font-size:13px;line-height:1.4;align-self:flex-start}.qam-msg b{display:block;font:600 10px var(--mono);letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1px}.qam-msg.you{align-self:flex-end;background:rgba(79,189,234,0.16)}.qam-msg.pending{opacity:0.3}.qam-msg.sending{border:1px dashed rgba(255,255,255,0.35)}.qam-msg small{display:block;font:10px var(--mono);color:var(--text-muted);margin-top:3px}.qam-msg .qam-t{font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px;opacity:0.8}.qam-msg.delivered small{color:var(--green)}.qam-msg.retx small{color:#ffd28a}
+.qam-wave{display:block;width:100%;height:44px;margin-top:8px;background:rgba(255,255,255,0.03);border-radius:8px}
+.qam-avatar{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--navy);color:var(--text);align-items:center;justify-content:center;font:600 10px var(--sans);margin-right:8px;vertical-align:middle}.qam-lbrow .chip{min-height:40px;padding:0 10px;font-size:12px}.qam-lbnote{font-size:11px;color:var(--text-muted);flex-basis:100%}.qam-fld b{color:var(--text)}.qam-fld b.ok{color:var(--green)}.qam-fld b.warn{color:#ffd28a}.qam-fld code{color:#D3E3EC}
+.qam-ascii{display:flex;align-items:baseline;gap:12px;margin-top:6px;overflow:hidden}
+.qam-title{font:600 15px var(--sans);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qam-title.bad{color:var(--text)}
+.qam-title .garble{color:#ffd28a;background:rgba(245,165,36,0.16);border-radius:3px;padding:0 1px}
+@media (max-width:600px){.qam-hex{font-size:10px}.qam-row{grid-template-columns:repeat(16,minmax(0,1fr));gap:0 1px}.qam-row .off,.qam-row .asc,.qam-hex i.pad{display:none}.qam-key{display:none}.qam-title{font-size:14px}}
+.qam-stat{margin-top:8px;font-size:13px;color:var(--text-dim);line-height:1.6}.qam-stat b{color:var(--text)}.qam-stat b.warn{color:#ffd28a}
+.qam-time{margin-top:6px;font-size:13px;color:var(--text-dim);line-height:1.6}.qam-time b{color:var(--text)}
+.qam-table{margin-top:var(--s4);padding-top:var(--s3);border-top:1px solid var(--line);cursor:default}
+.qam-table .tbl{overflow-x:auto;margin-top:8px}.qam-table table{border-collapse:collapse;width:100%;font-size:13px;min-width:560px}
+.qam-table th,.qam-table td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.qam-table th{font:600 10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+.qam-table tr[data-m]{cursor:pointer}.qam-table tr[data-m]:hover td{background:rgba(255,255,255,0.04)}.qam-table tr.on td{background:rgba(140,224,94,0.10);color:var(--text)}.qam-table tr.on td:first-child{box-shadow:inset 3px 0 0 var(--green)}
+.qam-table .meta{margin-top:8px;font-size:12px}
+.qam-hint{font:11px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);text-align:center;margin-top:4px}
+.qam-x{margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid var(--line);color:var(--text-dim);font-size:14px;line-height:1.65;cursor:default}
+.qam-x p{margin:8px 0}.qam-x ol{margin:8px 0 0;padding-left:22px}.qam-x li{margin:6px 0}.qam-x code{font-family:var(--mono);font-size:12.5px;color:#D3E3EC;background:var(--solid);padding:1px 6px;border-radius:6px}
+.qam-x b{color:var(--text)}
+@media (max-width:600px){.qam canvas{height:260px}.qam-ctl{width:100%;justify-content:space-between}}
+
+/* ── QAM banner fullscreen (pseudo, works on iPhone too) ───────────────── */
+.qam.fs{position:fixed;inset:0;z-index:120;margin:0;border-radius:0;overflow:auto;padding:12px 14px;background:#061019;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;animation:none;opacity:1}
+.qam.fs canvas{touch-action:none;height:56vh}
+html.qam-fs,html.qam-fs body{overflow:hidden}
+html.qam-fs .rig{display:none}
+</style></head>
+<body>
+<div class="ground"></div>
+<canvas id="nfn-fx" aria-hidden="true"></canvas>
+<div class="gx-pane" aria-hidden="true"></div>
+<div class="gx-grain" aria-hidden="true"></div>
+<div class="page">
+<header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
+  <a class="brand" href="/"><span class="mk"><img src="logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
+  <nav class="nav"><a class="pill" href="/">Posts</a><a class="pill on" href="academy.html">Academy</a><a class="pill" href="tools.html">Tools</a><a class="pill" href="about.html">About</a><a class="pill outline" href="index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  
+</div></div></header>
+<main class="wrap">
+<style>.cx-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s4)}.cx-tools .pill{font-weight:600}.cx-tools .pill.soft{box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18)}</style>
+<style>
+.cxg-jump{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s5)}
+.cxg-sec{margin:0 0 var(--s7)}
+.cxg-sec>h2{font-size:26px;letter-spacing:-0.02em;margin:0 0 8px}
+.cxg-sec>p{color:var(--text-dim);font-size:16px;line-height:1.6;max-width:820px;margin:0 0 var(--s4)}
+.cxg-rel{padding:var(--s4) var(--s5);margin:0 0 var(--s4)}
+.cxg-rel h3{font-size:22px;margin:0 0 var(--s3)}
+.cxg-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s5)}
+.cxg-h{font:600 11px var(--mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--blue-light);margin:0 0 8px}
+.cxg-cols>div>.cxg-h:not(:first-child){margin-top:var(--s4)}
+.cxg-src,.cxg-none{color:var(--text-muted);font-size:13.5px;line-height:1.55;margin:0 0 10px}
+.cxg-types{display:grid;gap:10px}
+.cxg-type h4{font-size:14px;margin:0 0 4px;color:var(--text)}
+.cxg-type ul,.cxg-notes,.cxg-cli ul{margin:0;padding-left:1.1em;color:var(--text-dim);font-size:14px;line-height:1.55}
+.cxg-plat em{font:normal 11px var(--mono);color:var(--teal);border:1px solid rgba(94,210,218,0.4);border-radius:var(--r-pill);padding:1px 6px;margin-left:4px;white-space:nowrap}
+.cxg-cli{border-top:1px solid var(--line);padding:6px 0}
+.cxg-cli summary{cursor:pointer;min-height:38px;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text-dim)}
+.cxg-cli summary b{color:var(--text);font-weight:600}
+.cxg-cli code,.cxg-notes code,.cxg-p code,.cxg-c code{font:12.5px var(--mono);color:var(--text);overflow-wrap:anywhere}
+.cxg-cli i{font-style:normal;color:var(--text-muted)}
+.cxg-cli .more{color:var(--text-muted);font-size:12.5px}
+.cxg-notes a{color:var(--blue-light)}
+.cxg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,380px),1fr));gap:var(--s4)}
+.cxg-p,.cxg-c{padding:var(--s4) var(--s5);min-width:0}
+.cxg-p h3{font-size:17px;margin:0 0 6px}
+.cxg-p p,.cxg-c p{color:var(--text-dim);font-size:14.5px;line-height:1.6;margin:0 0 8px}
+.cxg-p pre,.cxg-c pre{margin:8px 0 0;font:12.5px/1.55 var(--mono);color:var(--text);background:rgba(3,10,16,0.6);border:1px solid var(--line);border-radius:10px;padding:10px 12px;overflow-x:auto}
+.cxg-see{display:inline-flex;align-items:center;min-height:38px;margin-top:6px;font-size:13.5px;color:var(--blue-light)}
+.cxg-c header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;margin:0 0 8px}
+.cxg-id{font:700 13px var(--mono);color:var(--text)}
+.cxg-auto{font:11px var(--mono);color:var(--text-muted);border:1px solid var(--line);border-radius:var(--r-pill);padding:2px 8px}
+.cxg-auto.on{color:#bdf29c;border-color:rgba(140,224,94,0.5)}
+.cxg-chk{font-size:13px!important}
+@media (max-width:860px){.cxg-cols{grid-template-columns:minmax(0,1fr)}.cxg-rel,.cxg-p,.cxg-c{padding:var(--s3) var(--s4)}}
+</style>
+<section class="sim-intro">
+  <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
+  <h1 class="h-hero">Releases, habits and hardening</h1>
+  <p class="lede">What changed from AOS-CX 10.15 to 10.18 for the 6200 and 6300, seen three ways: HPE's Feature Navigator, the command lists I pulled off the Switch Simulator for each release, and the sandbox's own notes. Then the habits that keep a campus access switch out of trouble, and hardening mapped to the CIS benchmark for CX switches by control number. Every config line on this page is checked against the command set before it is published.</p>
+</section>
+<nav class="cx-tools" aria-label="CX Sandbox pages"><a class="pill outline" href="sandbox.html">Sandbox</a><a class="pill outline" href="cx-notes.html">Command notes</a><a class="pill outline" href="cx-check.html">Config checker</a><a class="pill outline" href="cx-build.html">Script builder</a><a class="pill soft" href="cx-guide.html" aria-current="page">Releases and hardening</a></nav>
+<nav class="cxg-jump" aria-label="Sections"><a class="pill outline" href="#releases">By release</a><a class="pill outline" href="#practice">Best practices</a><a class="pill outline" href="#cis">Hardening, CIS by number</a></nav>
+<section class="cxg-sec" id="releases">
+  <h2>By release</h2>
+  <p>Newest first. The Feature Navigator is HPE's list of what each platform supports in each release, compared here with licenses Native and Advanced and read on 2026-09-28; a feature sits under the first release it shows up in. The command line column is the difference between the command lists of one release and the one before it, which catches syntax the navigator never mentions. The Simulator hides hardware, so PoE, VSF and some speeds do not show there.</p>
+  <section class="cxg-rel g-card" id="r-10-18"><h3>AOS-CX 10.18</h3><div class="cxg-cols"><div><h4 class="cxg-h">In HPE's Feature Navigator</h4><p class="cxg-none">Not in the Feature Navigator yet (checked 2026-09-28). The command line below is the first place 10.18 shows.</p></div><div><h4 class="cxg-h">In the command line</h4><p class="cxg-src">482 command forms appear in 10.18 and 15 that 10.17 had are gone, across the contexts the lists cover. Forms, not features: one new option can add a few.</p><details class="cxg-cli"><summary><b>config</b> 29 new command forms</summary><ul><li><code>nae-agent <i>WORD</i> <i>WORD</i> false ciphertext <i>LINE</i></code> <span class="more">and 11 more like it</span></li><li><code>ip source-interface mist <i>A.B.C.D</i> <i>{vrf}</i></code> <span class="more">and 1 more like it</span></li><li><code>ipv6 source-interface mist <i>X:X::X:X</i> <i>{vrf}</i></code> <span class="more">and 1 more like it</span></li><li><code>debug cxpm all <i>{severity}</i></code></li><li><code>debug nginxconfigurator mist <i>{severity}</i></code></li><li><code>ip dns fqdn-resolver response-timeout <i>&lt;n&gt;</i></code></li><li><code>maintenance-mode activate <i>{profile}</i></code></li><li><code>maintenance-mode profile <i>WORD</i></code></li><li><code>maintenance-unit bgp <i>WORD</i></code></li><li><code>maintenance-unit ospfv2 <i>WORD</i></code></li><li><code>maintenance-unit ospfv3 <i>WORD</i></code></li><li><code>maintenance-unit ospfv3-af-ipv4 <i>WORD</i></code></li><li><code>maintenance-unit ospfv3-af-ipv6 <i>WORD</i></code></li><li><code>mgmd vsx-peer-report-sync</code></li><li><code>mist</code></li><li><code>troubleshoot proactive</code></li></ul></details><details class="cxg-cli"><summary><b>interface</b> 9 new command forms</summary><ul><li><code>ip igmp snooping fastleave auto-vlans</code> <span class="more">and 1 more like it</span></li><li><code>ipv6 mld snooping fastleave auto-vlans</code> <span class="more">and 1 more like it</span></li><li><code>aaa authentication port-access client-limit device-mode <i>&lt;n&gt;</i></code></li><li><code>ip ospf network point-to-multipoint <i>{dynamic}</i></code></li><li><code>ipv6 ospfv3 neighbor <i>X:X::X:X</i></code></li><li><code>ipv6 ospfv3 network point-to-multipoint <i>{dynamic}</i></code></li><li><code>lldp med force-send</code></li></ul></details><details class="cxg-cli"><summary><b>LAG</b> 3 new command forms</summary><ul><li><code>ip ospf network point-to-multipoint <i>{dynamic}</i></code></li><li><code>ipv6 ospfv3 neighbor <i>X:X::X:X</i></code></li><li><code>ipv6 ospfv3 network point-to-multipoint <i>{dynamic}</i></code></li></ul></details><details class="cxg-cli"><summary><b>VLAN</b> 4 new command forms</summary><ul><li><code>ip igmp snooping report-suppression disable</code> <span class="more">and 1 more like it</span></li><li><code>ipv6 mld snooping report-suppression disable</code> <span class="more">and 1 more like it</span></li></ul></details><details class="cxg-cli"><summary><b>VLAN interface</b> 3 new command forms</summary><ul><li><code>ip ospf network point-to-multipoint <i>{dynamic}</i></code></li><li><code>ipv6 ospfv3 neighbor <i>X:X::X:X</i></code></li><li><code>ipv6 ospfv3 network point-to-multipoint <i>{dynamic}</i></code></li></ul></details><details class="cxg-cli"><summary><b>port-access role</b> 46 new command forms</summary><ul><li><code>speed auto 100g</code> <span class="more">and 9 more like it</span></li><li><code>rate-limits broadcast <i>WORD</i> kbps</code> <span class="more">and 2 more like it</span></li><li><code>rate-limits icmp <i>WORD</i> kbps</code> <span class="more">and 2 more like it</span></li><li><code>rate-limits icmp-version ip-all</code> <span class="more">and 2 more like it</span></li><li><code>rate-limits multicast <i>WORD</i> kbps</code> <span class="more">and 2 more like it</span></li><li><code>rate-limits unknown-unicast <i>WORD</i> kbps</code> <span class="more">and 2 more like it</span></li><li><code>client-limit device-mode <i>&lt;n&gt;</i></code></li><li><code>rpvst-enable</code></li><li><code>speed 10-full</code></li><li><code>speed 10-half</code></li><li><code>speed 100-full</code></li><li><code>speed 100-half</code></li><li><code>speed 1000-full</code></li><li><code>speed 100g</code></li><li><code>speed 10g</code></li><li><code>speed 200g</code></li><li><code>speed 25g</code></li><li><code>speed 400g</code></li><li><code>speed 40g</code></li><li><code>speed 50g</code></li><li><code>stp-bpdu-filter</code></li><li><code>stp-bpdu-guard</code></li><li><code>stp-link-type point-to-point</code></li><li><code>stp-link-type shared</code></li><li><code>stp-root-guard</code></li><li><code>toggle-link</code></li><li><code>voice-vlan <i>&lt;n&gt;</i></code></li></ul></details><details class="cxg-cli"><summary><b>LLDP group</b> 4 new command forms</summary><ul><li><code>seq <i>&lt;n&gt;</i> ignore <i>{chassis-id|sys-desc|sysname|vendor-oui}</i></code> <span class="more">and 1 more like it</span></li><li><code>ignore <i>{chassis-id|sys-desc|sysname|vendor-oui}</i></code></li><li><code>match <i>{chassis-id|sys-desc|sysname|vendor-oui}</i></code></li></ul></details><details class="cxg-cli"><summary><b>RADIUS group</b> 2 new command forms</summary><ul><li><code>load-balancing-mode priority-based</code></li><li><code>load-balancing-mode round-robin</code></li></ul></details><details class="cxg-cli"><summary><b>OSPF</b> 6 new command forms</summary><ul><li><code>max-metric router-lsa external-lsa</code> <span class="more">and 5 more like it</span></li></ul></details><details class="cxg-cli"><summary><b>exec</b> 376 new command forms</summary><ul><li><code>troubleshoot l3 arp</code> <span class="more">and 72 more like it</span></li><li><code>troubleshoot aaa-mgmt</code> <span class="more">and 37 more like it</span></li><li><code>troubleshoot multicast config</code> <span class="more">and 37 more like it</span></li><li><code>troubleshoot classifier</code> <span class="more">and 23 more like it</span></li><li><code>troubleshoot platform</code> <span class="more">and 23 more like it</span></li><li><code>troubleshoot system</code> <span class="more">and 15 more like it</span></li><li><code>troubleshoot l2</code> <span class="more">and 14 more like it</span></li><li><code>show ip multicast bridging datapath group <i>A.B.C.D</i> source <i>A.B.C.D</i> <i>{vsx-peer}</i></code> <span class="more">and 12 more like it</span></li><li><code>troubleshoot tunnel</code> <span class="more">and 12 more like it</span></li><li><code>troubleshoot port-access</code> <span class="more">and 11 more like it</span></li><li><code>show ipv6 multicast bridging datapath group <i>X:X::X:X</i> source <i>X:X::X:X</i> <i>{vsx-peer}</i></code> <span class="more">and 9 more like it</span></li><li><code>troubleshoot client-insight</code> <span class="more">and 9 more like it</span></li><li><code>troubleshoot feature-pack</code> <span class="more">and 8 more like it</span></li><li><code>troubleshoot copp</code> <span class="more">and 6 more like it</span></li><li><code>troubleshoot bluetooth</code> <span class="more">and 5 more like it</span></li><li><code>troubleshoot mirror</code> <span class="more">and 5 more like it</span></li><li><code>troubleshoot radius</code> <span class="more">and 5 more like it</span></li><li><code>troubleshoot usb</code> <span class="more">and 5 more like it</span></li><li><code>copy checkpoint <i>WORD</i> <i>WORD</i> checkpoint <i>{vrf}</i></code> <span class="more">and 2 more like it</span></li><li><code>copy support-files top-cpu <i>WORD</i></code> <span class="more">and 2 more like it</span></li><li><code>clear mac-address mac-move rapid vlan <i>&lt;n&gt;</i></code> <span class="more">and 1 more like it</span></li><li><code>show aaa server-groups radius <i>WORD</i> <i>{vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>show interface <i>IFNAME</i> dom <i>{detail}</i> <i>{formatted|vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>show ip igmp interface <i>IFNAME</i> fastleave <i>{vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>show ip source-interface mist all-vrfs <i>{vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>show ipv6 mld interface <i>IFNAME</i> fastleave <i>{vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>show ipv6 source-interface mist all-vrfs <i>{vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>show mac-address-table mac-move rapid vlan <i>&lt;n&gt;</i> <i>{format|vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>show system resource-utilization daemon <i>WORD</i> detail <i>{vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>checkpoint auto confirm <i>{skip-checkpoint}</i></code></li><li><code>clear mist registration-info</code></li><li><code>clear screen</code></li><li><code>debug cxpm all <i>{severity}</i></code></li><li><code>debug nginxconfigurator mist <i>{severity}</i></code></li><li><code>mist registration-code <i>WORD</i></code></li><li><code>show interface dom <i>{detail}</i> <i>{formatted|vsx-peer}</i></code></li><li><code>show interface transceiver capabilities <i>{vsx-peer}</i></code></li><li><code>show interface vxlan vteps status count</code></li><li><code>show ip dns fqdn-resolver response-timeout <i>{vsx-peer}</i></code></li><li><code>show lldp neighbor-info json <i>{vsx-peer}</i></code></li></ul></details><details class="cxg-cli"><summary><b>config</b> 4 gone command forms</summary><ul><li><code>aaa authentication port-access cached-critical-role persistent-storage</code> <span class="more">and 2 more like it</span></li><li><code>debug flowtelemetry all <i>{severity}</i></code></li></ul></details><details class="cxg-cli"><summary><b>interface</b> 1 gone command form</summary><ul><li><code>ip ospf network point-to-multipoint</code></li></ul></details><details class="cxg-cli"><summary><b>LAG</b> 1 gone command form</summary><ul><li><code>ip ospf network point-to-multipoint</code></li></ul></details><details class="cxg-cli"><summary><b>VLAN interface</b> 1 gone command form</summary><ul><li><code>ip ospf network point-to-multipoint</code></li></ul></details><details class="cxg-cli"><summary><b>LLDP group</b> 4 gone command forms</summary><ul><li><code>seq <i>&lt;n&gt;</i> ignore <i>{sys-desc|sysname|vendor-oui}</i></code> <span class="more">and 1 more like it</span></li><li><code>ignore <i>{sys-desc|sysname|vendor-oui}</i></code></li><li><code>match <i>{sys-desc|sysname|vendor-oui}</i></code></li></ul></details><details class="cxg-cli"><summary><b>exec</b> 4 gone command forms</summary><ul><li><code>checkpoint auto confirm</code></li><li><code>debug flowtelemetry all <i>{severity}</i></code></li><li><code>show interface <i>IFNAME</i> dom <i>{detail|vsx-peer}</i></code></li><li><code>show interface dom <i>{detail|vsx-peer}</i></code></li></ul></details><h4 class="cxg-h">Called out in the command notes</h4><ul class="cxg-notes"><li><a href="cx-notes.html#n-show-system"><code>show system</code></a>: 10.18 added CPU idle, user and system lines; 10.17 printed CPU utilisation only.</li><li><a href="cx-notes.html#n-show-lacp-interfaces"><code>show lacp interfaces</code></a>: 10.18 added IE (LACP fallback active) to the legend; 10.17 has no such line.</li><li><a href="cx-notes.html#n-lldp-med-network-policy"><code>lldp med network-policy</code></a>: New in 10.18: lldp med force-send. By default MED TLVs go out only after the endpoint&#x27;s own arrive (HPE&#x27;s guide and the lab agree); the sandbox does not model force-send.</li><li><a href="cx-notes.html#n-aaa-group-server-radius-x"><code>aaa group server radius &lt;WORD&gt;</code></a>: 10.18 added load-balancing-mode (round-robin or priority-based) in the group.</li><li><a href="cx-notes.html#n-aaa-authentication-port-access-client-limit-x"><code>aaa authentication port-access client-limit &lt;1-256&gt;</code></a>: 10.18 added client-limit device-mode &lt;n&gt; on the port and in a role.</li><li><a href="cx-notes.html#n-port-access-role-x"><code>port-access role &lt;WORD&gt;</code></a>: 10.18 added speed, voice-vlan, stp-bpdu-guard, rate-limits, toggle-link and client-limit device-mode to a role.</li><li><a href="cx-notes.html#n-port-access-lldp-group-x"><code>port-access lldp-group &lt;WORD&gt;</code></a>: 10.18 added match chassis-id. sys-desc, sysname and vendor-oui are there from 10.15.</li></ul></div></div></section><section class="cxg-rel g-card" id="r-10-17"><h3>AOS-CX 10.17</h3><div class="cxg-cols"><div><h4 class="cxg-h">In HPE's Feature Navigator</h4><p class="cxg-src">48 features first listed for the 6200 or 6300 in 10.17.0001.</p><div class="cxg-types"><div class="cxg-type"><h4>ACL</h4><ul><li>VSF Member ACL Logging Support with Full Details <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>BGP</h4><ul><li>BGP route selection option within BGP RIB <span class="cxg-plat"><em>6300</em></span></li><li>Optimized Inter Subnet Multicast Support for VXLAN (OISM) <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>CX Edge Insights</h4><ul><li>Display and report CPS excursions per ARC client <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Reporting flow congestion probability <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>L2 features</h4><ul><li>Persona Support on Lag interfaces <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>L3 features</h4><ul><li>Active-Active DHCP-Relay support on VSX based with CLI <span class="cxg-plat"><em>6300</em></span></li><li>DHCPv4 Relay option82 Remote-Id support with CLI <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Selective Exemption of specific IP address from ARP/ND suppression <span class="cxg-plat"><em>6300</em></span></li><li>Selective Exemption of specific IP address from LPA <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>L3 features: tunnels</h4><ul><li>6in4 tunnel support with sub-interface in the underlay <span class="cxg-plat"><em>6300</em></span></li><li>6in6 tunnel support with sub-interface in the underlay <span class="cxg-plat"><em>6300</em></span></li><li>GRE tunnel support with sub-interface in the underlay <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Management</h4><ul><li>Apply non-failsafe updates during boot <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Local Packet capture with filters <span class="cxg-plat"><em>6300</em></span></li><li>Support for DHCP on all VLANS <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Using DOT &amp; _ (underscore) in CX hostname <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Management: Security</h4><ul><li>Disable Local Admin Account <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Multicast</h4><ul><li>IGMP control packet forwarding in HW <span class="cxg-plat"><em>6300</em></span></li><li>Multicast: BudNode Support for Underlay EVPN VXLAN <span class="cxg-plat"><em>6300</em></span></li><li>Multicast: IVRL Dynamic RP Support <span class="cxg-plat"><em>6300</em></span></li><li>Multicast: IVRL Group based filtering <span class="cxg-plat"><em>6300</em></span></li><li>Multicast: IVRL Increase Scale (Sources and VRFs) <span class="cxg-plat"><em>6300</em></span></li><li>Multicast: OISM Optimized Inter Subnet Multicast support for VXLAN <span class="cxg-plat"><em>6300</em></span></li><li>Multicast: SM support in underlay for EVPN VXLAN <span class="cxg-plat"><em>6300</em></span></li><li>PIM BiDir IPv6 Support <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Port</h4><ul><li>Front panel port mapping with ASIC ports <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Port Access Security</h4><ul><li>Auto Generation of Probe File for Silent Client Authentication <span class="cxg-plat"><em>6300</em></span></li><li>FQDN Support for Port Access Policy: LUR/DUR/Aruba-NAS-Filter-Rule <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>sticky mac clear command <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>QoS</h4><ul><li>Queue Congestion History <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Supportability</h4><ul><li>CX Assistant support for system troubleshooting <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Enable prompt to save config when logging out <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Event trap disable CLI <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Telemetry</h4><ul><li>gNMI: Enable secure connectivity via HTTP2 gNMI gRPC APIs <span class="cxg-plat"><em>6300</em></span></li><li>gNMI: OpenConfig Interfaces YANG models <span class="cxg-plat"><em>6300</em></span></li><li>gNMI: OpenConfig Platform YANG models <span class="cxg-plat"><em>6300</em></span></li><li>gNMI: OpenConfig System YANG models <span class="cxg-plat"><em>6300</em></span></li><li>gNMI: Subscribe and Capabilities methods <span class="cxg-plat"><em>6300</em></span></li><li>IP Flow Path Trace <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>IPFIX: drop exception/mirror on drop <span class="cxg-plat"><em>6200</em></span></li><li>Support for IPFIX configuration on out interface using IP Flow table <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Timing Protocol</h4><ul><li>NTP Client/Conductor Authentication: AES128 Support <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>PTP Boundary Clock Support with VSF Stack <span class="cxg-plat"><em>6300</em></span></li><li>PTP Multi-VLAN support <span class="cxg-plat"><em>6300</em></span></li><li>PTP Transparent Clock on VSF (Peer to Peer Delay mechanism only) <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>VXLAN</h4><ul><li>Per VLAN ARP/ND suppression <span class="cxg-plat"><em>6300</em></span></li><li>VXLAN Tunnel support with sub-interface in the underlay <span class="cxg-plat"><em>6300</em></span></li></ul></div></div></div><div><h4 class="cxg-h">In the command line</h4><p class="cxg-src">158 command forms appear in 10.17 and 55 that 10.16 had are gone, across the contexts the lists cover. Forms, not features: one new option can add a few.</p><details class="cxg-cli"><summary><b>config</b> 47 new command forms</summary><ul><li><code>ip route <i>A.B.C.D</i> <i>WORD</i> <i>A.B.C.D</i> <i>{bfd|distance|name|tag|track|use-forwarding-address|...}</i></code> <span class="more">and 4 more like it</span></li><li><code>ip route <i>A.B.C.D/M</i> <i>A.B.C.D</i> <i>{bfd|distance|name|tag|track|use-forwarding-address|...}</i></code> <span class="more">and 4 more like it</span></li><li><code>ipv6 route <i>X:X::X:X</i> <i>IFNAME</i> <i>{distance|name|tag|track|vrf}</i></code> <span class="more">and 3 more like it</span></li><li><code>aaa authentication login gnmi group <i>LINE</i></code> <span class="more">and 2 more like it</span></li><li><code>ntp authentication-key <i>&lt;n&gt;</i> aes128</code> <span class="more">and 2 more like it</span></li><li><code>aaa accounting all-mgmt gnmi start-stop group <i>LINE</i></code> <span class="more">and 1 more like it</span></li><li><code>user <i>WORD</i> disable</code> <span class="more">and 1 more like it</span></li><li><code>crypto pki application gnmi certificate <i>WORD</i></code></li><li><code>debug classifier taskd <i>{severity}</i></code></li><li><code>debug dnld apps <i>{severity}</i></code></li><li><code>debug dnld mgmt <i>{severity}</i></code></li><li><code>debug dnld ui <i>{severity}</i></code></li><li><code>debug fqdnresolver all <i>{severity}</i></code></li><li><code>debug fwupd all <i>{severity}</i></code></li><li><code>debug nginxconfigurator all <i>{severity}</i></code></li><li><code>debug nginxconfigurator gnmi <i>{severity}</i></code></li><li><code>debug saint all <i>{severity}</i></code></li><li><code>debug saint msg <i>{severity}</i></code></li><li><code>debug statsmon all <i>{severity}</i></code></li><li><code>debug statsmon mgmt <i>{severity}</i></code></li><li><code>dhcp-relay option 82 circuit-id port-id</code></li><li><code>dhcp-relay vsx active-active</code></li><li><code>early-access</code></li><li><code>event-trap-disable <i>LINE</i></code></li><li><code>gnmi vrf <i>WORD</i></code></li><li><code>interface persona lag <i>WORD</i></code></li><li><code>ip dns fqdn-resolver refresh-interval <i>&lt;n&gt;</i></code></li><li><code>port-access secure-update gbp</code></li><li><code>port-access secure-update policy</code></li><li><code>static-mac <i>WORD</i> <i>{vlan}</i> port <i>IFNAME</i></code></li></ul></details><details class="cxg-cli"><summary><b>interface</b> 14 new command forms</summary><ul><li><code>aaa authentication port-access lldp-loop-guard enable</code></li><li><code>ip ospf network point-to-multipoint</code></li><li><code>ip pim-bidir hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ip pim-dense hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ip pim-sparse hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-bidir disable</code></li><li><code>ipv6 pim6-bidir enable</code></li><li><code>ipv6 pim6-bidir hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-bidir hello-interval <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-bidir lan-prune-delay</code></li><li><code>ipv6 pim6-bidir override-interval <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-bidir propagation-delay <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-dense hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-sparse hello-holdtime <i>&lt;n&gt;</i></code></li></ul></details><details class="cxg-cli"><summary><b>LAG</b> 15 new command forms</summary><ul><li><code>persona custom <i>WORD</i> attach</code> <span class="more">and 1 more like it</span></li><li><code>ip ospf network point-to-multipoint</code></li><li><code>ip pim-bidir hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ip pim-dense hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ip pim-sparse hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-bidir disable</code></li><li><code>ipv6 pim6-bidir enable</code></li><li><code>ipv6 pim6-bidir hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-bidir hello-interval <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-bidir lan-prune-delay</code></li><li><code>ipv6 pim6-bidir override-interval <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-bidir propagation-delay <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-dense hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-sparse hello-holdtime <i>&lt;n&gt;</i></code></li></ul></details><details class="cxg-cli"><summary><b>VLAN interface</b> 15 new command forms</summary><ul><li><code>ip ospf network point-to-multipoint</code></li><li><code>ip pim-bidir hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ip pim-dense hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ip pim-sparse accept-remote-source</code></li><li><code>ip pim-sparse hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-bidir disable</code></li><li><code>ipv6 pim6-bidir enable</code></li><li><code>ipv6 pim6-bidir hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-bidir hello-interval <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-bidir lan-prune-delay</code></li><li><code>ipv6 pim6-bidir override-interval <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-bidir propagation-delay <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-dense hello-holdtime <i>&lt;n&gt;</i></code></li><li><code>ipv6 pim6-sparse accept-remote-source</code></li><li><code>ipv6 pim6-sparse hello-holdtime <i>&lt;n&gt;</i></code></li></ul></details><details class="cxg-cli"><summary><b>OSPF</b> 1 new command form</summary><ul><li><code>neighbor <i>A.B.C.D</i></code></li></ul></details><details class="cxg-cli"><summary><b>exec</b> 66 new command forms</summary><ul><li><code>show mac-address-table dynamic interface <i>WORD</i> <i>{format|vsx-peer}</i></code> <span class="more">and 4 more like it</span></li><li><code>show interface vxlan vni</code> <span class="more">and 3 more like it</span></li><li><code>show ipv6 pim6 dfe all-vrfs <i>{vsx-peer}</i></code> <span class="more">and 3 more like it</span></li><li><code>show ip dns fqdn-resolver detail <i>{fqdn|requested-address-family|source|vrf|vsx-peer}</i></code> <span class="more">and 2 more like it</span></li><li><code>show mac-address-table interface <i>WORD</i> detail <i>{format|vsx-peer}</i></code> <span class="more">and 2 more like it</span></li><li><code>show port-access role clearpass <i>{vsx-peer}</i></code> <span class="more">and 2 more like it</span></li><li><code>vsx update-software <i>WORD</i> <i>{vrf}</i> <i>{allow-non-failsafe-updates}</i></code> <span class="more">and 2 more like it</span></li><li><code>clear mac-address <i>WORD</i> vlan <i>&lt;n&gt;</i> <i>{force}</i></code> <span class="more">and 1 more like it</span></li><li><code>port-access log-off client onboarded-method port-security dynamic</code> <span class="more">and 1 more like it</span></li><li><code>show interface hardware-port <i>&lt;n&gt;</i> <i>{vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>show mac-address-table mac-move vlan <i>&lt;n&gt;</i> <i>{format|vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>container <i>WORD</i> pause</code></li><li><code>debug classifier taskd <i>{severity}</i></code></li><li><code>debug dnld apps <i>{severity}</i></code></li><li><code>debug dnld mgmt <i>{severity}</i></code></li><li><code>debug dnld ui <i>{severity}</i></code></li><li><code>debug fqdnresolver all <i>{severity}</i></code></li><li><code>debug fwupd all <i>{severity}</i></code></li><li><code>debug nginxconfigurator all <i>{severity}</i></code></li><li><code>debug nginxconfigurator gnmi <i>{severity}</i></code></li><li><code>debug saint all <i>{severity}</i></code></li><li><code>debug saint msg <i>{severity}</i></code></li><li><code>debug statsmon all <i>{severity}</i></code></li><li><code>debug statsmon mgmt <i>{severity}</i></code></li><li><code>ip dns fqdn-resolver force-refresh <i>{fqdn|source|status|vrf}</i></code></li><li><code>logout</code></li><li><code>rename ssh sftp-server <i>WORD</i> <i>WORD</i></code></li><li><code>show capacities logging <i>{vsx-peer}</i></code></li><li><code>show capacities-status logging <i>{vsx-peer}</i></code></li><li><code>show gnmi <i>{vsx-peer}</i></code></li><li><code>show interface <i>IFNAME</i> hardware-port <i>{vsx-peer}</i></code></li><li><code>show mac-address-table address <i>WORD</i> <i>{format|vsx-peer}</i></code></li><li><code>show mac-address-table detail <i>{format|vsx-peer}</i></code></li><li><code>show mac-address-table hsc <i>{format|vsx-peer}</i></code></li><li><code>show mac-address-table lockout <i>{format|vsx-peer}</i></code></li><li><code>show mac-address-table port <i>WORD</i> <i>{format|vsx-peer}</i></code></li><li><code>show mac-address-table static <i>{format|vsx-peer}</i></code></li><li><code>show mac-address-table unsorted <i>{format|vsx-peer}</i></code></li><li><code>show mac-address-table vlan <i>&lt;n&gt;</i> <i>{format|vsx-peer}</i></code></li><li><code>show mac-address-table <i>{format|vsx-peer}</i></code></li></ul></details><details class="cxg-cli"><summary><b>config</b> 23 gone command forms</summary><ul><li><code>ip route <i>A.B.C.D</i> <i>WORD</i> <i>A.B.C.D</i> <i>{bfd|distance|tag|track|use-forwarding-address|vrf}</i></code> <span class="more">and 4 more like it</span></li><li><code>ip route <i>A.B.C.D/M</i> <i>A.B.C.D</i> <i>{bfd|distance|tag|track|use-forwarding-address|vrf}</i></code> <span class="more">and 4 more like it</span></li><li><code>ipv6 route <i>X:X::X:X</i> <i>IFNAME</i> <i>{distance|tag|track|vrf}</i></code> <span class="more">and 3 more like it</span></li><li><code>troubleshoot l3</code> <span class="more">and 2 more like it</span></li><li><code>troubleshoot multicast</code> <span class="more">and 2 more like it</span></li><li><code>troubleshoot app-recognition</code> <span class="more">and 1 more like it</span></li><li><code>static-mac aa:bb:cc:dd:ee:ff <i>{vlan}</i> port <i>IFNAME</i></code></li></ul></details><details class="cxg-cli"><summary><b>exec</b> 32 gone command forms</summary><ul><li><code>show mac-address-table dynamic interface <i>WORD</i> <i>{vsx-peer}</i></code> <span class="more">and 4 more like it</span></li><li><code>show mac-address-table interface <i>WORD</i> detail <i>{vsx-peer}</i></code> <span class="more">and 2 more like it</span></li><li><code>show port-access role clearpass</code> <span class="more">and 2 more like it</span></li><li><code>vsx update-software <i>WORD</i> <i>{vrf}</i></code> <span class="more">and 2 more like it</span></li><li><code>clear mac-address aa:bb:cc:dd:ee:ff vlan <i>&lt;n&gt;</i> <i>{force}</i></code> <span class="more">and 1 more like it</span></li><li><code>show interface vxlan vni <i>&lt;n&gt;</i> <i>{vteps}</i></code> <span class="more">and 1 more like it</span></li><li><code>show mac-address-table mac-move vlan <i>&lt;n&gt;</i> <i>{vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>troubleshoot app-recognition</code> <span class="more">and 1 more like it</span></li><li><code>show mac-address-table address a:b:c:d:e:f <i>{vsx-peer}</i></code></li><li><code>show mac-address-table detail <i>{vsx-peer}</i></code></li><li><code>show mac-address-table hsc <i>{vsx-peer}</i></code></li><li><code>show mac-address-table lockout <i>{vsx-peer}</i></code></li><li><code>show mac-address-table port <i>WORD</i> <i>{vsx-peer}</i></code></li><li><code>show mac-address-table static <i>{vsx-peer}</i></code></li><li><code>show mac-address-table unsorted <i>{vsx-peer}</i></code></li><li><code>show mac-address-table vlan <i>&lt;n&gt;</i> <i>{vsx-peer}</i></code></li><li><code>show mac-address-table <i>{vsx-peer}</i></code></li><li><code>show vsx mac-address-table mac a:b:c:d:e:f vlan <i>&lt;n&gt;</i> <i>{vsx-peer}</i></code></li></ul></details><h4 class="cxg-h">Called out in the command notes</h4><ul class="cxg-notes"><li><a href="cx-notes.html#n-show-interface-x"><code>show interface &lt;PORT&gt;</code></a>: 10.15 says how long the link has been up; 10.16 says up; 10.17 added the Hardware port line.</li><li><a href="cx-notes.html#n-show-lacp-interfaces"><code>show lacp interfaces</code></a>: 10.18 added IE (LACP fallback active) to the legend; 10.17 has no such line.</li><li><a href="cx-notes.html#n-aaa-authentication-port-access-allow-lldp-bpdu"><code>aaa authentication port-access allow-lldp-bpdu</code></a>: 10.17 added aaa authentication port-access lldp-loop-guard enable beside it.</li></ul></div></div></section><section class="cxg-rel g-card" id="r-10-16"><h3>AOS-CX 10.16</h3><div class="cxg-cols"><div><h4 class="cxg-h">In HPE's Feature Navigator</h4><p class="cxg-src">76 features first listed for the 6200 or 6300 in 10.16.1006.</p><div class="cxg-types"><div class="cxg-type"><h4>BGP</h4><ul><li>eBGP Unnumbered neighbor <span class="cxg-plat"><em>6300</em></span></li><li>EVPN route-type 6 support (Tenant Routed Multicast) <span class="cxg-plat"><em>6300</em></span></li><li>Route Target Rewrite across Fabrics <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>CX Edge Insights</h4><ul><li>Application Based Policy (ABP): DSCP/Local Priority Remark and Mirror Actions <span class="cxg-plat"><em>6200</em></span></li><li>Application Based Policy (ABP): Permit/Deny Traffic <span class="cxg-plat"><em>6200</em></span></li><li>Application Recognition <span class="cxg-plat"><em>6200</em></span></li><li>Application Recognition: enablement <span class="cxg-plat"><em>6200</em></span></li><li>Application Recognition: max number of active flows <span class="cxg-plat"><em>6200</em></span></li><li>Application Recognition: Measure Application Experience <span class="cxg-plat"><em>6200</em></span></li><li>Application Recognition: Mode <span class="cxg-plat"><em>6200</em></span></li><li>Application Recognition: number of recognized applications <span class="cxg-plat"><em>6200</em></span></li></ul></div><div class="cxg-type"><h4>Container</h4><ul><li>Support for Docker Infrastructure <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>L3 features</h4><ul><li>ARP Latency and failures to gateway <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Local Proxy ARP <span class="cxg-plat"><em>6200</em></span></li></ul></div><div class="cxg-type"><h4>Management</h4><ul><li>Hibernation mode <span class="cxg-plat"><em>6300</em></span></li><li>IPSLA Customized Average Interval <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>IPv6 only Preferred option for DHCPv4 <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>PSU Input voltage monitoring <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Route/resource tracking using IP SLA (Static Routes, without NAE) <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Support for &quot;Reload at&quot; and &quot;Reload after&quot; <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Support for Deep mode in Checkpoint Diff command <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>XCVR MIB for Power/DOM details <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Management: security</h4><ul><li>TLS 1.3 Support <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Multicast</h4><ul><li>IGMP/MLD Snooping Global Enable <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Port Access Security</h4><ul><li>Enable the AAA authentication command under interface persona <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>IPV6 Support for UBT Tunnels <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>RADIUS Proxy Support for Role Based Policy Enforcement <span class="cxg-plat"><em>6300</em></span></li><li>Silent Client Probe <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Supportability</h4><ul><li>Copy Support-files to Central <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Telemetry</h4><ul><li>IPFIX: additional attributes export (local-priority, VRF, DSCP, interface details) <span class="cxg-plat"><em>6200</em></span></li><li>IPFIX: drop exception/mirror on drop <span class="cxg-plat"><em>6300</em></span></li><li>Traffic-Insight: Blocked Flow Visibility: Policy/Forwarding Details <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Timing Protocol</h4><ul><li>PTP profile 1588v2 <span class="cxg-plat"><em>6200</em></span></li></ul></div><div class="cxg-type"><h4>VSX</h4><ul><li>active-forwarding <span class="cxg-plat"><em>6300</em></span></li><li>active-forwarding SVI <span class="cxg-plat"><em>6300</em></span></li><li>active-gateway and DHCP relay <span class="cxg-plat"><em>6300</em></span></li><li>active-gateway and DHCP server <span class="cxg-plat"><em>6300</em></span></li><li>Configuration Synchronization (vsx-sync) <span class="cxg-plat"><em>6300</em></span></li><li>Dual-DR / proxy-DR <span class="cxg-plat"><em>6300</em></span></li><li>IGMP snooping <span class="cxg-plat"><em>6300</em></span></li><li>IGMP support <span class="cxg-plat"><em>6300</em></span></li><li>IGMP/MLD graceful-shutdown during upgrade <span class="cxg-plat"><em>6300</em></span></li><li>IGMP/MLD groups supported for Dual-DR (active/active) <span class="cxg-plat"><em>6300</em></span></li><li>IPv4 multicast routes for Dual-DR (active/active) <span class="cxg-plat"><em>6300</em></span></li><li>IPv6 multicast routes for Dual-DR (active/active) <span class="cxg-plat"><em>6300</em></span></li><li>LACP fallback: L2 control plane synchronization <span class="cxg-plat"><em>6300</em></span></li><li>LACP fallback: VSX LAG <span class="cxg-plat"><em>6300</em></span></li><li>LACP graceful-shutdown during upgrade <span class="cxg-plat"><em>6300</em></span></li><li>local first forwarding <span class="cxg-plat"><em>6300</em></span></li><li>max number of VSX LAGs <span class="cxg-plat"><em>6300</em></span></li><li>MLD <span class="cxg-plat"><em>6300</em></span></li><li>MLD snooping <span class="cxg-plat"><em>6300</em></span></li><li>nodes in VSX cluster <span class="cxg-plat"><em>6300</em></span></li><li>number of interfaces per VSX LAG per VSX cluster <span class="cxg-plat"><em>6300</em></span></li><li>number of interfaces per VSX LAG per VSX node <span class="cxg-plat"><em>6300</em></span></li><li>OSPF/BGP/VRRP graceful-shutdown during upgrade <span class="cxg-plat"><em>6300</em></span></li><li>PIM BIDIR <span class="cxg-plat"><em>6300</em></span></li><li>PIM graceful-shutdown during upgrade <span class="cxg-plat"><em>6300</em></span></li><li>PIM SM <span class="cxg-plat"><em>6300</em></span></li><li>PIM-SSM <span class="cxg-plat"><em>6300</em></span></li><li>recommended max number of VSX LAGs <span class="cxg-plat"><em>6300</em></span></li><li>static VSX LAG <span class="cxg-plat"><em>6300</em></span></li><li>sub-second VSX Live upgrade for multicast <span class="cxg-plat"><em>6300</em></span></li><li>sub-second VSX Live upgrade for unicast <span class="cxg-plat"><em>6300</em></span></li><li>VRRP support <span class="cxg-plat"><em>6300</em></span></li><li>VSX and MSTP <span class="cxg-plat"><em>6300</em></span></li><li>VSX and RPVST+ <span class="cxg-plat"><em>6300</em></span></li><li>VSX keepalive IPv6 support <span class="cxg-plat"><em>6300</em></span></li><li>VSX keepalive over OOBM <span class="cxg-plat"><em>6300</em></span></li><li>VSX LAG ( MCLAG name in VSX technology) <span class="cxg-plat"><em>6300</em></span></li><li>VSX Live upgrade: API <span class="cxg-plat"><em>6300</em></span></li><li>VSX Live upgrade: CLI command <span class="cxg-plat"><em>6300</em></span></li><li>VSX shut-on-split <span class="cxg-plat"><em>6300</em></span></li><li>vsx-configmate <span class="cxg-plat"><em>6300</em></span></li><li>VSX-VRRP Active-Active on Data Plane <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>ZTP / OTP</h4><ul><li>ZTP using USB <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div></div></div><div><h4 class="cxg-h">In the command line</h4><p class="cxg-src">258 command forms appear in 10.16 and 56 that 10.15 had are gone, across the contexts the lists cover. Forms, not features: one new option can add a few.</p><details class="cxg-cli"><summary><b>config</b> 29 new command forms</summary><ul><li><code>ip route <i>A.B.C.D</i> <i>WORD</i> <i>A.B.C.D</i> <i>{bfd|distance|tag|track|use-forwarding-address|vrf}</i></code> <span class="more">and 2 more like it</span></li><li><code>ip route <i>A.B.C.D/M</i> <i>A.B.C.D</i> <i>{bfd|distance|tag|track|use-forwarding-address|vrf}</i></code> <span class="more">and 2 more like it</span></li><li><code>track-object <i>WORD</i> ip-sla <i>WORD</i></code> <span class="more">and 2 more like it</span></li><li><code>troubleshoot l3</code> <span class="more">and 2 more like it</span></li><li><code>troubleshoot multicast</code> <span class="more">and 2 more like it</span></li><li><code>ipv6 route <i>X:X::X:X</i> <i>IFNAME</i> <i>{distance|tag|track|vrf}</i></code> <span class="more">and 1 more like it</span></li><li><code>troubleshoot app-recognition</code> <span class="more">and 1 more like it</span></li><li><code>debug schedule all <i>{severity}</i></code></li><li><code>debug schedule reload <i>{severity}</i></code></li><li><code>https-server rest swagger</code></li><li><code>ip arp ignore-subnet-match <i>{vrf}</i></code></li><li><code>ip igmp snooping all-vlans</code></li><li><code>ipv6 mld snooping all-vlans</code></li><li><code>multicast flow-activity-poll-timer <i>&lt;n&gt;</i></code></li><li><code>ntp max-distance <i>&lt;n&gt;</i></code></li><li><code>sflow reachability-check</code></li><li><code>tls global</code></li></ul></details><details class="cxg-cli"><summary><b>LLDP group</b> 20 new command forms</summary><ul><li><code>seq <i>&lt;n&gt;</i> ignore sys-desc <i>WORD</i> vendor-oui <i>WORD</i> type <i>&lt;n&gt;</i> <i>{value}</i> sysname <i>WORD</i></code> <span class="more">and 9 more like it</span></li><li><code>ignore vendor-oui <i>WORD</i> type <i>&lt;n&gt;</i> <i>{value}</i> sys-desc <i>WORD</i> <i>{sysname}</i></code> <span class="more">and 1 more like it</span></li><li><code>match vendor-oui <i>WORD</i> type <i>&lt;n&gt;</i> <i>{value}</i> sys-desc <i>WORD</i> <i>{sysname}</i></code> <span class="more">and 1 more like it</span></li><li><code>ignore sys-desc <i>WORD</i> vendor-oui <i>WORD</i> type <i>&lt;n&gt;</i> <i>{value}</i> sysname <i>WORD</i></code></li><li><code>ignore sysname <i>WORD</i> vendor-oui <i>WORD</i> type <i>&lt;n&gt;</i> <i>{value}</i> sys-desc <i>WORD</i></code></li><li><code>ignore <i>{sys-desc|sysname}</i> vendor-oui <i>WORD</i> type <i>&lt;n&gt;</i> <i>{value}</i></code></li><li><code>match sys-desc <i>WORD</i> vendor-oui <i>WORD</i> type <i>&lt;n&gt;</i> <i>{value}</i> sysname <i>WORD</i></code></li><li><code>match sysname <i>WORD</i> vendor-oui <i>WORD</i> type <i>&lt;n&gt;</i> <i>{value}</i> sys-desc <i>WORD</i></code></li><li><code>match <i>{sys-desc|sysname}</i> vendor-oui <i>WORD</i> type <i>&lt;n&gt;</i> <i>{value}</i></code></li></ul></details><details class="cxg-cli"><summary><b>UBT zone</b> 2 new command forms</summary><ul><li><code>backup-controller ip <i>X:X::X:X</i></code></li><li><code>primary-controller ip <i>X:X::X:X</i></code></li></ul></details><details class="cxg-cli"><summary><b>RADIUS group</b> 2 new command forms</summary><ul><li><code>server <i>WORD</i> tls <i>{port|priority|vrf}</i></code> <span class="more">and 1 more like it</span></li></ul></details><details class="cxg-cli"><summary><b>exec</b> 205 new command forms</summary><ul><li><code>show bgp l2vpn evpn <i>WORD</i> : : : mcastgrpip : origip <i>{vsx-peer}</i></code> <span class="more">and 34 more like it</span></li><li><code>clear access-list hitcounts interface lag <i>&lt;n&gt;</i></code> <span class="more">and 20 more like it</span></li><li><code>show access-list hitcounts interface lag <i>&lt;n&gt;</i> in <i>{vsx-peer}</i></code> <span class="more">and 20 more like it</span></li><li><code>show access-list interface lag <i>&lt;n&gt;</i> in <i>{commands|configuration|vsx-peer}</i></code> <span class="more">and 20 more like it</span></li><li><code>checkpoint diff <i>WORD</i> <i>WORD</i> <i>{deep}</i></code> <span class="more">and 17 more like it</span></li><li><code>clear bgp <i>IFNAME</i></code> <span class="more">and 17 more like it</span></li><li><code>show bgp vrf <i>WORD</i> ipv4 unicast neighbors <i>IFNAME</i> advertised-routes <i>{vsx-peer}</i></code> <span class="more">and 11 more like it</span></li><li><code>show port-access clients vlan-info mac <i>MAC</i></code> <span class="more">and 6 more like it</span></li><li><code>show bgp all neighbors <i>IFNAME</i> advertised-routes <i>{vsx-peer}</i></code> <span class="more">and 5 more like it</span></li><li><code>show bgp ipv4 unicast neighbors <i>IFNAME</i> advertised-routes <i>{vsx-peer}</i></code> <span class="more">and 5 more like it</span></li><li><code>show bgp ipv6 unicast neighbors <i>IFNAME</i> advertised-routes <i>{vsx-peer}</i></code> <span class="more">and 5 more like it</span></li><li><code>troubleshoot l3</code> <span class="more">and 2 more like it</span></li><li><code>troubleshoot multicast</code> <span class="more">and 2 more like it</span></li><li><code>show aaa authentication port-access dot1x supplicant status detail interface vlan <i>&lt;n&gt;</i></code> <span class="more">and 1 more like it</span></li><li><code>show ipv6 neighbors evpn vrf <i>WORD</i> <i>X:X::X:X</i> <i>{vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>troubleshoot app-recognition</code> <span class="more">and 1 more like it</span></li><li><code>debug schedule all <i>{severity}</i></code></li><li><code>debug schedule reload <i>{severity}</i></code></li><li><code>reload after dd:hh:mm</code></li><li><code>reload at <i>WORD</i> hh:mm:ss</code></li><li><code>reload cancel</code></li><li><code>show arp evpn vrf <i>WORD</i> ip <i>A.B.C.D</i> <i>{vsx-peer}</i></code></li><li><code>show arp vrf <i>WORD</i> ip <i>A.B.C.D</i> <i>{vsx-peer}</i></code></li><li><code>show https-server rest swagger <i>{vsx-peer}</i></code></li><li><code>show interface <i>IFNAME</i> flow-control <i>{detail|vsx-peer}</i></code></li><li><code>show interface flow-control <i>{detail|vsx-peer}</i></code></li><li><code>show ip-sla <i>WORD</i> history-results</code></li><li><code>show reload</code></li><li><code>show reload status</code></li><li><code>show running-config tls global</code></li><li><code>show running-config track-object</code></li><li><code>show running-config track-object-list</code></li><li><code>show tls global <i>{vsx-peer}</i></code></li><li><code>show track-object <i>WORD</i></code></li><li><code>show track-object all</code></li><li><code>show troubleshoot details instance <i>&lt;n&gt;</i></code></li><li><code>show troubleshoot history</code></li><li><code>usb format expanded-storage</code></li></ul></details><details class="cxg-cli"><summary><b>config</b> 15 gone command forms</summary><ul><li><code>led locator fast_blink</code> <span class="more">and 4 more like it</span></li><li><code>ip route <i>A.B.C.D</i> <i>WORD</i> <i>A.B.C.D</i> <i>{bfd|distance|tag|use-forwarding-address|vrf}</i></code> <span class="more">and 2 more like it</span></li><li><code>ip route <i>A.B.C.D/M</i> <i>A.B.C.D</i> <i>{bfd|distance|tag|use-forwarding-address|vrf}</i></code> <span class="more">and 2 more like it</span></li><li><code>ipv6 route <i>X:X::X:X</i> <i>IFNAME</i> <i>{distance|tag|vrf}</i></code> <span class="more">and 1 more like it</span></li><li><code>mgmd client-details</code> <span class="more">and 1 more like it</span></li></ul></details><details class="cxg-cli"><summary><b>LLDP group</b> 4 gone command forms</summary><ul><li><code>seq <i>&lt;n&gt;</i> ignore <i>{vendor-oui}</i></code> <span class="more">and 1 more like it</span></li><li><code>ignore <i>{vendor-oui}</i></code></li><li><code>match <i>{vendor-oui}</i></code></li></ul></details><details class="cxg-cli"><summary><b>RADIUS group</b> 2 gone command forms</summary><ul><li><code>server <i>WORD</i> tls <i>{port|vrf}</i></code> <span class="more">and 1 more like it</span></li></ul></details><details class="cxg-cli"><summary><b>exec</b> 35 gone command forms</summary><ul><li><code>checkpoint diff <i>WORD</i> <i>WORD</i></code> <span class="more">and 13 more like it</span></li><li><code>show ip igmp snooping vlan <i>&lt;n&gt;</i> group <i>A.B.C.D</i> client_details verbose <i>{vsx-peer}</i></code> <span class="more">and 7 more like it</span></li><li><code>show ipv6 mld snooping vlan <i>&lt;n&gt;</i> group <i>X:X::X:X</i> client_details verbose <i>{vsx-peer}</i></code> <span class="more">and 7 more like it</span></li><li><code>show interface <i>IFNAME</i> flow-control detail <i>{vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>show interface flow-control detail <i>{vsx-peer}</i></code> <span class="more">and 1 more like it</span></li><li><code>multicast flow-activity-poll-timer <i>&lt;n&gt;</i></code></li></ul></details><h4 class="cxg-h">Called out in the command notes</h4><ul class="cxg-notes"><li><a href="cx-notes.html#n-show-running-config"><code>show running-config</code></a>: 10.16 added server priority lines and the built-in radius group to the output; 10.15 printed neither.</li><li><a href="cx-notes.html#n-show-interface-x"><code>show interface &lt;PORT&gt;</code></a>: 10.15 says how long the link has been up; 10.16 says up; 10.17 added the Hardware port line.</li><li><a href="cx-notes.html#n-aaa-group-server-radius-x"><code>aaa group server radius &lt;WORD&gt;</code></a>: 10.16 added server &lt;ip&gt; priority &lt;n&gt;; 10.15 has no priority in a group.</li><li><a href="cx-notes.html#n-ubt-zone-x-vrf-x"><code>ubt zone &lt;WORD&gt; vrf &lt;WORD&gt;</code></a>: 10.16 took IPv6 controller addresses.</li></ul></div></div></section><section class="cxg-rel g-card" id="r-10-15"><h3>AOS-CX 10.15</h3><div class="cxg-cols"><div><h4 class="cxg-h">In HPE's Feature Navigator</h4><p class="cxg-src">32 features first listed for the 6200 or 6300 in 10.15.0005 and 10.15.1005.</p><div class="cxg-types"><div class="cxg-type"><h4>BGP</h4><ul><li>Clear BGP soft out <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>CX Edge Insights</h4><ul><li>Application Recognition: Measure Application Experience <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>L3 features: security</h4><ul><li>DHCP Snooping logs reporting Rogue Server IP and Ports <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>L3 features: tunnels</h4><ul><li>BGP over GRE IPv4 tunnels with IVRL <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Management</h4><ul><li>IPSLA: IPv6 Support <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>IPv6 DHCP client <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>NAE Lite: Support for Date/Time &amp; Hostname in Redirection <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>NAE Lite: Support for SFTP/SCP Transfer <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>SFTP server support for external firmware push <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Support for “Overwrite” option in Copy Remote to Running Config <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Management: security</h4><ul><li>AAA Troubleshoot Test-Server <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Privelege-Elevation for Administrators user group <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>Subject Alternative Name Extensions in CSR <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Multicast</h4><ul><li>Muticast inter VRF route leaking <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>OSPFv3</h4><ul><li>address-family support <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Supportability</h4><ul><li>Process Monitor &amp; Statistics <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>show forwarding-info (egress path tracing for VXLAN) <span class="cxg-plat"><em>6300</em></span></li><li>show forwarding-info (L2 and L3 egress path tracing for LAG and ECMP) <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Telemetry</h4><ul><li>Client-Insight: L2 and L3 On-going details per client <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li><li>IPFIX: additional attributes export (local-priority, VRF, DSCP, interface details) <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>Timing Protocol</h4><ul><li>PTP <span class="cxg-plat"><em>6200</em></span></li><li>PTP clock-step <span class="cxg-plat"><em>6200</em></span></li><li>PTP Forward PTPv1 packets <span class="cxg-plat"><em>6200</em></span></li><li>PTP lag-role <span class="cxg-plat"><em>6200</em></span></li><li>PTP profile AES-67 <span class="cxg-plat"><em>6200</em></span></li><li>PTP profile AES-R16 <span class="cxg-plat"><em>6200</em></span></li><li>PTP profile SMPTE <span class="cxg-plat"><em>6200</em></span></li><li>PTP transparent clock <span class="cxg-plat"><em>6200</em></span></li><li>PTP transparent clock mode <span class="cxg-plat"><em>6200</em></span></li><li>PTP transport protocol <span class="cxg-plat"><em>6200</em></span></li></ul></div><div class="cxg-type"><h4>VSF</h4><ul><li>Disable Egress shaping for VSF ports <span class="cxg-plat"><em>6300</em></span></li></ul></div><div class="cxg-type"><h4>ZTP / OTP</h4><ul><li>ZTP IPV6 Support (Over OOBM Only) <span class="cxg-plat"><em>6200</em> <em>6300</em></span></li></ul></div></div></div><div><h4 class="cxg-h">In the command line</h4><p class="cxg-src">The baseline: 13972 command forms across the contexts harvested. Every later release is compared with the one before it.</p><h4 class="cxg-h">Called out in the command notes</h4><ul class="cxg-notes"><li><a href="cx-notes.html#n-show-interface-x"><code>show interface &lt;PORT&gt;</code></a>: 10.15 says how long the link has been up; 10.16 says up; 10.17 added the Hardware port line.</li><li><a href="cx-notes.html#n-aaa-group-server-radius-x"><code>aaa group server radius &lt;WORD&gt;</code></a>: 10.16 added server &lt;ip&gt; priority &lt;n&gt;; 10.15 has no priority in a group.</li></ul></div></div></section>
+</section>
+<section class="cxg-sec" id="practice">
+  <h2>Best practices for a campus access switch</h2>
+  <p>The habits, each with the few lines that do it. The <a href="cx-build.html">script builder</a> writes most of them for you, and the <a href="cx-check.html">config checker</a> tells you which a config is missing.</p>
+  <div class="cxg-grid"><article class="cxg-p g-card"><h3>Name everything</h3><p>Hostname with the location in it, a name on every VLAN, a description on every uplink and anything odd. At 2 a.m. the next person reads show interface brief and LLDP, not your ticket.</p><pre>hostname idf2-sw1
+vlan 10
+    name STAFF
+    exit
+interface lag 1
+    description uplink to core
+    exit</pre><a class="cxg-see" href="cx-notes.html#n-hostname-x">The note on <code>hostname &lt;WORD&gt;</code></a></article><article class="cxg-p g-card"><h3>Spanning tree on, and the root chosen</h3><p>MSTP on every switch. The root is the core, set on purpose with a low priority there; an access switch keeps the default so it never wins by accident.</p><pre>spanning-tree</pre><a class="cxg-see" href="cx-notes.html#n-spanning-tree">The note on <code>spanning-tree</code></a></article><article class="cxg-p g-card"><h3>Edge ports protect themselves</h3><p>admin-edge so a laptop gets its address without waiting, BPDU guard so a switch plugged into a desk shuts the port, loop-protect for the loop through an unmanaged switch that swallows BPDUs.</p><pre>interface 1/1/1-1/1/20
+    spanning-tree port-type admin-edge
+    spanning-tree bpdu-guard
+    loop-protect
+    exit</pre><a class="cxg-see" href="cx-notes.html#n-spanning-tree-bpdu-guard">The note on <code>spanning-tree bpdu-guard</code></a></article><article class="cxg-p g-card"><h3>Uplinks are LACP LAGs</h3><p>Two links in a LAG, LACP active on both ends so each checks the other, rate fast so a dead member is noticed in seconds. On 10.18 the LAG starts shut: no shutdown it.</p><pre>interface lag 1
+    no shutdown
+    lacp mode active
+    lacp rate fast
+    exit
+interface 1/1/27-1/1/28
+    lag 1
+    exit</pre><a class="cxg-see" href="cx-notes.html#n-interface-lag-x">The note on <code>interface lag &lt;1-256&gt;</code></a></article><article class="cxg-p g-card"><h3>Trunks carry what they need</h3><p>An explicit allowed list, never all, and the native VLAN picked on purpose. VLAN 1 as native is how untagged frames end up somewhere nobody meant.</p><pre>interface lag 1
+    vlan trunk native 99
+    vlan trunk allowed 10,30,99
+    exit</pre><a class="cxg-see" href="cx-notes.html#n-vlan-trunk-allowed-x">The note on <code>vlan trunk allowed &lt;VLIST&gt;</code></a></article><article class="cxg-p g-card"><h3>Two RADIUS servers in one group</h3><p>Port access points at a group. With one server in it, a ClearPass reboot is an outage for every desk.</p><pre>radius-server host 192.0.2.10 key plaintext &lt;SHARED-SECRET&gt;
+radius-server host 192.0.2.11 key plaintext &lt;SHARED-SECRET&gt;
+aaa group server radius CLEARPASS
+    server 192.0.2.10
+    server 192.0.2.11
+    exit</pre><a class="cxg-see" href="cx-notes.html#n-aaa-group-server-radius-x">The note on <code>aaa group server radius &lt;WORD&gt;</code></a></article><article class="cxg-p g-card"><h3>Decide what happens when ClearPass is down</h3><p>A critical role on every port-access port. Whether that means business as usual or a quarantine VLAN is a decision to make before the outage, not during it.</p><pre>interface 1/1/1-1/1/20
+    aaa authentication port-access critical-role CRITICAL
+    exit</pre><a class="cxg-see" href="cx-notes.html#n-aaa-authentication-port-access-critical-role-x">The note on <code>aaa authentication port-access critical-role &lt;WORD&gt;</code></a></article><article class="cxg-p g-card"><h3>Let ClearPass change its mind</h3><p>CoA lets ClearPass re-role or kick a client after the fact, which posture and guest flows lean on. On 10.18 each ClearPass node needs its own client line.</p><pre>radius dyn-authorization enable
+radius dyn-authorization client 192.0.2.10 secret-key plaintext &lt;SHARED-SECRET&gt;</pre><a class="cxg-see" href="cx-notes.html#n-radius-dyn-authorization-enable">The note on <code>radius dyn-authorization enable</code></a></article><article class="cxg-p g-card"><h3>Headless devices get in by what they are</h3><p>MAC auth for printers, device profiles for APs and phones matched on LLDP. On a port-access port, allow-lldp-bpdu lets that LLDP in before the device has authenticated.</p><pre>port-access lldp-group APS
+    seq 10 match sys-desc AP-515
+    exit
+port-access device-profile APS
+    associate lldp-group APS
+    associate role AP-TRUNK
+    enable
+    exit</pre><a class="cxg-see" href="cx-notes.html#n-port-access-device-profile-x">The note on <code>port-access device-profile &lt;WORD&gt;</code></a></article><article class="cxg-p g-card"><h3>Voice is a VLAN of its own</h3><p>Mark it voice so LLDP-MED can hand it to phones, tag it on the phone port, keep data native for the PC behind the phone, and make those ports multi-domain.</p><pre>vlan 30
+    name VOICE
+    voice
+    exit
+interface 1/1/1-1/1/20
+    aaa authentication port-access auth-mode multi-domain
+    exit</pre><a class="cxg-see" href="cx-notes.html#n-voice">The note on <code>voice</code></a></article><article class="cxg-p g-card"><h3>Time and logs before anything breaks</h3><p>Two NTP servers and a syslog server. When something happens overnight, the switch&#x27;s own log has rolled over by morning and the timestamps are what you correlate on.</p><pre>ntp server 192.0.2.30 iburst
+ntp server 192.0.2.31 iburst
+ntp enable
+logging 192.0.2.40</pre></article><article class="cxg-p g-card"><h3>Change with a way back</h3><p>A checkpoint before the change, checkpoint diff before any rollback, and write memory only once the change is proven. Until then a reboot is your rollback.</p><pre>copy running-config checkpoint before-change
+checkpoint diff checkpoint before-change running-config
+write memory</pre><a class="cxg-see" href="cx-notes.html#n-checkpoint-diff-x-x">The note on <code>checkpoint diff &lt;from&gt; &lt;to&gt;</code></a></article><article class="cxg-p g-card"><h3>Stay on a release you have read about</h3><p>Pick a release the platform supports, read its release notes, and check the Feature Navigator for what it adds. The picker in the sandbox shows what the syntax did in each release.</p></article></div>
+</section>
+<section class="cxg-sec" id="cis">
+  <h2>Hardening, CIS by control number</h2>
+  <p>The CIS HPE Aruba Networking CX Switch Benchmark v1.0.1, Level 1 has 28 automated and manual items. They are mapped here by control number only: the numbers come from the public Tenable audit file for it, the wording is mine, and the benchmark's own text is not reproduced. Where a control can be read from a config, the config checker looks for it; the rest need eyes on the box.</p>
+  <div class="cxg-grid"><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.1.1</span><span class="cxg-auto on">The config checker looks for this</span></header><p>A separate local user group for security staff, allowed to read logs and little else, so nobody needs an admin account to audit.</p><p class="cxg-chk">Check: <code>show user-group</code></p></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.1.2</span><span class="cxg-auto ">Check this by hand</span></header><p>Passwords and shared secrets are typed at the masked prompt, never inline on the command line where history and the screen keep them.</p><pre>user admin password
+radius-server host 192.0.2.10 key</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.1.3</span><span class="cxg-auto on">The config checker looks for this</span></header><p>A password complexity policy: minimum length, a character from each class, and a history so old passwords do not come back.</p><p class="cxg-chk">Check: <code>show password-complexity</code></p><pre>password complexity
+    minimum-length 14
+    lowercase-count 1
+    uppercase-count 1
+    numeric-count 1
+    special-char-count 1
+    history-count 5
+    enable
+    exit</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.1.4</span><span class="cxg-auto on">The config checker looks for this</span></header><p>The export password is your own, not the factory default, so secrets exported from this switch do not decrypt on any other CX switch.</p><p class="cxg-chk">Check: <code>show running-config</code></p><pre>service export-password</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.1.6</span><span class="cxg-auto ">Check this by hand</span></header><p>The built-in admin account has a strong password.</p><pre>user admin password</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.1.7</span><span class="cxg-auto ">Check this by hand</span></header><p>Where the built-in groups do not fit, custom user groups allow only the commands listed in them.</p><p class="cxg-chk">Check: <code>show user-group</code></p></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.1.8</span><span class="cxg-auto on">The config checker looks for this</span></header><p>CLI sessions are limited per user, close after 15 minutes idle, and login history is kept.</p><p class="cxg-chk">Check: <code>show running-config | begin cli-session</code></p><pre>cli-session
+    timeout 15
+    exit</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.1.9</span><span class="cxg-auto on">The config checker looks for this</span></header><p>Telnet stays off on every VRF, which is the default. Remote CLI is SSH only.</p><p class="cxg-chk">Check: <code>show telnet server</code></p><pre>no telnet server vrf default</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.2.2</span><span class="cxg-auto on">The config checker looks for this</span></header><p>The SSH allow-list is on, so only the management hosts or subnets listed can even try to log in.</p><p class="cxg-chk">Check: <code>show ssh server</code></p><pre>ssh server allow-list
+    ip 192.0.2.0/24
+    enable
+    exit</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.2.4</span><span class="cxg-auto on">The config checker looks for this</span></header><p>SSH ciphers, MACs and key exchange are pinned to the list your policy approves instead of the defaults.</p><p class="cxg-chk">Check: <code>show ssh server</code></p><pre>ssh ciphers aes256-gcm@openssh.com aes128-gcm@openssh.com aes256-ctr aes128-ctr
+ssh macs hmac-sha2-512-etm@openssh.com hmac-sha2-256-etm@openssh.com hmac-sha2-512 hmac-sha2-256</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.2.6</span><span class="cxg-auto ">Check this by hand</span></header><p>The SSH host key is regenerated with a strong type: ECDSA nistp256, ed25519, or RSA of 2048 bits.</p><p class="cxg-chk">Check: <code>show ssh host-key</code></p><pre>ssh host-key ecdsa ecdsa-sha2-nistp256</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.3.1</span><span class="cxg-auto on">The config checker looks for this</span></header><p>NTP is authenticated with a shared key, so the switch only believes time servers that hold it.</p><p class="cxg-chk">Check: <code>show ntp associations</code></p><pre>ntp authentication
+ntp authentication-key 1 sha1 &lt;NTP-KEY&gt;
+ntp trusted-key 1
+ntp server 192.0.2.30 key-id 1 iburst</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.3.2</span><span class="cxg-auto on">The config checker looks for this</span></header><p>The clock and time zone are set and NTP runs against more than one server.</p><p class="cxg-chk">Check: <code>show ntp status</code> · <code>show clock</code></p><pre>clock timezone us/eastern
+ntp server 192.0.2.30 iburst
+ntp server 192.0.2.31 iburst
+ntp enable</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.4.1.1</span><span class="cxg-auto on">The config checker looks for this</span></header><p>No SNMP community is public or private, communities are read-only unless write is needed, and an access list limits who may ask.</p><p class="cxg-chk">Check: <code>show snmp community</code></p><pre>no snmp-server community public</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.5.3.1</span><span class="cxg-auto on">The config checker looks for this</span></header><p>The switch&#x27;s own role-based rules decide which commands each user may run.</p><p class="cxg-chk">Check: <code>show aaa authorization</code></p><pre>aaa authorization commands ssh group local
+aaa authorization commands console group local</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.5.4.1</span><span class="cxg-auto on">The config checker looks for this</span></header><p>Accounting is also kept on the switch, so the record of who did what survives the AAA server being down.</p><p class="cxg-chk">Check: <code>show aaa accounting</code></p><pre>aaa accounting all-mgmt default start-stop local</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.7.1</span><span class="cxg-auto ">Check this by hand</span></header><p>Only HPE-signed firmware loads. The switch checks the signature at download and at every boot.</p><p class="cxg-chk">Check: <code>show version</code></p></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.8.1.1</span><span class="cxg-auto on">The config checker looks for this</span></header><p>Files move to and from the switch with SCP or SFTP, never TFTP.</p><p class="cxg-chk">Check: <code>show running-config | include tftp</code></p></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.9.1</span><span class="cxg-auto on">The config checker looks for this</span></header><p>The web UI and REST API are only on in the VRFs someone manages the switch from.</p><p class="cxg-chk">Check: <code>show https-server</code></p><pre>no https-server vrf default</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.9.2</span><span class="cxg-auto on">The config checker looks for this</span></header><p>Web sessions time out as soon as operations allow; five minutes when only people use the web UI.</p><p class="cxg-chk">Check: <code>show https-server</code></p><pre>https-server session-timeout 5</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.10.1</span><span class="cxg-auto on">The config checker looks for this</span></header><p>ServiceOS asks for a password at the console. Out of the box anyone at the console gets in as admin with none.</p><p class="cxg-chk">Check: <code>show running-config | include serviceos</code></p><pre>system serviceos password-prompt</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.12</span><span class="cxg-auto on">The config checker looks for this</span></header><p>A banner before login says the switch is for authorized use only.</p><p class="cxg-chk">Check: <code>show banner motd</code></p><pre>banner motd ^
+Authorized use only. Activity on this switch is logged.
+^</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.13</span><span class="cxg-auto on">The config checker looks for this</span></header><p>A scheduled job copies the running config off the switch regularly, over SFTP or SCP.</p><p class="cxg-chk">Check: <code>show job</code> · <code>show schedule</code></p></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 1.14</span><span class="cxg-auto on">The config checker looks for this</span></header><p>The hostname is unique and says where the switch is.</p><p class="cxg-chk">Check: <code>show system</code></p><pre>hostname idf2-sw1</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 2.1.2</span><span class="cxg-auto ">Check this by hand</span></header><p>Factory reset from the front panel button stays off, which is the default, so physical access is not a wipe.</p></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 2.1.3</span><span class="cxg-auto on">The config checker looks for this</span></header><p>Every port nothing is plugged into is shut down.</p><p class="cxg-chk">Check: <code>show interface brief</code></p><pre>interface 1/1/20-1/1/24
+    shutdown
+    exit</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 4.2.1</span><span class="cxg-auto on">The config checker looks for this</span></header><p>Access ports facing end devices run BPDU guard: a switch plugged in shuts the port.</p><p class="cxg-chk">Check: <code>show spanning-tree</code></p><pre>interface 1/1/1-1/1/20
+    spanning-tree bpdu-guard
+    exit</pre></article><article class="cxg-c g-card"><header><span class="cxg-id">CIS 4.2.2</span><span class="cxg-auto on">The config checker looks for this</span></header><p>Ports that should never lead toward the root bridge run root guard.</p><p class="cxg-chk">Check: <code>show spanning-tree</code></p><pre>interface 1/1/1-1/1/20
+    spanning-tree root-guard
+    exit</pre></article></div>
+</section>
+</main>
+<a class="rig" href="socials.html" data-origin="genie" aria-label="Where else to find me"><img src="character/nfn-bot-switchwork.svg" alt="" width="104" height="104"></a>
+<footer><div class="wrap">
+  <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
+  <span><a href="/rss.xml">RSS</a></span>
+</div></footer>
+</div>
+<script>/* Network Field Notes. Only opacity and transform are animated. */
+(function () {
+  var KEY = 'nfn:origin';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
+
+  /* header tightens past 12px */
+  var hdr = $('.hdr');
+  if (hdr) {
+    var onScroll = function () { hdr.classList.toggle('scrolled', (window.scrollY || 0) > 12); };
+    onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  /* entrance, staggered 60ms, capped at 340ms */
+  $$('[data-rise]').forEach(function (el, i) {
+    el.style.animationDelay = Math.min(i * 60, 340) + 'ms';
+    el.classList.add('rise');
+  });
+
+
+  /* Rig reacts: sleeps when the tab is hidden, thinks when search is empty, waves at the bottom */
+  var rig = $('.rig img');
+  if (rig && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var base = rig.getAttribute('src'), dir = base.replace(/[^\/]+$/, '');
+    var pose = function (n) { return dir + 'nfn-bot-' + n + '.svg'; };
+    ['sleep', 'think', 'wave'].forEach(function (n) { var i = new Image(); i.src = pose(n); });
+    var cur = base, timer = null;
+    var setPose = function (src) {
+      if (src === cur) return; cur = src;
+      var a = rig.parentNode; a.classList.add('swap');
+      setTimeout(function () { rig.setAttribute('src', src); a.classList.remove('swap'); }, 220);
+    };
+    document.addEventListener('visibilitychange', function () {
+      setPose(document.hidden ? pose('sleep') : base);
+    });
+    window.addEventListener('nfn:empty', function (e) { setPose(e.detail ? pose('think') : base); });
+    var waved = false;
+    window.addEventListener('scroll', function () {
+      var atEnd = window.innerHeight + window.scrollY >= document.body.scrollHeight - 40;
+      if (atEnd && !waved) {
+        waved = true; setPose(pose('wave'));
+        clearTimeout(timer); timer = setTimeout(function () { setPose(base); waved = false; }, 3500);
+      }
+    }, { passive: true });
+  }
+
+  /* remember where a card or mascot was tapped, in page coordinates */
+  $$('[data-origin]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      var r = e.currentTarget.getBoundingClientRect();
+      try {
+        sessionStorage.setItem(KEY, JSON.stringify({
+          x: r.left + r.width / 2 + window.scrollX, y: r.top + r.height / 2 + window.scrollY,
+          kind: e.currentTarget.getAttribute('data-origin') || 'zoom'
+        }));
+      } catch (err) {}
+    });
+  });
+
+  /* incoming view: pin transform-origin to the tapped point */
+  var view = $('[data-view]');
+  if (view) {
+    var saved = null;
+    try { var raw = sessionStorage.getItem(KEY); if (raw) { saved = JSON.parse(raw); sessionStorage.removeItem(KEY); } } catch (err) {}
+    var wants = view.getAttribute('data-view');
+    var cls = wants === 'genie' ? 'genie' : wants === 'zoom' ? 'zoom' : 'pop';
+    if (saved && saved.kind === wants) {
+      var clamp = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
+      var box = view.getBoundingClientRect();
+      view.style.transformOrigin = clamp(saved.x - (box.left + window.scrollX), 0, box.width) + 'px ' +
+                                   clamp(saved.y - (box.top + window.scrollY), 0, box.height) + 'px';
+    }
+    view.classList.add(cls);
+  }
+
+  /* index only: category filter + search */
+  var grid = $('#posts');
+  if (!grid) return;
+  var cards = $$('.card[data-cat]', grid), chips = $$('.cat[data-cat]'), empty = $('.empty');
+  var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
+  var cat = 'all', q = '';
+
+  function apply() {
+    var shown = 0;
+    cards.forEach(function (c) {
+      /* data-cat is pipe separated: a series tile sits in every category its parts do */
+      var okCat = cat === 'all' ||
+        ('|' + (c.getAttribute('data-cat') || '') + '|').indexOf('|' + cat + '|') !== -1;
+      var on;
+      if (c.hasAttribute('data-series')) {
+        /* a series tile stands in for its parts, but a search wants the parts themselves */
+        on = okCat && !q;
+      } else {
+        var okQ = !q || (c.getAttribute('data-text') || '').indexOf(q) !== -1;
+        /* the featured post lives in the hero; only surface its card while a filter or search is active */
+        var okFeat = !c.hasAttribute('data-featured') || cat !== 'all' || !!q;
+        /* a post inside a series hides behind its tile until someone searches */
+        var okSeries = !c.hasAttribute('data-inseries') || !!q;
+        on = okCat && okQ && okFeat && okSeries;
+      }
+      c.classList.toggle('hidden', !on); if (on) shown++;
+    });
+    chips.forEach(function (ch) { ch.classList.toggle('on', ch.getAttribute('data-cat') === cat); });
+    if (empty) empty.classList.toggle('show', shown === 0);
+    try { window.dispatchEvent(new CustomEvent('nfn:empty', { detail: shown === 0 && !!q })); } catch (e) {}
+  }
+  chips.forEach(function (ch) {
+    ch.addEventListener('click', function () {
+      cat = ch.getAttribute('data-cat');
+      /* keep the URL honest so back/forward and the nav agree with the chips */
+      var h = cat === 'all' ? '' : '#cat=' + encodeURIComponent(cat);
+      if (history.replaceState) history.replaceState(null, '', location.pathname + h); else location.hash = h;
+      apply();
+      /* the tab takes you to the posts, but only when they are not already in view */
+      var r = grid.getBoundingClientRect();
+      if (r.top > window.innerHeight * 0.4) {
+        var soft = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: window.scrollY + r.top - 92, behavior: soft ? 'smooth' : 'auto' });
+      }
+    });
+  });
+  if (toggle && box && input) {
+    toggle.addEventListener('click', function (e) {
+      e.preventDefault(); box.classList.toggle('open');
+      if (box.classList.contains('open')) input.focus();
+    });
+    input.addEventListener('input', function () { q = input.value.trim().toLowerCase(); apply(); });
+  }
+  /* deep link: index.html#cat=NAC, on load AND on every hash change (nav pills, back/forward) */
+  function fromHash() {
+    var h = location.hash || '';
+    var m = h.match(/cat=([^&]+)/);
+    cat = m ? decodeURIComponent(m[1]) : 'all';
+    if (h.indexOf('search') !== -1 && box) { box.classList.add('open'); if (input) input.focus(); }
+    apply();
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+<script>/* Network Field Notes: the topographic ground.
+   A hypsometric elevation map on a canvas behind every page, drifting on a clock-derived
+   phase so it resumes mid-motion on a reload instead of restarting. Settings are fixed
+   here; the tuning surface lives in the preview, not on the live site.
+   Falls back to the .ground gradients when WebGL is missing, and renders one still frame
+   under prefers-reduced-motion. */
+(function () {
+  var cv = document.getElementById("nfn-fx");
+  if (!cv) return;
+
+  var TINT = 0.44,    // how far the flat elevation classes pull away from the site gradients
+      SCALE = 1.20,   // terrain scale: low means big sweeping landforms
+      BANDS = 13,     // contour interval, and every fifth boundary is an index contour
+      AMT = 0.75,     // contour brightness
+      WT = 0.70,      // line weight, in screen pixels
+      SPEED = 3.00,   // drift multiplier
+      CYCLE = 600;    // seconds; every term in the terrain is a whole multiple of this
+
+  function off() { cv.style.display = "none"; }
+
+  var gl = null;
+  try {
+    gl = cv.getContext("webgl", { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: "low-power" });
+  } catch (e) { gl = null; }
+  if (!gl) { off(); return; }
+
+  var deriv = gl.getExtension("OES_standard_derivatives");
+
+  var VERT = "attribute vec2 a;void main(){gl_Position=vec4(a,0.0,1.0);}";
+
+  var FRAG = [
+    deriv ? "#extension GL_OES_standard_derivatives : enable\n#define HAS_FW 1" : "",
+    "precision highp float;",
+    "uniform vec2 uRes;uniform float uPh;",
+    "const float TINT=" + TINT.toFixed(3) + ",SCALE=" + SCALE.toFixed(3) + ",BANDS=" + BANDS.toFixed(1) +
+      ",AMT=" + AMT.toFixed(3) + ",WT=" + WT.toFixed(3) + ";",
+
+    "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}",
+    "float vn(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.0-2.0*f);",
+    " return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x),u.y);}",
+    "float fbm(vec2 p){float s=0.0,a=0.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);",
+    " for(int i=0;i<5;i++){s+=a*vn(p);p=m*p;a*=0.5;}return s;}",
+
+    /* terrain: two-stage domain warp, so contours curl like a survey rather than lying in stripes */
+    "float H(vec2 p,vec2 dr){vec2 q=vec2(fbm(p+dr),fbm(p+dr+vec2(5.2,1.3)));",
+    " return fbm(p+(1.35+0.22*sin(uPh*2.0))*q+dr*0.55);}",
+
+    /* the site's own three radial gradients, so the map sits on the ground the site already has */
+    "float rg(vec2 px,vec2 c,vec2 r,float stop){return clamp(1.0-length((px-c)/r)/stop,0.0,1.0);}",
+    "vec3 ground(vec2 px,vec2 res){vec3 col=vec3(0.0235,0.0627,0.0980);",
+    " col=mix(col,vec3(0.1843,0.6588,0.8784),0.42*rg(px,vec2(res.x*0.12,res.y*-0.06),res.y*vec2(1.10,0.76),0.62));",
+    " col=mix(col,vec3(0.5490,0.8784,0.3686),0.26*rg(px,vec2(res.x*0.88,res.y*0.08),res.y*vec2(0.93,0.68),0.60));",
+    " col=mix(col,vec3(0.0902,0.5412,0.6588),0.34*rg(px,vec2(res.x*0.60,res.y*1.08),res.y*vec2(1.22,0.86),0.62));",
+    " return col;}",
+
+    /* hypsometric ramp, sampled at the CLASS so every band is one flat tone */
+    "vec3 hyps(float t){",
+    " vec3 c0=vec3(0.014,0.038,0.062);",
+    " vec3 c1=vec3(0.028,0.112,0.176);",
+    " vec3 c2=vec3(0.050,0.212,0.262);",
+    " vec3 c3=vec3(0.112,0.300,0.232);",
+    " vec3 c=mix(c0,c1,smoothstep(0.00,0.36,t));",
+    " c=mix(c,c2,smoothstep(0.32,0.70,t));",
+    " return mix(c,c3,smoothstep(0.66,1.00,t));}",
+
+    "void main(){",
+    " vec2 px=vec2(gl_FragCoord.x,uRes.y-gl_FragCoord.y);",
+    " vec2 uv=px/uRes.y;",
+    /* both harmonics are whole multiples of the cycle, so the wrap is invisible */
+    " vec2 dr=vec2(cos(uPh),sin(uPh))*0.30+vec2(cos(3.0*uPh+1.7),sin(2.0*uPh+0.6))*0.11;",
+    " float h=H(uv*SCALE,dr);",
+    /* fbm lands around 0.48 give or take 0.12, never 0 to 1, so remap before classing it */
+    " h=clamp((h-0.26)*2.05,0.0,1.0);",
+    " float e=h*BANDS;",
+    "#ifdef HAS_FW",
+    " float w=max(fwidth(e),1e-4);",
+    "#else",
+    " float ep=1.6/uRes.y;",
+    " float w=max(abs(H((uv+vec2(ep,0.0))*SCALE,dr)-h)+abs(H((uv+vec2(0.0,ep))*SCALE,dr)-h),1e-4)*BANDS;",
+    "#endif",
+
+    /* flat elevation classes: floor() before the ramp is what makes the step hard */
+    " float lvl=clamp(floor(e)/BANDS,0.0,1.0);",
+    " vec3 col=mix(ground(px,uRes),hyps(lvl),TINT);",
+
+    /* contours on the integer crossings, widths in screen pixels, every fifth one an index line */
+    " float fr=fract(e);float d=min(fr,1.0-fr);",
+    " float idx=step(mod(floor(e+0.5),5.0),0.5);",
+    " float wdt=w*WT*mix(1.0,2.6,idx);",
+    " float line=1.0-smoothstep(wdt,wdt+w*1.15,d);",
+    " vec3 lcol=mix(vec3(0.252,0.560,0.652),vec3(0.560,0.830,0.878),idx);",
+    " col+=lcol*line*(0.07+0.36*AMT)*mix(0.70,1.0,idx);",
+
+    " col+=(hash(gl_FragCoord.xy+uPh)-0.5)/255.0;",
+    " gl_FragColor=vec4(col,1.0);}"
+  ].join("\n") + "\n";
+
+  function sh(type, src) {
+    var s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+  }
+  var vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, FRAG);
+  if (!vs || !fs) { off(); return; }
+  var pr = gl.createProgram();
+  gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { off(); return; }
+  gl.useProgram(pr);
+
+  var buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  var loc = gl.getAttribLocation(pr, "a");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  var uRes = gl.getUniformLocation(pr, "uRes"), uPh = gl.getUniformLocation(pr, "uPh");
+  var W = 0, H = 0;
+
+  function resize() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var s = (window.innerWidth < 760 ? 0.66 : 0.92) - 6 * 0.013;
+    var w = Math.max(2, Math.round(window.innerWidth * dpr * s));
+    var h = Math.max(2, Math.round(window.innerHeight * dpr * s));
+    var cap = 1600, m = Math.max(w, h);
+    if (m > cap) { w = Math.round(w * cap / m); h = Math.round(h * cap / m); }
+    if (w === W && h === H) return;
+    W = w; H = h; cv.width = w; cv.height = h;
+    gl.viewport(0, 0, w, h);
+    gl.uniform2f(uRes, w, h);
+  }
+
+  function draw() {
+    gl.uniform1f(uPh, (((Date.now() / 1000) * SPEED % CYCLE) / CYCLE) * Math.PI * 2);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var last = 0, running = false;
+
+  function frame(now) {
+    if (!running) return;
+    requestAnimationFrame(frame);
+    if (now - last < 33) return;      /* 30 fps is plenty for something this slow */
+    last = now;
+    resize(); draw();
+  }
+  function still() { resize(); draw(); }
+  function start() {
+    if (reduced.matches) { running = false; still(); return; }
+    if (running) return;
+    running = true; last = 0; requestAnimationFrame(frame);
+  }
+  function stop() { running = false; }
+
+  window.addEventListener("resize", function () { if (!running) still(); });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stop(); else start();   /* resumes at the clock's phase, not where it paused */
+  });
+  if (reduced.addEventListener) reduced.addEventListener("change", function () { stop(); start(); });
+
+  start();
+})();
+</script>
+</body></html>

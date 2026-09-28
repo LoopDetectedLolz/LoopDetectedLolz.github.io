@@ -17,7 +17,7 @@ _s=socket.socket(); _s.bind(("127.0.0.1",0)); PORT=_s.getsockname()[1]; _s.close
 _httpd=http.server.ThreadingHTTPServer(("127.0.0.1",PORT), lambda *a,**k: Quiet(*a,directory=ROOT,**k))
 threading.Thread(target=_httpd.serve_forever,daemon=True).start()
 B="http://127.0.0.1:%d"%PORT
-pages=["/","/about.html","/socials.html","/academy.html","/simulator.html","/tools.html","/kit.html"]+["/p/"+os.path.basename(f) for f in sorted(glob.glob(os.path.join(ROOT,"p","*.html")))]
+pages=["/","/about.html","/socials.html","/academy.html","/simulator.html","/tools.html","/kit.html","/sandbox.html","/cx-notes.html","/cx-check.html","/cx-build.html","/cx-guide.html"]+["/p/"+os.path.basename(f) for f in sorted(glob.glob(os.path.join(ROOT,"p","*.html")))]
 def launch(pw):
     try: return pw.chromium.launch()
     except Exception:
@@ -30,6 +30,8 @@ def newpage(b,w,h=900):
     pg=b.new_page(viewport={"width":w,"height":h})
     pg.route("**/fonts.googleapis.com/**", lambda r: r.abort())
     pg.route("**/fonts.gstatic.com/**", lambda r: r.abort())
+    pg.route("**/api.networkfieldnotes.com/**", lambda r: r.abort())   # the live Worker: comments and sandbox events never see a test run
+    pg.route("**/challenges.cloudflare.com/**", lambda r: r.abort())   # Turnstile answers 400 to any origin but the site's own
     return pg
 with sync_playwright() as pw:
     b=launch(pw)

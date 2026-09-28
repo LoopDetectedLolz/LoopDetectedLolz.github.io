@@ -1,0 +1,101 @@
+{
+ "id": "sc-05-multigig",
+ "title": "Scenario 5: let the AP run at 5 gigabit",
+ "track": "Scenarios",
+ "number": 5,
+ "model": "6300M-24SR5",
+ "hostname": "access-02",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-02",
+  "vlan 10",
+  "name STAFF",
+  "vlan 99",
+  "name AP-MGMT",
+  "interface 1/1/1-1/1/3",
+  "no shutdown",
+  "no routing",
+  "vlan access 99",
+  "interface 1/1/3",
+  "vlan access 10",
+  "interface 1/1/1",
+  "speed auto 1g",
+  "interface 1/1/2",
+  "speed 1000-full"
+ ],
+ "task": "This is a 6300M with Smart Rate ports (1/1/1 to 1/1/24 do 100M to 5G). The AP on 1/1/1 can do 5 gigabit and the one on 1/1/2 can do 2.5, but both are linked at 1 gigabit. Find out why and fix it so each links at its best. The desk PC on 1/1/3 is a 1G device and stays that way.",
+ "hints": [
+  "`show interface 1/1/1 physical` shows the speed the link runs at and what the port is configured to allow.",
+  "`speed auto` with nothing after it offers every speed the port can do. `no speed` does the same. `speed auto 1g` offers only 1G.",
+  "`speed 1000-full` is a fixed speed with auto-negotiation off: nothing faster is ever offered.",
+  "The speeds here are the hardware's. The Switch Simulator has virtual ports and hides `speed` entirely, so this part of the sandbox is modelled, not captured."
+ ],
+ "devices": [
+  {
+   "id": "ap5g",
+   "name": "AP with a 5G uplink",
+   "kind": "ap",
+   "port": "1/1/1",
+   "mac": "00:00:5e:00:53:a1",
+   "speeds": [
+    "100m",
+    "1g",
+    "2.5g",
+    "5g"
+   ],
+   "poeW": 25.5,
+   "connected": true
+  },
+  {
+   "id": "ap25",
+   "name": "AP with a 2.5G uplink",
+   "kind": "ap",
+   "port": "1/1/2",
+   "mac": "00:00:5e:00:53:a2",
+   "speeds": [
+    "100m",
+    "1g",
+    "2.5g"
+   ],
+   "poeW": 21.0,
+   "connected": true
+  },
+  {
+   "id": "pc",
+   "name": "Desk PC (1G)",
+   "kind": "laptop",
+   "port": "1/1/3",
+   "mac": "00:00:5e:00:53:a3",
+   "connected": true
+  }
+ ],
+ "checks": [
+  {
+   "desc": "1/1/1 links at 5000 Mb/s",
+   "speed": {
+    "port": "1/1/1",
+    "mb": 5000
+   }
+  },
+  {
+   "desc": "1/1/2 links at 2500 Mb/s",
+   "speed": {
+    "port": "1/1/2",
+    "mb": 2500
+   }
+  },
+  {
+   "desc": "1/1/3 still links at 1000 Mb/s",
+   "speed": {
+    "port": "1/1/3",
+    "mb": 1000
+   }
+  }
+ ]
+}
