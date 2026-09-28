@@ -52,7 +52,7 @@
   <!-- 11k/v earlier -->
   <line x1="478.0" y1="188.1" x2="478.0" y2="270" class="vg"/>
   <circle cx="478.0" cy="188.1" r="5" fill="#8CE05E"/>
-  <text x="470.0" y="264" text-anchor="end" class="mg">with 11k/v: nudged earlier</text>
+  <text x="470.0" y="264" text-anchor="end" class="mg">with 11v: nudged earlier, if the client listens</text>
 
   <!-- sticky roam -->
   <line x1="587" y1="207.7" x2="587" y2="270" class="vo"/>

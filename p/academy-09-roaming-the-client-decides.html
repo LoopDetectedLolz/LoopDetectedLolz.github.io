@@ -553,7 +553,7 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Lesson 9 &#183; 9 min</span></div>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Lesson 9 &#183; 10 min</span></div>
       <h1 class="h-hero">Roaming: the Client Decides</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -611,7 +611,7 @@ html.qam-fs .rig{display:none}
   <!-- 11k/v earlier -->
   <line x1="478.0" y1="188.1" x2="478.0" y2="270" class="vg"/>
   <circle cx="478.0" cy="188.1" r="5" fill="#8CE05E"/>
-  <text x="470.0" y="264" text-anchor="end" class="mg">with 11k/v: nudged earlier</text>
+  <text x="470.0" y="264" text-anchor="end" class="mg">with 11v: nudged earlier, if the client listens</text>
 
   <!-- sticky roam -->
   <line x1="587" y1="207.7" x2="587" y2="270" class="vo"/>
@@ -634,7 +634,7 @@ html.qam-fs .rig{display:none}
 <p>Somebody walks from their desk to the meeting room and the call breaks up halfway. The ticket says the Wi-Fi dropped. It didn't. The laptop stayed loyal to the AP by the desk until it was three walls away, then did a full join to the meeting room AP, and the call didn't survive the gap. Nothing in the infrastructure chose that. The decision to roam, when and to where, is made by the device in the user's hand. The AP can only advise or refuse.</p>
 <h2>The client decides</h2>
 <p>A client watches the signal from the AP it's on. When it drops past a threshold the client chose, it scans the channels it thinks are worth scanning and moves if it finds something enough better. Every one of those numbers belongs to the client. Apple publishes theirs, which is why I can quote them. iPhone and iPad hold the current AP until the RSSI crosses -70 dBm. A Mac holds until -75. Once looking, an iPhone wants a candidate 8 dB stronger if it's passing traffic, 12 dB if idle. A Mac wants 12 dB either way. Microsoft doesn't publish a threshold that I can find. Intel adapters have a Roaming Aggressiveness setting, Lowest to Highest with Medium the default, described as moving the signal threshold where the adapter starts scanning. No number, and a driver setting survives nothing, so I don't build on it.</p>
-<p>That gap between "-70 dBm" and "8 dB better" is where sticky clients live. A phone at -71 next to a corridor AP that would give it -60 hasn't seen anything better because it hasn't scanned yet. It's always a laptop.</p>
+<p>That gap between "-70 dBm" and "8 dB better" is where sticky clients live. A Mac at -72 next to a corridor AP that would give it -60 hasn't moved, because it doesn't start looking until -75 and then wants 12 dB better. It's always a laptop.</p>
 <p>The standards give the AP three ways to help.</p>
 <p><strong>802.11k</strong> is a neighbour report. The client asks its AP who the neighbours are and gets BSSIDs and channels. Apple's devices use the first six entries to pick which channels to scan, and Apple's doc says that without it the client scans every channel on every band, which can add several seconds. 11k shortens the search. It doesn't start it.</p>
 <p><strong>802.11v</strong> BSS transition management is a suggestion. The AP sends a frame saying "here's a better AP, please go". The client may go, may decline, may ignore it. Mist's doc says clients are free to ignore it and often do.</p>
@@ -648,7 +648,7 @@ html.qam-fs .rig{display:none}
 standard roam, EAP:  auth 2 + assoc 2 + EAP-TLS (a dozen and up) + 4-way 4  = 20 or more
 11r roam, either:    FT auth 2 + FT reassoc 2                             =  4 frames
 </code></pre>
-<p>That's the whole pitch for 11r on a voice SSID: a quarter of the frames of a PSK roam, a fifth or less of an EAP-TLS one, and no RADIUS in the path. Nobody publishes a roam time you can plan against, so I use what the platforms grade against. Mist's Roaming SLE calls an 11r roam slow past 400 ms and a standard or OKC roam slow past 2 seconds. Central flags a roam as high latency past 50 ms. Two vendors, two ideas of slow, and both are just the line they drew.</p>
+<p>That's the whole pitch for 11r on a voice SSID: half the frames of a PSK roam, a seventh of an EAP-TLS one, and no RADIUS in the path. Nobody publishes a roam time you can plan against, so I use what the platforms grade against. Mist's Roaming SLE calls an 11r roam slow past 400 ms and a standard or OKC roam slow past 2 seconds. Central flags a roam as high latency past 50 ms. Two vendors, two ideas of slow, and both are just the line they drew.</p>
 <h2>What the gear shows you</h2>
 <p><strong>Mist.</strong> Open the client from the Insights page and read Client Events. The names carry the roam type: Reassociation, 11r Roam, 11r Reassociation, OKC Roam, and Client Roamed Away from the AP it left. The failures are there too: 11r Auth Failure, 11r FBT Failure, 11r Key Lookup Failure. Click one for the summary and, where the AP kept the buffer, a packet capture. The Roaming SLE grades the same roams: Latency splits into Slow 11r Roams, Slow Standard Roams and Slow OKC Roams; Stability has Failed to Fast Roam; Signal Quality has Interband Roam, Suboptimal Roam (to an AP more than 6 dB worse, or below the coverage threshold) and Sticky Client (stayed put with something more than 6 dB better on offer). From the API, <code>GET /api/v1/sites/{site_id}/events/fast_roam</code> returns each roam with <code>fromap</code>, <code>ap_mac</code>, <code>latency</code> in seconds and a <code>type</code> of success, slow, poor, pingpong, fail or none. The walk test as a list.</p>
 <p>On the WLAN, Security has Fast Roaming: Default is local PMKID caching only, which the doc says doesn't scale, then OKC and .11r. The API's <code>roam_mode</code> takes <code>NONE</code>, <code>OKC</code> or <code>11r</code>. 802.11k and 802.11v are on by default, the WLAN options doc lists no switch for them, and the API's <code>disable_11k</code> sits in the site Wi-Fi settings.</p>
@@ -666,7 +666,7 @@ standard roam, EAP:  auth 2 + assoc 2 + EAP-TLS (a dozen and up) + 4-way 4  = 20
 <li>Walk again. Mist should now say 11r Roam; Central's Roaming Type should change. Compare latency.</li>
 <li>Turn on 802.11v where it's a toggle and walk once more, watching for a transition request and whether the client took it. On Mist it's on by default, so you're comparing against what you already had.</li>
 </ol>
-<p><strong>What you should see.</strong> Six roams at roughly the same RSSI every time, and on Apple gear at or below the -70 dBm line, not at the crossing. The 11r walk should cut the reported latency hard; the standard says a quarter of the frames, and the platforms grade it against 400 ms instead of 2 seconds. The roam point doesn't move with 11r. Only 11k and 11v can move it, and only if the client listens. Those are the model's expectations; the measured numbers replace them.</p>
+<p><strong>What you should see.</strong> Six roams at roughly the same RSSI every time, and on Apple gear at or below the -70 dBm line, not at the crossing. The 11r walk should cut the reported latency hard; Mist's doc says half the frames of a PSK roam, and the platforms grade it against 400 ms instead of 2 seconds. The roam point doesn't move with 11r. 11k won't move it either; it only shortens the scan once the client starts. A BTM request the client acts on, or a shove, is the only thing that brings it earlier. Those are the model's expectations; the measured numbers replace them.</p>
 <p><strong>What means it's broken.</strong> A client that never roams until the ping dies is sticky: compare its RSSI at the drop to the neighbour on the Sidekick trace. A roam to the weaker AP is Suboptimal Roam on Mist and usually a stale scan list; 11k is the fix. An 11r walk slower than the plain one means the client doesn't do FT and fell back, or the mobility domain doesn't match across APs; 11r Key Lookup Failure and 11r FBT Failure name it. A roam with no event at all is a disconnect and a rejoin, and the ping gap is last week's join sequence.</p>
 <h2>Three questions</h2>
 <ol>
