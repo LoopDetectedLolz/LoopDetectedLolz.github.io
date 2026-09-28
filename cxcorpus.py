@@ -29,7 +29,7 @@ import json, os, re, sys
 
 CTX_FILES = ["exec", "config", "if", "lag", "svi", "vlan", "pa-role", "lldp-group", "device-profile", "ubt-zone",
              "dot1x", "macauth", "if-dot1x", "if-macauth", "sg", "ospf"]
-SKIP = {"list", "show context", "show running-config current-context"}
+SKIP = {"show context", "show running-config current-context"}
 CAP = 256          # expansions per template; the empty choice of each optional group comes first, so minimal forms survive
 
 
