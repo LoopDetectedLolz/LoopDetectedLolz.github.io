@@ -68,7 +68,7 @@ The card pill comes from the first tag via `CAT_MAP` in `build-blog.py` (clearpa
 
 **Date-stamp claims about what a product can't do.** Name the version and when it was measured, so the statement stays true after the vendor ships a fix.
 
-**No contact or invitation copy in posts.** No "get in touch", "reach out", "send it my way", "corrections welcome", "I'd like to hear about it" or anything that asks the reader to contact Dustin. Not in the bottom line, not in the post-end card, not in the About page. Posts end on the takeaway.
+**No contact or invitation copy in posts.** No "get in touch", "reach out", "send it my way", "corrections welcome", "I'd like to hear about it" or anything that asks the reader to contact Dustin. Not in the bottom line, not in the post-end card, not in the About page. Posts end on the takeaway. One exception, and only one: the "Ask about this lesson" box at the end of each Academy lesson (`theme/widgets/qa.html`), added at Dustin's request on 2026-09-28. The lesson text itself still never asks the reader to get in touch.
 
 **Write SVGs with a shell heredoc, not a file-writing tool**, then check the byte count. File tools have silently written a few bytes of binary instead of the content. Always render and look at a hero before building: `rsvg-convert -w 900 -h 340 graphics/hero-x.svg -o /tmp/x.png`.
 
@@ -96,6 +96,8 @@ A game belongs to the lesson that teaches it and appears nowhere else: not on To
 ## Wireless Academy
 
 Lessons are posts with `academy: N` in the front matter. That alone makes the post category "Academy" (orange), puts it in the "Wireless Academy" reading path at position N, gives it Rig's think pose, and switches the page to the orange theme (`body.acad`: orange ground, near-black glass, orange accents). The landing page `academy.html` is generated from the `ACADEMY` list in `build-blog.py` (title, blurb, lab) with `ACADEMY_START` as lesson 1's date and one lesson a week after; published lessons link, planned ones are greyed with their week. The index hero stays the latest field note; lessons still appear as cards. Academy heroes may use orange `#F5A524` as the accent. Drafts arrive weekly in the Cowork project under `academy/drafts/lesson-NN.md` with their audit; publishing means copying the markdown into `posts/`, the SVG into `graphics/`, running the gates, building and pushing. The syllabus lives in the project (`academy/syllabus.md`) and in `ACADEMY`; change both.
+
+Each lesson ends with `## Three questions` (a numbered list) and then `## Answers` (the same numbering). The build turns the pair into the self-check: each answer behind Show answer, with Got it and Not yet under it, built on `<details>` so the answers still open without JavaScript. A lesson without an Answers section renders as before, and the build's `self-check: N of 12` line says how many have one. `python3 academy/apply-answers.py` moves approved answers from `academy/drafts/answers-01-12.md` into the posts (`--dry-run` first), replacing the old one-line "Answers:" paragraph. Every lesson also gets the progress card and the question box; see "Academy progress and save codes" and "Comments".
 
 ## The QAM banner
 
@@ -131,9 +133,30 @@ Releases and hardening (`cx-guide.html`): the Feature Navigator's rows for the 6
 
 Usage events: the same Worker as comments takes `POST /v1/sandbox/events` (table `sandbox_events`, `comments/schema-sandbox.sql`); `SANDBOX_API` at the top of `build-blog.py` is what the embeds post to, empty to send nothing. The widget sends a random per-browser id, the lesson, and only these: start, a rejected command with its error kind (never a command that worked), Check my work with the pass count, done, reset, hint, device connects, and any JavaScript error. The footer tells the reader. `python3 cxstats.py` turns that into users, attempts per user, pass rate and the commands that fail most per lab; `--errors` lists the JS errors. One-time: `wrangler d1 execute nfn-comments --remote --file=schema-sandbox.sql` then `wrangler deploy` from `comments/`; until the Worker is redeployed the events 404 and nothing else notices.
 
-## Comments
+## Comments, Academy questions and save codes
 
-`comments/` holds a Cloudflare Worker and a D1 schema; `theme/widgets/comments.html` is the widget; `comments.py` reads and moderates from the shell. Off until `COMMENTS_API` and `TURNSTILE_SITEKEY` are filled in at the top of `build-blog.py`, and a post opts out with `comments: off` in its front matter. Anonymous comments, visible immediately, Turnstile plus a five per hour per address-hash rate limit, moderation after the fact. The public endpoint never returns the email or the IP hash. Emptying `COMMENTS_API` removes the section from every page, which is the switch to pull if it turns into a spam sink. Deploy steps and the moderation commands are in `comments/README.md`.
+`comments/` holds a Cloudflare Worker and its D1 schemas (`schema.sql`, `schema-sandbox.sql`, `schema-academy.sql`); `theme/widgets/comments.html` is the field-note widget and `theme/widgets/qa.html` the Academy one; `comments.py` reads and moderates from the shell. Off until `COMMENTS_API` and `TURNSTILE_SITEKEY` are filled in at the top of `build-blog.py`, and a post opts out with `comments: off` in its front matter. Emptying `COMMENTS_API` removes every comment box, question box and code box, which is the switch to pull if it turns into a spam sink. Deploy steps, the migration and the moderation commands are in `comments/README.md`.
+
+Field notes: anonymous comments, visible immediately, Turnstile plus a five per hour per address-hash rate limit, moderation after the fact. The public endpoint never returns the email or the IP hash.
+
+Academy lessons, meaning any slug matching `^(academy|nac)-\d{2}-` (the Worker decides, never the page): the box is "Ask about this lesson". A question is held until Dustin approves it, never keeps an email, and comes back with a save code when the asker had none. Approved questions show with Dustin's answer threaded under them (`parent_id`), and the asker sees their own held question marked as waiting, through their code. Turnstile renders with `data-appearance="interaction-only"`, so most readers never see it.
+
+**The monitor contract.** A Cowork scheduled task, `academy-qa-monitor`, runs at 7:30 every morning, reads D1 through the Cloudflare connector, drafts answers, and writes only what Dustin approves, with these statements and nothing else. Keep the columns and values they rely on: `kind` (comment, question, answer), `state` (held, live, hidden), `visible` always equal to `state = 'live'`, `parent_id`, `code_hash`.
+
+```sql
+UPDATE comments SET state = 'live', visible = 1, body = ? WHERE id = ? AND kind = 'question' AND state = 'held';
+INSERT INTO comments (slug, name, email, body, is_author, visible, ip_hash, ua, created_at, kind, state, parent_id, code_hash)
+VALUES (?, 'Dustin', '', ?, 1, 1, '', 'author', ?, 'answer', 'live', ?, '');   -- kind 'comment' for a reply on a field note
+UPDATE comments SET state = 'hidden', visible = 0 WHERE id = ?;
+```
+
+`node comments/qatest.mjs` against a local `wrangler dev` runs those statements along with the rest of the Worker; its header has the setup.
+
+## Academy progress and save codes
+
+Progress lives in the reader's browser first (`localStorage`, `nfn:progress`), shaped and merged by `theme/progress-core.js`, which the Worker imports as well, so both sides merge the same way: dates keep the earliest, self-check ticks OR together, seen-answer times keep the latest, and a merge can never undo anything. `theme/progress.js` is the browser side (`window.NFNProgress`) and `theme/progress.css` its look; `progress_scripts()` in `build-blog.py` inlines all three on Academy lessons, `academy.html` and `sandbox.html`, and nowhere else. What counts: a lesson read (the Three questions heading in view after 30 seconds on the page), "I ran this lab" (the progress card's button, or `{{labdone}}` on its own line in a lesson), the self-check, the lesson's game (any widget that calls `NFNProgress.mark("game")` when its last level finishes is a game, and the build detects that), and CX Sandbox labs (`cxsim.html` calls `NFNProgress.lab(id)` when a lab passes).
+
+A save code is four words from `comments/words.js`: 1,024 words, so about 1.1 trillion codes. It only exists once a reader asks a question, taps Get a code, or accepts the single offer after their first read lesson. The Worker stores only an HMAC of it keyed with `CODE_SALT` (never change that once codes exist), takes it only in POST bodies, allows five new codes and ten misses an hour per address hash, writes a record at most once a minute, and its daily cron deletes codes nobody has used for a year. The code panel's QR is `academy.html#code=<words>`, drawn in the browser by `theme/vendor/qrcode.js` (qrcode-generator 2.0.4, MIT), which loads only when someone taps Show QR. `node progresstest.js` proves the merge laws and the word list's rules.
 
 ## Design system
 

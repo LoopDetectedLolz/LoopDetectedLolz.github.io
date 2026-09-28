@@ -24,6 +24,12 @@ SITE = {
 COMMENTS_API = "https://api.networkfieldnotes.com"   # empty this line to turn comments off everywhere
 TURNSTILE_SITEKEY = "0x4AAAAAAE0IseyiQ4X9zk6r"   # public half of the Turnstile widget, safe in the page
 SANDBOX_API = COMMENTS_API                        # the CX Sandbox sends anonymous usage events here; empty it to send nothing
+# Local end-to-end tests only: point a throwaway copy of the site at `wrangler dev` and Turnstile's test key.
+# Never set these for a real build; the build says so on every run when they are.
+if os.environ.get("NFN_TEST_API"):
+    COMMENTS_API = SANDBOX_API = os.environ["NFN_TEST_API"]
+    TURNSTILE_SITEKEY = os.environ.get("NFN_TEST_SITEKEY", TURNSTILE_SITEKEY)
+    print("TEST BUILD: comments, questions and codes point at %s. Do not commit or push this build." % COMMENTS_API, file=sys.stderr)
 BASE_URL = "https://networkfieldnotes.com"
 CUSTOM_DOMAIN = "networkfieldnotes.com"
 
@@ -88,6 +94,69 @@ def comments_block(p):
             .replace("__SLUG__", E(p["slug"]))
             .replace("__API__", E(COMMENTS_API.rstrip("/")))
             .replace("__SITEKEY__", E(TURNSTILE_SITEKEY)))
+
+# ── Academy: questions, progress, save codes, the self-check ─────────────────
+# theme/progress-core.js is the record and its merge (the Worker runs the same file), theme/progress.js the
+# browser side, theme/progress.css the look. Lessons, academy.html and sandbox.html only; field notes get none of it.
+PROGRESS_CORE = open(os.path.join(ROOT, "theme", "progress-core.js"), encoding="utf-8").read()
+PROGRESS_JS = open(os.path.join(ROOT, "theme", "progress.js"), encoding="utf-8").read()
+PROGRESS_CSS = open(os.path.join(ROOT, "theme", "progress.css"), encoding="utf-8").read()
+
+def progress_scripts(lesson=0):
+    cfg = {"api": COMMENTS_API.rstrip("/"), "sitekey": TURNSTILE_SITEKEY}
+    if lesson:
+        cfg["lesson"] = int(lesson)
+    js = lambda s: s.replace("</", "<\\/")
+    return ('<style>%s</style><script>window.NFN_CFG=%s;</script><script>%s</script><script>%s</script>'
+            % (PROGRESS_CSS, json.dumps(cfg), js(PROGRESS_CORE), js(PROGRESS_JS)))
+
+def has_game(p):
+    """A lesson's game is any interactive widget that reports its last level to NFNProgress."""
+    return bool(p.get("interactive")) and "NFNProgress" in widget(p["interactive"])
+
+def progress_block(p):
+    check = '<li data-k="check"><i class="pip"></i><span>Self-check</span><b>0 of 3</b></li>' if p.get("selfcheck") else ""
+    game = '<li data-k="game"><i class="pip"></i><span>Game</span><b>Not yet</b></li>' if has_game(p) else ""
+    return widget("progress").replace("__CHECK__", check).replace("__GAME__", game)
+
+def qa_block(p):
+    """Ask about this lesson: questions held for Dustin, answers threaded under them, the asker's save code."""
+    if not COMMENTS_API or str(p.get("comments", "")).strip().lower() in ("off", "no", "false"):
+        return ""
+    return (widget("qa")
+            .replace("__SLUG__", E(p["slug"]))
+            .replace("__API__", E(COMMENTS_API.rstrip("/")))
+            .replace("__SITEKEY__", E(TURNSTILE_SITEKEY)))
+
+def codebox_block():
+    if not COMMENTS_API:
+        return ""
+    return ('<section class="codebox g-card" id="codebox" data-rise><div><h3>Continue on another device</h3>'
+            '<p>Your progress lives in this browser. A code copies it to my server so you can pick it up on another device. '
+            'Codes nobody uses for a year get deleted.</p></div><div class="cb-ui"></div></section>')
+
+SC_RE = re.compile(r'(<h2>Three questions</h2>\s*)<ol>(.*?)</ol>\s*<h2>Answers</h2>\s*<ol>(.*?)</ol>', re.S)
+LI_RE = re.compile(r'<li>(.*?)</li>', re.S)
+def selfcheck(html):
+    """'## Three questions' followed by '## Answers' (same numbering) becomes a self-check: each answer behind a
+    reveal, Got it and Not yet under it. Plain <details>, so the answers still open without JavaScript."""
+    m = SC_RE.search(html)
+    if not m:
+        return html, False
+    qs, ans = LI_RE.findall(m.group(2)), LI_RE.findall(m.group(3))
+    if not qs or len(qs) != len(ans):
+        sys.exit("self-check: %d questions against %d answers" % (len(qs), len(ans)))
+    items = "".join(
+        '<li class="sc-q"><div class="sc-text">%s</div><details class="sc-a"><summary>Show answer</summary>'
+        '<div class="sc-body">%s</div><div class="sc-grade" hidden><button type="button" class="chip sc-got">Got it</button>'
+        '<button type="button" class="chip sc-not">Not yet</button><span class="sc-say" role="status"></span></div></details></li>'
+        % (q, a) for q, a in zip(qs, ans))
+    return html[:m.start()] + m.group(1) + '<ol class="selfcheck">' + items + '</ol>' + html[m.end():], True
+
+LABDONE_RE = re.compile(r'<p>\{\{labdone\}\}</p>')
+def labdone(html):
+    """{{labdone}} on its own line at the end of a lesson's lab section: the progress card's "I ran this lab" button, inline."""
+    return LABDONE_RE.sub('<div class="labdone"><button type="button" class="btn nfn-btn" data-nfn-lab>I ran this lab</button></div>', html)
 
 def series_nav(p):
     if not p["series"]: return ""
@@ -162,7 +231,8 @@ def parse_post(path):
     meta["tags"] = [t.strip() for t in meta.get("tags", "").split(",") if t.strip()]
     rendered = terminalize(markdown.markdown(body, extensions=["fenced_code", "tables"]))
     meta["cxsim"] = bool(CXSIM_RE.search(rendered))
-    meta["html"] = cxsim(widgets(figures(rendered)))
+    rendered, meta["selfcheck"] = selfcheck(rendered)
+    meta["html"] = labdone(cxsim(widgets(figures(rendered))))
     meta["series"] = meta.get("series", "").strip()
     meta["series_order"] = int(meta.get("series_order", "0") or 0)
     meta["interactive"] = meta.get("interactive", "").strip()
@@ -205,6 +275,9 @@ for p in posts:
 from collections import Counter
 _cnt = Counter(p["cat"] for p in posts)
 CATS = [c for c, _ in _cnt.most_common()]
+_acad = [p for p in posts if p["academy"]]
+if _acad:
+    print("self-check: %d of %d lessons have an Answers section" % (sum(1 for p in _acad if p["selfcheck"]), len(_acad)))
 
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
          '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
@@ -381,7 +454,7 @@ for i, p in enumerate(posts):
              % (p["date"], E(SITE["author"]), jsonld))
     page = head(p["title"], p["summary"], url, ogimg, up="../", extra=extra, active=("academy" if p["academy"] else ""), theme=("acad" if p["academy"] else ""))
     page += f'''
-<div class="narrow">
+<div class="narrow">{progress_scripts(p["academy"]) if p["academy"] else ""}
   <div class="backbar"><a class="btn" href="../{"academy.html" if p["academy"] else ""}">{ICO_BACK}&nbsp;{"Academy" if p["academy"] else "All posts"}</a></div>
   <article>
     <header class="post-head g-hero cat-{E(p["cat"].replace(" ","-"))}" data-view="zoom">
@@ -395,8 +468,8 @@ for i, p in enumerate(posts):
       <div class="prose">{p["html"]}</div>
       {cxsim_block() if p["cxsim"] else ""}
     </div>
-    {series_nav(p)}
-    {comments_block(p)}
+    {progress_block(p) if p["academy"] else ""}{series_nav(p)}
+    {qa_block(p) if p["academy"] else comments_block(p)}
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
       <div class="postnav">{nav}</div>
@@ -462,15 +535,15 @@ acad_items = []
 for i, (t, blurb, lab) in enumerate(ACADEMY, 1):
     q = academy_posts.get(i)
     if q:
-        acad_items.append('<a class="lesson g-card live" href="p/%s.html" data-origin="zoom" data-rise><span class="ser-n">Lesson %d</span><b>%s</b><p>%s</p><span class="lab"><span class="eyebrow">Lab</span>%s</span><span class="meta">%d min</span></a>'
-                          % (E(q["slug"]), i, E(q["title"]), E(q["summary"]), E(lab), q["readtime"]))
+        acad_items.append('<a class="lesson g-card live" href="p/%s.html" data-origin="zoom" data-rise data-lesson="%d" data-slug="%s" data-check="%d" data-game="%d"><span class="ser-n">Lesson %d<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>%s</b><p>%s</p><span class="lab"><span class="eyebrow">Lab</span>%s</span><span class="meta">%d min</span></a>'
+                          % (E(q["slug"]), i, E(q["slug"]), 1 if q["selfcheck"] else 0, 1 if has_game(q) else 0, i, E(q["title"]), E(q["summary"]), E(lab), q["readtime"]))
     else:
         acad_items.append('<div class="lesson g-card soon" data-rise><span class="ser-n">Lesson %d</span><b>%s</b><p>%s</p><span class="lab"><span class="eyebrow">Lab</span>%s</span><span class="meta">Planned</span></div>'
                           % (i, E(t), E(blurb), E(lab)))
 live_n = len(academy_posts)
 start_btn = ('<a class="btn cta" href="p/%s.html" data-origin="zoom">Start with lesson 1</a>' % E(academy_posts[1]["slug"])) if 1 in academy_posts else ""
 acad = head("Wireless Academy · " + SITE["name"], "Twelve lessons on wireless fundamentals, each with a lab you can run on Aruba and Mist gear.", BASE_URL + "/academy.html", BASE_URL + "/og/academy.png", active="academy", theme="acad")
-acad += f'''
+acad += f'''{progress_scripts()}
 <section class="hero g-hero rise acad-hero" data-view="pop">
   <div class="sheen"></div><div class="glow"></div>
   <span class="tag c-orange"><span class="dot"></span>Wireless Academy</span>
@@ -478,7 +551,7 @@ acad += f'''
   <p class="lede">Twelve lessons on how Wi-Fi actually works, pitched at the engineer who runs a network but never got taught why. Each one ends with something you can go and measure on an Aruba AP, a Mist AP, and a Sidekick, because a number you measured yourself is the only kind that sticks.</p>
   <div class="row">
     {start_btn}
-    <span class="meta">{live_n} of {len(ACADEMY)} published</span>
+    <span class="meta">{live_n} of {len(ACADEMY)} published</span><span class="meta" id="acad-read" data-total="{len(ACADEMY)}" hidden></span>
   </div>
 </section>
 <section class="acad-why g-card" data-rise>
@@ -488,15 +561,16 @@ acad += f'''
 <section>
   <div class="lessons">{"".join(acad_items)}</div>
 </section>
+{codebox_block()}
 <section class="band g-card" data-rise>
   <div>
     <h3>Type on a switch first</h3>
     <p>The CX Sandbox is a modelled AOS-CX switch in the page: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, device profiles, voice VLANs, tunnelling, a LAG, spanning tree, an SVI and OSPF. Eighteen labs with checks, or a blank switch to poke at.</p>
+    <span class="meta" id="acad-labs" data-labs="__SANDBOX_LABS__" hidden></span>
   </div>
   <a class="btn" href="sandbox.html" data-origin="zoom">Open the sandbox</a>
 </section>
 ''' + foot("nfn-bot-think.svg")
-open(os.path.join(ROOT, "academy.html"), "w", encoding="utf-8").write(acad)
 
 # ── CX Sandbox pages ─────────────────────────────────────────────────────────
 # sandbox.html is the switch; cx-notes.html, cx-check.html, cx-build.html and cx-guide.html are the pages around
@@ -522,12 +596,13 @@ def _pill_label(lid):
     t = _lab_meta(lid)["title"]
     t = re.sub(r"^Scenario (\d+): ", r"\1: ", t)
     return t.replace("Lab ", "").replace("Switching lab: ", "L2: ").replace("Routing lab: ", "L3: ").replace("CX Sandbox", "Free play")
+open(os.path.join(ROOT, "academy.html"), "w", encoding="utf-8").write(acad.replace("__SANDBOX_LABS__", E(",".join(l for l in SANDBOX_LABS if l != "sandbox"))))
 sb_pills = "".join('<div class="sb-group"><span class="eyebrow">%s</span><div class="sb-row">%s</div></div>' % (E(g), "".join(
     '<button class="pill sb-pill%s" type="button" data-lab="%s">%s</button>' % (" on" if lid == "sandbox" else "", E(lid), E(_pill_label(lid))) for lid in labs))
     for g, labs in SANDBOX_GROUPS)
 sb_labs = "".join('<div class="sb-lab" data-lab="%s"%s>%s</div>' % (E(lid), "" if i == 0 else ' hidden', cxsim('<p>{{cxsim: %s}}</p>' % lid)) for i, lid in enumerate(SANDBOX_LABS))
 sb = head("CX Sandbox · " + SITE["name"], "A modelled HPE Aruba Networking CX switch you can type on: VLANs, MAC auth, 802.1X, roles and device profiles against a fake ClearPass, voice VLANs, tunnelling, LACP, REST and cable tests. Eighteen labs with checks and a blank switch.", BASE_URL + "/sandbox.html", BASE_URL + "/og/sandbox.png", active="academy")
-sb += f'''
+sb += f'''{progress_scripts()}
 <section class="sim-intro">
   <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
   <h1 class="h-hero">A switch you can type on</h1>

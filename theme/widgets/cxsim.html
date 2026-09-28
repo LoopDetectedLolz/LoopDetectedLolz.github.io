@@ -391,7 +391,7 @@ body.acad .cx-line .pr{color:#ffd28a}
     // ── checks and hints ─────────────────────────────────────────────────
     function renderChecks(fromButton) {
       var res = sim.check(), n = res.filter(function (r) { return r.pass; }).length;
-      if (fromButton) { track(lesson.id, "check", { n: n, total: res.length }); if (n === res.length && res.length) track(lesson.id, "done", { n: n, total: res.length }); }
+      if (fromButton) { track(lesson.id, "check", { n: n, total: res.length }); if (n === res.length && res.length) { track(lesson.id, "done", { n: n, total: res.length }); if (window.NFNProgress) window.NFNProgress.lab(lesson.id); } }
       checks.innerHTML = "";
       res.forEach(function (r) { var li = el("li", r.pass ? "ok" : ""); li.appendChild(el("i")); var d = el("div"); d.appendChild(document.createTextNode(r.desc)); if (!r.pass && r.why) d.appendChild(el("small", "", r.why)); li.appendChild(d); checks.appendChild(li); });
       score.innerHTML = ""; var b = el("b", "", n + " of " + res.length); score.appendChild(b); score.appendChild(document.createTextNode(n === res.length ? " passed. Lab done." : " passed."));

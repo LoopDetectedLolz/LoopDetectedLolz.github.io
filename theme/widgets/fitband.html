@@ -264,6 +264,7 @@
       });
       elNext.disabled = !(allPlaced && (s.bad === 0 || L().nowin));
       if (!allPlaced) return;
+      if (lv === LEVELS.length - 1 && (s.bad === 0 || L().nowin) && window.NFNProgress) window.NFNProgress.mark("game");   // Academy progress
       if (s.bad > 0 && L().nowin) {
         say("<b>There is no clean answer here, and that is the lesson.</b> Four access points, two non-DFS " +
             "80 MHz channels in the whole of 5 GHz. Whatever you do, two radios end up sharing air and each " +

@@ -911,7 +911,10 @@ var WYT = (function () {
   }
 
   /* ── the sheet ──────────────────────────────────────────────────────── */
-  function score() { $("#wyt-score").textContent = st.done.filter(Boolean).length + " of " + L.length + " done"; }
+  function score() {
+    $("#wyt-score").textContent = st.done.filter(Boolean).length + " of " + L.length + " done";
+    if (st.done.filter(Boolean).length === L.length && window.NFNProgress) window.NFNProgress.mark("game");   // Academy progress
+  }
 
   function row(label, val, cls, bar) {
     return '<div class="wyt-row' + (cls ? " " + cls : "") + '"><i>' + label + "</i><b>" + val + "</b></div>" +
