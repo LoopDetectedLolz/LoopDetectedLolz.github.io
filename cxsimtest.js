@@ -730,6 +730,19 @@ var cfb = CK.check(bd.config, {});
 ok(!cfb.findings.some(function (f) { return f.sev === "error"; }), "the checker finds no errors in the builder's own output: " + cfb.findings.filter(function (f) { return f.sev === "error"; }).map(function (f) { return f.title; }).join(" | "));
 ok(!cfb.findings.some(function (f) { return f.kind === "hardening" && f.sev === "warn" && !/^(1\.1\.4|1\.3\.1)$/.test(f.cis); }), "hardening warnings left are only the ones the builder says to do by hand: " + cfb.findings.filter(function (f) { return f.kind === "hardening" && f.sev === "warn"; }).map(function (f) { return f.cis + " " + f.title; }).join(" | "));
 
+// ── { } option sets, against the lab switch (access1, 10.18.1002, 2026-09-28) ──
+section = "sets";
+[["ntp server 192.0.2.30 prefer iburst", ""], ["ntp server 192.0.2.31 iburst minpoll 5", ""], ["logging 192.0.2.40 vrf mgmt severity warning", ""],
+ ["radius-server host 192.0.2.10 vrf mgmt key plaintext set-test-k", ""], ["ntp server 192.0.2.32 iburst iburst", "Invalid input: iburst"],
+ ["ntp server 192.0.2.33 bogus", "Invalid input: bogus"], ["ntp server pool.ntp.org minpoll 4 maxpoll 4 iburst", ""]].forEach(function (x) {
+  var sx = CX.syntax("config", x[0], "10.18");
+  eq(sx.error, x[1], "the box's answer to `" + x[0] + "`");
+});
+var st2 = CX.create(lesson("sandbox")); st2.exec("conf t");
+eq(st2.exec("ntp server 192.0.2.30 prefer iburst").out.split("\n")[0], "This command is not used in this scenario.", "options in any order are real syntax to the sandbox too");
+eq(st2.exec("ntp server 192.0.2.32 iburst iburst").out, "Invalid input: iburst", "an option twice is refused where the box refuses it");
+has(st2.help("ntp server 192.0.2.30 iburst "), "prefer", "? after one option offers the others");
+
 // ── the guide: practices and the CIS map say only what the switch takes ──
 section = "guide";
 var CIS = JSON.parse(fs.readFileSync(path.join(__dirname, "theme", "cxsim", "cis.json"), "utf8"));

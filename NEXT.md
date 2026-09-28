@@ -20,7 +20,7 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
   the seating block aiming tool, the mesh planner (verified against a real point the day
   before) and the "What happened" story tool, one page, the model concatenated into it.
 
-## The CX Sandbox (live since 2026-09-25; phase 1 of the rebuild on branch `cx-sandbox-v2`, 2026-09-28)
+## The CX Sandbox (live since 2026-09-25; the rebuild is on branch `cx-sandbox-v2`, 2026-09-28)
 
 - **Live**: `sandbox.html`, a modelled AOS-CX 6200F with a fake ClearPass, eight labs plus free play,
   `{{cxsim: <lab>}}` for posts. Usage events need `wrangler d1 execute nfn-comments --remote
@@ -28,16 +28,24 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
 - **Audited 2026-09-28** against the laptop lab (CX 10.18.1002 plus ClearPass): of 10,077 real command
   forms the live engine modelled 126, called 4,475 "not used in this scenario" and answered 5,400 with
   "Invalid input". Pipes did not exist, and a few labs taught commands 10.18 does not have.
-- **Branch `cx-sandbox-v2`, not pushed, not merged**: the real 10.18 command set behind the parser
-  (`cxcorpus.py`, `theme/cxsim/corpus/`), pipes, the NAC views in the box's layout, `show checkpoint`,
-  LAGs created shut down, CoA needing a dyn-authorization client, the labs and hints updated to match,
-  388 checks in `cxsimtest.js`. The same sweep now gives 146 modelled, 9,859 "not used", 5 invalid
-  (all five are the sweep's own sample values). Review with `git diff main...cx-sandbox-v2`.
-- **Next, in order**: notes and tooltips per command; the ten scenarios (LLDP-MED, device profiles,
-  multi-domain, UBT, multi-gig, LACP, debug, pipes, REST to CLI, cable diagnostics); the version
-  picker once 10.15, 10.16 and 10.17 are harvested with `list` from their OVAs; the config checker;
-  the script builder; the feature guide and hardening mapped by CIS control number; the diagrams.
-  The plan and its evidence are in the "CX Sandbox Blueprint" artifact.
+- **Branch `cx-sandbox-v2`, not pushed, not merged, all eight phases built** (worktree
+  `.worktrees/cx-sandbox-v2`; review with `git diff main...cx-sandbox-v2`):
+  1. The real command sets of 10.15, 10.16, 10.17 and 10.18 behind the parser (`cxcorpus.py`,
+     `theme/cxsim/corpus/aoscx.js`, `{ }` option sets included), pipes, the NAC views in the box's layout.
+     The sweep gives 5 invalid of 10,077 forms, all five the sweep's own sample values.
+  2. A note per command beside the terminal and on `cx-notes.html` (`notes.json`, `cxnotes.js`).
+  3. Ten scenarios, 19 labs in all, grouped in the picker.
+  4. The release picker, with `releaseGate` saying when a line's syntax arrived.
+  5. `cx-check.html`: paste a config, findings back, `connect-src 'none'`.
+  6. `cx-build.html`: pick, answer, paste; every build verified against the release and an engine.
+  7. `cx-guide.html`: Feature Navigator by release, command-line diffs, practices, CIS by number.
+  8. Four diagrams: 802.1X with CoA, LLDP-MED, LACP, multi-domain.
+  `node cxsimtest.js` holds it all (1,693 checks), `node cxnotes.js` the notes, `regress.py` now
+  covers the five CX pages and blocks the live Worker and Turnstile during a run (Turnstile answers 400
+  to localhost, which failed every post page before). VSF follows HPE's guide (member links are the member's own ports, a
+  standby needs `vsf secondary-member`); the Simulator has no VSF, so none of it was captured.
+- **Before merging**: read the diff, run `python3 build-blog.py`, `node cxsimtest.js`, `regress.py`,
+  and the publish grep; the "CX Sandbox Blueprint" artifact has the plan, the evidence and the gaps.
 - **Weekly**: a scheduled task (Mondays about 07:00) reads the Feature Navigator and the consolidated
   release notes, drafts sandbox changes on a `sandbox-drafts/<date>` branch in a worktree, and never
   pushes, merges or touches the lab.
