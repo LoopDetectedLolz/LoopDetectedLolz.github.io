@@ -94,7 +94,7 @@
     var self = this;
     this.hostname = this.lesson.hostname || "switch";
     this.members = { 1: { model: this.modelId, role: "standby-less", links: {} } };
-    this.vsf = { enabled: false, members: {} };  // members 2..n: {type, links: {1:[ports]}}
+    this.vsf = { enabled: false, members: {}, secondary: 0 };  // members 1..n: {type, links: {1:[ports]}}; secondary = the standby
     this.vlans = { 1: { name: "DEFAULT_VLAN_1", desc: "" } };
     this.ifaces = {};
     portsFor(this.modelId, 1).forEach(function (p) { self.ifaces[p.name] = self.newIface(p); });
@@ -145,7 +145,7 @@
   // ── link state ──────────────────────────────────────────────────────────
   Switch.prototype.linkUp = function (name) {
     var i = this.ifaces[name]; if (!i || i.shutdown || this.errdisabled[name]) return false;
-    if (this.vsfPortOf(name)) return true;
+    if (this.vsfPortOf(name)) return false;   // a stack link: there is never a second switch on the bench
     return this.devsOn(name).length > 0 && !!this.speedOf(name);
   };
   // The speed a link settles on: the fastest the port type, the port's `speed` setting and the device all allow.
@@ -155,7 +155,7 @@
   var FIXED = { "10-full": "10m", "10-half": "10m", "100-full": "100m", "100-half": "100m", "1000-full": "1g", "10g": "10g", "25g": "25g", "50g": "50g" };
   Switch.prototype.speedOf = function (name) {
     var i = this.ifaces[name]; if (!i) return "";
-    if (this.vsfPortOf(name)) return (PORT_SPEEDS[i.type] || ["1g"]).slice(-1)[0];
+    if (this.vsfPortOf(name)) return "";
     var d = this.devsOn(name)[0]; if (!d) return "";
     if (d.cable && d.cable.fault && i.copper) return "";
     var mine = PORT_SPEEDS[i.type] || ["1g"];
@@ -261,6 +261,7 @@
       if (this.pa.macAuthGroup) o.push("    radius server-group " + this.pa.macAuthGroup);
       if (this.pa.macAuth) o.push("    enable");
     }
+    if (this.vsf.secondary) o.push("vsf secondary-member " + this.vsf.secondary);
     Object.keys(this.vsf.members).forEach(function (m) {
       var mm = self.vsf.members[m];
       o.push("vsf member " + m, "    type " + (mm.type || self.model.pn).toLowerCase());
@@ -410,6 +411,7 @@
     "<1-63>": ["Process id", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 63; }],
     "<0-15>": ["Priority 0 to 15", function (t) { return /^\d+$/.test(t) && +t >= 0 && +t <= 15; }],
     "<2-8>": ["Member 2 to 8", function (t) { return /^\d+$/.test(t) && +t >= 2 && +t <= 8; }],
+    "<1-8>": ["Member 1 to 8", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 8; }],
     "<1-2>": ["Link 1 or 2", function (t) { return t === "1" || t === "2"; }],
     "<1-10>": ["Count", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 10; }],
     "<2-1000>": ["Lines per page", function (t) { return /^\d+$/.test(t) && +t >= 2 && +t <= 1000; }],
@@ -851,6 +853,45 @@
     return { line: line, options: [] };
   };
 
+  // ── command notes ───────────────────────────────────────────────────────
+  // theme/cxsim/notes.json carries a note per command: what it does, two or three examples, release callouts and
+  // where the sandbox fakes hardware. canon() spells a typed line the way the command table has it, in the
+  // context the reader is in ("conf t" is configure terminal, "sh vlan" is show vlan); noteFor() then picks the
+  // note whose key the line covers, longest key first, or the note the line is still being typed toward.
+  var NOTES = null;
+  try { if (typeof module === "object" && module.exports && typeof require === "function") NOTES = require("./notes.json").notes; } catch (e) { NOTES = null; }
+  function notes() { return NOTES || (typeof self !== "undefined" && self.CXNotes && self.CXNotes.notes) || []; }
+  Switch.prototype.canon = function (line) {
+    var toks = tokens(String(line || "").split("|")[0]); if (!toks.length) return [];
+    var full = null, part = null, lits = [];
+    this.candidates().forEach(function (c) {
+      var m = matchPattern(c.cmd.p, toks); if (m.state === "no") return;
+      c.cmd.p.forEach(function (pt, i) { if (i < toks.length && pt[0] !== "<") (lits[i] = lits[i] || {})[pt] = 1; });
+      if (m.state === "full") { if (!full || c.level > full.level || (c.level === full.level && m.exact > full.exact)) full = { level: c.level, exact: m.exact, args: m.args }; }
+      else if (!part || m.args.length > part.args.length) part = { args: m.args.concat(toks.slice(m.args.length)) };
+    });
+    // an abbreviation the box would call ambiguous ("sh" in an interface) stays as typed
+    for (var i = 0; i < toks.length; i++) { var set = Object.keys(lits[i] || {}); if (set.length > 1 && set.indexOf(toks[i].toLowerCase()) < 0) return toks; }
+    return (full || part || { args: toks }).args.map(function (a) { return String(a); });
+  };
+  function keyWords(k) { return k.split(" "); }
+  function noteFor(list, typed) {
+    typed = (typed || []).slice(); if (!typed.length || !list || !list.length) return null;
+    var best = null, bestScore = 0;
+    // "no routing" has a note of its own; "no shutdown" is the shutdown note
+    [typed].concat(typed[0].toLowerCase() === "no" && typed.length > 1 ? [typed.slice(1)] : []).forEach(function (toks) { list.forEach(function (n) {
+      var k = keyWords(n.k), m = 0;
+      for (var i = 0; i < k.length && i < toks.length; i++) {
+        var w = toks[i].toLowerCase(), alt = /^<([a-z0-9.-]+\|[a-z0-9.|-]+)>$/.exec(k[i]);
+        if (alt ? alt[1].split("|").indexOf(w) >= 0 : (k[i][0] === "<" || k[i] === w)) m++; else break;
+      }
+      var score = m === k.length ? 1000 + k.length : (m === toks.length && m >= 2 ? 100 - k.length : 0);
+      if (score > bestScore) { best = n; bestScore = score; }
+    }); });
+    return best;
+  }
+  Switch.prototype.note = function (line) { return noteFor(notes(), this.canon(line)); };
+
   // ── interface ranges ────────────────────────────────────────────────────
   Switch.prototype.expandIf = function (spec) {
     var self = this, out = [], bad = null;
@@ -897,6 +938,60 @@
     this.stack = [{ ctx: "exec" }];
     return "Copying configuration: [Success]";
   });
+  // `checkpoint diff <from> <to>`: each side is running-config, startup-config or checkpoint <name> (a bare name
+  // works too). The box prints a unified diff of the two configurations without the "Current configuration:"
+  // line, three lines of context, or "No difference in configs." (lab switch, 10.18, 2026-09-28).
+  Switch.prototype.cfgFor = function (spec) {
+    if (spec === "running-config") return this.runningConfig();
+    if (spec === "startup-config") return this.startup;
+    var c = this.checkpoints.filter(function (x) { return x.name === spec; })[0];
+    if (!c) return null;
+    var lines = c.config.split("\n").filter(function (l) { return l && l[0] !== "!" && !/^Current configuration|^user admin|^https-server/.test(l); }).map(function (l) { return l.trim(); });
+    return new Switch(this.lesson, { config: lines, release: this.release }).runningConfig();
+  };
+  function udiff(a, b, ctx) {
+    var n = a.length, m = b.length, i, j, L = [];
+    for (i = 0; i <= n; i++) L.push(new Int32Array(m + 1));
+    for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) L[i][j] = a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    var ops = []; i = 0; j = 0;
+    while (i < n && j < m) {
+      if (a[i] === b[j]) { ops.push([" ", a[i], i, j]); i++; j++; }
+      else if (L[i + 1][j] >= L[i][j + 1]) { ops.push(["-", a[i], i, j]); i++; }
+      else { ops.push(["+", b[j], i, j]); j++; }
+    }
+    for (; i < n; i++) ops.push(["-", a[i], i, j]);
+    for (; j < m; j++) ops.push(["+", b[j], i, j]);
+    var ch = []; ops.forEach(function (o, k) { if (o[0] !== " ") ch.push(k); });
+    if (!ch.length) return null;
+    var hunks = [], s0 = Math.max(0, ch[0] - ctx), e0 = Math.min(ops.length, ch[0] + ctx + 1);
+    for (var c = 1; c < ch.length; c++) {
+      if (ch[c] - ctx <= e0) e0 = Math.min(ops.length, ch[c] + ctx + 1);
+      else { hunks.push([s0, e0]); s0 = ch[c] - ctx; e0 = Math.min(ops.length, ch[c] + ctx + 1); }
+    }
+    hunks.push([s0, e0]);
+    var out = [];
+    hunks.forEach(function (h) {
+      var seg = ops.slice(h[0], h[1]), al = 0, bl = 0;
+      seg.forEach(function (o) { if (o[0] !== "+") al++; if (o[0] !== "-") bl++; });
+      out.push("@@ -" + (seg[0][2] + (al ? 1 : 0)) + "," + al + " +" + (seg[0][3] + (bl ? 1 : 0)) + "," + bl + " @@");
+      seg.forEach(function (o) { out.push(o[0] + o[1]); });
+    });
+    return out;
+  }
+  function ckDiff(self, x, y) {
+    var ax = self.cfgFor(x), bx = self.cfgFor(y);
+    if (ax === null) return "No checkpoint with name " + x;
+    if (bx === null) return "No checkpoint with name " + y;
+    var strip = function (t) { return t.split("\n").filter(function (l, k) { return !(k === 0 && /^Current configuration:/.test(l)); }); };
+    var d = udiff(strip(ax), strip(bx), 3);
+    if (!d) return "No difference in configs.\n";
+    var dir = "/tmp/config/diff-" + (1000000000 + (self.tick * 7919 + 104729) % 8999999999);
+    return ["--- " + dir + "/src-" + x, "+++ " + dir + "/dest-" + y].concat(d).join("\n");
+  }
+  cmd("*", "checkpoint diff <WORD> <WORD>", function (a) { return ckDiff(this, a[2], a[3]); });
+  cmd("*", "checkpoint diff checkpoint <WORD> <WORD>", function (a) { return ckDiff(this, a[3], a[4]); });
+  cmd("*", "checkpoint diff <WORD> checkpoint <WORD>", function (a) { return ckDiff(this, a[2], a[4]); });
+  cmd("*", "checkpoint diff checkpoint <WORD> checkpoint <WORD>", function (a) { return ckDiff(this, a[3], a[5]); });
   // paging: every scripted session on the box starts with `no page`; the terminal here never pages
   cmd("*", "no page", function () { return ""; });
   cmd("*", "page", function () { return ""; });
@@ -966,7 +1061,11 @@
   cmd("config", "spanning-tree mode rpvst", function () { this.stp.mode = "rpvst"; });
   cmd("config", "spanning-tree priority <0-15>", function (a) { this.stp.priority = +a[2]; });
   cmd("config", "no spanning-tree priority", function () { this.stp.priority = 8; });
-  cmd("config", "vsf member <2-8>", function (a) { var id = +a[2]; if (!this.vsf.members[id]) this.vsf.members[id] = { type: "", links: {} }; this.push({ ctx: "vsf", id: id }); });
+  // VSF. The Switch Simulator has none, so this follows HPE's VSF guide rather than a capture: member 1 is this
+  // switch, a member's links are its own ports (2/1/x for member 2), and only `vsf secondary-member` makes a standby.
+  cmd("config", "vsf member <1-8>", function (a) { var id = +a[2]; if (!this.vsf.members[id]) this.vsf.members[id] = { type: id === 1 ? this.model.pn : "", links: {} }; this.push({ ctx: "vsf", id: id }); });
+  cmd("config", "vsf secondary-member <2-8>", function (a) { this.vsf.secondary = +a[2]; });
+  cmd("config", "no vsf secondary-member", function () { this.vsf.secondary = 0; });
   cmd("config", "no vsf member <2-8>", function (a) { var id = +a[3], self = this; delete this.vsf.members[id]; this.portNames().forEach(function (n) { if (n.split("/")[0] === String(id)) delete self.ifaces[n]; }); });
   cmd("config", "ip route <A.B.C.D/M> <A.B.C.D>", function (a) { var p = a[2].split("/"); var prefix = numIp(netOf(p[0], +p[1])); this.routes = this.routes.filter(function (r) { return !(r.prefix === prefix && r.len === +p[1]); }); this.routes.push({ prefix: prefix, len: +p[1], nh: a[3] }); });
   cmd("config", "no ip route <A.B.C.D/M> <A.B.C.D>", function (a) { var p = a[3].split("/"); var prefix = numIp(netOf(p[0], +p[1])); this.routes = this.routes.filter(function (r) { return !(r.prefix === prefix && r.len === +p[1] && r.nh === a[4]); }); });
@@ -1253,12 +1352,17 @@
   };
   cmd("vsf", "type <WORD>", function (a) {
     var m = this.vsf.members[this.ctx().id], id = this.ctx().id, self = this, pn = a[1].toUpperCase();
+    if (id === 1) { if (pn !== this.model.pn) return "(sandbox) Member 1 is this switch, a " + this.model.pn + "."; m.type = pn; return; }
     var mid = Object.keys(MODELS).filter(function (k) { return MODELS[k].pn === pn; })[0];
     if (!mid) return "Unknown member type " + a[1] + ". This sandbox knows " + Object.keys(MODELS).map(function (k) { return MODELS[k].pn; }).join(", ") + ".";
     m.type = pn; m.model = mid;
     portsFor(mid, id).forEach(function (p) { if (!self.ifaces[p.name]) self.ifaces[p.name] = self.newIface(p); });
   });
-  cmd("vsf", "link <1-2> <IFNAME>", function (a) { var m = this.vsf.members[this.ctx().id]; var r = this.expandIf(a[2]); if (r.error) return r.error; m.links[a[1]] = r.ifs; });
+  cmd("vsf", "link <1-2> <IFNAME>", function (a) {
+    var id = this.ctx().id, m = this.vsf.members[id], r = this.expandIf(a[2]); if (r.error) return r.error;
+    if (r.ifs.some(function (p) { return p.split("/")[0] !== String(id); })) return "(sandbox) A member's VSF links are its own ports: " + id + "/1/x for member " + id + ".";
+    m.links[a[1]] = r.ifs;
+  });
   cmd("vsf", "no link <1-2>", function (a) { delete this.vsf.members[this.ctx().id].links[a[2]]; });
   cmd("ospf", "router-id <A.B.C.D>", function (a) { this.ospf[this.ctx().id].routerId = a[1]; });
   cmd("ospf", "no router-id", function () { this.ospf[this.ctx().id].routerId = ""; });
@@ -1827,13 +1931,16 @@
     return o.concat(rows).concat(["", "Number of topology changes    : 0", "Last topology change occurred : 0 seconds ago", ""]).join("\n");
   };
   cmd("*", "show vsf", function () {
-    var self = this, ids = Object.keys(this.vsf.members), o = ["VSF Stack ID   : 1", "MAC Address    : 00:00:5e:00:53:00", "Secondary      : " + (ids.length ? ids[0] : "none"), "Topology       : " + (ids.length ? "Chain" : "Standalone"), "Status         : Active", "Split Detect   : disabled", ""];
-    var rows = [[1, self.model.pn, "Conductor", "OK"]];
-    ids.forEach(function (m) { var mm = self.vsf.members[m], linked = Object.keys(mm.links || {}).some(function (l) { return mm.links[l].some(function (p) { return self.ifaces[p] && !self.ifaces[p].shutdown; }); }); rows.push([m, mm.type || "(no type)", m === ids[0] ? "Standby" : "Member", mm.type ? (linked ? "OK" : "Not-Provisioned (no link)") : "Not-Provisioned (no type)"]); });
-    return o.join("\n") + table(["Mbr ID", "Type", "Role", "Status"], rows);
+    // no capture exists (the Switch Simulator has no VSF): the fields follow HPE's VSF guide, the layout is ours
+    var self = this, ids = Object.keys(this.vsf.members).filter(function (m) { return m !== "1"; }), sec = this.vsf.secondary;
+    var o = ["MAC Address                : 00:00:5e:00:53:00", "Secondary                  : " + (sec || ""), "Topology                   : " + (ids.length ? "Chain" : "Standalone"),
+      "Status                     : " + (ids.length ? "No Split" : "Active"), "Split Detection Method     : None", ""];
+    var rows = [["1", self.model.pn, "Conductor"]];
+    ids.forEach(function (m) { var mm = self.vsf.members[m]; rows.push([m, mm.type || "", "Not Present"]); });
+    return o.join("\n") + table(["Mbr ID", "Type", "Status"], rows);
   });
   cmd("*", "show vsf link", function () {
-    var self = this, rows = []; Object.keys(this.vsf.members).forEach(function (m) { var mm = self.vsf.members[m]; Object.keys(mm.links || {}).forEach(function (l) { mm.links[l].forEach(function (p) { rows.push([m, l, p, self.ifaces[p] && !self.ifaces[p].shutdown ? "Up" : "Down"]); }); }); });
+    var self = this, rows = []; Object.keys(this.vsf.members).forEach(function (m) { var mm = self.vsf.members[m]; Object.keys(mm.links || {}).forEach(function (l) { mm.links[l].forEach(function (p) { rows.push([m, l, p, "down"]); }); }); });
     return rows.length ? table(["Mbr", "Link", "Interface", "State"], rows) : "No VSF links configured.";
   });
   cmd("*", "show ip interface brief", function () {
@@ -2488,6 +2595,8 @@
   return {
     MODELS: MODELS, VERSION: VERSION,
     releases: function () { return releases(); },
+    notes: function () { return notes(); },
+    noteFor: function (line) { return noteFor(notes(), tokens(String(line || "").split("|")[0])); },
     create: function (lesson, saved) {
       var sw = new Switch(lesson, saved);
       return {
@@ -2495,6 +2604,7 @@
         exec: function (line) { return sw.run(line); },
         help: function (line) { return sw.help(line); },
         complete: function (line) { return sw.complete(line); },
+        note: function (line) { return sw.note(line); },
         prompt: function () { return sw.prompt(); },
         connect: function (id) { return sw.connect(id); },
         disconnect: function (id) { return sw.disconnect(id); },

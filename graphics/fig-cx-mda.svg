@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" role="img" aria-label="Multi-domain authentication on one switch port with an IP phone and a PC behind it. The phone gets in by MAC authentication or an LLDP device profile and receives role VOICE, whose device-traffic-class voice makes it the voice device: VLAN 30 tagged with 10 native. The PC authenticates with 802.1X through the phone and receives role EMPLOYEE: VLAN 10 untagged. Gotchas: the default client limit is one, the voice device is whoever holds a voice-class role, and LLDP from an unauthenticated phone is dropped unless allow-lldp-bpdu is set.">
+  <defs>
+    <style>
+      .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+      .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+      .hd{fill:#fff;font-size:15px;font-weight:700}
+      .bx{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
+      .who{fill:#EAF2F6;font-size:14px;font-weight:700}
+      .sub{fill:#8BA2AE;font-size:11px}
+      .lbl{fill:#EAF2F6;font-size:12.5px}
+      .det{fill:#8BA2AE;font-size:11.5px}
+      .note{fill:#B0C4CF;font-size:12px}
+      .ok{fill:#8CE05E;font-size:12px}
+      .lane{fill:#5ED2DA;font-size:11px;letter-spacing:1.4px}
+    </style>
+    <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#B0C4CF"/></marker>
+  </defs>
+
+  <text x="20" y="28" class="t hd">One port, a phone and a PC: multi-domain authentication</text>
+
+  <rect x="40" y="46" width="150" height="50" rx="10" class="bx"/>
+  <text x="115" y="67" class="t who" text-anchor="middle">PC</text>
+  <text x="115" y="84" class="t sub" text-anchor="middle">plugged into the phone</text>
+  <line x1="190" y1="71" x2="250" y2="71" stroke="#B0C4CF" stroke-opacity="0.5" stroke-width="2"/>
+  <rect x="250" y="46" width="170" height="50" rx="10" class="bx"/>
+  <text x="335" y="67" class="t who" text-anchor="middle">IP phone</text>
+  <text x="335" y="84" class="t sub" text-anchor="middle">no supplicant</text>
+  <line x1="420" y1="71" x2="480" y2="71" stroke="#B0C4CF" stroke-opacity="0.5" stroke-width="2"/>
+  <rect x="480" y="46" width="200" height="50" rx="10" class="bx" stroke="#5ED2DA" stroke-opacity="0.6"/>
+  <text x="580" y="67" class="t who" text-anchor="middle">Switch 1/1/6</text>
+  <text x="580" y="84" class="m sub" text-anchor="middle">auth-mode multi-domain</text>
+  <circle cx="666" cy="50" r="9" fill="#F5A524"/>
+  <text x="666" y="54" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <line x1="680" y1="71" x2="730" y2="71" stroke="#B0C4CF" stroke-opacity="0.5" stroke-width="2" stroke-dasharray="4 4"/>
+  <rect x="730" y="46" width="130" height="50" rx="10" class="bx"/>
+  <text x="795" y="67" class="t who" text-anchor="middle">ClearPass</text>
+  <text x="795" y="84" class="t sub" text-anchor="middle">names the roles</text>
+
+  <text x="40" y="132" class="m lane">VOICE DOMAIN</text>
+  <rect x="40" y="140" width="250" height="68" rx="10" class="bx"/>
+  <text x="56" y="164" class="t who">Phone</text>
+  <text x="56" y="184" class="t det">MAC auth, or an LLDP device profile</text>
+  <circle cx="276" cy="154" r="9" fill="#F5A524"/>
+  <text x="276" y="158" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">3</text>
+  <line x1="292" y1="174" x2="326" y2="174" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <rect x="330" y="140" width="260" height="68" rx="10" class="bx"/>
+  <text x="346" y="164" class="m ok">Accept, role VOICE</text>
+  <text x="346" y="184" class="m det">device-traffic-class voice</text>
+  <circle cx="576" cy="154" r="9" fill="#F5A524"/>
+  <text x="576" y="158" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <line x1="592" y1="174" x2="626" y2="174" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <rect x="630" y="140" width="230" height="68" rx="10" fill="rgba(140,224,94,0.07)" stroke="#8CE05E" stroke-opacity="0.5"/>
+  <text x="646" y="164" class="t lbl" font-weight="700">The voice device</text>
+  <text x="646" y="184" class="m det">VLAN 30 tagged, 10 native</text>
+
+  <text x="40" y="240" class="m lane">DATA DOMAIN</text>
+  <rect x="40" y="248" width="250" height="68" rx="10" class="bx"/>
+  <text x="56" y="272" class="t who">PC</text>
+  <text x="56" y="292" class="t det">802.1X, straight through the phone</text>
+  <line x1="292" y1="282" x2="326" y2="282" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <rect x="330" y="248" width="260" height="68" rx="10" class="bx"/>
+  <text x="346" y="272" class="m ok">Accept, role EMPLOYEE</text>
+  <text x="346" y="292" class="m det">vlan access 10</text>
+  <line x1="592" y1="282" x2="626" y2="282" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <rect x="630" y="248" width="230" height="68" rx="10" fill="rgba(140,224,94,0.07)" stroke="#8CE05E" stroke-opacity="0.5"/>
+  <text x="646" y="272" class="t lbl" font-weight="700">The data device</text>
+  <text x="646" y="292" class="m det">VLAN 10 untagged</text>
+
+  <text x="40" y="350" class="t det">show port-access clients lists both on 1/1/6. show vlan counts 1/1/6 in 10 and in 30.</text>
+
+  <circle cx="30" cy="386" r="9" fill="#F5A524"/>
+  <text x="30" y="390" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <text x="48" y="390" class="t note">A port takes one client by default. The PC is refused until the port is multi-domain or client-limit 2.</text>
+  <circle cx="30" cy="414" r="9" fill="#F5A524"/>
+  <text x="30" y="418" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <text x="48" y="418" class="t note">The voice device is whoever holds a voice-class role. Without it the phone is one more data client.</text>
+  <circle cx="30" cy="442" r="9" fill="#F5A524"/>
+  <text x="30" y="446" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">3</text>
+  <text x="48" y="446" class="t note">LLDP from a phone that has not authenticated is dropped, so a device profile never sees it without allow-lldp-bpdu.</text>
+  <text x="48" y="476" class="t det">A client that fails authentication does not use up a place; only the ones that got in count.</text>
+</svg>

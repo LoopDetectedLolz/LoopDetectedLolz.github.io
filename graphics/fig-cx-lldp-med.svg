@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" role="img" aria-label="LLDP-MED negotiation on a phone port. The IP phone sends an LLDPDU with LLDP-MED TLVs first; only then does the switch answer with a network policy for voice on VLAN 30, tagged, priority 6, DSCP 46. The phone then tags voice into VLAN 30 while the PC behind it stays untagged in native VLAN 10. The switch side is vlan 30 marked voice and port 1/1/3 as a trunk with native 10 and allowed 10 and 30. Gotchas: the switch waits for the phone's MED TLVs, and port-access ports drop LLDP from unauthenticated devices unless allow-lldp-bpdu is set.">
+  <defs>
+    <style>
+      .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+      .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+      .hd{fill:#fff;font-size:15px;font-weight:700}
+      .bx{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
+      .who{fill:#EAF2F6;font-size:14px;font-weight:700}
+      .sub{fill:#8BA2AE;font-size:11px}
+      .lbl{fill:#EAF2F6;font-size:12.5px}
+      .det{fill:#8BA2AE;font-size:11px}
+      .detG{fill:#8CE05E;font-size:11.5px}
+      .note{fill:#B0C4CF;font-size:12px}
+      .cfg{fill:#EAF2F6;font-size:11.5px}
+      .life{stroke:#ffffff;stroke-opacity:0.16;stroke-dasharray:3 5}
+    </style>
+    <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#B0C4CF"/></marker>
+    <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5ED2DA"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8CE05E"/></marker>
+  </defs>
+
+  <text x="20" y="28" class="t hd">LLDP-MED: the phone speaks first, then the switch hands it the voice VLAN</text>
+
+  <rect x="50" y="46" width="180" height="46" rx="10" class="bx"/>
+  <text x="140" y="66" class="t who" text-anchor="middle">IP phone</text>
+  <text x="140" y="83" class="t sub" text-anchor="middle">MED endpoint, PC behind it</text>
+  <rect x="420" y="46" width="180" height="46" rx="10" class="bx"/>
+  <text x="510" y="66" class="t who" text-anchor="middle">Switch 1/1/3</text>
+  <text x="510" y="83" class="t sub" text-anchor="middle">network connectivity device</text>
+  <line x1="140" y1="94" x2="140" y2="362" class="life"/>
+  <line x1="510" y1="94" x2="510" y2="362" class="life"/>
+
+  <line x1="148" y1="136" x2="502" y2="136" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <text x="325" y="127" class="t lbl" text-anchor="middle">LLDPDU with LLDP-MED TLVs</text>
+  <text x="325" y="153" class="m det" text-anchor="middle">capabilities, class III, inventory, PoE</text>
+  <circle cx="448" cy="123" r="9" fill="#F5A524"/>
+  <text x="448" y="127" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+
+  <line x1="502" y1="202" x2="148" y2="202" stroke="#8CE05E" stroke-width="1.8" marker-end="url(#ag)"/>
+  <text x="325" y="193" class="t lbl" text-anchor="middle">LLDPDU with a network policy</text>
+  <circle cx="436" cy="189" r="9" fill="#F5A524"/>
+  <text x="436" y="193" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <text x="325" y="220" class="m detG" text-anchor="middle">voice: VLAN 30, tagged, prio 6, DSCP 46</text>
+
+  <rect x="58" y="238" width="262" height="40" rx="9" fill="rgba(140,224,94,0.08)" stroke="#8CE05E" stroke-opacity="0.5"/>
+  <text x="189" y="262" class="t lbl" text-anchor="middle">Phone tags voice 30, DHCPs there</text>
+
+  <line x1="148" y1="306" x2="502" y2="306" stroke="#5ED2DA" stroke-width="1.6" marker-end="url(#at)"/>
+  <text x="325" y="298" class="t lbl" text-anchor="middle">voice frames, tagged 30</text>
+  <line x1="148" y1="346" x2="502" y2="346" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <text x="325" y="338" class="t lbl" text-anchor="middle">PC frames, untagged: native VLAN 10</text>
+
+  <rect x="640" y="46" width="240" height="206" rx="10" class="bx"/>
+  <text x="656" y="68" class="t sub" letter-spacing="1.2">ON THE SWITCH</text>
+  <text x="656" y="94" class="m cfg">vlan 30</text>
+  <text x="684" y="112" class="m cfg">name VOICE</text>
+  <text x="684" y="130" class="m cfg" fill="#8CE05E">voice</text>
+  <text x="656" y="156" class="m cfg">interface 1/1/3</text>
+  <text x="684" y="174" class="m cfg">vlan trunk native 10</text>
+  <text x="684" y="192" class="m cfg">vlan trunk allowed 10,30</text>
+  <text x="656" y="218" class="t sub">lldp med network-policy is on</text>
+  <text x="656" y="234" class="t sub">by default on every port</text>
+
+  <rect x="640" y="268" width="240" height="94" rx="10" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-dasharray="4 4"/>
+  <text x="656" y="290" class="t sub" letter-spacing="1.2">WHAT PROVES IT</text>
+  <text x="656" y="314" class="m cfg">show lldp neighbor-info 1/1/3</text>
+  <text x="656" y="334" class="m cfg">show vlan voice</text>
+  <text x="656" y="354" class="m cfg">show mac-address-table</text>
+
+  <circle cx="30" cy="398" r="9" fill="#F5A524"/>
+  <text x="30" y="402" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <text x="48" y="402" class="t note">The policy goes out only after the switch hears the phone's MED TLVs. 10.18 added lldp med force-send.</text>
+  <circle cx="30" cy="428" r="9" fill="#F5A524"/>
+  <text x="30" y="432" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <text x="48" y="432" class="t note">On a port-access port, LLDP from a device that has not authenticated is dropped. allow-lldp-bpdu lets it in.</text>
+  <text x="48" y="456" class="t det">No MED from the phone, no network policy back: check the phone's LLDP setting before the switch.</text>
+</svg>

@@ -64,12 +64,41 @@ body.acad .cx-line .pr{color:#ffd28a}
 .cx-devs button:hover{background:rgba(255,255,255,0.12)}
 .cx-foot{display:flex;flex-wrap:wrap;gap:6px 14px;padding:var(--s2) var(--s5);border-top:1px solid var(--line);font-size:12px;color:var(--text-muted)}
 .cx-foot span{max-width:100%}
+.cx-about{border-top:1px solid var(--line);border-bottom:0}
+.cx-about summary{cursor:pointer;list-style:none;min-height:38px;display:flex;align-items:center}
+.cx-about .cx-cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0 var(--s5);margin-top:4px}
+@media (max-width:760px){.cx-about .cx-cols{grid-template-columns:minmax(0,1fr)}}
+.cx-about summary::-webkit-details-marker{display:none}
+.cx-about summary .eyebrow{margin:0}
+.cx-about summary::after{content:"";margin-left:auto;width:7px;height:7px;border:solid var(--text-muted);border-width:0 1.5px 1.5px 0;transform:rotate(45deg);transition:transform .2s var(--ease)}
+.cx-about[open] summary::after{transform:rotate(-135deg)}
+.cx-about .syn{font:12.5px/1.45 var(--mono);color:var(--text);margin:2px 0 4px;overflow-wrap:anywhere}
+.cx-about .syn i{font-style:normal;color:var(--text-muted)}
+.cx-about h4{font:600 14px/1.35 var(--sans);margin:0 0 4px;color:var(--text)}
+.cx-about p{font-size:13px;line-height:1.55;color:var(--text-dim);margin:0 0 8px}
+.cx-about .rel{font:11.5px/1.5 var(--mono);color:var(--text-muted);margin:0 0 8px}
+.cx-about .rel.off{color:var(--orange)}
+.cx-about .lbl{display:block;font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin:10px 0 5px}
+.cx-ex{display:block;width:100%;min-height:38px;text-align:left;font:12px/1.45 var(--mono);color:var(--text);background:rgba(3,10,16,0.55);border:1px solid var(--line);border-radius:8px;padding:7px 9px;margin:0 0 6px;white-space:pre-wrap;overflow-wrap:anywhere;cursor:pointer;transition:border-color .2s var(--ease)}
+.cx-ex:hover,.cx-ex:focus-visible{border-color:var(--cx-accent)}
+.cx-call{font-size:12.5px;line-height:1.5;color:var(--text-dim);padding:6px 9px;margin:0 0 6px;border-left:3px solid var(--blue-light);background:rgba(79,189,234,0.08);border-radius:0 8px 8px 0}
+.cx-call b{color:var(--text);font-weight:600}
+.cx-call.fake{border-left-color:var(--teal);background:rgba(94,210,218,0.08)}
+.cx-call.tip{border-left-color:var(--green);background:rgba(140,224,94,0.07)}
+.cx-see{display:flex;flex-wrap:wrap;gap:6px}
+.cx-see button{font:11.5px var(--mono);color:var(--text-dim);background:rgba(255,255,255,0.05);border:1px solid var(--line);border-radius:8px;min-height:38px;padding:0 9px;cursor:pointer;text-align:left}
+.cx-see button:hover{color:var(--text);border-color:var(--cx-accent)}
+.cx-about .more{display:inline-flex;align-items:center;min-height:38px;font-size:13px;color:var(--cx-accent)}
+.cx-queue{display:none;padding:0 var(--s4) var(--s2);font:11.5px var(--mono);color:var(--teal)}
+.cx-queue.on{display:block}
+.cx-out [data-k]{cursor:help}
 .sb-picker{display:flex;flex-direction:column;gap:10px;margin:0 0 var(--s4)}
 .sb-group .eyebrow{display:block;margin-bottom:5px}
 .sb-row{display:flex;flex-wrap:wrap;gap:8px}
 .sb-picker .pill{cursor:pointer;font:600 13px var(--sans);background:rgba(255,255,255,0.04);border-color:var(--line);color:var(--text-dim)}
 .sb-picker .pill.on{background:var(--cx-accent-soft,rgba(47,168,224,0.16));border-color:var(--blue);border-bottom-color:var(--blue);color:var(--text);box-shadow:none}
 .sb-lab .cxsim{margin-top:0}
+@media (min-width:761px){.cx-term{contain:size;max-height:none}}
 @media (max-width:760px){
   .cx-body{grid-template-columns:minmax(0,1fr)}
   .cx-side{border-left:0;border-top:1px solid var(--line)}
@@ -165,7 +194,8 @@ body.acad .cx-line .pr{color:#ffd28a}
       b.addEventListener("click", function (ev) { ev.preventDefault(); key(k[1]); inp.focus(); });
       keys.appendChild(b);
     });
-    term.appendChild(out); term.appendChild(line); term.appendChild(keys);
+    var qline = el("div", "cx-queue");
+    term.appendChild(out); term.appendChild(line); term.appendChild(qline); term.appendChild(keys);
     body.appendChild(term);
 
     var side = el("div", "cx-side");
@@ -183,8 +213,67 @@ body.acad .cx-line .pr{color:#ffd28a}
 
     var devPanel = el("div", "cx-panel"), devList = el("ul", "cx-devs");
     if (lesson.devices && lesson.devices.length) { devPanel.appendChild(el("span", "eyebrow", "Devices on the bench")); devPanel.appendChild(devList); side.appendChild(devPanel); }
+
+    // ── about this command ───────────────────────────────────────────────
+    // theme/cxsim/notes.json, inlined by the build: the note for whatever is being typed, or was run last.
+    // An example is typed in for the reader one line at a time; Enter runs it and the next line follows.
+    var NOTES = CXSim.notes ? CXSim.notes() : [], byKey = {}, queue = [], shownKey = "";
+    NOTES.forEach(function (n) { byKey[n.k] = n; });
+    var notesHref = (/\/p\//.test(location.pathname) ? "../" : "") + "cx-notes.html";
+    function slug(k) { return "n-" + k.toLowerCase().replace(/<[^>]*>/g, "x").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+    var about = el("details", "cx-panel cx-about"), aboutSum = el("summary"), aboutBody = el("div", "cx-cols");
+    aboutSum.appendChild(el("span", "eyebrow", "About this command")); about.appendChild(aboutSum); about.appendChild(aboutBody);
+    try { about.open = !window.matchMedia("(max-width:760px)").matches; } catch (e) { about.open = true; }
+    function relLine(n) {
+      var all = CXSim.releases ? CXSim.releases() : [], cur = sim.sw.release, p = el("p", "rel");
+      if (n.rel === "sandbox") p.textContent = "A sandbox command, not a switch command.";
+      else if (!n.rel || !n.rel.length) p.textContent = "Not in the Switch Simulator's command set for " + all[0] + " to " + all[all.length - 1] + ". Syntax from HPE's guides.";
+      else if (n.rel.length === all.length) p.textContent = "In every release here, " + all[0] + " to " + all[all.length - 1] + ".";
+      else p.textContent = "In " + n.rel.join(", ") + ".";
+      if (n.rel && n.rel.length && typeof n.rel !== "string" && n.rel.indexOf(cur) < 0) { p.className = "rel off"; p.textContent += " Not in " + cur + ", the release picked above."; }
+      return p;
+    }
+    function call(cls, label, text) { var d = el("div", "cx-call " + cls); d.appendChild(el("b", "", label + " ")); d.appendChild(document.createTextNode(text)); return d; }
+    function showNote(n) {
+      aboutBody.innerHTML = "";
+      var left = el("div"), right = el("div"); aboutBody.appendChild(left); aboutBody.appendChild(right);
+      if (!n) {
+        left.appendChild(el("p", "", "Start typing a command, or click one you ran, and what it does shows here, with examples you can send to the terminal."));
+      } else {
+        shownKey = n.k;
+        var syn = el("div", "syn");
+        n.k.split(" ").forEach(function (w, i) { if (i) syn.appendChild(document.createTextNode(" ")); if (w[0] === "<") syn.appendChild(el("i", "", w)); else syn.appendChild(document.createTextNode(w)); });
+        left.appendChild(syn); left.appendChild(el("h4", "", n.t)); left.appendChild(el("p", "", n.w)); left.appendChild(relLine(n));
+        (n.v || []).forEach(function (v) { left.appendChild(call("ver", "Changed:", v)); });
+        if (n.fake) left.appendChild(call("fake", "Where the sandbox pretends:", n.fake));
+        if (n.tip) left.appendChild(call("tip", "Habit:", n.tip));
+        right.appendChild(el("span", "lbl", "Try it"));
+        n.ex.forEach(function (ex) {
+          var b = el("button", "cx-ex", ex.join("\n")); b.type = "button"; b.setAttribute("aria-label", "Type this example into the terminal: " + ex.join(", then "));
+          b.addEventListener("click", function () { startExample(n, ex); });
+          right.appendChild(b);
+        });
+        if (n.see && n.see.length) {
+          right.appendChild(el("span", "lbl", "Goes with"));
+          var see = el("div", "cx-see");
+          n.see.forEach(function (k) { if (!byKey[k]) return; var b = el("button", "", k); b.type = "button"; b.addEventListener("click", function () { showNote(byKey[k]); }); see.appendChild(b); });
+          right.appendChild(see);
+        }
+      }
+      var more = el("a", "more", n ? "Full note and diagrams" : "Every command note"); more.href = notesHref + (n ? "#" + slug(n.k) : "");
+      (n ? right : left).appendChild(more);
+    }
+    function showQueue() { qline.className = "cx-queue" + (queue.length ? " on" : ""); qline.textContent = queue.length ? "Example: " + queue.length + " more line" + (queue.length > 1 ? "s" : "") + " to follow. Esc drops them." : ""; }
+    function startExample(n, ex) {
+      var lines = ex.slice(), at = sim.sw.ctx().ctx;
+      if (n.c !== "exec" && n.c !== "*" && at === "exec" && lines[0] !== "configure terminal") lines.unshift("configure terminal");
+      if (n.c === "exec" && at !== "exec" && lines[0] !== "end") lines.unshift("end");
+      inp.value = lines.shift(); queue = lines; showQueue(); inp.focus();
+      setTimeout(function () { inp.setSelectionRange(inp.value.length, inp.value.length); }, 0);
+    }
     body.appendChild(side);
     root.appendChild(body);
+    if (NOTES.length) { showNote(null); root.appendChild(about); }
 
     var foot = el("div", "cx-foot");
     foot.appendChild(el("span", "", "Modelled switch, not the real one. Not affiliated with or endorsed by HPE."));
@@ -199,7 +288,11 @@ body.acad .cx-line .pr{color:#ffd28a}
       while (out.childNodes.length > MAXLINES) out.removeChild(out.firstChild);
       out.scrollTop = out.scrollHeight;
     }
-    function echo(cmd) { var s = el("span"); s.appendChild(el("span", "pr", pr.textContent)); s.appendChild(document.createTextNode(cmd + "\n")); out.appendChild(s); out.scrollTop = out.scrollHeight; }
+    function echo(cmd, n) {
+      var s = el("span"); s.appendChild(el("span", "pr", pr.textContent)); s.appendChild(document.createTextNode(cmd + "\n"));
+      if (n) { s.title = n.t; s.setAttribute("data-k", n.k); }
+      out.appendChild(s); out.scrollTop = out.scrollHeight;
+    }
     // the switch refusing a line is red; the sandbox saying a real command is outside the model is its own voice
     function classify(text) {
       if (/^This command is not used in this scenario/.test(text)) return "sys";
@@ -211,7 +304,9 @@ body.acad .cx-line .pr{color:#ffd28a}
     }
     function refreshPrompt() { pr.textContent = sim.prompt(); }
     function exec(cmd) {
-      echo(cmd);
+      var note = NOTES.length && !sim.sw.pending ? sim.note(cmd) : null;
+      echo(cmd, note);
+      if (note) showNote(note);
       if (cmd.trim()) { history.push(cmd); hi = history.length; }
       var r;
       try { r = sim.exec(cmd); } catch (e) { r = { out: "Error: " + (e.message || e), prompt: sim.prompt() }; }
@@ -225,7 +320,7 @@ body.acad .cx-line .pr{color:#ffd28a}
     }
     function reset() {
       var keepRel = sim.sw.release;   // the release is the reader's choice, not part of the lab
-      track(lesson.id, "reset"); store(skey, null); saved = null; boot(false); sim.sw.setRelease(keepRel); out.innerHTML = ""; history = []; hi = 0; hintN = 0; hintBox.innerHTML = ""; checks.innerHTML = ""; score.textContent = "";
+      track(lesson.id, "reset"); store(skey, null); saved = null; boot(false); sim.sw.setRelease(keepRel); out.innerHTML = ""; history = []; hi = 0; hintN = 0; hintBox.innerHTML = ""; checks.innerHTML = ""; score.textContent = ""; queue = []; showQueue();
       write("Lab reset. " + (lesson.startConfig ? "The starting configuration is back." : "The switch is back to its factory state."), "sys");
       refreshPrompt(); renderDevices(); persist();
     }
@@ -235,12 +330,13 @@ body.acad .cx-line .pr{color:#ffd28a}
       else if (which === "help") { echo(v + "?"); write(sim.help(v), "help"); }
       else if (which === "up") { if (hi > 0) { hi--; inp.value = history[hi] || ""; } }
       else if (which === "down") { if (hi < history.length) { hi++; inp.value = history[hi] || ""; } }
-      else if (which === "cancel") { echo(v + "^C"); inp.value = ""; }
+      else if (which === "cancel") { echo(v + "^C"); inp.value = ""; queue = []; showQueue(); }
       else if (which === "clear") { out.innerHTML = ""; }
       setTimeout(function () { inp.setSelectionRange(inp.value.length, inp.value.length); }, 0);
     }
     inp.addEventListener("keydown", function (ev) {
-      if (ev.key === "Enter") { ev.preventDefault(); var v = inp.value; inp.value = ""; exec(v); }
+      if (ev.key === "Enter") { ev.preventDefault(); var v = inp.value; inp.value = ""; exec(v); if (queue.length) { inp.value = queue.shift(); showQueue(); } }
+      else if (ev.key === "Escape" && queue.length) { ev.preventDefault(); queue = []; showQueue(); }
       else if (ev.key === "Tab") { ev.preventDefault(); key("tab"); }
       else if (ev.key === "?" ) { ev.preventDefault(); key("help"); }
       else if (ev.key === "ArrowUp") { ev.preventDefault(); key("up"); }
@@ -250,7 +346,18 @@ body.acad .cx-line .pr{color:#ffd28a}
       else if (ev.key === "a" && ev.ctrlKey) { ev.preventDefault(); inp.setSelectionRange(0, 0); }
       else if (ev.key === "e" && ev.ctrlKey) { ev.preventDefault(); inp.setSelectionRange(inp.value.length, inp.value.length); }
     });
-    inp.addEventListener("input", function () { if (inp.value.slice(-1) === "?") { inp.value = inp.value.slice(0, -1); key("help"); } });
+    var noteTimer = null;
+    inp.addEventListener("input", function () {
+      if (inp.value.slice(-1) === "?") { inp.value = inp.value.slice(0, -1); key("help"); return; }
+      if (!NOTES.length) return;
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(function () { var n = inp.value.trim() ? sim.note(inp.value) : null; if (n && n.k !== shownKey) showNote(n); }, 120);
+    });
+    out.addEventListener("click", function (ev) {
+      if (window.getSelection && String(window.getSelection())) return;
+      var t = ev.target; while (t && t !== out && !(t.getAttribute && t.getAttribute("data-k"))) t = t.parentNode;
+      if (t && t !== out && byKey[t.getAttribute("data-k")]) { showNote(byKey[t.getAttribute("data-k")]); about.open = true; }
+    });
     term.addEventListener("mousedown", function (ev) { if (ev.target === inp) return; if (window.getSelection && String(window.getSelection())) return; setTimeout(function () { if (!String(window.getSelection && window.getSelection())) inp.focus(); }, 0); });
 
     // ── devices ──────────────────────────────────────────────────────────

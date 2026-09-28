@@ -399,10 +399,15 @@ run(l2b, ["conf t", "interface lag 1", "lacp mode passive", "end"]);
 has(l2b.exec("show lacp aggregates").out, "Aggregate mode   : Passive", "passive mode shown"); has(l2b.exec("show interface brief").out, "lag1           1       access --             yes     up", "passive against an active partner comes up");
 has(l2b.exec("show spanning-tree").out, "Spanning-tree is disabled", "stp off message");
 // vsf
-run(l2b, ["conf t", "vsf member 2", "type JL725A", "link 1 1/1/14", "end"]);
-has(l2b.exec("show vsf").out, "Standby", "member 2 listed");
+run(l2b, ["conf t", "vsf member 2", "type JL725A"]);
+has(l2b.exec("link 1 1/1/14").out, "member 2", "a member's links are its own ports (HPE VSF guide)");
+run(l2b, ["link 1 2/1/27", "exit", "vsf member 1", "link 1 1/1/16", "exit", "vsf secondary-member 2", "end"]);
+has(l2b.exec("show vsf").out, "Not Present", "member 2 provisioned, never cabled");
+has(l2b.exec("show vsf").out, "Secondary                  : 2", "secondary member named");
 eq(l2b.exec("show running-config interface 2/1/1").out.split("\n")[0], "interface 2/1/1", "member 2 ports exist");
-has(l2b.exec("show vsf link").out, "1/1/14", "vsf link listed");
+has(l2b.exec("show vsf link").out, "2/1/27", "vsf link listed");
+has(l2b.exec("show running-config").out, "vsf secondary-member 2\nvsf member 1\n    type r8q72a\n    link 1 1/1/16\nvsf member 2\n    type jl725a\n    link 1 2/1/27", "vsf blocks in the running config");
+ok(!l2b.sw.linkUp("1/1/16"), "a VSF link port never comes up: no second switch on the bench");
 
 // ── L3 ────────────────────────────────────────────────────────────────────
 section = "l3";
@@ -592,6 +597,51 @@ var esrc = fs.readFileSync(path.join(__dirname, "theme", "cxsim", "engine.js"), 
 (esrc.match(/var PH = \{[\s\S]*?\n  \};/) || [""])[0].replace(/"(<[^"]+>)"\s*:/g, function (x, k) { phKeys[k] = 1; });
 while ((m1 = cre.exec(esrc))) m1[1].split(" ").forEach(function (tk) { if (tk[0] === "<" && !phKeys[tk]) noPh.push(tk + " in `" + m1[1] + "`"); });
 ok(noPh.length === 0, "placeholders without a validator: " + noPh.join(", "));
+
+// ── command notes: every example runs, every release claim matches the corpus ──
+section = "notes";
+var NT = require("./cxnotes.js"), NDOC = JSON.parse(fs.readFileSync(NT.FILE, "utf8"));
+NT.examples(NDOC.notes).forEach(function (b) { ok(false, "example refused: " + b); });
+NT.stale(NDOC.notes).forEach(function (b) { ok(false, "release line stale (node cxnotes.js --write): " + b); });
+var nkeys = NDOC.notes.map(function (n) { return n.k; });
+NDOC.notes.forEach(function (n) {
+  (n.see || []).forEach(function (k) { ok(nkeys.indexOf(k) >= 0, n.k + " points at a note that exists: " + k); });
+  ok(/^(\*|exec|config|if|vlan|lag|role)$/.test(n.c), n.k + " has a known context");
+  ok(!/[\u2014\u2013]| - /.test([n.t, n.w, n.tip || "", n.fake || ""].concat(n.v || []).join(" ")), n.k + " has no dashes");
+  if (n.fig) ok(fs.existsSync(path.join(__dirname, "graphics", n.fig + ".svg")), n.k + " diagram exists: " + n.fig);
+});
+var nb = CX.create(lesson("sandbox"));
+function noteK(line) { var n = nb.note(line); return n ? n.k : "-"; }
+eq(noteK("conf t"), "configure terminal", "abbreviation resolves to its note");
+eq(noteK("sh vlan 10"), "show vlan", "extra words still find the note");
+eq(noteK("show interface brief | include down"), "show interface brief", "the pipe is not part of the command");
+eq(noteK("sh"), "-", "one ambiguous word finds nothing");
+nb.exec("conf t"); nb.exec("interface 1/1/1");
+eq(noteK("sh"), "-", "sh in an interface is ambiguous on the box, so no note");
+eq(noteK("no sh"), "shutdown", "no shutdown is the shutdown note");
+eq(noteK("no routing"), "no routing", "a note keyed on no");
+eq(noteK("lldp med net"), "lldp med network-policy", "partial keyword in the right context");
+eq(noteK("no lldp transmit"), "lldp <transmit|receive>", "an alternation key matches its words");
+nb.exec("exit"); nb.exec("interface lag 1");
+eq(noteK("lacp mode passive"), "lacp mode <active|passive>", "the other alternative");
+eq(noteK("lacp mode bogus"), "-", "an alternation key does not take any word");
+nb.exec("end");
+eq(noteK("debug lldp event"), "debug <portaccess|radius|lldp> <what>", "debug note by module");
+eq(CX.noteFor("show vlan") && CX.noteFor("show vlan").k, "show vlan", "context-free lookup from the factory");
+
+// ── checkpoint diff ───────────────────────────────────────────────────────
+section = "ckdiff";
+var cd = CX.create(lesson("sandbox"));
+eq(cd.exec("checkpoint diff startup-config running-config").out, "No difference in configs.\n", "identical configs, the lab's wording");
+eq(cd.exec("checkpoint diff checkpoint nope running-config").out, "No checkpoint with name nope", "missing checkpoint, the lab's wording");
+cd.exec("copy running-config checkpoint before"); run(cd, ["conf t", "vlan 44", "name TEMP", "end"]);
+var dd = cd.exec("checkpoint diff checkpoint before running-config").out.split("\n");
+ok(/^--- \/tmp\/config\/diff-\d+\/src-before$/.test(dd[0]) && /^\+\+\+ \/tmp\/config\/diff-\d+\/dest-running-config$/.test(dd[1]), "unified diff headers: " + dd.slice(0, 2).join(" / "));
+ok(/^@@ -\d+,\d+ \+\d+,\d+ @@$/.test(dd[2]), "hunk header: " + dd[2]);
+ok(dd.indexOf("+vlan 44") > 0 && dd.indexOf("+    name TEMP") > 0, "added lines marked +");
+has(cd.exec("checkpoint diff running-config checkpoint before").out, "-vlan 44", "reverse direction marks them -");
+has(cd.exec("checkpoint diff before running-config").out, "+vlan 44", "a bare checkpoint name works too");
+eq(cd.exec("checkpoint diff").out, "% Command incomplete.", "incomplete");
 
 console.log((fail ? "FAILED " + fail + " of " : "passed ") + (pass + fail) + " checks");
 process.exit(fail ? 1 : 0);
