@@ -3759,6 +3759,151 @@ html.qam-fs .rig{display:none}
   <button type="button" data-tool="mesh">Mesh on a field</button>
   <button type="button" data-tool="story">What happened</button>
   <button type="button" data-tool="air">On the air right now</button>
+  <button type="button" data-tool="readitbackwards">Read it backwards</button>
+</div>
+
+<div class="t-tool" id="tool-readitbackwards" hidden>
+<section class="rib" id="readitbackwards" data-rise>
+  <style>
+  .rib{--rib-line:rgba(255,255,255,0.12)}
+  .rib-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .rib-head h3{font-size:19px;letter-spacing:-0.02em}
+  .rib-tag{font:11px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--orange)}
+  .rib-goal{margin:0 0 16px;font-size:14px;line-height:1.65;color:var(--text-dim)}
+  .rib-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:20px;align-items:start}
+  @media (max-width:640px){.rib-grid{grid-template-columns:minmax(0,1fr);gap:16px}}
+  .rib-knobs{display:flex;flex-direction:column;gap:12px}
+  .rib-knob>span{display:block;font:10.5px var(--mono);letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px}
+  .rib-knob input,.rib-knob select{display:block;width:100%;box-sizing:border-box;min-height:42px;padding:0 12px;border-radius:10px;
+    border:1px solid var(--rib-line);background:rgba(255,255,255,0.05);color:var(--text);font:600 14px var(--mono)}
+  .rib-knob select option{background:#0b1218;color:#EAF2F6}
+  .rib-note{font:11px/1.7 var(--mono);color:var(--text-muted);padding-top:8px;border-top:1px solid var(--rib-line)}
+  .rib-sheet{border:1px solid var(--rib-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:14px 16px;font:12.5px/1.85 var(--mono)}
+  .rib-lead{font:600 15px var(--sans);color:var(--text);margin:0 0 8px}
+  .rib-lead.good{color:var(--green)} .rib-lead.warn{color:var(--orange)}
+  .rib-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;padding:3px 0;border-top:1px solid rgba(255,255,255,0.05)}
+  .rib-row:first-of-type{border-top:0}
+  .rib-row b{color:var(--text);font-weight:600;white-space:nowrap}
+  .rib-row i{font-style:normal;color:var(--text-muted);min-width:0}
+  .rib-row em{font-style:normal;color:var(--teal);white-space:nowrap}
+  .rib-row.hit b,.rib-row.hit em{color:var(--green)}
+  .rib-more{font:11px var(--mono);color:var(--text-muted);margin-top:8px}
+  </style>
+
+  <div class="rib-head">
+    <span class="rib-tag">Tool</span>
+    <h2>Read It Backwards</h2>
+  </div>
+  <p class="rib-goal">Central and Mist give you a PHY rate in Mb/s and no MCS. Type the number, tell it what you know about the link, and it names the row. Tell it nothing and it lists every row that number could be, which is usually more than you'd like.</p>
+
+  <div class="rib-grid">
+    <div class="rib-knobs">
+      <label class="rib-knob"><span>Rate the platform showed, Mb/s</span><input id="rib-rate" type="number" inputmode="decimal" step="0.1" min="1" max="6000" value="866.7"></label>
+      <label class="rib-knob"><span>Protocol</span><select id="rib-std">
+        <option value="">any</option><option value="be">802.11be, Wi-Fi 7</option><option value="ax">802.11ax, Wi-Fi 6</option>
+        <option value="ac">802.11ac, Wi-Fi 5</option><option value="n">802.11n, Wi-Fi 4</option></select></label>
+      <label class="rib-knob"><span>Channel width</span><select id="rib-bw">
+        <option value="">any</option><option value="20">20 MHz</option><option value="40">40 MHz</option><option value="80">80 MHz</option>
+        <option value="160">160 MHz</option><option value="320">320 MHz</option></select></label>
+      <label class="rib-knob"><span>Spatial streams</span><select id="rib-ss">
+        <option value="">any</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label>
+      <div class="rib-note">Rates come from the same arithmetic as the rest of the site: data subcarriers, bits per subcarrier, coding rate, streams, over symbol time plus guard interval. 802.11ac rows the standard leaves out are left out here too. A match is within 0.1 percent, which covers every rounding the vendors use. Streams stop at four, because clients do.</div>
+    </div>
+
+    <div class="rib-sheet" aria-live="polite">
+      <p class="rib-lead" id="rib-lead"></p>
+      <div id="rib-rows"></div>
+      <div class="rib-more" id="rib-more"></div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var root = document.getElementById("readitbackwards");
+    if (!root) return;
+    var $ = function (s) { return root.querySelector(s); };
+
+    /* Same table as theme/sim/phy.js */
+    var MCS = [["BPSK 1/2",1,1/2],["QPSK 1/2",2,1/2],["QPSK 3/4",2,3/4],["16-QAM 1/2",4,1/2],["16-QAM 3/4",4,3/4],
+               ["64-QAM 2/3",6,2/3],["64-QAM 3/4",6,3/4],["64-QAM 5/6",6,5/6],["256-QAM 3/4",8,3/4],["256-QAM 5/6",8,5/6],
+               ["1024-QAM 3/4",10,3/4],["1024-QAM 5/6",10,5/6],["4096-QAM 3/4",12,3/4],["4096-QAM 5/6",12,5/6]];
+    var STD = {
+      n:  { name: "802.11n",  nsd: { 20: 52, 40: 108 }, tsym: 3.2, gi: [0.8, 0.4], mcsMax: 7, ssMax: 4 },
+      ac: { name: "802.11ac", nsd: { 20: 52, 40: 108, 80: 234, 160: 468 }, tsym: 3.2, gi: [0.8, 0.4], mcsMax: 9, ssMax: 4 },
+      ax: { name: "802.11ax", nsd: { 20: 234, 40: 468, 80: 980, 160: 1960 }, tsym: 12.8, gi: [0.8, 1.6, 3.2], mcsMax: 11, ssMax: 4 },
+      be: { name: "802.11be", nsd: { 20: 234, 40: 468, 80: 980, 160: 1960, 320: 3920 }, tsym: 12.8, gi: [0.8, 1.6, 3.2], mcsMax: 13, ssMax: 4 }
+    };
+    /* 802.11ac combinations the standard leaves out (Tables 21-30 to 21-61) */
+    var EXCL = { 20: { 9: [1, 2, 4, 5, 7, 8] }, 80: { 6: [3, 7], 9: [6] }, 160: { 9: [3] } };
+    function valid(std, m, ss, bw) { if (std !== "ac") return true; var w = EXCL[bw], x = w && w[m]; return !(x && x.indexOf(ss) >= 0); }
+    var LEGACY = [6, 9, 12, 18, 24, 36, 48, 54], DSSS = [1, 2, 5.5, 11];
+
+    function rows(filter) {
+      var out = [], k;
+      for (k in STD) {
+        if (filter.std && filter.std !== k) continue;
+        var s = STD[k], bw, ss, m, g;
+        for (bw in s.nsd) {
+          if (filter.bw && +filter.bw !== +bw) continue;
+          for (ss = 1; ss <= s.ssMax; ss++) {
+            if (filter.ss && +filter.ss !== ss) continue;
+            for (m = 0; m <= s.mcsMax; m++) {
+              if (!valid(k, m, ss, +bw)) continue;
+              for (g = 0; g < s.gi.length; g++) {
+                var r = s.nsd[bw] * MCS[m][1] * MCS[m][2] * ss / (s.tsym + s.gi[g]);
+                out.push({ std: k, name: s.name, bw: +bw, ss: ss, m: m, gi: s.gi[g], rate: r, label: MCS[m][0],
+                           idx: k === "n" ? m + 8 * (ss - 1) : m });
+              }
+            }
+          }
+        }
+      }
+      return out;
+    }
+
+    function fmt(r) { return r >= 1000 ? r.toFixed(0) : r.toFixed(1); }
+    function line(x, hit) {
+      return '<div class="rib-row' + (hit ? " hit" : "") + '"><b>MCS ' + x.idx + '</b><i>' + x.label + ', ' + x.name + ', ' + x.bw + ' MHz, ' + x.ss + ' SS, ' + x.gi + ' us GI</i><em>' + fmt(x.rate) + '</em></div>';
+    }
+
+    function upd() {
+      var rate = +$("#rib-rate").value, f = { std: $("#rib-std").value, bw: $("#rib-bw").value, ss: $("#rib-ss").value };
+      var lead = $("#rib-lead"), body = $("#rib-rows"), more = $("#rib-more");
+      more.textContent = "";
+      if (!(rate > 0)) { lead.className = "rib-lead"; lead.textContent = "Type a rate."; body.innerHTML = ""; return; }
+      var leg = LEGACY.concat(DSSS).filter(function (v) { return Math.abs(v - rate) / v < 0.001; });
+      if (leg.length) {
+        lead.className = "rib-lead warn";
+        lead.textContent = rate + " Mb/s is a legacy rate, not an MCS.";
+        body.innerHTML = '<div class="rib-row"><b>' + (DSSS.indexOf(leg[0]) >= 0 ? "802.11b DSSS" : "802.11a/g OFDM") + '</b><i>no HT, VHT, HE or EHT row lands on this number at any width, stream count or guard interval</i><em>' + leg[0] + '</em></div>';
+        more.textContent = "On a modern client this is usually the last small frame the AP heard, a null frame or an ACK, not the data rate. On a client that never leaves it, the client is on a legacy rate for real.";
+        return;
+      }
+      var all = rows(f), hits = all.filter(function (x) { return Math.abs(x.rate - rate) / x.rate < 0.001; });
+      /* collapse rows that differ only by guard interval into one when they hit at the same rate */
+      if (hits.length) {
+        lead.className = "rib-lead good";
+        lead.textContent = hits.length === 1 ? "One row matches." : hits.length + " rows match. Narrow it with what you know.";
+        body.innerHTML = hits.slice(0, 12).map(function (x) { return line(x, true); }).join("");
+        if (hits.length > 12) more.textContent = "Showing 12 of " + hits.length + ". Pick a protocol or a width.";
+        else if (hits.length > 1) more.textContent = "The width and stream count come from the radio and the client's adapter, not from the platform. Check both before you trust a row.";
+      } else {
+        all.sort(function (a, b) { return Math.abs(a.rate - rate) - Math.abs(b.rate - rate); });
+        lead.className = "rib-lead warn";
+        lead.textContent = "No row lands on " + rate + " Mb/s. Nearest:";
+        body.innerHTML = all.slice(0, 5).map(function (x) { return line(x, false); }).join("");
+        more.textContent = "If the platform showed this number, either it is averaging, or one of your filters is wrong. Clear them and look again.";
+      }
+    }
+
+    ["#rib-rate", "#rib-std", "#rib-bw", "#rib-ss"].forEach(function (id) {
+      $(id).addEventListener("input", upd); $(id).addEventListener("change", upd);
+    });
+    upd();
+  })();
+  </script>
+</section>
+
 </div>
 
 <div class="t-tool" id="tool-air" hidden>
@@ -7477,7 +7622,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
   var bar = document.querySelector("#tools .t-switch");
   if (!bar) return;
   function show(name) {
-    ["capacity", "venue", "mesh", "story", "air"].forEach(function (t) {
+    ["capacity", "venue", "mesh", "story", "air", "readitbackwards"].forEach(function (t) {
       var el = document.getElementById("tool-" + t);
       if (el) el.hidden = t !== name;
     });
@@ -7493,7 +7638,7 @@ Tap anything to change it. The big number is what gets off the site, and the not
     var b = e.target.closest("button[data-tool]");
     if (b) show(b.getAttribute("data-tool"));
   });
-  var m = /^#(capacity|venue|mesh|story|air)(\/|$)/.exec(location.hash || "");
+  var m = /^#(capacity|venue|mesh|story|air|readitbackwards)(\/|$)/.exec(location.hash || "");
   show(m ? m[1] : "capacity");
 })();
 </script>

@@ -1,0 +1,265 @@
+<section class="btr" id="betheradio" data-rise>
+  <style>
+  .btr{--btr-line:rgba(255,255,255,0.12)}
+  .btr-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .btr-head h3{font-size:19px;letter-spacing:-0.02em}
+  .btr-lv{font:11px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--orange)}
+  .btr-score{margin-left:auto;font:12px var(--mono);color:var(--text-muted)}
+  .btr-goal{margin:0 0 16px;font-size:14px;line-height:1.65;color:var(--text-dim)}
+  .btr-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:start}
+  @media (max-width:640px){.btr-grid{grid-template-columns:minmax(0,1fr);gap:16px}}
+  .btr-snr{border:1px solid var(--btr-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:12px 14px;margin-bottom:12px}
+  .btr-snr>span{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+    font:10.5px var(--mono);letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px}
+  .btr-snr>span b{color:var(--teal);font-size:18px;letter-spacing:0;text-transform:none;white-space:nowrap}
+  .btr-meter{height:10px;border-radius:5px;background:rgba(255,255,255,0.07);overflow:hidden;position:relative}
+  .btr-meter i{display:block;height:100%;width:0;background:var(--teal);transition:width 160ms linear}
+  .btr-meter em{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--orange);opacity:0.9}
+  .btr-ladder{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .btr-rung{min-height:46px;padding:5px 8px;border-radius:10px;border:1px solid var(--btr-line);
+    background:rgba(255,255,255,0.05);color:var(--text);cursor:pointer;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:2px}
+  .btr-rung{min-width:0;overflow:hidden}
+  .btr-rung b{font:600 12.5px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btr-rung i{font:10px var(--mono);color:var(--text-muted);font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btr-rung:disabled{opacity:0.35;cursor:default}
+  .btr-rung.hi{border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.12)}
+  .btr-rung.ok{border-color:rgba(140,224,94,0.5)}
+  .btr-rung.bad{border-color:rgba(245,165,36,0.7)}
+  .btr-fixed{margin-top:12px;padding-top:12px;border-top:1px solid var(--btr-line);font:11px/1.9 var(--mono);color:var(--text-muted)}
+  .btr-fixed b{color:var(--text-dim);font-weight:400}
+  .btr-sheet{border:1px solid var(--btr-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:14px 16px;font:12.5px/1.85 var(--mono)}
+  .btr-row{display:flex;gap:10px;align-items:baseline}
+  .btr-row i{font-style:normal;color:var(--text-muted);flex:1 1 auto;min-width:0}
+  .btr-row b{color:var(--text);font-weight:600;flex:0 0 auto;text-align:right;white-space:nowrap}
+  .btr-row.big b{font-size:15px}
+  .btr-rule{border-top:1px solid var(--btr-line);margin:8px 0}
+  .btr-good b{color:var(--green)}
+  .btr-warn b{color:var(--orange)}
+  .btr-log{margin-top:10px;display:flex;gap:3px;height:34px;align-items:flex-end}
+  .btr-log i{flex:1 1 0;min-width:0;background:rgba(255,255,255,0.08);border-radius:2px 2px 0 0;height:8%}
+  .btr-log i.g{background:var(--green)}
+  .btr-log i.o{background:var(--orange)}
+  .btr-say{min-height:46px;font-size:13.5px;line-height:1.65;color:var(--text-dim);margin:16px 0 12px}
+  .btr-say b{color:var(--orange)}
+  .btr-say i{color:var(--green);font-style:normal}
+  .btr-acts{display:flex;gap:9px;flex-wrap:wrap}
+  .btr-btn{min-height:42px;padding:0 15px;border-radius:11px;border:1px solid var(--btr-line);
+    background:rgba(255,255,255,0.06);color:var(--text);font:600 13px var(--sans);cursor:pointer}
+  .btr-btn:disabled{opacity:0.35;cursor:default}
+  .btr-btn.go{border-color:rgba(140,224,94,0.55);background:rgba(140,224,94,0.14);color:#bdf29c}
+  </style>
+
+  <div class="btr-head">
+    <span class="btr-lv" id="btr-lv">Level 1</span>
+    <h3 id="btr-title">Be the Radio</h3>
+    <span class="btr-score" id="btr-score">0 of 3 passed</span>
+  </div>
+  <p class="btr-goal" id="btr-goal"></p>
+
+  <div class="btr-grid">
+    <div>
+      <div class="btr-snr">
+        <span>SNR at the client, this round <b id="btr-snrv">38 dB</b></span>
+        <div class="btr-meter" aria-hidden="true"><i id="btr-snrfill"></i><em id="btr-snrpick" style="left:0"></em></div>
+      </div>
+      <div class="btr-ladder" id="btr-ladder" role="group" aria-label="MCS ladder, pick a rung to send this round"></div>
+      <div class="btr-fixed" id="btr-fixed"></div>
+    </div>
+
+    <div class="btr-sheet" aria-live="polite">
+      <div class="btr-row"><i>round</i><b id="btr-r-round">1 of 12</b></div>
+      <div class="btr-row"><i>you sent at</i><b id="btr-r-pick">nothing yet</b></div>
+      <div class="btr-row"><i>that rung wants</i><b id="btr-r-need">&nbsp;</b></div>
+      <div class="btr-row" id="btr-r-retry-row"><i>retries</i><b id="btr-r-retry">&nbsp;</b></div>
+      <div class="btr-rule"></div>
+      <div class="btr-row big" id="btr-r-got-row"><i>delivered this round</i><b id="btr-r-got">&nbsp;</b></div>
+      <div class="btr-row big" id="btr-r-avg-row"><i>average so far</i><b id="btr-r-avg">0 Mb/s</b></div>
+      <div class="btr-row"><i>pass mark</i><b id="btr-r-pass">&nbsp;</b></div>
+      <div class="btr-row"><i>best possible</i><b id="btr-r-best">&nbsp;</b></div>
+      <div class="btr-log" id="btr-log" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <p class="btr-say" id="btr-say"></p>
+  <div class="btr-acts">
+    <button class="btr-btn" id="btr-cant" type="button">The client can't do that</button>
+    <button class="btr-btn" id="btr-reset" type="button">Reset level</button>
+    <button class="btr-btn" id="btr-next" type="button" disabled>Next level</button>
+  </div>
+
+  <script>
+  (function () {
+    var root = document.getElementById("betheradio");
+    if (!root) return;
+    var $ = function (s) { return root.querySelector(s); };
+
+    /* Same table and the same arithmetic as theme/sim/phy.js, so the rungs here
+       are the rungs in the lesson. HE: 12.8 us symbol plus 0.8 us guard. */
+    var MCS = [["BPSK 1/2",1,1/2],["QPSK 1/2",2,1/2],["QPSK 3/4",2,3/4],["16-QAM 1/2",4,1/2],
+               ["16-QAM 3/4",4,3/4],["64-QAM 2/3",6,2/3],["64-QAM 3/4",6,3/4],["64-QAM 5/6",6,5/6],
+               ["256-QAM 3/4",8,3/4],["256-QAM 5/6",8,5/6],["1024-QAM 3/4",10,3/4],["1024-QAM 5/6",10,5/6]];
+    var NSD = { 20: 234, 40: 468, 80: 980, 160: 1960 }, TSYM = 13.6;
+    /* Typical SNR floors a vendor quotes, the same array phy.js uses for its readout */
+    var SNRMIN = [3, 6, 9, 12, 16, 20, 22, 25, 29, 31, 34, 37];
+    function rate(m, ss, bw) { return NSD[bw] * MCS[m][1] * MCS[m][2] * ss / TSYM; }
+    function fmt(r) { return r >= 1000 ? r.toFixed(0) : r.toFixed(1); }
+    /* Chance a frame at this rung survives this SNR. Three dB of margin and it
+       always gets through; three dB under and nothing does. A retry costs the
+       same airtime as the try, so goodput is rate times survival. */
+    function surv(m, snr) { var x = (snr - SNRMIN[m] + 3) / 6; return Math.max(0, Math.min(1, x)); }
+    function best(snr, ss, bw) { var b = 0, i; for (i = 0; i < 12; i++) if (rate(i, ss, bw) * surv(i, snr) > rate(b, ss, bw) * surv(b, snr)) b = i; return b; }
+
+    var LEVELS = [
+      { name: "The corridor", ss: 2, bw: 80, target: 0,
+        snr: [38, 36, 33, 31, 28, 26, 23, 20, 17, 14, 11, 8], burst: [],
+        brief: "A laptop, two streams on an 80 MHz channel, walking away from the AP down a corridor. Twelve rounds. Each round you see the SNR and pick a rung. Too high and the frames fail and the retries eat the round. Too low and you leave throughput on the table.",
+        open: "Start high. The SNR is generous. Then watch what a rung costs when the number stops being generous.",
+        won: "<i>Passed.</i> That is the whole ladder: step down before you fall off it. Every rung down costs you a slice of rate and buys you a few dB. The trick is stepping at the right time, and you only know the right time by trying the wrong one.",
+        lost: "<b>Under the mark.</b> Usually that is sending too high for too long. A rung that fails half its frames is delivering half its rate, and a rung one step down that never fails beats it. Reset and step earlier." },
+
+      { name: "The microwave", ss: 2, bw: 80, target: 0,
+        snr: [38, 36, 33, 31, 28, 26, 23, 20, 17, 14, 11, 8], burst: [0, 0, 9, 9, 9, 9, 0, 0, 9, 9, 9, 9],
+        brief: "Same walk, same laptop, but somebody in the break room is heating soup. The SNR you see is measured at the start of the round. When the interference lands it lands during your transmission, takes about 9 dB off, runs for a few rounds at a time, and the readout never shows it.",
+        open: "You cannot see the bursts coming. You can see what happened last round. Decide what to do with that.",
+        won: "<i>Passed.</i> Notice what you actually did: you did not react to the SNR, you reacted to the retries. That is what a real rate adaptation loop does too, and it is why the rate on a client lags a few metres behind the signal.",
+        lost: "<b>Under the mark.</b> The readout was honest and it still lied, because it was measured before the burst. When a round fails, believe the failure, not the number. Step down, then creep back up." },
+
+      { name: "The badge reader", ss: 1, bw: 20, target: 300,
+        snr: [40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40], burst: [],
+        brief: "A badge reader, one stream, 20 MHz only, sitting right next to the AP with 40 dB of SNR. The person who bought it wants 300 Mb/s out of it. You have the ladder.",
+        open: "Try it. Send at the top rung as many rounds as you like, then look at the top of the ladder and read the number on it.",
+        won: "<i>Right call.</i> The top of this ladder is 143 Mb/s, and there is no rung above it. Modulation moves you along the scale; width and streams set the scale, and this client only has one of each. No amount of signal fixes that. Saying so is the job.",
+        lost: "" }
+    ];
+
+    var lv = 0, done = [false, false, false], finished = [false, false, false], round, hist, pick;
+
+    function L() { return LEVELS[lv]; }
+    function oracle() {
+      var l = L(), s = 0, i;
+      for (i = 0; i < l.snr.length; i++) { var eff = l.snr[i] - (l.burst[i] || 0); var b = best(eff, l.ss, l.bw); s += rate(b, l.ss, l.bw) * surv(b, eff); }
+      return s / l.snr.length;
+    }
+    function passMark() { return L().target ? L().target : oracle() * (lv === 1 ? 0.7 : 0.8); }
+    function topRate() { return rate(11, L().ss, L().bw); }
+
+    function buildLadder() {
+      var l = L(), html = "", i;
+      for (i = 11; i >= 0; i--) {
+        html += '<button class="btr-rung" type="button" data-m="' + i + '"><b>MCS ' + i + ' &middot; ' + fmt(rate(i, l.ss, l.bw)) + ' Mb/s' +
+                '</b><i>' + MCS[i][0] + ' &middot; ' + SNRMIN[i] + ' dB</i></button>';
+      }
+      $("#btr-ladder").innerHTML = html;
+      Array.prototype.forEach.call(root.querySelectorAll(".btr-rung"), function (b) {
+        b.addEventListener("click", function () { send(+b.getAttribute("data-m")); });
+      });
+    }
+
+    function paintLadder() {
+      var l = L(), snr = round < l.snr.length ? l.snr[round] : null, over = round >= l.snr.length;
+      Array.prototype.forEach.call(root.querySelectorAll(".btr-rung"), function (b) {
+        var m = +b.getAttribute("data-m");
+        b.disabled = over;
+        b.classList.toggle("hi", pick === m);
+        b.classList.remove("ok"); b.classList.remove("bad");
+      });
+      $("#btr-snrv").textContent = snr === null ? "walk over" : snr + " dB";
+      $("#btr-snrfill").style.width = (snr === null ? 0 : Math.min(100, snr / 45 * 100)) + "%";
+    }
+
+    function avg() { var s = 0, i; for (i = 0; i < hist.length; i++) s += hist[i].got; return hist.length ? s / hist.length : 0; }
+
+    function paintSheet(last) {
+      var l = L(), a = avg(), pm = passMark();
+      $("#btr-r-round").textContent = Math.min(round + 1, l.snr.length) + " of " + l.snr.length;
+      if (last) {
+        $("#btr-r-pick").textContent = "MCS " + last.m + ", " + fmt(rate(last.m, l.ss, l.bw)) + " Mb/s";
+        $("#btr-r-need").textContent = SNRMIN[last.m] + " dB, had " + last.eff + (last.eff !== last.shown ? " (readout said " + last.shown + ")" : "");
+        $("#btr-r-retry").textContent = Math.round((1 - last.p) * 100) + " %";
+        $("#btr-r-got").textContent = last.got.toFixed(1) + " Mb/s";
+        $("#btr-r-retry-row").className = "btr-row" + (last.p < 0.7 ? " btr-warn" : last.p >= 1 ? " btr-good" : "");
+        $("#btr-r-got-row").className = "btr-row big" + (last.p < 0.7 ? " btr-warn" : " btr-good");
+      } else {
+        $("#btr-r-pick").textContent = "nothing yet";
+        $("#btr-r-need").innerHTML = "&nbsp;"; $("#btr-r-retry").innerHTML = "&nbsp;"; $("#btr-r-got").innerHTML = "&nbsp;";
+        $("#btr-r-retry-row").className = "btr-row"; $("#btr-r-got-row").className = "btr-row big";
+      }
+      $("#btr-r-avg").textContent = a.toFixed(1) + " Mb/s";
+      $("#btr-r-avg-row").className = "btr-row big" + (hist.length ? (a >= pm ? " btr-good" : " btr-warn") : "");
+      $("#btr-r-pass").textContent = pm.toFixed(0) + " Mb/s" + (l.target ? ", asked for" : "");
+      $("#btr-r-best").textContent = (l.target ? topRate() : oracle()).toFixed(0) + " Mb/s" + (l.target ? ", top rung" : ", perfect picks");
+      var log = "", i;
+      for (i = 0; i < l.snr.length; i++) {
+        if (i < hist.length) { var h = hist[i], hh = Math.max(8, h.got / topRate() * 100); log += '<i class="' + (h.p < 0.7 ? "o" : "g") + '" style="height:' + hh.toFixed(0) + '%"></i>'; }
+        else log += "<i></i>";
+      }
+      $("#btr-log").innerHTML = log;
+    }
+
+    function say(html) { $("#btr-say").innerHTML = html; }
+    function score() { $("#btr-score").textContent = done.filter(Boolean).length + " of 3 passed"; }
+
+    function send(m) {
+      var l = L();
+      if (round >= l.snr.length) return;
+      var shown = l.snr[round], eff = shown - (l.burst[round] || 0), p = surv(m, eff), got = rate(m, l.ss, l.bw) * p;
+      pick = m;
+      hist.push({ m: m, shown: shown, eff: eff, p: p, got: got });
+      round += 1;
+      paintLadder();
+      paintSheet(hist[hist.length - 1]);
+      if (round >= l.snr.length) endLevel();
+      else if (p < 0.7) say("That one hurt: <b>" + Math.round((1 - p) * 100) + " percent retries</b>. A retry costs the same airtime as the try, so the round delivered " + got.toFixed(0) + " Mb/s at a " + rate(m, l.ss, l.bw).toFixed(0) + " Mb/s rung.");
+      else if (m < best(eff, l.ss, l.bw) - 1) say("Clean, and cautious. There was a rung or two of headroom above that one.");
+      else say("Clean.");
+    }
+
+    function endLevel() {
+      var l = L();
+      finished[lv] = true;
+      if (l.target) {
+        say("Twelve rounds at the top of the ladder and the average is <b>" + avg().toFixed(1) + " Mb/s</b> against a target of " + l.target + ". The ladder does not go any higher. There is a button for that.");
+      } else if (avg() >= passMark()) {
+        done[lv] = true; say(l.won);
+      } else {
+        say(l.lost);
+      }
+      score();
+      $("#btr-next").disabled = lv >= LEVELS.length - 1;
+    }
+
+    function load() {
+      var l = L();
+      round = 0; hist = []; pick = -1;
+      $("#btr-lv").textContent = "Level " + (lv + 1);
+      $("#btr-title").textContent = l.name;
+      $("#btr-goal").textContent = l.brief;
+      $("#btr-fixed").innerHTML = "fixed for this level<br>streams <b>" + l.ss + "</b><br>width <b>" + l.bw +
+        " MHz</b><br>top of the ladder <b>" + fmt(topRate()) + " Mb/s</b>" + (l.target ? "<br>asked for <b>" + l.target + " Mb/s</b>" : "");
+      buildLadder();
+      paintLadder();
+      paintSheet(null);
+      $("#btr-next").disabled = !finished[lv] || lv >= LEVELS.length - 1;
+      say(done[lv] ? l.won : l.open);
+      score();
+    }
+
+    $("#btr-cant").addEventListener("click", function () {
+      var l = L();
+      if (!l.target) {
+        say("Not so fast. This ladder tops out at " + topRate().toFixed(0) + " Mb/s and the pass mark is " + passMark().toFixed(0) + ". The client can do it. Pick a rung.");
+      } else if (l.target <= topRate()) {
+        say("It can, actually. The top rung is " + topRate().toFixed(0) + " Mb/s.");
+      } else {
+        done[lv] = true; finished[lv] = true; score();
+        if (done.filter(Boolean).length === LEVELS.length) say(l.won + " That is all three. The table has three columns and you only ever get to move along one of them.");
+        else say(l.won);
+      }
+    });
+    $("#btr-reset").addEventListener("click", function () { load(); });
+    $("#btr-next").addEventListener("click", function () { if (lv < LEVELS.length - 1) { lv += 1; load(); } });
+
+    load();
+  })();
+  </script>
+</section>
