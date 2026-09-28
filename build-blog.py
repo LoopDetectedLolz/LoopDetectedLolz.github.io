@@ -283,7 +283,7 @@ def card(p, featured=False):
     ins = " data-inseries" if p["slug"] in IN_SERIES else ""
     # the featured post already sits in the hero; its card only appears once a filter or search is active
     return f'''<a class="card g-card{" hidden" if featured else ""}" href="p/{p["slug"]}.html" data-origin="zoom" data-rise data-cat="{E(p["cat"])}" data-text="{E(text)}"{ins}{" data-featured" if featured else ""}>
-  <div class="card-top"><span class="tag {p["ccls"]}">{E(p["cat"])}</span><span class="meta">{E(p["date_obj"].strftime("%b %d").replace(" 0"," "))}</span></div>
+  <div class="card-top"><span class="tag {p["ccls"]}">{E(p["cat"])}</span><span class="meta">{("Lesson %d" % p["academy"]) if p.get("academy") else E(p["date_obj"].strftime("%b %d").replace(" 0"," "))}</span></div>
   <h3 class="h-card">{E(p["title"])}</h3>
   <p>{E(p["summary"])}</p>
   <div class="card-foot"><span class="src">{ICO_CHAT}{E(p["src"])}</span><b>{p["readtime"]} min</b></div>
@@ -385,7 +385,7 @@ for i, p in enumerate(posts):
   <div class="backbar"><a class="btn" href="../{"academy.html" if p["academy"] else ""}">{ICO_BACK}&nbsp;{"Academy" if p["academy"] else "All posts"}</a></div>
   <article>
     <header class="post-head g-hero cat-{E(p["cat"].replace(" ","-"))}" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag {p["ccls"]}" href="../index.html#cat={E(p["cat"])}" title="All {E(p["cat"])} posts">{E(p["cat"])}</a><span class="meta">{E(p["date_h"])} &#183; {p["readtime"]} min</span></div>
+      <div class="row" style="margin:0"><a class="tag {p["ccls"]}" href="../index.html#cat={E(p["cat"])}" title="All {E(p["cat"])} posts">{E(p["cat"])}</a><span class="meta">{("Lesson %d" % p["academy"]) if p.get("academy") else E(p["date_h"])} &#183; {p["readtime"]} min</span></div>
       <h1 class="h-hero">{E(p["title"])}</h1>
     </header>
     <div class="post-body g-card" data-rise>
@@ -443,7 +443,6 @@ open(os.path.join(ROOT, "about.html"), "w", encoding="utf-8").write(about)
 
 
 # ── Wireless Academy ─────────────────────────────────────────────────────────
-ACADEMY_START = datetime.date(2026, 9, 10)   # lesson 1; one a week after that
 ACADEMY = [
     ("What a Radio Actually Sends", "Frequency, wavelength, amplitude. mW, dBm and dB, and the two rules that let you do the math in your head.", "Read RSSI on an Aruba AP and a Mist AP, double the distance, watch it fall about 6 dB. Confirm on the Sidekick."),
     ("Bands, Channels and Widths", "2.4, 5 and 6 GHz, the U-NII blocks, DFS, and what a wider channel actually costs.", "Change channel width on both platforms and watch client PHY rates and airtime move."),
@@ -461,16 +460,16 @@ ACADEMY = [
 academy_posts = {p["academy"]: p for p in posts if p["academy"]}
 acad_items = []
 for i, (t, blurb, lab) in enumerate(ACADEMY, 1):
-    q = academy_posts.get(i); due = ACADEMY_START + datetime.timedelta(weeks=i - 1)
+    q = academy_posts.get(i)
     if q:
-        acad_items.append('<a class="lesson g-card live" href="p/%s.html" data-origin="zoom" data-rise><span class="ser-n">Lesson %d</span><b>%s</b><p>%s</p><span class="lab"><span class="eyebrow">Lab</span>%s</span><span class="meta">%s &#183; %d min</span></a>'
-                          % (E(q["slug"]), i, E(q["title"]), E(q["summary"]), E(lab), E(q["date_h"]), q["readtime"]))
+        acad_items.append('<a class="lesson g-card live" href="p/%s.html" data-origin="zoom" data-rise><span class="ser-n">Lesson %d</span><b>%s</b><p>%s</p><span class="lab"><span class="eyebrow">Lab</span>%s</span><span class="meta">%d min</span></a>'
+                          % (E(q["slug"]), i, E(q["title"]), E(q["summary"]), E(lab), q["readtime"]))
     else:
-        acad_items.append('<div class="lesson g-card soon" data-rise><span class="ser-n">Lesson %d</span><b>%s</b><p>%s</p><span class="lab"><span class="eyebrow">Lab</span>%s</span><span class="meta">Planned for the week of %s</span></div>'
-                          % (i, E(t), E(blurb), E(lab), E(due.strftime("%b %d").replace(" 0", " "))))
+        acad_items.append('<div class="lesson g-card soon" data-rise><span class="ser-n">Lesson %d</span><b>%s</b><p>%s</p><span class="lab"><span class="eyebrow">Lab</span>%s</span><span class="meta">Planned</span></div>'
+                          % (i, E(t), E(blurb), E(lab)))
 live_n = len(academy_posts)
 start_btn = ('<a class="btn cta" href="p/%s.html" data-origin="zoom">Start with lesson 1</a>' % E(academy_posts[1]["slug"])) if 1 in academy_posts else ""
-acad = head("Wireless Academy · " + SITE["name"], "Wireless fundamentals, one lesson a week, each with a lab you can run on Aruba and Mist gear.", BASE_URL + "/academy.html", BASE_URL + "/og/academy.png", active="academy", theme="acad")
+acad = head("Wireless Academy · " + SITE["name"], "Twelve lessons on wireless fundamentals, each with a lab you can run on Aruba and Mist gear.", BASE_URL + "/academy.html", BASE_URL + "/og/academy.png", active="academy", theme="acad")
 acad += f'''
 <section class="hero g-hero rise acad-hero" data-view="pop">
   <div class="sheen"></div><div class="glow"></div>
@@ -479,12 +478,12 @@ acad += f'''
   <p class="lede">Twelve lessons on how Wi-Fi actually works, pitched at the engineer who runs a network but never got taught why. Each one ends with something you can go and measure on an Aruba AP, a Mist AP, and a Sidekick, because a number you measured yourself is the only kind that sticks.</p>
   <div class="row">
     {start_btn}
-    <span class="meta">{live_n} of {len(ACADEMY)} published &#183; new lesson weekly</span>
+    <span class="meta">{live_n} of {len(ACADEMY)} published</span>
   </div>
 </section>
 <section class="acad-why g-card" data-rise>
   <span class="eyebrow">Why orange</span>
-  <p>The colour is a nod to the Airheads community. My first expert-level certification came out of an AOS 6 lab and a stack of forum posts by people who answered questions they didn't have to. This section is me paying that forward, one lesson a week.</p>
+  <p>The colour is a nod to the Airheads community. My first expert-level certification came out of an AOS 6 lab and a stack of forum posts by people who answered questions they didn't have to. This section is me paying that forward.</p>
 </section>
 <section>
   <div class="lessons">{"".join(acad_items)}</div>

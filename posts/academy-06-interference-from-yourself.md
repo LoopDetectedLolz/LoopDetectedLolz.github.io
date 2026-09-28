@@ -1,7 +1,7 @@
 ---
 title: Interference From Yourself
 slug: academy-06-interference-from-yourself
-date: 2026-09-29
+date: 2026-09-25
 tags: Wireless, Academy, RF
 hero: hero-academy-06.svg
 academy: 6
@@ -84,6 +84,6 @@ Two APs, two laptops, one wired box running `iperf3 -s`. Under an hour. Two clie
 
 Answers: 12/12 = 1.0 before, 12/13 = 0.92 after, and the cheapest fix is to drop the width to 20 MHz on that floor, which makes it 25/13 and buys twelve spare channels for nothing. The RSSI doesn't move at all; the throughput roughly halves, because -70 is well above the -82 dBm preamble threshold so AP A and everything on it defers to AP B. Co-channel, since 36 and 44 are the same 80 MHz block; on 52 it becomes the adjacent block, nothing defers, and the cost shows up in the noise floor instead of in the airtime.
 
-## Next week
+## Next lesson
 
 Noise, SNR, and why RSSI lies. Step 6 raised the floor without touching the signal, and that's the whole lesson.

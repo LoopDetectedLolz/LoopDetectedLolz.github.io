@@ -1,7 +1,7 @@
 ---
 title: Capacity, Not Coverage
 slug: academy-10-capacity-not-coverage
-date: 2026-10-03
+date: 2026-09-27
 tags: Wireless, Academy, Design
 hero: hero-academy-10.svg
 academy: 10
@@ -92,6 +92,6 @@ One AP, one laptop, tape on the floor, under an hour.
 
 Answers: The beacon rate doesn't change, the edge moves out, and you've made the airtime hog's cell bigger. About 16 percent at 1 Mb/s; at 12 a beacon is 200 plus 20 microseconds, about 1.3 percent for six. Forty times 1.5 times two is 120 Mb/s against a 100 Mb/s cell, so two radios, and on 2.4 GHz there's no second channel to put it on.
 
-## Next week
+## Next lesson
 
 Surveys and what a heatmap can't see. Predictive, AP-on-a-stick and validation, with a one-room passive survey on the Sidekick cross-checked against what the AP is really on.

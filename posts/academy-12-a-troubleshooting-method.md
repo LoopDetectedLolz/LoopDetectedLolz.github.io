@@ -1,7 +1,7 @@
 ---
 title: A Troubleshooting Method
 slug: academy-12-a-troubleshooting-method
-date: 2026-10-05
+date: 2026-09-28
 tags: Wireless, Academy, Troubleshooting
 hero: hero-academy-12.svg
 academy: 12

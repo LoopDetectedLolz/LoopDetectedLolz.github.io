@@ -1,7 +1,7 @@
 ---
 title: Joining a Network
 slug: academy-08-joining-a-network
-date: 2026-10-01
+date: 2026-09-26
 tags: Wireless, Academy, ClearPass
 hero: hero-academy-08.svg
 academy: 8
@@ -80,6 +80,6 @@ One AP on each platform, one 802.1X SSID pointed at the ClearPass lab, EAP-TLS i
 
 Answers: DHCP; Mist Client Events with DHCP Timed Out, or Central's Wi-Fi Connectivity DHCP stage, and Access Tracker can't show it because ClearPass was done two rungs earlier. The wrong password, as a Reject; the wrong shared secret leaves nothing, and you find it in Event Viewer. The 4-way handshake, at message 2, because with PSK the AP has no way to check the passphrase until the client's MIC arrives, so association always succeeds first.
 
-## Next week
+## Next lesson
 
 Roaming, and why the client decides. Everything in this lesson happens again every time the laptop moves, and 802.11k, v and r are three ways to make the second climb shorter.
