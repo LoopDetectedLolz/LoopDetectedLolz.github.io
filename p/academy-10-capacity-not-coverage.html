@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>What a Radio Actually Sends</title>
-<meta name="description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
+<title>Capacity, Not Coverage</title>
+<meta name="description" content="Coverage asks whether everyone can hear the AP. Capacity asks whether everyone gets a turn. The cell isn&#x27;t drawn by power, it&#x27;s drawn by the slowest rate you allow, and raising that rate is the cheapest capacity you&#x27;ll ever buy.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/academy-10-capacity-not-coverage.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="What a Radio Actually Sends">
-<meta property="og:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
+<meta property="og:title" content="Capacity, Not Coverage">
+<meta property="og:description" content="Coverage asks whether everyone can hear the AP. Capacity asks whether everyone gets a turn. The cell isn&#x27;t drawn by power, it&#x27;s drawn by the slowest rate you allow, and raising that rate is the cheapest capacity you&#x27;ll ever buy.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/academy-10-capacity-not-coverage.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/academy-10-capacity-not-coverage.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="What a Radio Actually Sends">
-<meta name="twitter:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-10"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "What a Radio Actually Sends", "description": "Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.", "datePublished": "2026-09-10", "image": "https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html", "keywords": "Wireless, Academy, RF"}</script>
+<meta name="twitter:title" content="Capacity, Not Coverage">
+<meta name="twitter:description" content="Coverage asks whether everyone can hear the AP. Capacity asks whether everyone gets a turn. The cell isn&#x27;t drawn by power, it&#x27;s drawn by the slowest rate you allow, and raising that rate is the cheapest capacity you&#x27;ll ever buy.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-10-capacity-not-coverage.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-10-03"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Capacity, Not Coverage", "description": "Coverage asks whether everyone can hear the AP. Capacity asks whether everyone gets a turn. The cell isn't drawn by power, it's drawn by the slowest rate you allow, and raising that rate is the cheapest capacity you'll ever buy.", "datePublished": "2026-10-03", "image": "https://networkfieldnotes.com/og/academy-10-capacity-not-coverage.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-10-capacity-not-coverage.html", "keywords": "Wireless, Academy, Design"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -553,99 +553,144 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 10, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">What a Radio Actually Sends</h1>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Oct 3, 2026 &#183; 9 min</span></div>
+      <h1 class="h-hero">Capacity, Not Coverage</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A dBm ladder from 30 dBm (1 W) down to -90 dBm (1 pW) with the 3 dB, 10 dB and doubling-distance rules, and a wavelength comparison for 2.4, 5 and 6 GHz">
-  <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#F5A524;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
-    .bx{fill:rgba(0,0,0,0.45);stroke:rgba(255,255,255,0.12)}.bt{fill:#fff;font-size:13px;font-weight:600}.mut{fill:#8BA2AE;font-size:11px}
-  </style></defs>
-  <text x="30" y="36" class="t eyebrow">LESSON 1: WHAT A RADIO ACTUALLY SENDS</text>
-  <text x="30" y="66" class="t big">Three anchors, two rules, and you can do the math in your head.</text>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 10: Capacity, not coverage. Left, three concentric cells around one AP labelled minimum basic rate 1, 6 and 24 Mb/s, each smaller than the last. Right, a bar chart of beacon airtime per second for six SSIDs: about 156 ms at 1 Mb/s, 25 ms at 6 Mb/s and 7 ms at 24 Mb/s, an approximation for a 300 byte beacon ten times a second. Caption: the cell is drawn by the slowest rate you allow, not by the power you set.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .m  { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #EAF2F6; }
+      .md { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #B0C4CF; }
+      .mh { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.5px; fill: #8BA2AE; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #8CE05E; font-weight: 600; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .grid { stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .c1 { fill: rgba(139,162,174,0.10); stroke: #8BA2AE; stroke-width: 1; stroke-dasharray: 4 4; }
+      .c6 { fill: rgba(94,210,218,0.12); stroke: #5ED2DA; stroke-width: 1.5; }
+      .c24 { fill: rgba(140,224,94,0.18); stroke: #8CE05E; stroke-width: 2; }
+    </style>
+  </defs>
 
-  <!-- the ladder -->
-  <g class="t">
-    <line x1="120" y1="96" x2="120" y2="306" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
-    <g font-size="12">
-      <circle cx="120" cy="100" r="5" fill="#F5A524"/><text x="136" y="104" class="mono" fill="#fff">+30 dBm</text><text x="216" y="104" class="mut">1 W, legal ceiling for most of what we do</text>
-      <circle cx="120" cy="134" r="5" fill="#F5A524"/><text x="136" y="138" class="mono" fill="#fff">+20 dBm</text><text x="216" y="138" class="mut">100 mW, an enterprise AP radio</text>
-      <circle cx="120" cy="168" r="5" fill="#F5A524"/><text x="136" y="172" class="mono" fill="#fff">  0 dBm</text><text x="216" y="172" class="mut">1 mW, the reference</text>
-      <circle cx="120" cy="202" r="4" fill="#8BA2AE"/><text x="136" y="206" class="mono" fill="#B0C4CF">-30 dBm</text><text x="216" y="206" class="mut">1 microwatt</text>
-      <circle cx="120" cy="236" r="5" fill="#8CE05E"/><text x="136" y="240" class="mono" fill="#fff">-67 dBm</text><text x="216" y="240" class="mut">a good client signal, two ten-millionths of a mW</text>
-      <circle cx="120" cy="270" r="4" fill="#8BA2AE"/><text x="136" y="274" class="mono" fill="#B0C4CF">-90 dBm</text><text x="216" y="274" class="mut">1 picowatt, where the noise floor lives</text>
-    </g>
-    <text x="30" y="104" class="mut">strong</text><text x="30" y="274" class="mut">weak</text>
-  </g>
+  <text x="24" y="36" class="eb">LESSON 10: CAPACITY, NOT COVERAGE</text>
+  <text x="24" y="66" class="hl">Power sets how far you're heard. The slowest rate sets the cell.</text>
 
-  <!-- rules -->
-  <g class="t">
-    <rect x="560" y="92" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="115" class="bt">3 dB is double, or half.</text>
-    <text x="576" y="137" class="lbl">10 dB is ten times, or a tenth. 23 dBm is 200 mW.</text>
-    <rect x="560" y="162" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="185" class="bt">Double the distance, lose about 6 dB.</text>
-    <text x="576" y="207" class="lbl">Four times the distance, 12 dB. That is the lab.</text>
-    <rect x="560" y="232" width="310" height="74" rx="10" class="bx"/>
-    <text x="576" y="255" class="bt">Wavelength picks the behaviour.</text>
-    <text x="576" y="276" class="mono" fill="#B0C4CF">2.4 GHz  12.5 cm     5 GHz  6 cm     6 GHz  5 cm</text>
-    <text x="576" y="296" class="lbl">Shorter gets through gaps, loses more in walls.</text>
-  </g>
+  <!-- left: three cells -->
+  <rect x="24" y="86" width="330" height="210" rx="8" class="box"/>
+  <text x="40" y="106" class="t">One AP, same power, three minimum basic rates</text>
 
-  <text x="30" y="326" class="t mono" fill="#F5A524">An AP at +20 dBm heard at -67 dBm: 87 dB of path loss. That number is the whole design.</text>
+  <circle cx="150" cy="200" r="86" class="c1"/>
+  <circle cx="150" cy="200" r="58" class="c6"/>
+  <circle cx="150" cy="200" r="32" class="c24"/>
+  <circle cx="150" cy="200" r="5" fill="#F5A524"/>
+  <text x="150" y="222" text-anchor="middle" class="mh">AP</text>
+
+  <!-- radial labels to the right -->
+  <line x1="182" y1="200" x2="256" y2="176" class="grid"/>
+  <text x="262" y="180" class="mg">MBR 24 Mb/s</text>
+  <text x="262" y="194" class="ts">smallest cell</text>
+
+  <line x1="208" y1="200" x2="256" y2="216" class="grid"/>
+  <text x="262" y="220" class="m" style="fill:#5ED2DA">MBR 6 Mb/s</text>
+  <text x="262" y="234" class="ts">5 GHz default</text>
+
+  <line x1="236" y1="200" x2="256" y2="256" class="grid"/>
+  <text x="262" y="260" class="md">MBR 1 Mb/s</text>
+  <text x="262" y="274" class="ts">2.4 GHz only</text>
+
+  <!-- right: beacon airtime bars -->
+  <rect x="372" y="86" width="504" height="210" rx="8" class="box"/>
+  <text x="388" y="106" class="t">Beacon airtime per second, six SSIDs on one radio</text>
+  <text x="388" y="122" class="ts">300 byte beacon, ten a second per SSID, preamble included. Approximation.</text>
+
+  <text x="388" y="152" class="md">1 Mb/s</text>
+  <rect x="470" y="140" width="270" height="16" rx="3" fill="#8BA2AE"/>
+  <text x="748" y="153" class="md">156 ms</text>
+  <text x="864" y="153" text-anchor="end" class="mo">15.6%</text>
+
+  <text x="388" y="196" class="md">6 Mb/s</text>
+  <rect x="470" y="184" width="43" height="16" rx="3" fill="#5ED2DA"/>
+  <text x="521" y="197" class="md">25 ms</text>
+  <text x="864" y="197" text-anchor="end" class="mo">2.5%</text>
+
+  <text x="388" y="240" class="md">24 Mb/s</text>
+  <rect x="470" y="228" width="12" height="16" rx="3" fill="#8CE05E"/>
+  <text x="490" y="241" class="md">7 ms</text>
+  <text x="864" y="241" text-anchor="end" class="mg">0.7%</text>
+
+  <line x1="470" y1="132" x2="470" y2="252" class="grid"/>
+  <text x="388" y="280" class="ts">One 1 Mb/s beacon is 2592 us. One at 24 is 120 us. Same 300 bytes, one bad rate.</text>
+
+  <text x="24" y="320" class="cap">The cell is drawn by the slowest rate you allow, not by the power you set.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 1. Fundamentals first, then a lab on real gear</div>
-      <div class="prose"><p>This is the first lesson of the Wireless Academy, and it starts with the thing every wireless conversation eventually gets stuck on: the numbers. RSSI is -67 dBm. Is that good? The AP is at 20 dBm. Is that a lot? Somebody wants "more signal." How much more, and what does more even mean?</p>
-<p>By the end of this one you'll be able to answer those without a calculator, and you'll have measured it yourself on an AP you own.</p>
-<h2>What's actually leaving the antenna</h2>
-<p>A Wi-Fi radio sends an electromagnetic wave. Three things describe it. Frequency is how many times a second it oscillates, and it's what picks the band: 2.4 GHz, 5 GHz, 6 GHz. Wavelength is how long one cycle is in space, and it falls out of frequency directly: the speed of light divided by the frequency. At 2.4 GHz that's about 12.5 cm. At 5 GHz it's about 6 cm, and at 6 GHz about 5 cm.</p>
-<p>That matters more than it sounds. A shorter wavelength interacts with objects differently. It gets through gaps more easily but loses more energy going through walls, and it doesn't bend around corners as well. Most of the "5 GHz doesn't reach as far as 2.4" gap is wavelength. The frequency term in free space loss alone costs about 6 dB going from 2.4 to 5 GHz. It isn't all of it, though. Regulatory caps differ by band, and so does whatever per-band power your APs are actually set to.</p>
-<p>Amplitude is how strong the wave is, and that's the one we spend our lives measuring. The problem is the range. The AP transmits something like 100 milliwatts. The client, a few rooms away, receives something like a ten-billionth of that. Writing those two numbers next to each other in milliwatts is useless, so we don't.</p>
-<h2>The number that matters: dBm</h2>
-<p>We use decibels relative to one milliwatt, dBm. The definition is 10 times the log of the power in milliwatts, and you don't need to remember that. You need to remember three anchors and two rules.</p>
-<p>Anchors: 0 dBm is 1 mW. 20 dBm is 100 mW, roughly what an enterprise AP radio transmits. 30 dBm is 1 W. In the US that's the FCC ceiling for an AP at 2.4 GHz and in U-NII-1 and U-NII-3, while U-NII-2A and 2C cap you at 24 dBm. Indoor 6 GHz is a different kind of limit, 5 dBm per MHz of EIRP, so a 20 MHz channel tops out around 18 dBm EIRP and only a 320 MHz one gets near 30. Treat 30 dBm as the outer wall, not a number you're entitled to.</p>
-<p>Rule one: 3 dB doubles or halves the power. Rule two: 10 dB is ten times or a tenth. Everything else is those two combined. 23 dBm is 20 plus 3, so 200 mW. 13 dBm is 10 plus 3, so 20 mW. Going down, -70 dBm is seven tens below 1 mW, which is one ten-millionth of a milliwatt. That's a workable data signal, although most designs want -67 dBm or better once voice or density is involved, and it's why we don't write it in milliwatts.</p>
-<p>When two dBm numbers are compared you get a plain dB difference. An AP at 20 dBm and a client hearing it at -67 dBm are 87 dB apart. That 87 dB is the total link loss, path loss plus whatever the two antennas gave back or took away, and it's the number a wireless design lives or dies on.</p>
-<p>One rule for free space that you'll use constantly: every time you double the distance, you lose about 6 dB. Four times the distance is 12 dB. That's what the lab is about.</p>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 10. Fundamentals first, then a lab on real gear</div>
+      <div class="prose"><p>Last week the client decided when to leave. This week is how many of them you can afford in the room at once.</p>
+<p>Every heatmap I've been handed answers one question: can a client hear the AP at -67 dBm from here. That's coverage. It's the wrong question for a lecture hall, a warehouse at shift change, or an office where every desk has a laptop, a phone and a headset. Those places fail with full bars. The signal is fine. The airtime is gone.</p>
+<h2>Two designs that look the same on a floor plan</h2>
+<p>A coverage design puts APs where the signal runs out. Big cells, full power, as few boxes as you can get away with. It works right up until enough people show up.</p>
+<p>A capacity design starts from the other end. How many clients, what are they doing, how much airtime does that take. Then it works out how many cells carry it and makes each cell small enough to hold its share. Same APs, same ceiling, different count and a different set of knobs. Three numbers drive it.</p>
+<p><strong>Clients per radio.</strong> A design assumption, not physics. The association limits are huge: Mist's doc gives 512 per radio on its Wi-Fi 6 and 6E APs, Meraki's says the same for its Wi-Fi 6 gear and then tells you the real number is far lower. For a working figure, Meraki's high density guide plans on about 25 clients per radio, 50 per AP. I plan on 25 to 30 per 5 GHz radio for laptops doing real work.</p>
+<p><strong>Application budget.</strong> Per client, per direction, and only what the vendor publishes. Microsoft's Teams network page says one-to-one audio wants 58 kb/s each way recommended, 76 for best, and one-to-one video 1,500 kb/s each way recommended. Zoom's page says audio is 60 to 80 kb/s and 1:1 video runs from 600 kb/s each way up to 3.8 up and 3.0 down for 1080p. Meraki budgets web browsing at 500 kb/s, which is bursty and nothing like a stream. Budget the worst thing a normal user does.</p>
+<p><strong>Cell size.</strong> This is the part people get backwards. The cell is not drawn by transmit power. It's drawn by the slowest rate the AP will talk at. The minimum basic rate is what beacons, probe responses and most management frames go out at, and a client can only join where it can decode a beacon. A beacon at 6 Mb/s decodes a long way out. Raise the MBR to 24 and the beacon needs about 8 dB more signal, which on lesson 1's rule is a lot less floor. The client at the edge that used to sit at 6 Mb/s, taking ten or twenty times the airtime of everyone else for the same frame, can't associate there any more. It finds a closer AP, which is what you put the closer AP in for.</p>
+<p>Aruba's Instant radio profile has <code>min-tx-power</code> and <code>max-tx-power</code>. Those are power. They move where the signal reaches; they don't change what rate the beacon goes out at. Rates live in the SSID profile, and that's this lesson's knob.</p>
+<h2>The number that matters</h2>
+<p>Two pieces of arithmetic. First, demand on a cell, which is lesson 5's airtime in a different coat:</p>
+<pre><code>airtime needed = clients x per-client demand (both directions, it's half duplex)
+                 ------------------------------------------------------------
+                  realistic throughput of the cell at the rates clients get
+</code></pre>
+<p>Worked once, with a model figure on the bottom line. Twenty-five laptops on a 5 GHz radio, all on Teams video at the recommended 1,500 kb/s each way. Say the cell really delivers 100 Mb/s, a 40 MHz cell with clients spread over the mid rungs and lesson 5's overhead taken off. That's my model, not a measurement:</p>
+<pre><code>25 x 1.5 Mb/s x 2 directions = 75 Mb/s
+75 / 100 = 0.75, about 75 percent busy before anybody opens a browser
+</code></pre>
+<p>That cell is full. Not broken, full. The fix isn't power. It's a second cell, which is a second AP, which is a second channel, and lesson 6 told you channels are finite. A capacity design is a channel budget as much as an AP budget. Smaller cells, more APs, more co-channel reuse, and the rate you raise this week is what stops those cells hearing each other next week.</p>
+<p>Second, the beacon, the cost you pay whether anyone shows up or not. A beacon is a few hundred bytes; 7SIGNAL's write-up puts it at 60 to 450, so call it 300. It goes out every 102.4 ms per SSID per radio, about ten a second, with a preamble the standard sets: 192 microseconds for the long DSSS preamble at 1 Mb/s, 20 microseconds for OFDM. An approximation, ignoring OFDM symbol padding:</p>
+<pre><code>300 bytes = 2400 bits
+
+at  1 Mb/s:  2400 us + 192 us = 2592 us x 10/s = 25.9 ms/s   2.6 percent
+at  6 Mb/s:   400 us +  20 us =  420 us x 10/s =  4.2 ms/s   0.4 percent
+at 24 Mb/s:   100 us +  20 us =  120 us x 10/s =  1.2 ms/s   0.1 percent
+
+six SSIDs:   1 Mb/s 15.6 percent   6 Mb/s 2.5 percent   24 Mb/s 0.7 percent
+</code></pre>
+<p>Six SSIDs at 1 Mb/s is a sixth of the 2.4 GHz channel spent announcing yourself to nobody, before a single probe response. It's why Mist's WLAN doc says two or three WLANs per AP and names the beacon at the MBR as the reason. The 1 Mb/s line only exists on 2.4 GHz; 5 GHz bottoms out at 6.</p>
 <h2>What the gear shows you</h2>
-<p>Every platform reports received signal strength for a connected client, and they mostly agree on the unit even when they disagree on the name.</p>
-<p>In Aruba Central, open the client from the Clients list and watch the labels. The client detail gives you Signal Quality as SNR in dB, Device Health as a signal strength percentage, and the actual dBm figure as RSSI in the Roaming Experience table further down. Two of those are the received power in different clothes; SNR is that power measured against the noise floor. On the AP itself, <code>show ap debug client-table</code> lists every associated client, but its signal columns are <code>Last_ACK_SNR</code> and <code>Last_Rx_SNR</code>: SNR, dB above the noise floor, not dBm, and that's true on AOS 8, Instant and AOS 10 alike. On an AOS 8 controller the command also takes an <code>ap-name</code>. So don't be surprised when it's a small positive number, and if you want a dBm figure you're going back to Central for it. Same physics, different reference.</p>
-<p>In Mist, open the client from the Clients list and follow its Client Insights link. The status block gives you RSSI and SNR as current values; the charts of both over time need the Marvis for Wireless subscription. The graphed form is the useful one, because a single reading lies and a trend doesn't.</p>
-<p>On the Sidekick, Ekahau lists every AP it can hear with its signal strength (the Network Overview in the Analyzer app), which is the one measurement in this list that doesn't depend on your client's radio. The Sidekick has calibrated radios of its own, and that independence is the whole reason it exists.</p>
+<p>Both vendors have the knob. Aruba splits it in two.</p>
+<p><strong>Aruba.</strong> In Central the WLAN's Advanced settings have Transmit Rates (Legacy Only), a minimum and maximum per band, default 1 to 54 on 2.4 GHz and 6 to 54 on 5 GHz, with no 6 GHz row. There's a separate Beacon Rate per band, default the minimum valid rate, so out of the box the beacon rides the lowest basic rate. On the CLI the split is explicit. Instant and AOS 8 both put it in <code>wlan ssid-profile</code>: <code>a-basic-rates</code> and <code>g-basic-rates</code> are the rates advertised as mandatory in the beacon, <code>a-tx-rates</code> and <code>g-tx-rates</code> are the rates the AP may send data at. Defaults are 6, 12 and 24 basic on 5 GHz, 1 and 2 on 2.4 GHz. AOS 8 adds <code>a-beacon-rate</code> and <code>g-beacon-rate</code>, and the doc says they're for DAS and can cause connectivity problems in normal use. Which of these Central's minimum box writes I haven't confirmed on a box, as of September 2026; check <code>show running-config</code> after. On the signal side the same page has Min SNR for auth request, automatic or a manual dB value, which is Aruba's closest thing to a minimum signal to join.</p>
+<p><strong>Mist.</strong> The WLAN's Data Rates block has four options. Compatible, the default, sets a 1 Mb/s MBR with everything enabled. No Legacy drops 802.11b and sets the MBR to 12. High Density sets 24 and disables everything below. Custom marks each rate per band Disabled, Supported or Mandatory, and the lowest Mandatory becomes the MBR. The doc is careful about what this controls: the AP's transmissions. The client may still transmit at rates you disabled, and it won't be able to connect at them. In the API it's <code>rateset</code> per band, <code>template</code> one of <code>compatible</code>, <code>no-legacy</code>, <code>high-density</code>, <code>custom</code>, and a <code>legacy</code> list where <code>24b</code> means 24 basic. One warning: Mist's design guide and its product doc disagree on the No Legacy MBR, 6 versus 12. Trust the beacon. Separately the WLAN has Geofence, a minimum client RSSI per band that applies to the initial association only; <code>min_rssi</code> in the same <code>rateset</code> object. Aruba's Min SNR measured the other way round.</p>
+<p><strong>Reading the effect.</strong> The honest readout is a capture. A beacon's radiotap header carries the rate it was sent at, and its Supported Rates element flags the basic ones. Ekahau AI Pro's Optimizer has a Min Basic Rate check; which column, if any, the Analyzer app shows the beacon rate in I haven't checked as of September 2026. For who survived, Central's Clients list and Mist's WiFi Clients page. For who didn't, Mist's Client Insights has Association Failure and 802.11 Auth Denied in its negative events, which is where a client that can't decode your new beacon lands.</p>
 <h2>The lab</h2>
-<p>One AP, one client, a tape measure, and forty minutes. Outdoors or a large open room, because walls will make the numbers lie and that's next lesson's problem.</p>
+<p>One AP, one laptop, tape on the floor, under an hour.</p>
 <ol>
-<li>Note the AP's transmit power. Central shows it per radio; Mist shows it on the AP's radio settings. Fix it if it's on auto, so it doesn't change during the lab.</li>
-<li>Stand 2 m from the AP with the client associated on 5 GHz. Wait a minute for the reading to settle, then record RSSI from the platform and from the Sidekick.</li>
-<li>Move to 4 m. Record again. Then 8 m, then 16 m.</li>
-<li>Put the four numbers in a row.</li>
+<li>Pin the AP: fixed channel, 20 MHz, fixed power. Confirm default rates, Aruba minimum 6 on 5 GHz, Mist Compatible. Disable the 2.4 GHz radio for the hour or you'll measure the wrong band.</li>
+<li>Mark lesson 1's spots at 2, 4, 8 and 16 m and keep walking the line until the laptop drops. Tape that. Note RSSI and Tx|Rx Rate from Central, or Current Values in Client Insights, at each spot.</li>
+<li>Raise the floor. Aruba: minimum transmit rate 24 on 5 GHz. Mist: High Density. Both touch the beacon, so expect the laptop to drop and don't be surprised if the radio resets.</li>
+<li>Reconnect at 2 m and walk the line again. Tape where the laptop can no longer join. Note the RSSI there.</li>
+<li>Sidekick capture on your channel, thirty seconds before and after. Filter to beacons, read the rate, count them, and multiply by the duration from the code block if you want the airtime figure back as a measurement.</li>
+<li>Put it back. Don't be the person who leaves a lab AP at 24 in a building with printers.</li>
 </ol>
-<p>What you should see: each step drops by something close to 6 dB. Not exactly. Reflections, the client's antenna, and the fact that you're standing there will push it around by a couple of dB, and that's fine.</p>
-<figure class="wide">
-<div class="pan"><img src="../media/academy-01-six-db.png" alt="Four link budget strips at 2, 4, 8 and 16 metres reading minus 27, minus 33, minus 39 and minus 45 dBm, each step 6 dB below the one above" width="1204" height="1176" loading="lazy"></div>
-<figcaption>The same link modelled in free space at your four distances, for a 26 dBm EIRP radio on 5 GHz: -27, -33, -39, -45 dBm, and 6.02 dB between each one. A 20 dBm radio starts 6 dB lower and steps the same. That is the whole rule. Your room will read lower than these and the steps will be bigger, which is next week's lesson and not a bad measurement.</figcaption>
-</figure>
-
-<figure>
-<video controls playsinline preload="metadata" poster="../media/academy-01-six-db.jpg" src="../media/academy-01-six-db.mp4" width="1280" height="600"></video>
-<figcaption>The same walk without stopping, 2 m out to 16 m, with the received power tracking it down the curve.</figcaption>
-</figure>
-
-<p>You can drive this one yourself in the <a href="../simulator.html">simulator</a>.</p>
-<p>What means something's off: a drop of 15 dB on one step usually means you walked behind something, or the client roamed to another AP, which the platform will show you. A reading that doesn't change at all across two steps means the number you're reading is being averaged too slowly, or the client picked a different radio. Check the BSSID the client is on before you trust any step.</p>
-<p>Then do it once on 2.4 GHz. The steps still drop about 6 dB each, and at the same transmit power they start from a higher number. Check the 2.4 GHz radio's power before you compare, because APs are routinely set lower on 2.4 to stop the cell swallowing the building, and that alone can erase the gap you're looking for. Match the power and the gap that's left is the wavelength difference from the top of this lesson, and now you've measured it.</p>
+<p><strong>What you should see.</strong> The join edge moves in. 24 Mb/s wants about 8 dB more than 6 to decode, and 6 dB per doubling of distance puts the new edge at about 40 percent of the old distance, the standard's expectation and not a promise. Beacons in the capture go from 6 to 24 and each one takes about a third of the airtime. The laptop's rate at 2 m doesn't move; you changed the floor, not the ceiling.</p>
+<p><strong>What means it's broken.</strong> A client that won't join at any distance has a radio that doesn't support your new floor. It's always a printer. A laptop that reconnects but sits at 6 Mb/s means the beacon didn't change, and on Aruba that's the moment to check whether basic rates or only tx rates moved. Association Failure in Mist at a spot where it used to join isn't broken. That's the lesson working.</p>
 <h2>Three questions</h2>
-<p>Is 100 mW more or less than 23 dBm, and by how much? A client's signal went from -60 to -66 dBm; what happened to the received power? You've moved to four times your original distance from the AP; roughly how much signal did you give up?</p>
-<p>Answers: less, by 3 dB. It dropped to a quarter. About 12 dB.</p>
+<ol>
+<li>You double the transmit power on an AP. What happens to the rate its beacons go out at, and to the edge where a client can associate?</li>
+<li>A 2.4 GHz radio carries six SSIDs at a 1 Mb/s MBR. About what share of the channel is beacons, and what does it drop to at 12?</li>
+<li>Forty laptops on Teams video on one 5 GHz radio at the recommended bitrate. With this lesson's model cell, how many radios?</li>
+</ol>
+<p>Answers: The beacon rate doesn't change, the edge moves out, and you've made the airtime hog's cell bigger. About 16 percent at 1 Mb/s; at 12 a beacon is 200 plus 20 microseconds, about 1.3 percent for six. Forty times 1.5 times two is 120 Mb/s against a 100 Mb/s cell, so two radios, and on 2.4 GHz there's no second channel to put it on.</p>
 <h2>Next week</h2>
-<p>Bands, channels and widths. Where 2.4, 5 and 6 GHz live, what the U-NII blocks are, and what you pay for a wider channel. The lab is the same AP with the width changed, and the client's rate table telling you what it cost.</p></div>
+<p>Surveys and what a heatmap can't see. Predictive, AP-on-a-stick and validation, with a one-room passive survey on the Sidekick cross-checked against what the AP is really on.</p></div>
       
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 1 of 11</span></h3><div class="ser-steps"><a class="ser-step here" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-01-what-a-radio-actually-sends" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 9 of 11</span></h3><div class="ser-steps"><a class="ser-step" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span></a><a class="ser-step" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step here" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-10-capacity-not-coverage" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -805,7 +850,7 @@ html.qam-fs .rig{display:none}
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="channel-173-survey-blind-spot.html"><span class="eyebrow">Older</span>Your Survey Tool Can&#x27;t See Channel 173</a><a class="pn g-card" href="how-the-banner-works.html"><span class="eyebrow">Newer</span>The Banner Is a Wi-Fi Link You Can Break</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-09-roaming-the-client-decides.html"><span class="eyebrow">Older</span>Roaming: the Client Decides</a><a class="pn g-card" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="eyebrow">Newer</span>Surveys and What a Heatmap Can&#x27;t See</a></div>
     </section>
   </article>
 </div>

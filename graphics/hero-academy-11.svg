@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 11: Surveys and what a heatmap can't see. The same small room drawn twice as a signal heatmap. Left, all channels scanned: three access points on channels 36, 173 and 100, green everywhere. Right, channel 173 removed from the scan list: two access points and a grey hole where the third one was, labelled not heard. Beside it, the controller's own readout for that AP: channel 173, 80 MHz, EIRP 21 dBm, 14 clients, three days up. Caption: the hole is in the scan list, not the building.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .m  { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #EAF2F6; }
+      .md { font-family: 'JetBrains Mono', monospace; font-size: 11px; fill: #B0C4CF; }
+      .mh { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.5px; fill: #8BA2AE; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #8CE05E; font-weight: 600; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .room { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.25); stroke-width: 1.5; }
+      .wall { stroke: rgba(255,255,255,0.25); stroke-width: 1.5; }
+      .ap { fill: #EAF2F6; stroke: #0b1218; stroke-width: 1.5; }
+      .apl { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: #0b1218; font-weight: 600; }
+      .apx { fill: none; stroke: #8BA2AE; stroke-width: 1.5; stroke-dasharray: 2 2; }
+      .apx2 { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: #B0C4CF; }
+    </style>
+    <radialGradient id="heat" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8CE05E" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#8CE05E" stop-opacity="0.75"/>
+      <stop offset="75%" stop-color="#5ED2DA" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#5ED2DA" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hole" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8BA2AE" stop-opacity="0.35"/>
+      <stop offset="70%" stop-color="#8BA2AE" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#8BA2AE" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <text x="24" y="36" class="eb">LESSON 11: SURVEYS AND WHAT A HEATMAP CAN'T SEE</text>
+  <text x="24" y="66" class="hl">Same room, same three APs. One channel left off the scan list.</text>
+
+  <text x="24" y="96" class="mh">ALL CHANNELS SCANNED</text>
+  <text x="346" y="96" class="mh">CHANNEL 173 NOT IN THE SCAN LIST</text>
+<clipPath id="clipa"><rect x="24" y="108" width="300" height="170" rx="6"/></clipPath>
+<rect x="24" y="108" width="300" height="170" rx="6" class="room"/>
+<g clip-path="url(#clipa)">
+<circle cx="84" cy="150" r="118" fill="url(#heat)"/>
+<circle cx="250" cy="150" r="118" fill="url(#heat)"/>
+<circle cx="170" cy="238" r="118" fill="url(#heat)"/>
+</g>
+<line x1="174.0" y1="108" x2="174.0" y2="184.5" class="wall"/>
+<line x1="24" y1="213.4" x2="123.0" y2="213.4" class="wall"/>
+<circle cx="84" cy="150" r="5" class="ap"/>
+<text x="84" y="140" text-anchor="middle" class="apl">ch 36</text>
+<circle cx="250" cy="150" r="5" class="ap"/>
+<text x="250" y="140" text-anchor="middle" class="apl">ch 173</text>
+<circle cx="170" cy="238" r="5" class="ap"/>
+<text x="170" y="228" text-anchor="middle" class="apl">ch 100</text>
+<clipPath id="clipb"><rect x="346" y="108" width="300" height="170" rx="6"/></clipPath>
+<rect x="346" y="108" width="300" height="170" rx="6" class="room"/>
+<g clip-path="url(#clipb)">
+<circle cx="572" cy="150" r="92" fill="url(#hole)"/>
+<circle cx="406" cy="150" r="118" fill="url(#heat)"/>
+<circle cx="492" cy="238" r="118" fill="url(#heat)"/>
+</g>
+<line x1="496.0" y1="108" x2="496.0" y2="184.5" class="wall"/>
+<line x1="346" y1="213.4" x2="445.0" y2="213.4" class="wall"/>
+<circle cx="406" cy="150" r="5" class="ap"/>
+<text x="406" y="140" text-anchor="middle" class="apl">ch 36</text>
+<circle cx="492" cy="238" r="5" class="ap"/>
+<text x="492" y="228" text-anchor="middle" class="apl">ch 100</text>
+<circle cx="572" cy="150" r="5" class="apx"/>
+<text x="572" y="140" text-anchor="middle" class="apx2">not heard</text>
+
+  <!-- controller readout -->
+  <rect x="668" y="86" width="208" height="192" rx="8" class="box"/>
+  <text x="684" y="106" class="mh">WHAT THE CONTROLLER SAYS</text>
+  <text x="684" y="124" class="ts">show ap bss-table, that AP</text>
+  <line x1="680" y1="132" x2="864" y2="132" stroke="rgba(255,255,255,0.12)"/>
+  <text x="684" y="152" class="md">ch/EIRP/max-EIRP</text>
+  <text x="684" y="170" class="mo">173E/21/24</text>
+  <text x="684" y="194" class="md">cur-cl</text>
+  <text x="684" y="212" class="mg">14</text>
+  <text x="684" y="236" class="md">tot-t</text>
+  <text x="684" y="254" class="m">259200 s</text>
+  <text x="684" y="272" class="ts">Radiating fine. Not listened to.</text>
+
+  <text x="24" y="320" class="cap">The hole is in the scan list, not the building. Read the AP's real channel before you trust the map.</text>
+</svg>

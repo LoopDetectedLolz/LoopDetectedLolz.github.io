@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>What a Radio Actually Sends</title>
-<meta name="description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
+<title>Joining a Network</title>
+<meta name="description" content="A client doesn&#x27;t connect. It climbs a ladder of a dozen exchanges, and every rung is somewhere it can fall off. This is the ladder in order, what each platform shows you for each rung, and a lab that breaks it three ways so you learn which rung each failure lands on.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/academy-08-joining-a-network.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="What a Radio Actually Sends">
-<meta property="og:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
+<meta property="og:title" content="Joining a Network">
+<meta property="og:description" content="A client doesn&#x27;t connect. It climbs a ladder of a dozen exchanges, and every rung is somewhere it can fall off. This is the ladder in order, what each platform shows you for each rung, and a lab that breaks it three ways so you learn which rung each failure lands on.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/academy-08-joining-a-network.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/academy-08-joining-a-network.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="What a Radio Actually Sends">
-<meta name="twitter:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-10"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "What a Radio Actually Sends", "description": "Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.", "datePublished": "2026-09-10", "image": "https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html", "keywords": "Wireless, Academy, RF"}</script>
+<meta name="twitter:title" content="Joining a Network">
+<meta name="twitter:description" content="A client doesn&#x27;t connect. It climbs a ladder of a dozen exchanges, and every rung is somewhere it can fall off. This is the ladder in order, what each platform shows you for each rung, and a lab that breaks it three ways so you learn which rung each failure lands on.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-08-joining-a-network.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-10-01"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Joining a Network", "description": "A client doesn't connect. It climbs a ladder of a dozen exchanges, and every rung is somewhere it can fall off. This is the ladder in order, what each platform shows you for each rung, and a lab that breaks it three ways so you learn which rung each failure lands on.", "datePublished": "2026-10-01", "image": "https://networkfieldnotes.com/og/academy-08-joining-a-network.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-08-joining-a-network.html", "keywords": "Wireless, Academy, ClearPass"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -553,99 +553,140 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 10, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">What a Radio Actually Sends</h1>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Oct 1, 2026 &#183; 11 min</span></div>
+      <h1 class="h-hero">Joining a Network</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A dBm ladder from 30 dBm (1 W) down to -90 dBm (1 pW) with the 3 dB, 10 dB and doubling-distance rules, and a wavelength comparison for 2.4, 5 and 6 GHz">
-  <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#F5A524;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
-    .bx{fill:rgba(0,0,0,0.45);stroke:rgba(255,255,255,0.12)}.bt{fill:#fff;font-size:13px;font-weight:600}.mut{fill:#8BA2AE;font-size:11px}
-  </style></defs>
-  <text x="30" y="36" class="t eyebrow">LESSON 1: WHAT A RADIO ACTUALLY SENDS</text>
-  <text x="30" y="66" class="t big">Three anchors, two rules, and you can do the math in your head.</text>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 8: Joining a network. A vertical ladder of the join sequence. Left column, the frames between client and AP: probe, 802.11 authentication, association, EAPOL-Start and EAP identity, the EAP method round trips, EAP-Success, the 4-way handshake highlighted, DHCP, then a green first data frame. Right column, the RADIUS leg to ClearPass: Access-Request, N Access-Challenges, Access-Accept carrying the PMK material, with a note that PSK has no RADIUS leg. Caption: every rung is a place it can fail.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .tw { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #EAF2F6; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .mh { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.5px; fill: #8BA2AE; }
+      .m  { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #EAF2F6; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mt { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #5ED2DA; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #8CE05E; font-weight: 600; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .rail { stroke: rgba(255,255,255,0.18); stroke-width: 2; }
+      .rung { stroke: rgba(255,255,255,0.25); stroke-width: 1.5; }
+      .rungo { stroke: #F5A524; stroke-width: 2; }
+      .rungg { stroke: #8CE05E; stroke-width: 2; }
+      .link { stroke: #5ED2DA; stroke-width: 1.2; stroke-dasharray: 3 3; fill: none; }
+    </style>
+  </defs>
 
-  <!-- the ladder -->
-  <g class="t">
-    <line x1="120" y1="96" x2="120" y2="306" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
-    <g font-size="12">
-      <circle cx="120" cy="100" r="5" fill="#F5A524"/><text x="136" y="104" class="mono" fill="#fff">+30 dBm</text><text x="216" y="104" class="mut">1 W, legal ceiling for most of what we do</text>
-      <circle cx="120" cy="134" r="5" fill="#F5A524"/><text x="136" y="138" class="mono" fill="#fff">+20 dBm</text><text x="216" y="138" class="mut">100 mW, an enterprise AP radio</text>
-      <circle cx="120" cy="168" r="5" fill="#F5A524"/><text x="136" y="172" class="mono" fill="#fff">  0 dBm</text><text x="216" y="172" class="mut">1 mW, the reference</text>
-      <circle cx="120" cy="202" r="4" fill="#8BA2AE"/><text x="136" y="206" class="mono" fill="#B0C4CF">-30 dBm</text><text x="216" y="206" class="mut">1 microwatt</text>
-      <circle cx="120" cy="236" r="5" fill="#8CE05E"/><text x="136" y="240" class="mono" fill="#fff">-67 dBm</text><text x="216" y="240" class="mut">a good client signal, two ten-millionths of a mW</text>
-      <circle cx="120" cy="270" r="4" fill="#8BA2AE"/><text x="136" y="274" class="mono" fill="#B0C4CF">-90 dBm</text><text x="216" y="274" class="mut">1 picowatt, where the noise floor lives</text>
-    </g>
-    <text x="30" y="104" class="mut">strong</text><text x="30" y="274" class="mut">weak</text>
-  </g>
+  <text x="24" y="36" class="eb">LESSON 8: JOINING A NETWORK</text>
+  <text x="24" y="66" class="hl">Connected is not one event. It's a ladder, and every rung can fail.</text>
 
-  <!-- rules -->
-  <g class="t">
-    <rect x="560" y="92" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="115" class="bt">3 dB is double, or half.</text>
-    <text x="576" y="137" class="lbl">10 dB is ten times, or a tenth. 23 dBm is 200 mW.</text>
-    <rect x="560" y="162" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="185" class="bt">Double the distance, lose about 6 dB.</text>
-    <text x="576" y="207" class="lbl">Four times the distance, 12 dB. That is the lab.</text>
-    <rect x="560" y="232" width="310" height="74" rx="10" class="bx"/>
-    <text x="576" y="255" class="bt">Wavelength picks the behaviour.</text>
-    <text x="576" y="276" class="mono" fill="#B0C4CF">2.4 GHz  12.5 cm     5 GHz  6 cm     6 GHz  5 cm</text>
-    <text x="576" y="296" class="lbl">Shorter gets through gaps, loses more in walls.</text>
-  </g>
-
-  <text x="30" y="326" class="t mono" fill="#F5A524">An AP at +20 dBm heard at -67 dBm: 87 dB of path loss. That number is the whole design.</text>
+  <rect x="24" y="82" width="528" height="214" rx="8" class="box"/>
+  <text x="40" y="98" class="mh">CLIENT AND AP, OVER THE AIR</text>
+  <text x="536" y="98" text-anchor="end" class="mh">FRAMES</text>
+  <line x1="48" y1="110" x2="48" y2="270" class="rail"/>
+  <line x1="74" y1="110" x2="74" y2="270" class="rail"/>
+  <rect x="572" y="82" width="304" height="214" rx="8" class="box"/>
+  <text x="588" y="98" class="mh">RADIUS LEG TO CLEARPASS</text>
+  <line x1="48" y1="116" x2="74" y2="116" class="rung"/>
+  <text x="88" y="120" class="tw">Probe request / response</text>
+  <text x="536" y="120" text-anchor="end" class="m">2</text>
+  <line x1="48" y1="136" x2="74" y2="136" class="rung"/>
+  <text x="88" y="140" class="tw">802.11 authentication (SAE: 4)</text>
+  <text x="536" y="140" text-anchor="end" class="m">2</text>
+  <line x1="48" y1="156" x2="74" y2="156" class="rung"/>
+  <text x="88" y="160" class="tw">Association request / response</text>
+  <text x="536" y="160" text-anchor="end" class="m">2</text>
+  <line x1="48" y1="176" x2="74" y2="176" class="rung"/>
+  <text x="88" y="180" class="tw">EAPOL-Start, EAP identity</text>
+  <text x="536" y="180" text-anchor="end" class="m">3</text>
+  <path d="M552 176 C 562 176 562 176 572 176" class="link"/>
+  <circle cx="572" cy="176" r="2.5" fill="#5ED2DA"/>
+  <text x="588" y="180" class="mt">Access-Request</text>
+  <line x1="48" y1="196" x2="74" y2="196" class="rung"/>
+  <text x="88" y="200" class="tw">EAP-TLS or PEAP round trips</text>
+  <text x="536" y="200" text-anchor="end" class="m">2N</text>
+  <path d="M552 196 C 562 196 562 196 572 196" class="link"/>
+  <circle cx="572" cy="196" r="2.5" fill="#5ED2DA"/>
+  <text x="588" y="200" class="mt">Access-Challenge x N</text>
+  <line x1="48" y1="216" x2="74" y2="216" class="rung"/>
+  <text x="88" y="220" class="tw">EAP-Success</text>
+  <text x="536" y="220" text-anchor="end" class="m">1</text>
+  <path d="M552 216 C 562 216 562 216 572 216" class="link"/>
+  <circle cx="572" cy="216" r="2.5" fill="#5ED2DA"/>
+  <text x="588" y="220" class="mt">Access-Accept + PMK material</text>
+  <rect x="32" y="227" width="512" height="20" rx="4" fill="rgba(245,165,36,0.10)" stroke="rgba(245,165,36,0.35)" stroke-width="1"/>
+  <line x1="48" y1="236" x2="74" y2="236" class="rungo"/>
+  <text x="88" y="240" class="mo">4-way handshake  M1 M2 M3 M4</text>
+  <text x="536" y="240" text-anchor="end" class="mo">4</text>
+  <line x1="48" y1="256" x2="74" y2="256" class="rung"/>
+  <text x="88" y="260" class="tw">DHCP discover, offer, request, ack</text>
+  <text x="536" y="260" text-anchor="end" class="m">4</text>
+  <line x1="48" y1="276" x2="74" y2="276" class="rungg"/>
+  <circle cx="61" cy="276" r="4" fill="#8CE05E"/>
+  <text x="88" y="280" class="mg">First data frame the user asked for</text>
+  <text x="536" y="280" text-anchor="end" class="mg">PSK 14 / EAP 18+2N</text>
+  <text x="588" y="240" class="ts">Login Status: Accept, Reject or Timeout</text>
+  <text x="588" y="260" class="ts">No row at all: it never got in the door</text>
+  <text x="588" y="280" class="ts">PSK: no RADIUS leg. PMK from the passphrase.</text>
+  <text x="24" y="322" class="cap">Every rung is a place it can fail, and each one fails on a different screen. Learn the order.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 1. Fundamentals first, then a lab on real gear</div>
-      <div class="prose"><p>This is the first lesson of the Wireless Academy, and it starts with the thing every wireless conversation eventually gets stuck on: the numbers. RSSI is -67 dBm. Is that good? The AP is at 20 dBm. Is that a lot? Somebody wants "more signal." How much more, and what does more even mean?</p>
-<p>By the end of this one you'll be able to answer those without a calculator, and you'll have measured it yourself on an AP you own.</p>
-<h2>What's actually leaving the antenna</h2>
-<p>A Wi-Fi radio sends an electromagnetic wave. Three things describe it. Frequency is how many times a second it oscillates, and it's what picks the band: 2.4 GHz, 5 GHz, 6 GHz. Wavelength is how long one cycle is in space, and it falls out of frequency directly: the speed of light divided by the frequency. At 2.4 GHz that's about 12.5 cm. At 5 GHz it's about 6 cm, and at 6 GHz about 5 cm.</p>
-<p>That matters more than it sounds. A shorter wavelength interacts with objects differently. It gets through gaps more easily but loses more energy going through walls, and it doesn't bend around corners as well. Most of the "5 GHz doesn't reach as far as 2.4" gap is wavelength. The frequency term in free space loss alone costs about 6 dB going from 2.4 to 5 GHz. It isn't all of it, though. Regulatory caps differ by band, and so does whatever per-band power your APs are actually set to.</p>
-<p>Amplitude is how strong the wave is, and that's the one we spend our lives measuring. The problem is the range. The AP transmits something like 100 milliwatts. The client, a few rooms away, receives something like a ten-billionth of that. Writing those two numbers next to each other in milliwatts is useless, so we don't.</p>
-<h2>The number that matters: dBm</h2>
-<p>We use decibels relative to one milliwatt, dBm. The definition is 10 times the log of the power in milliwatts, and you don't need to remember that. You need to remember three anchors and two rules.</p>
-<p>Anchors: 0 dBm is 1 mW. 20 dBm is 100 mW, roughly what an enterprise AP radio transmits. 30 dBm is 1 W. In the US that's the FCC ceiling for an AP at 2.4 GHz and in U-NII-1 and U-NII-3, while U-NII-2A and 2C cap you at 24 dBm. Indoor 6 GHz is a different kind of limit, 5 dBm per MHz of EIRP, so a 20 MHz channel tops out around 18 dBm EIRP and only a 320 MHz one gets near 30. Treat 30 dBm as the outer wall, not a number you're entitled to.</p>
-<p>Rule one: 3 dB doubles or halves the power. Rule two: 10 dB is ten times or a tenth. Everything else is those two combined. 23 dBm is 20 plus 3, so 200 mW. 13 dBm is 10 plus 3, so 20 mW. Going down, -70 dBm is seven tens below 1 mW, which is one ten-millionth of a milliwatt. That's a workable data signal, although most designs want -67 dBm or better once voice or density is involved, and it's why we don't write it in milliwatts.</p>
-<p>When two dBm numbers are compared you get a plain dB difference. An AP at 20 dBm and a client hearing it at -67 dBm are 87 dB apart. That 87 dB is the total link loss, path loss plus whatever the two antennas gave back or took away, and it's the number a wireless design lives or dies on.</p>
-<p>One rule for free space that you'll use constantly: every time you double the distance, you lose about 6 dB. Four times the distance is 12 dB. That's what the lab is about.</p>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 8. Fundamentals first, then a lab on real gear</div>
+      <div class="prose"><p>Last week was whether the radio can hear the AP through the noise. This week is what happens once it can, because "connected" is not one event. It's a ladder.</p>
+<p>The user says the Wi-Fi is down. The helpdesk says the password is wrong. The RADIUS admin says nothing hit the server. The DHCP admin says the scope has leases. All four are looking at a different rung of the same ladder, and the fix depends on which rung the client fell off. Learn the rungs in order and the platform screens stop being a pile of events and start being a story with a page number.</p>
+<h2>The ladder</h2>
+<p><strong>Discovery.</strong> On 2.4 and 5 GHz the client either listens for beacons, one channel at a time for a beacon interval, 100 TU or 102.4 ms by default, or sends a probe request and gets a probe response. Two frames. On 6 GHz the client isn't allowed to blind-probe every channel, so the AP announces itself with FILS Discovery frames or unsolicited probe responses about every 20 ms, and its 2.4 and 5 GHz beacons carry a Reduced Neighbor Report pointing at the 6 GHz radio. Discovery is the rung that leaves nothing on the AP when it fails, because the client never talked to it.</p>
+<p><strong>802.11 authentication.</strong> Two frames, sequence 1 and 2, with a status code. Open system, which is what WPA2-PSK and Enterprise use here, proves nothing; it's there so the state machine can move. WPA3-Personal replaces it with SAE, four authentication frames, commit and confirm each way, and the PMK falls out of that exchange instead of the passphrase.</p>
+<p><strong>Association.</strong> Request and response, another status code, and an AID if it's zero. The client is now authenticated and associated, and on an RSN network every data frame it sends is dropped until the keys exist. Capability mismatches fail here. Status code 43 is the client offering no AKM the AP is configured for.</p>
+<p><strong>EAP, enterprise only.</strong> The client may send EAPOL-Start; the AP sends an EAP identity request either way and the client answers with an identity. The AP wraps that in a RADIUS Access-Request to ClearPass, ClearPass answers with an Access-Challenge, and that pair repeats for every step of the method. EAP-TLS is a certificate exchange both ways inside those round trips; PEAP-MSCHAPv2 is a TLS tunnel with a password challenge inside. It ends with an Access-Accept carrying the key material in MS-MPPE-Recv-Key and MS-MPPE-Send-Key, or an Access-Reject. The AP turns the accept into EAP-Success and the first 256 bits of the master session key become the PMK.</p>
+<p><strong>PSK, where it differs.</strong> No RADIUS leg. Both ends compute the PMK from the passphrase and the SSID, PBKDF2 with 4096 iterations, 256 bits out. The AP can't tell a wrong passphrase from a right one until the next rung.</p>
+<p><strong>The 4-way handshake.</strong> Four EAPOL-Key frames. Message 1, AP to client, carries the ANonce. Message 2 carries the SNonce and a MIC. Both ends now have the PMK, both nonces and both MAC addresses, so both derive the same PTK. Message 3 carries the group key, the GTK, encrypted with the PTK. Message 4 says the keys are installed. A wrong PSK fails at message 2, because the MIC doesn't check. The AP's answer is a deauth, and the client's answer is usually to try again, because computers are very patient.</p>
+<p><strong>DHCP.</strong> Discover, offer, request, ack. Four messages, and they're encrypted data frames, so the radio thinks the client is on. The user is still watching it spin.</p>
+<p>Then the first frame the user actually asked for. Every rung above it needs something different: the right channel, a status code of zero, a certificate the server trusts, a passphrase both ends agree on, a DHCP server that can hear a broadcast. And every rung fails on a different screen.</p>
+<h2>The number that matters</h2>
+<p>Count the exchanges between the first probe and the first useful frame. N is the number of EAP request and response pairs after the identity exchange, which is the same as the number of RADIUS Access-Challenge round trips.</p>
+<pre><code>PSK:      2 probe + 2 auth + 2 assoc + 4 EAPOL-Key + 4 DHCP        = 14 on the air, 0 to RADIUS
+EAP-TLS:  2 + 2 + 2 + 1 EAPOL-Start + 2 identity + 2N + 1 EAP-Success + 4 + 4
+                                                                     = 18 + 2N on the air, N + 1 RADIUS round trips
+          with N = 8:  34 frames on the air, 18 RADIUS packets on the wire
+</code></pre>
+<p>N = 8 is the model's placeholder for a client certificate with a short chain; count yours off the capture in the lab and replace it. The point is the ratio. Enterprise more than doubles the ladder, and the extra rungs cross the wire to a server with its own queue, its own certificate checks and its own idea of a timeout. A roam is this ladder again, minus discovery, every time the client moves. 802.11r, OKC and PMK caching exist to skip the EAP rungs on the second climb, and if you know the count you know what they're saving.</p>
 <h2>What the gear shows you</h2>
-<p>Every platform reports received signal strength for a connected client, and they mostly agree on the unit even when they disagree on the name.</p>
-<p>In Aruba Central, open the client from the Clients list and watch the labels. The client detail gives you Signal Quality as SNR in dB, Device Health as a signal strength percentage, and the actual dBm figure as RSSI in the Roaming Experience table further down. Two of those are the received power in different clothes; SNR is that power measured against the noise floor. On the AP itself, <code>show ap debug client-table</code> lists every associated client, but its signal columns are <code>Last_ACK_SNR</code> and <code>Last_Rx_SNR</code>: SNR, dB above the noise floor, not dBm, and that's true on AOS 8, Instant and AOS 10 alike. On an AOS 8 controller the command also takes an <code>ap-name</code>. So don't be surprised when it's a small positive number, and if you want a dBm figure you're going back to Central for it. Same physics, different reference.</p>
-<p>In Mist, open the client from the Clients list and follow its Client Insights link. The status block gives you RSSI and SNR as current values; the charts of both over time need the Marvis for Wireless subscription. The graphed form is the useful one, because a single reading lies and a trend doesn't.</p>
-<p>On the Sidekick, Ekahau lists every AP it can hear with its signal strength (the Network Overview in the Analyzer app), which is the one measurement in this list that doesn't depend on your client's radio. The Sidekick has calibrated radios of its own, and that independence is the whole reason it exists.</p>
+<p><strong>Aruba, on the box.</strong> <code>show ap association</code> lists every client with <code>auth</code> and <code>assoc</code> columns and a flags string; <code>S</code> is an SAE client, <code>E</code> an enterprise one. <code>show ap debug client-table</code> has the <code>Assoc_State</code> column, which the doc says shows whether the client is currently authorized and/or associated. On an AOS 8 controller <code>show auth-tracebuf mac &lt;mac&gt;</code> is the authentication state machine per client: the doc example shows <code>station-up</code>, <code>wpa2-key1</code>, <code>wpa2-key2</code> with <code>mic failure</code> against it, and <code>station-data-ready</code> at the end, which is the line you want. <code>show auth-tracebuf failures</code> keeps only the bad ones. For the 802.11 frames themselves, an AOS 8 controller has <code>show ap remote debug mgmt-frames ap-name &lt;name&gt; client-mac &lt;mac&gt;</code> and Instant has <code>show ap debug mgmt-frames</code>, both with <code>stype</code>, <code>SA</code>, <code>DA</code>, <code>BSS</code>, <code>signal</code> and <code>Misc</code> columns and the status in <code>Misc</code>. On AOS 10 the same two views are <code>show ap debug auth-trace-buf+</code>, which prints <code>eap-req</code>, <code>eap-resp</code>, <code>rad-req</code> and <code>rad-resp</code> lines with the RADIUS server named, and <code>show ap debug mgmt-frames+</code>. Both arrived in 10.3.1.0.</p>
+<p><strong>Aruba Central.</strong> Open the client. The Summary has a Connection section with Channel, Band, Client Capabilities and Client Max Speed, and a Network section with Auth Server and DHCP Server, a fast way to check the client is talking to the ClearPass you think it is. The Events tab is the join as a table, Occurred On, Event Type, Description, filterable by type. Under Analyze, Live Events streams the client with a Packet Capture toggle and a Download PCAP button. Under Manage &gt; Overview, Wi-Fi Connectivity is the ladder for the whole site: a summary bar with Association, Authentication, DHCP and DNS success percentages, and a Connection Problems tile that splits authentication failures by type and by server. The AI Insights that match are Clients with High 802.1X Authentication Failures, Clients with High Wi-Fi Security Key-Exchange Failures and Clients with Significant Number of DHCP Server Connection Problems. The ladder again, in three cards.</p>
+<p><strong>Mist.</strong> Open the client, follow Client Insights, and the Client Events section is the ladder with a colour on every rung, with tabs for all, good, neutral or bad. A clean join reads Association, Authorization &amp; Association on 802.1X, DHCP Success, Gateway ARP Success, DNS Success. The bad list has Association Failure, Authorization Failure, SAE Auth Failure, DHCP Timed Out, DHCP Denied and DNS Failure; 802.11 Auth Denied sits in neutral. When Authorization Failure, Association Failure or a DHCP failure fires, Mist takes a Dynamic Packet Capture on its own, pins a paperclip to the event, and Download Packet Capture hands you the pcap. The Successful Connects SLE is the same thing site-wide, classifiers Association, Authorization, DHCP, ARP and DNS, with DHCP split into Discover Unresponsive, Renew Unresponsive, Nack and Incomplete. Time to Connect, next to it, is defined as the seconds from the association frame to the moment the client can move data, which is this lesson's number measured. From the API, <code>GET /api/v1/sites/{site_id}/clients/{client_mac}/events</code> returns the events with <code>type</code>, <code>text</code>, <code>ssid</code>, <code>bssid</code>, <code>band</code> and <code>timestamp</code>; the spec's own example is a <code>CLIENT_DNS_OK</code> with the text <code>Status code 0 "Successful"</code>.</p>
+<p><strong>ClearPass.</strong> Monitoring &gt; Live Monitoring &gt; Access Tracker is the RADIUS leg and nothing else. One row per request: Server Name, Source, Username, Service, Login Status and Request Timestamp, and Login Status is Accept, Reject or Timeout. Click the row and Request Details opens on Summary, where you read which Service matched, then Input, what the AP sent and what ClearPass computed from it, and Output, what went back to the AP with the enforcement profile. Accounting only appears if accounting packets arrived. On a reject there's an Alerts tab with the reason; the 6.12 guide only documents that tab for TACACS+ sessions, but Juniper's ClearPass troubleshooting page sends you there for a RADIUS reject and so do I. The rule that saves the most time: no row at all means ClearPass never accepted the packet, and you go to Monitoring &gt; Event Viewer, Authentication category, and look for Request from Unknown NAD or a shared secret complaint. Access Tracker can only show you what got in the door.</p>
+<p><strong>Sidekick.</strong> The Sidekick 2 with Ekahau Analyzer on a phone takes a packet capture on the AP's channel, and Wireshark then shows the whole ladder as frames, which is the only view that includes the probes. Five minutes per capture is plenty for a join.</p>
 <h2>The lab</h2>
-<p>One AP, one client, a tape measure, and forty minutes. Outdoors or a large open room, because walls will make the numbers lie and that's next lesson's problem.</p>
+<p>One AP on each platform, one 802.1X SSID pointed at the ClearPass lab, EAP-TLS if you have certs on the laptop, PEAP if you don't, one laptop. Under an hour.</p>
 <ol>
-<li>Note the AP's transmit power. Central shows it per radio; Mist shows it on the AP's radio settings. Fix it if it's on auto, so it doesn't change during the lab.</li>
-<li>Stand 2 m from the AP with the client associated on 5 GHz. Wait a minute for the reading to settle, then record RSSI from the platform and from the Sidekick.</li>
-<li>Move to 4 m. Record again. Then 8 m, then 16 m.</li>
-<li>Put the four numbers in a row.</li>
+<li>Pin the channel and power, same as every lab so far.</li>
+<li>Forget the network on the laptop, start Live Events on Central with Packet Capture on, or a Sidekick capture on the channel, and join. Read it top to bottom in the Events tab and in <code>show auth-tracebuf mac &lt;mac&gt;</code> on AOS 8 or <code>show ap debug auth-trace-buf+</code> on AOS 10. Count the <code>eap-req</code> lines. That's your N.</li>
+<li>Same join on the Mist AP. Read it in Client Events, and compare the gap from Association to DNS Success with the Time to Connect SLE.</li>
+<li>Open Access Tracker, find the row by username, open it. Summary for Service and Login Status, Output for the enforcement profile, Input for the NAS IP the AP used.</li>
+<li>Break one: wrong password, or on EAP-TLS an expired or untrusted certificate. Join again on both platforms and find it in all three places.</li>
+<li>Break two: change the RADIUS shared secret on the AP only. Join again. Notice which of the three places is empty.</li>
+<li>Break three: move the client VLAN somewhere with no DHCP, or block UDP 67 on the way to the server. Join again.</li>
+<li>Put it all back and do one clean join so you leave with a good capture next to three bad ones.</li>
 </ol>
-<p>What you should see: each step drops by something close to 6 dB. Not exactly. Reflections, the client's antenna, and the fact that you're standing there will push it around by a couple of dB, and that's fine.</p>
-<figure class="wide">
-<div class="pan"><img src="../media/academy-01-six-db.png" alt="Four link budget strips at 2, 4, 8 and 16 metres reading minus 27, minus 33, minus 39 and minus 45 dBm, each step 6 dB below the one above" width="1204" height="1176" loading="lazy"></div>
-<figcaption>The same link modelled in free space at your four distances, for a 26 dBm EIRP radio on 5 GHz: -27, -33, -39, -45 dBm, and 6.02 dB between each one. A 20 dBm radio starts 6 dB lower and steps the same. That is the whole rule. Your room will read lower than these and the steps will be bigger, which is next week's lesson and not a bad measurement.</figcaption>
-</figure>
-
-<figure>
-<video controls playsinline preload="metadata" poster="../media/academy-01-six-db.jpg" src="../media/academy-01-six-db.mp4" width="1280" height="600"></video>
-<figcaption>The same walk without stopping, 2 m out to 16 m, with the received power tracking it down the curve.</figcaption>
-</figure>
-
-<p>You can drive this one yourself in the <a href="../simulator.html">simulator</a>.</p>
-<p>What means something's off: a drop of 15 dB on one step usually means you walked behind something, or the client roamed to another AP, which the platform will show you. A reading that doesn't change at all across two steps means the number you're reading is being averaged too slowly, or the client picked a different radio. Check the BSSID the client is on before you trust any step.</p>
-<p>Then do it once on 2.4 GHz. The steps still drop about 6 dB each, and at the same transmit power they start from a higher number. Check the 2.4 GHz radio's power before you compare, because APs are routinely set lower on 2.4 to stop the cell swallowing the building, and that alone can erase the gap you're looking for. Match the power and the gap that's left is the wavelength difference from the top of this lesson, and now you've measured it.</p>
+<p><strong>What you should see.</strong> On the clean join, the ladder in order on every platform, with the RADIUS leg visible only in ClearPass and the AP's trace buffer. Break one is Login Status Reject with the reason on Alerts, Authorization Failure on Mist with a paperclip, and on Aruba a <code>rad-resp</code> with no <code>station-data-ready</code> after it. Break two is the useful one: the client sees the same failure as break one, but Access Tracker has no row, and the AP trace shows <code>rad-req</code> lines with nothing coming back. The evidence moved to Event Viewer. Break three fools people: ClearPass says Accept, the handshake finishes, Aruba's client table says associated, Mist says Authorization &amp; Association in green, then DHCP Timed Out in red with Discover Unresponsive under the Successful Connects SLE. Everything below the DHCP rung is fine and the user still can't get on. The frame counts are what the model expects; measured ones go in when I have them.</p>
+<p><strong>What means it's broken.</strong> A reject with a Service you didn't expect means the request matched the wrong service; the fix is in the service rules, not the auth source. Nothing in Access Tracker and nothing in Event Viewer means the packet never left the AP: check the server IP and the AP's route before you touch ClearPass. A <code>mic failure</code> on <code>wpa2-key2</code> with PSK is the passphrase; after a clean Accept on 802.1X it means the two ends derived different PMKs, and in my experience that's the supplicant or the driver. DHCP failures on one platform and a clean join on the other with the same VLAN is a switch port, not a wireless problem.</p>
 <h2>Three questions</h2>
-<p>Is 100 mW more or less than 23 dBm, and by how much? A client's signal went from -60 to -66 dBm; what happened to the received power? You've moved to four times your original distance from the AP; roughly how much signal did you give up?</p>
-<p>Answers: less, by 3 dB. It dropped to a quarter. About 12 dB.</p>
+<ol>
+<li>A client is associated, the AP shows it, and Access Tracker shows Accept, but the user has no IP. Which rung, and which screen proves it?</li>
+<li>You change the shared secret on the AP and get the password wrong on the laptop in the same afternoon. Which one leaves a row in Access Tracker?</li>
+<li>On PSK, the client keeps associating and getting deauthed a second later. Where in the ladder is it failing and why can't the AP tell you sooner?</li>
+</ol>
+<p>Answers: DHCP; Mist Client Events with DHCP Timed Out, or Central's Wi-Fi Connectivity DHCP stage, and Access Tracker can't show it because ClearPass was done two rungs earlier. The wrong password, as a Reject; the wrong shared secret leaves nothing, and you find it in Event Viewer. The 4-way handshake, at message 2, because with PSK the AP has no way to check the passphrase until the client's MIC arrives, so association always succeeds first.</p>
 <h2>Next week</h2>
-<p>Bands, channels and widths. Where 2.4, 5 and 6 GHz live, what the U-NII blocks are, and what you pay for a wider channel. The lab is the same AP with the width changed, and the client's rate table telling you what it cost.</p></div>
+<p>Roaming, and why the client decides. Everything in this lesson happens again every time the laptop moves, and 802.11k, v and r are three ways to make the second climb shorter.</p></div>
       
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 1 of 11</span></h3><div class="ser-steps"><a class="ser-step here" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-01-what-a-radio-actually-sends" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 7 of 11</span></h3><div class="ser-steps"><a class="ser-step" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span></a><a class="ser-step" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step here" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-08-joining-a-network" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -805,7 +846,7 @@ html.qam-fs .rig{display:none}
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="channel-173-survey-blind-spot.html"><span class="eyebrow">Older</span>Your Survey Tool Can&#x27;t See Channel 173</a><a class="pn g-card" href="how-the-banner-works.html"><span class="eyebrow">Newer</span>The Banner Is a Wi-Fi Link You Can Break</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="eyebrow">Older</span>Noise, SNR, and Why RSSI Lies</a><a class="pn g-card" href="academy-09-roaming-the-client-decides.html"><span class="eyebrow">Newer</span>Roaming: the Client Decides</a></div>
     </section>
   </article>
 </div>

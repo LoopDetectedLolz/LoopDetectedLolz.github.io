@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>What a Radio Actually Sends</title>
-<meta name="description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
+<title>Interference From Yourself</title>
+<meta name="description" content="A reader with twelve APs on one big floor asked whether adding APs makes the edge worse, and whether anything self-tunes. The answer is that AP count was never the variable. Channel width is, and the automation only moves the two knobs you let it.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/academy-06-interference-from-yourself.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="What a Radio Actually Sends">
-<meta property="og:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
+<meta property="og:title" content="Interference From Yourself">
+<meta property="og:description" content="A reader with twelve APs on one big floor asked whether adding APs makes the edge worse, and whether anything self-tunes. The answer is that AP count was never the variable. Channel width is, and the automation only moves the two knobs you let it.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/academy-06-interference-from-yourself.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/academy-06-interference-from-yourself.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="What a Radio Actually Sends">
-<meta name="twitter:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-10"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "What a Radio Actually Sends", "description": "Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.", "datePublished": "2026-09-10", "image": "https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html", "keywords": "Wireless, Academy, RF"}</script>
+<meta name="twitter:title" content="Interference From Yourself">
+<meta name="twitter:description" content="A reader with twelve APs on one big floor asked whether adding APs makes the edge worse, and whether anything self-tunes. The answer is that AP count was never the variable. Channel width is, and the automation only moves the two knobs you let it.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-06-interference-from-yourself.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-29"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Interference From Yourself", "description": "A reader with twelve APs on one big floor asked whether adding APs makes the edge worse, and whether anything self-tunes. The answer is that AP count was never the variable. Channel width is, and the automation only moves the two knobs you let it.", "datePublished": "2026-09-29", "image": "https://networkfieldnotes.com/og/academy-06-interference-from-yourself.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-06-interference-from-yourself.html", "keywords": "Wireless, Academy, RF"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -553,99 +553,177 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 10, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">What a Radio Actually Sends</h1>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 29, 2026 &#183; 10 min</span></div>
+      <h1 class="h-hero">Interference From Yourself</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A dBm ladder from 30 dBm (1 W) down to -90 dBm (1 pW) with the 3 dB, 10 dB and doubling-distance rules, and a wavelength comparison for 2.4, 5 and 6 GHz">
-  <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#F5A524;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
-    .bx{fill:rgba(0,0,0,0.45);stroke:rgba(255,255,255,0.12)}.bt{fill:#fff;font-size:13px;font-weight:600}.mut{fill:#8BA2AE;font-size:11px}
-  </style></defs>
-  <text x="30" y="36" class="t eyebrow">LESSON 1: WHAT A RADIO ACTUALLY SENDS</text>
-  <text x="30" y="66" class="t big">Three anchors, two rules, and you can do the math in your head.</text>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 6: Interference from yourself. The same twelve-AP floor drawn three times as a grid of squares labelled by channel. At 20 MHz there are 25 channels, reuse 2.1, every AP alone with 13 channels spare. At 40 MHz there are 12 channels, reuse 1.0, every AP alone with none spare. At 80 MHz there are 6 channels, reuse 0.5, so every colour appears twice and those two APs share one channel. Caption: at 80 MHz every colour appears twice; those two APs share one channel and each gets about half its airtime.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .pt { font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; fill: #EAF2F6; }
+      .m  { font-family: 'JetBrains Mono', monospace; font-size: 11px; fill: #EAF2F6; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mt { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #5ED2DA; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #8CE05E; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .sq { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+    </style>
+  </defs>
 
-  <!-- the ladder -->
-  <g class="t">
-    <line x1="120" y1="96" x2="120" y2="306" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
-    <g font-size="12">
-      <circle cx="120" cy="100" r="5" fill="#F5A524"/><text x="136" y="104" class="mono" fill="#fff">+30 dBm</text><text x="216" y="104" class="mut">1 W, legal ceiling for most of what we do</text>
-      <circle cx="120" cy="134" r="5" fill="#F5A524"/><text x="136" y="138" class="mono" fill="#fff">+20 dBm</text><text x="216" y="138" class="mut">100 mW, an enterprise AP radio</text>
-      <circle cx="120" cy="168" r="5" fill="#F5A524"/><text x="136" y="172" class="mono" fill="#fff">  0 dBm</text><text x="216" y="172" class="mut">1 mW, the reference</text>
-      <circle cx="120" cy="202" r="4" fill="#8BA2AE"/><text x="136" y="206" class="mono" fill="#B0C4CF">-30 dBm</text><text x="216" y="206" class="mut">1 microwatt</text>
-      <circle cx="120" cy="236" r="5" fill="#8CE05E"/><text x="136" y="240" class="mono" fill="#fff">-67 dBm</text><text x="216" y="240" class="mut">a good client signal, two ten-millionths of a mW</text>
-      <circle cx="120" cy="270" r="4" fill="#8BA2AE"/><text x="136" y="274" class="mono" fill="#B0C4CF">-90 dBm</text><text x="216" y="274" class="mut">1 picowatt, where the noise floor lives</text>
-    </g>
-    <text x="30" y="104" class="mut">strong</text><text x="30" y="274" class="mut">weak</text>
-  </g>
-
-  <!-- rules -->
-  <g class="t">
-    <rect x="560" y="92" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="115" class="bt">3 dB is double, or half.</text>
-    <text x="576" y="137" class="lbl">10 dB is ten times, or a tenth. 23 dBm is 200 mW.</text>
-    <rect x="560" y="162" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="185" class="bt">Double the distance, lose about 6 dB.</text>
-    <text x="576" y="207" class="lbl">Four times the distance, 12 dB. That is the lab.</text>
-    <rect x="560" y="232" width="310" height="74" rx="10" class="bx"/>
-    <text x="576" y="255" class="bt">Wavelength picks the behaviour.</text>
-    <text x="576" y="276" class="mono" fill="#B0C4CF">2.4 GHz  12.5 cm     5 GHz  6 cm     6 GHz  5 cm</text>
-    <text x="576" y="296" class="lbl">Shorter gets through gaps, loses more in walls.</text>
-  </g>
-
-  <text x="30" y="326" class="t mono" fill="#F5A524">An AP at +20 dBm heard at -67 dBm: 87 dB of path loss. That number is the whole design.</text>
+  <text x="24" y="36" class="eb">LESSON 6: INTERFERENCE FROM YOURSELF</text>
+  <text x="24" y="66" class="hl">Same twelve APs. The width decides who shares.</text>
+  <rect x="24" y="86" width="270" height="216" rx="8" class="box"/>
+  <text x="40" y="108" class="pt">20 MHz</text>
+  <text x="278" y="108" text-anchor="end" class="mg">25 channels</text>
+  <rect x="67" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="87.0" y="144.0" text-anchor="middle" class="m">36</text>
+  <rect x="115" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="135.0" y="144.0" text-anchor="middle" class="m">40</text>
+  <rect x="163" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="183.0" y="144.0" text-anchor="middle" class="m">44</text>
+  <rect x="211" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="231.0" y="144.0" text-anchor="middle" class="m">48</text>
+  <rect x="67" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="87.0" y="192.0" text-anchor="middle" class="m">52</text>
+  <rect x="115" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="135.0" y="192.0" text-anchor="middle" class="m">56</text>
+  <rect x="163" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="183.0" y="192.0" text-anchor="middle" class="m">60</text>
+  <rect x="211" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="231.0" y="192.0" text-anchor="middle" class="m">64</text>
+  <rect x="67" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="87.0" y="240.0" text-anchor="middle" class="m">100</text>
+  <rect x="115" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="135.0" y="240.0" text-anchor="middle" class="m">104</text>
+  <rect x="163" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="183.0" y="240.0" text-anchor="middle" class="m">108</text>
+  <rect x="211" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="231.0" y="240.0" text-anchor="middle" class="m">112</text>
+  <text x="40" y="278" class="mg">reuse 25 / 12 = 2.1</text>
+  <text x="40" y="294" class="ts">every AP alone, 13 spare</text>
+  <rect x="315" y="86" width="270" height="216" rx="8" class="box"/>
+  <text x="331" y="108" class="pt">40 MHz</text>
+  <text x="569" y="108" text-anchor="end" class="mt">12 channels</text>
+  <rect x="358" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="378.0" y="144.0" text-anchor="middle" class="m">38</text>
+  <rect x="406" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="426.0" y="144.0" text-anchor="middle" class="m">46</text>
+  <rect x="454" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="474.0" y="144.0" text-anchor="middle" class="m">54</text>
+  <rect x="502" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="522.0" y="144.0" text-anchor="middle" class="m">62</text>
+  <rect x="358" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="378.0" y="192.0" text-anchor="middle" class="m">102</text>
+  <rect x="406" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="426.0" y="192.0" text-anchor="middle" class="m">110</text>
+  <rect x="454" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="474.0" y="192.0" text-anchor="middle" class="m">118</text>
+  <rect x="502" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="522.0" y="192.0" text-anchor="middle" class="m">126</text>
+  <rect x="358" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="378.0" y="240.0" text-anchor="middle" class="m">134</text>
+  <rect x="406" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="426.0" y="240.0" text-anchor="middle" class="m">142</text>
+  <rect x="454" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="474.0" y="240.0" text-anchor="middle" class="m">151</text>
+  <rect x="502" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="522.0" y="240.0" text-anchor="middle" class="m">159</text>
+  <text x="331" y="278" class="mt">reuse 12 / 12 = 1.0</text>
+  <text x="331" y="294" class="ts">every AP alone, none spare</text>
+  <rect x="606" y="86" width="270" height="216" rx="8" class="box"/>
+  <text x="622" y="108" class="pt">80 MHz</text>
+  <text x="860" y="108" text-anchor="end" class="mo">6 channels</text>
+  <rect x="649" y="120" width="40" height="40" rx="4" fill="rgba(245,165,36,0.55)" stroke="#F5A524" stroke-width="1"/>
+  <text x="669.0" y="144.0" text-anchor="middle" class="m">42</text>
+  <rect x="697" y="120" width="40" height="40" rx="4" fill="rgba(140,224,94,0.55)" stroke="#8CE05E" stroke-width="1"/>
+  <text x="717.0" y="144.0" text-anchor="middle" class="m">58</text>
+  <rect x="745" y="120" width="40" height="40" rx="4" fill="rgba(94,210,218,0.55)" stroke="#5ED2DA" stroke-width="1"/>
+  <text x="765.0" y="144.0" text-anchor="middle" class="m">106</text>
+  <rect x="793" y="120" width="40" height="40" rx="4" fill="rgba(245,165,36,0.22)" stroke="#F5A524" stroke-width="1"/>
+  <text x="813.0" y="144.0" text-anchor="middle" class="m">122</text>
+  <rect x="649" y="168" width="40" height="40" rx="4" fill="rgba(140,224,94,0.22)" stroke="#8CE05E" stroke-width="1"/>
+  <text x="669.0" y="192.0" text-anchor="middle" class="m">138</text>
+  <rect x="697" y="168" width="40" height="40" rx="4" fill="rgba(94,210,218,0.22)" stroke="#5ED2DA" stroke-width="1"/>
+  <text x="717.0" y="192.0" text-anchor="middle" class="m">155</text>
+  <rect x="745" y="168" width="40" height="40" rx="4" fill="rgba(94,210,218,0.55)" stroke="#5ED2DA" stroke-width="1"/>
+  <text x="765.0" y="192.0" text-anchor="middle" class="m">106</text>
+  <rect x="793" y="168" width="40" height="40" rx="4" fill="rgba(245,165,36,0.55)" stroke="#F5A524" stroke-width="1"/>
+  <text x="813.0" y="192.0" text-anchor="middle" class="m">42</text>
+  <rect x="649" y="216" width="40" height="40" rx="4" fill="rgba(94,210,218,0.22)" stroke="#5ED2DA" stroke-width="1"/>
+  <text x="669.0" y="240.0" text-anchor="middle" class="m">155</text>
+  <rect x="697" y="216" width="40" height="40" rx="4" fill="rgba(140,224,94,0.55)" stroke="#8CE05E" stroke-width="1"/>
+  <text x="717.0" y="240.0" text-anchor="middle" class="m">58</text>
+  <rect x="745" y="216" width="40" height="40" rx="4" fill="rgba(245,165,36,0.22)" stroke="#F5A524" stroke-width="1"/>
+  <text x="765.0" y="240.0" text-anchor="middle" class="m">122</text>
+  <rect x="793" y="216" width="40" height="40" rx="4" fill="rgba(140,224,94,0.22)" stroke="#8CE05E" stroke-width="1"/>
+  <text x="813.0" y="240.0" text-anchor="middle" class="m">138</text>
+  <text x="622" y="278" class="mo">reuse 6 / 12 = 0.5</text>
+  <text x="622" y="294" class="ts">every channel carries two APs</text>
+  <text x="24" y="324" class="cap">At 80 MHz every colour appears twice. Those two APs share one channel, and each gets about half its airtime.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 1. Fundamentals first, then a lab on real gear</div>
-      <div class="prose"><p>This is the first lesson of the Wireless Academy, and it starts with the thing every wireless conversation eventually gets stuck on: the numbers. RSSI is -67 dBm. Is that good? The AP is at 20 dBm. Is that a lot? Somebody wants "more signal." How much more, and what does more even mean?</p>
-<p>By the end of this one you'll be able to answer those without a calculator, and you'll have measured it yourself on an AP you own.</p>
-<h2>What's actually leaving the antenna</h2>
-<p>A Wi-Fi radio sends an electromagnetic wave. Three things describe it. Frequency is how many times a second it oscillates, and it's what picks the band: 2.4 GHz, 5 GHz, 6 GHz. Wavelength is how long one cycle is in space, and it falls out of frequency directly: the speed of light divided by the frequency. At 2.4 GHz that's about 12.5 cm. At 5 GHz it's about 6 cm, and at 6 GHz about 5 cm.</p>
-<p>That matters more than it sounds. A shorter wavelength interacts with objects differently. It gets through gaps more easily but loses more energy going through walls, and it doesn't bend around corners as well. Most of the "5 GHz doesn't reach as far as 2.4" gap is wavelength. The frequency term in free space loss alone costs about 6 dB going from 2.4 to 5 GHz. It isn't all of it, though. Regulatory caps differ by band, and so does whatever per-band power your APs are actually set to.</p>
-<p>Amplitude is how strong the wave is, and that's the one we spend our lives measuring. The problem is the range. The AP transmits something like 100 milliwatts. The client, a few rooms away, receives something like a ten-billionth of that. Writing those two numbers next to each other in milliwatts is useless, so we don't.</p>
-<h2>The number that matters: dBm</h2>
-<p>We use decibels relative to one milliwatt, dBm. The definition is 10 times the log of the power in milliwatts, and you don't need to remember that. You need to remember three anchors and two rules.</p>
-<p>Anchors: 0 dBm is 1 mW. 20 dBm is 100 mW, roughly what an enterprise AP radio transmits. 30 dBm is 1 W. In the US that's the FCC ceiling for an AP at 2.4 GHz and in U-NII-1 and U-NII-3, while U-NII-2A and 2C cap you at 24 dBm. Indoor 6 GHz is a different kind of limit, 5 dBm per MHz of EIRP, so a 20 MHz channel tops out around 18 dBm EIRP and only a 320 MHz one gets near 30. Treat 30 dBm as the outer wall, not a number you're entitled to.</p>
-<p>Rule one: 3 dB doubles or halves the power. Rule two: 10 dB is ten times or a tenth. Everything else is those two combined. 23 dBm is 20 plus 3, so 200 mW. 13 dBm is 10 plus 3, so 20 mW. Going down, -70 dBm is seven tens below 1 mW, which is one ten-millionth of a milliwatt. That's a workable data signal, although most designs want -67 dBm or better once voice or density is involved, and it's why we don't write it in milliwatts.</p>
-<p>When two dBm numbers are compared you get a plain dB difference. An AP at 20 dBm and a client hearing it at -67 dBm are 87 dB apart. That 87 dB is the total link loss, path loss plus whatever the two antennas gave back or took away, and it's the number a wireless design lives or dies on.</p>
-<p>One rule for free space that you'll use constantly: every time you double the distance, you lose about 6 dB. Four times the distance is 12 dB. That's what the lab is about.</p>
-<h2>What the gear shows you</h2>
-<p>Every platform reports received signal strength for a connected client, and they mostly agree on the unit even when they disagree on the name.</p>
-<p>In Aruba Central, open the client from the Clients list and watch the labels. The client detail gives you Signal Quality as SNR in dB, Device Health as a signal strength percentage, and the actual dBm figure as RSSI in the Roaming Experience table further down. Two of those are the received power in different clothes; SNR is that power measured against the noise floor. On the AP itself, <code>show ap debug client-table</code> lists every associated client, but its signal columns are <code>Last_ACK_SNR</code> and <code>Last_Rx_SNR</code>: SNR, dB above the noise floor, not dBm, and that's true on AOS 8, Instant and AOS 10 alike. On an AOS 8 controller the command also takes an <code>ap-name</code>. So don't be surprised when it's a small positive number, and if you want a dBm figure you're going back to Central for it. Same physics, different reference.</p>
-<p>In Mist, open the client from the Clients list and follow its Client Insights link. The status block gives you RSSI and SNR as current values; the charts of both over time need the Marvis for Wireless subscription. The graphed form is the useful one, because a single reading lies and a trend doesn't.</p>
-<p>On the Sidekick, Ekahau lists every AP it can hear with its signal strength (the Network Overview in the Analyzer app), which is the one measurement in this list that doesn't depend on your client's radio. The Sidekick has calibrated radios of its own, and that independence is the whole reason it exists.</p>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 6. Fundamentals first, then a lab on real gear</div>
+      <div class="prose"><p>Last week was airtime, the one thing a channel has and everything on it shares. This week the thing sharing it is your own AP across the hall.</p>
+<p>A reader asked under lesson 2, on LinkedIn. He has twelve APs on one very large single floor. Does the cell edge get worse as he keeps adding APs? And is there a system that self-tests and adjusts, or is it trial and error? Two good questions, and the answer to the first one depends on a number he didn't give me. It isn't twelve.</p>
+<h2>The count isn't the variable</h2>
+<p>Adding an AP puts a radio closer to somebody. Closer means a stronger signal, a higher MCS row, a better edge. What makes the edge worse is a thirteenth AP on the same channel as one you already had, and whether that happens is decided by width, not by count.</p>
+<p>Here's the US 5 GHz inventory at 20 MHz. U-NII-1: 36, 40, 44, 48. U-NII-2A: 52, 56, 60, 64, DFS required. U-NII-2C: 100 through 144 in steps of four, twelve channels, DFS required. U-NII-3: 149, 153, 157, 161, 165. That's 25, and 16 of them need DFS. The FCC opened the bottom of U-NII-4 above 165 for indoor use in 2020, but almost nothing you'll deploy has radios or clients for it, so I count to 165 and stop.</p>
+<p>Bond them to 40 MHz and you get twelve pairs (165 has no partner). Bond to 80 MHz and you get six: 36 to 48, 52 to 64, 100 to 112, 116 to 128, 132 to 144, 149 to 161.</p>
+<p>Now put his floor on it. Twelve APs at 20 MHz: every AP gets its own channel, thirteen are spare, and a thirteenth AP still gets a clean one. At 40 MHz: twelve channels, twelve APs, the floor is exactly full. At 80 MHz: six channels, twelve APs, every channel already used twice, and on an open floor with no walls those pairs hear each other. He didn't add interference by adding APs. He added it the day somebody set the width to 80.</p>
+<p>That's the line I want you to keep. Giving it 80 MHz everywhere returns the best possible version of a bad design.</p>
+<h2>What actually degrades</h2>
+<p>Two APs on one channel don't corrupt each other, mostly. They wait for each other. Before a radio transmits it runs clear channel assessment, and the standard sets two thresholds on a 20 MHz channel: a decodable 802.11 preamble at -82 dBm or better means busy, and energy it can't decode at -62 dBm or better means busy. An AP across the hall at -70 dBm on your channel is well inside the first rule, so your AP defers, and so do its clients, and so do his. Nobody's frame gets damaged. Everybody's frame gets delayed. An Airheads blogger has called this co-channel contention rather than interference for a decade, and he's right, but the label stuck.</p>
+<p>So the thing that degrades is airtime, and only airtime. The client's RSSI reads what it read before. Same SNR, same MCS row, half the throughput. If you're staring at a signal number to find the problem, you're on the wrong page. Computers are very patient about waiting their turn.</p>
+<p>Adjacent channels are the other case and they behave the opposite way. A transmitter isn't a brick wall in frequency. The 80 MHz spectral mask is flat to 39 MHz off centre, down 20 dB at 41 MHz, down 28 dB at 80 and down 40 dB at 120. That skirt lands in the next block. It isn't a preamble, so nothing defers to it. It's energy you can't decode, which is noise. It raises the floor, eats SNR and pushes the far clients down a row. Same channel costs you time; next-door channel costs you signal. Lesson 7 opens on that floor.</p>
+<p>One thing about the word "adjacent" at 80 MHz. Channels 36, 40, 44 and 48 are the same 80 MHz block with a different primary. Two APs on primaries 36 and 44 are co-channel, full stop. The adjacent channel to that block is 52 to 64, and nothing else is.</p>
+<h2>The number that matters</h2>
+<pre><code>reuse = channels available at that width / APs on the floor
+
+20 MHz:  25 / 12 = 2.1   every AP alone, thirteen channels spare
+40 MHz:  12 / 12 = 1.0   every AP alone, nothing spare
+80 MHz:   6 / 12 = 0.5   every channel carries two APs
+
+airtime per AP when N APs share a channel = about 1/N of the channel
+
+two APs on one 80 MHz channel, client at MCS 9, two streams:
+960.8 Mb/s PHY x 1/2 = 480 Mb/s ceiling, before last week's overhead
+</code></pre>
+<p>Reuse under one means somebody shares. A shared 80 MHz channel, at the model's numbers, is worth about what a 40 MHz channel to itself is worth (458.8 Mb/s at the same row), minus the cost of two APs bumping into each other. You paid for the width and got 40 MHz with extra steps.</p>
+<h2>What the automation does</h2>
+<p>Yes, there's a system on both platforms, and it isn't trial and error. It's an optimiser. It moves two knobs, channel and transmit power, inside a box you drew. It doesn't move antenna gain or walls, and it doesn't move the width unless you let it. The engineer's job is the box: allowed channel list, width, minimum power, maximum power. Give it 80 MHz on a twelve-AP floor and it picks the least-bad six-colour map it can, every night, forever.</p>
+<p><strong>Aruba AOS 10 and Central: AirMatch.</strong> APs send RF statistics to Central on a 24-hour cycle. Central splits the network into partitions, solves for channel, bandwidth and EIRP per radio, and pushes the plan at the hour you chose. In Central it's under Devices &gt; Access Points &gt; Config: the Activate Optimization toggle, the Automatically deploy optimization at drop-down, and Wireless Coverage Tuning, Conservative, Balanced or Aggressive per radio. The Central doc doesn't state a default hour. The AOS 8 <code>airmatch profile</code> does: <code>deploy-hour</code> defaults to 5 and <code>quality-threshold</code> to 8 percent, so a plan has to be 8 percent better before it gets pushed. Your box lives in the Radios tab under RF Coverage: Allowed Channels, Minimum and Maximum bandwidth, and Allowed Transmit Power with a min and a max. Between runs AirMatch still reacts locally to radar, noise and channel quality. The receipts are Channel Changes and Power Changes on the AP Radios tab, and <code>show ap arm history</code> on the AP.</p>
+<p><strong>AOS 8 controllers and Instant: ARM.</strong> Older and different in kind. ARM works from what the individual AP hears, so each AP compensates on its own. Reactive, per AP, no site-wide plan. Instant does the sums in the virtual controller, but still per IAP from that IAP's own scans. The readout is <code>show ap arm rf-summary ap-name &lt;name&gt;</code> on AOS 8, and plain <code>show ap arm rf-summary</code> on the AOS 10 AP from 10.3.1.0. Read retry, noise, util(Qual) and intf_idx, the AP's own co-channel and adjacent-channel score.</p>
+<p><strong>Mist: RRM.</strong> The box is an RF Template under Organization &gt; Wireless &gt; RF Templates: Channels per band, Channel Width, and Power, which is per transmit chain, the lesson 3 catch. The design guide says min power equal to the design's power and max 3 to 6 dB above it. The site-wide pass runs nightly at around 3 a.m. local and the doc says plainly the time isn't configurable. Radar and interference get handled locally, straight away. Site &gt; Radio Management shows the Distribution block (radios per channel) and the Radio Events block, where every change carries a reason: Scheduled site RRM, Triggered site RRM, Interference AP co-channel, Radar detected. Optimize now on that page fires a Triggered site RRM by hand.</p>
 <h2>The lab</h2>
-<p>One AP, one client, a tape measure, and forty minutes. Outdoors or a large open room, because walls will make the numbers lie and that's next lesson's problem.</p>
+<p>Two APs, two laptops, one wired box running <code>iperf3 -s</code>. Under an hour. Two clients because AP B has to be busy, not just present. A beaconing AP costs almost nothing; a transmitting one costs the whole channel.</p>
 <ol>
-<li>Note the AP's transmit power. Central shows it per radio; Mist shows it on the AP's radio settings. Fix it if it's on auto, so it doesn't change during the lab.</li>
-<li>Stand 2 m from the AP with the client associated on 5 GHz. Wait a minute for the reading to settle, then record RSSI from the platform and from the Sidekick.</li>
-<li>Move to 4 m. Record again. Then 8 m, then 16 m.</li>
-<li>Put the four numbers in a row.</li>
+<li>Pin both APs. Same 80 MHz channel, primary 36, fixed power, same power. Note Central's Channel Changes and Power Changes, or Mist's Radio Events, so you can prove nothing moved.</li>
+<li>Sidekick spectrum view on the 36 to 48 block for a minute with both APs idle. Write down the floor. That's your baseline for step 6.</li>
+<li>Laptop 1 on AP A, 3 m away. <code>iperf3 -c &lt;host&gt; -R -t 30</code>. Write down throughput, rate and retries. Central: Tx|Rx Rate and Retry Frames on the client page. AOS: <code>show ap debug client-table</code>, Tx_Rate and Tx_Retries. Mist: Current Values on Client Insights, or <code>tx_retries</code> from <code>GET /api/v1/sites/{site_id}/stats/clients</code>.</li>
+<li>Read the channel too. AOS 8: <code>show ap debug radio-stats ap-name &lt;name&gt; radio 0</code>, the Channel busy 64s line. AOS 10 on the AP: <code>show ap debug radio-stats 0</code>. Central: Access Point &gt; Overview &gt; RF, the Channel Utilization chart, split into Transmitting, Receiving and Non-Wifi Interference. Mist: the Channels charts on AP Insights, or <code>radio_stat</code> from <code>GET /api/v1/sites/{site_id}/stats/devices</code>, which splits <code>util_tx</code>, <code>util_rx_in_bss</code> and <code>util_rx_other_bss</code>. That last field is this lesson in one number.</li>
+<li>Laptop 2 on AP B, 3 m from it, <code>iperf3 -c &lt;host&gt; -R -t 30</code>, and rerun laptop 1 at the same time. Write everything down again.</li>
+<li>Move AP B to primary 100. Rerun both. Then move AP B to primary 52, the block next door, rerun both with the Sidekick on the 36 to 48 block, and check the Noise Floor chart on AP A's RF page or <code>noise_floor</code> in Mist's <code>radio_stat</code>.</li>
 </ol>
-<p>What you should see: each step drops by something close to 6 dB. Not exactly. Reflections, the client's antenna, and the fact that you're standing there will push it around by a couple of dB, and that's fine.</p>
-<figure class="wide">
-<div class="pan"><img src="../media/academy-01-six-db.png" alt="Four link budget strips at 2, 4, 8 and 16 metres reading minus 27, minus 33, minus 39 and minus 45 dBm, each step 6 dB below the one above" width="1204" height="1176" loading="lazy"></div>
-<figcaption>The same link modelled in free space at your four distances, for a 26 dBm EIRP radio on 5 GHz: -27, -33, -39, -45 dBm, and 6.02 dB between each one. A 20 dBm radio starts 6 dB lower and steps the same. That is the whole rule. Your room will read lower than these and the steps will be bigger, which is next week's lesson and not a bad measurement.</figcaption>
-</figure>
-
-<figure>
-<video controls playsinline preload="metadata" poster="../media/academy-01-six-db.jpg" src="../media/academy-01-six-db.mp4" width="1280" height="600"></video>
-<figcaption>The same walk without stopping, 2 m out to 16 m, with the received power tracking it down the curve.</figcaption>
-</figure>
-
-<p>You can drive this one yourself in the <a href="../simulator.html">simulator</a>.</p>
-<p>What means something's off: a drop of 15 dB on one step usually means you walked behind something, or the client roamed to another AP, which the platform will show you. A reading that doesn't change at all across two steps means the number you're reading is being averaged too slowly, or the client picked a different radio. Check the BSSID the client is on before you trust any step.</p>
-<p>Then do it once on 2.4 GHz. The steps still drop about 6 dB each, and at the same transmit power they start from a higher number. Check the 2.4 GHz radio's power before you compare, because APs are routinely set lower on 2.4 to stop the cell swallowing the building, and that alone can erase the gap you're looking for. Match the power and the gap that's left is the wavelength difference from the top of this lesson, and now you've measured it.</p>
+<p><strong>What you should see.</strong> Step 5 is the lesson: laptop 1's throughput drops to roughly half of step 3 while its RSSI, SNR and rate don't move. Channel busy on AP A goes high and only part of it is AP A transmitting. On Mist <code>util_rx_other_bss</code> carries the rest; on Central it shows as Receiving. Retries rise a little, not a lot, because the APs are deferring, not colliding. Step 6 on channel 100 puts laptop 1 back at step 3. Step 6 on 52 should leave throughput near baseline at 3 m and put a shoulder of energy on the Sidekick above 5250 MHz leaking into your block. Whether the AP's own noise floor number moves at that spacing I haven't checked on a box yet, as of September 2026. The spectrum view is the readout; the chart is a bonus.</p>
+<p><strong>What means it's broken.</strong> No drop in step 5 means they aren't sharing: one AP fell back to 40 MHz, or a primary isn't where you think. Check the radio, not the client. Retries that jump by a multiple instead of a little mean a hidden node: the APs can't hear each other but laptop 1 hears both, so they collide instead of deferring. Move the APs closer, which is the opposite of what instinct says. A drop that persists on channel 100 means the shared thing isn't the channel; it's the wired host or the uplink. It's always a laptop, except when it's the switch.</p>
 <h2>Three questions</h2>
-<p>Is 100 mW more or less than 23 dBm, and by how much? A client's signal went from -60 to -66 dBm; what happened to the received power? You've moved to four times your original distance from the AP; roughly how much signal did you give up?</p>
-<p>Answers: less, by 3 dB. It dropped to a quarter. About 12 dB.</p>
+<ol>
+<li>Twelve APs on one floor at 40 MHz, DFS allowed. You add a thirteenth. What's the reuse factor before and after, and what's the cheapest fix?</li>
+<li>A client sits at -55 dBm on AP A. AP B, same channel, is heard at AP A at -70 dBm and starts a big download. What happens to the client's RSSI, and what happens to its throughput?</li>
+<li>Two 80 MHz APs, one on primary 36, one on primary 44. Co-channel or adjacent? And if the second moves to 52?</li>
+</ol>
+<p>Answers: 12/12 = 1.0 before, 12/13 = 0.92 after, and the cheapest fix is to drop the width to 20 MHz on that floor, which makes it 25/13 and buys twelve spare channels for nothing. The RSSI doesn't move at all; the throughput roughly halves, because -70 is well above the -82 dBm preamble threshold so AP A and everything on it defers to AP B. Co-channel, since 36 and 44 are the same 80 MHz block; on 52 it becomes the adjacent block, nothing defers, and the cost shows up in the noise floor instead of in the airtime.</p>
 <h2>Next week</h2>
-<p>Bands, channels and widths. Where 2.4, 5 and 6 GHz live, what the U-NII blocks are, and what you pay for a wider channel. The lab is the same AP with the width changed, and the client's rate table telling you what it cost.</p></div>
+<p>Noise, SNR, and why RSSI lies. Step 6 raised the floor without touching the signal, and that's the whole lesson.</p></div>
       
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 1 of 11</span></h3><div class="ser-steps"><a class="ser-step here" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-01-what-a-radio-actually-sends" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 5 of 11</span></h3><div class="ser-steps"><a class="ser-step" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span></a><a class="ser-step" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step here" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-06-interference-from-yourself" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -805,7 +883,7 @@ html.qam-fs .rig{display:none}
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="channel-173-survey-blind-spot.html"><span class="eyebrow">Older</span>Your Survey Tool Can&#x27;t See Channel 173</a><a class="pn g-card" href="how-the-banner-works.html"><span class="eyebrow">Newer</span>The Banner Is a Wi-Fi Link You Can Break</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-04-modulation-and-data-rates.html"><span class="eyebrow">Older</span>Modulation and Data Rates</a><a class="pn g-card" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="eyebrow">Newer</span>Noise, SNR, and Why RSSI Lies</a></div>
     </section>
   </article>
 </div>

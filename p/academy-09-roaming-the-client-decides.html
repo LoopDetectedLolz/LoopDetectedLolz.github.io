@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>What a Radio Actually Sends</title>
-<meta name="description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
+<title>Roaming: the Client Decides</title>
+<meta name="description" content="The AP never moves a client. It can tell the client who its neighbours are, suggest a better one, or throw it off and hope. What the client is actually doing when it decides, what 802.11k, v and r each change, and a walk test to watch it happen on Mist and Central.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/academy-09-roaming-the-client-decides.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="What a Radio Actually Sends">
-<meta property="og:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
+<meta property="og:title" content="Roaming: the Client Decides">
+<meta property="og:description" content="The AP never moves a client. It can tell the client who its neighbours are, suggest a better one, or throw it off and hope. What the client is actually doing when it decides, what 802.11k, v and r each change, and a walk test to watch it happen on Mist and Central.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/academy-09-roaming-the-client-decides.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/academy-09-roaming-the-client-decides.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="What a Radio Actually Sends">
-<meta name="twitter:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-10"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "What a Radio Actually Sends", "description": "Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.", "datePublished": "2026-09-10", "image": "https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html", "keywords": "Wireless, Academy, RF"}</script>
+<meta name="twitter:title" content="Roaming: the Client Decides">
+<meta name="twitter:description" content="The AP never moves a client. It can tell the client who its neighbours are, suggest a better one, or throw it off and hope. What the client is actually doing when it decides, what 802.11k, v and r each change, and a walk test to watch it happen on Mist and Central.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-09-roaming-the-client-decides.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-10-02"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Roaming: the Client Decides", "description": "The AP never moves a client. It can tell the client who its neighbours are, suggest a better one, or throw it off and hope. What the client is actually doing when it decides, what 802.11k, v and r each change, and a walk test to watch it happen on Mist and Central.", "datePublished": "2026-10-02", "image": "https://networkfieldnotes.com/og/academy-09-roaming-the-client-decides.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-09-roaming-the-client-decides.html", "keywords": "Wireless, Academy, Roaming"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -553,99 +553,134 @@ html.qam-fs .rig{display:none}
   <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
     <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 10, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">What a Radio Actually Sends</h1>
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Oct 2, 2026 &#183; 9 min</span></div>
+      <h1 class="h-hero">Roaming: the Client Decides</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A dBm ladder from 30 dBm (1 W) down to -90 dBm (1 pW) with the 3 dB, 10 dB and doubling-distance rules, and a wavelength comparison for 2.4, 5 and 6 GHz">
-  <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#F5A524;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
-    .bx{fill:rgba(0,0,0,0.45);stroke:rgba(255,255,255,0.12)}.bt{fill:#fff;font-size:13px;font-weight:600}.mut{fill:#8BA2AE;font-size:11px}
-  </style></defs>
-  <text x="30" y="36" class="t eyebrow">LESSON 1: WHAT A RADIO ACTUALLY SENDS</text>
-  <text x="30" y="66" class="t big">Three anchors, two rules, and you can do the math in your head.</text>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 9: Roaming, the client decides. A corridor with AP 1 on the left and AP 2 on the right. Two RSSI curves, one from each AP, cross in the middle at about -61 dBm. The client's actual roam point is marked later, where AP 1 has fallen to -70 dBm, the sticky roam. A second mark shows where 802.11k and 802.11v can pull the roam earlier. Caption: the client decides; the AP can point, ask or shove, but it can't move anyone.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .m  { font-family: 'JetBrains Mono', monospace; font-size: 11px; fill: #8BA2AE; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #8CE05E; font-weight: 600; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .grid { stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .c1 { fill: none; stroke: #5ED2DA; stroke-width: 2.5; }
+      .c2 { fill: none; stroke: #B0C4CF; stroke-width: 2.5; stroke-dasharray: 6 4; }
+      .vo { stroke: #F5A524; stroke-width: 1.5; stroke-dasharray: 3 3; }
+      .vg { stroke: #8CE05E; stroke-width: 1.5; stroke-dasharray: 3 3; }
+      .ap { fill: rgba(0,0,0,0.5); stroke: #B0C4CF; stroke-width: 1.5; }
+    </style>
+  </defs>
 
-  <!-- the ladder -->
-  <g class="t">
-    <line x1="120" y1="96" x2="120" y2="306" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
-    <g font-size="12">
-      <circle cx="120" cy="100" r="5" fill="#F5A524"/><text x="136" y="104" class="mono" fill="#fff">+30 dBm</text><text x="216" y="104" class="mut">1 W, legal ceiling for most of what we do</text>
-      <circle cx="120" cy="134" r="5" fill="#F5A524"/><text x="136" y="138" class="mono" fill="#fff">+20 dBm</text><text x="216" y="138" class="mut">100 mW, an enterprise AP radio</text>
-      <circle cx="120" cy="168" r="5" fill="#F5A524"/><text x="136" y="172" class="mono" fill="#fff">  0 dBm</text><text x="216" y="172" class="mut">1 mW, the reference</text>
-      <circle cx="120" cy="202" r="4" fill="#8BA2AE"/><text x="136" y="206" class="mono" fill="#B0C4CF">-30 dBm</text><text x="216" y="206" class="mut">1 microwatt</text>
-      <circle cx="120" cy="236" r="5" fill="#8CE05E"/><text x="136" y="240" class="mono" fill="#fff">-67 dBm</text><text x="216" y="240" class="mut">a good client signal, two ten-millionths of a mW</text>
-      <circle cx="120" cy="270" r="4" fill="#8BA2AE"/><text x="136" y="274" class="mono" fill="#B0C4CF">-90 dBm</text><text x="216" y="274" class="mut">1 picowatt, where the noise floor lives</text>
-    </g>
-    <text x="30" y="104" class="mut">strong</text><text x="30" y="274" class="mut">weak</text>
-  </g>
+  <text x="24" y="36" class="eb">LESSON 9: ROAMING, THE CLIENT DECIDES</text>
+  <text x="24" y="66" class="hl">The curves cross halfway. The client moves when it wants to.</text>
 
-  <!-- rules -->
-  <g class="t">
-    <rect x="560" y="92" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="115" class="bt">3 dB is double, or half.</text>
-    <text x="576" y="137" class="lbl">10 dB is ten times, or a tenth. 23 dBm is 200 mW.</text>
-    <rect x="560" y="162" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="185" class="bt">Double the distance, lose about 6 dB.</text>
-    <text x="576" y="207" class="lbl">Four times the distance, 12 dB. That is the lab.</text>
-    <rect x="560" y="232" width="310" height="74" rx="10" class="bx"/>
-    <text x="576" y="255" class="bt">Wavelength picks the behaviour.</text>
-    <text x="576" y="276" class="mono" fill="#B0C4CF">2.4 GHz  12.5 cm     5 GHz  6 cm     6 GHz  5 cm</text>
-    <text x="576" y="296" class="lbl">Shorter gets through gaps, loses more in walls.</text>
-  </g>
+  <rect x="24" y="84" width="852" height="212" rx="8" class="box"/>
 
-  <text x="30" y="326" class="t mono" fill="#F5A524">An AP at +20 dBm heard at -67 dBm: 87 dB of path loss. That number is the whole design.</text>
+  <!-- APs -->
+  <rect x="40" y="96" width="46" height="22" rx="4" class="ap"/>
+  <text x="63" y="111" text-anchor="middle" class="t">AP 1</text>
+  <rect x="814" y="96" width="46" height="22" rx="4" class="ap"/>
+  <text x="837" y="111" text-anchor="middle" class="t">AP 2</text>
+
+  <!-- axis -->
+  <line x1="110" y1="153.2" x2="790" y2="153.2" class="grid"/>
+  <line x1="110" y1="207.6" x2="790" y2="207.6" class="grid"/>
+  <line x1="110" y1="262.0" x2="790" y2="262.0" class="grid"/>
+  <text x="102" y="157.2" text-anchor="end" class="m">-50 dBm</text>
+  <text x="102" y="211.6" text-anchor="end" class="m">-70</text>
+  <text x="102" y="266.0" text-anchor="end" class="m">-90</text>
+
+  <!-- curves -->
+  <path d="M110.0,126.0 L120.0,127.6 L130.0,129.2 L140.0,130.8 L150.0,132.4 L160.0,134.1 L170.0,135.7 L180.0,137.3 L190.0,139.0 L200.0,140.6 L210.0,142.2 L220.0,143.9 L230.0,145.5 L240.0,147.2 L250.0,148.9 L260.0,150.5 L270.0,152.2 L280.0,153.9 L290.0,155.6 L300.0,157.2 L310.0,158.9 L320.0,160.6 L330.0,162.3 L340.0,164.0 L350.0,165.8 L360.0,167.5 L370.0,169.2 L380.0,170.9 L390.0,172.6 L400.0,174.4 L410.0,176.1 L420.0,177.9 L430.0,179.6 L440.0,181.4 L450.0,183.1 L460.0,184.9 L470.0,186.6 L480.0,188.4 L490.0,190.2 L500.0,192.0 L510.0,193.8 L520.0,195.6 L530.0,197.4 L540.0,199.2 L550.0,201.0 L560.0,202.8 L570.0,204.6 L580.0,206.4 L590.0,208.2 L600.0,210.0 L610.0,211.9 L620.0,213.7 L630.0,215.6 L640.0,217.4 L650.0,219.3 L660.0,221.1 L670.0,223.0 L680.0,224.8 L690.0,226.7 L700.0,228.6 L710.0,230.5 L720.0,232.4 L730.0,234.2 L740.0,236.1 L750.0,238.0 L760.0,239.9 L770.0,241.8 L780.0,243.8 L790.0,245.7" class="c1"/>
+  <path d="M110.0,245.7 L120.0,243.8 L130.0,241.8 L140.0,239.9 L150.0,238.0 L160.0,236.1 L170.0,234.2 L180.0,232.4 L190.0,230.5 L200.0,228.6 L210.0,226.7 L220.0,224.8 L230.0,223.0 L240.0,221.1 L250.0,219.3 L260.0,217.4 L270.0,215.6 L280.0,213.7 L290.0,211.9 L300.0,210.0 L310.0,208.2 L320.0,206.4 L330.0,204.6 L340.0,202.8 L350.0,201.0 L360.0,199.2 L370.0,197.4 L380.0,195.6 L390.0,193.8 L400.0,192.0 L410.0,190.2 L420.0,188.4 L430.0,186.6 L440.0,184.9 L450.0,183.1 L460.0,181.4 L470.0,179.6 L480.0,177.9 L490.0,176.1 L500.0,174.4 L510.0,172.6 L520.0,170.9 L530.0,169.2 L540.0,167.5 L550.0,165.8 L560.0,164.0 L570.0,162.3 L580.0,160.6 L590.0,158.9 L600.0,157.2 L610.0,155.6 L620.0,153.9 L630.0,152.2 L640.0,150.5 L650.0,148.9 L660.0,147.2 L670.0,145.5 L680.0,143.9 L690.0,142.2 L700.0,140.6 L710.0,139.0 L720.0,137.3 L730.0,135.7 L740.0,134.1 L750.0,132.4 L760.0,130.8 L770.0,129.2 L780.0,127.6 L790.0,126.0" class="c2"/>
+  <text x="116" y="149.0" class="ts" fill="#5ED2DA">RSSI from AP 1</text>
+  <text x="784" y="149.0" text-anchor="end" class="ts">RSSI from AP 2</text>
+
+  <!-- crossing -->
+  <circle cx="450.0" cy="183.1" r="4" fill="none" stroke="#B0C4CF" stroke-width="1.5"/>
+  <text x="450.0" y="138" text-anchor="middle" class="ts">curves cross, about -61 dBm</text>
+  <line x1="450.0" y1="143" x2="450.0" y2="176.1" class="grid"/>
+
+  <!-- 11k/v earlier -->
+  <line x1="478.0" y1="188.1" x2="478.0" y2="270" class="vg"/>
+  <circle cx="478.0" cy="188.1" r="5" fill="#8CE05E"/>
+  <text x="470.0" y="264" text-anchor="end" class="mg">with 11k/v: nudged earlier</text>
+
+  <!-- sticky roam -->
+  <line x1="587" y1="207.7" x2="587" y2="270" class="vo"/>
+  <circle cx="587" cy="207.7" r="5" fill="#F5A524"/>
+  <text x="599" y="191.7" class="mo">actual roam, -70 dBm</text>
+  <text x="599" y="205.7" class="ts">the client's own trigger, not the AP's</text>
+
+  <!-- corridor -->
+  <line x1="110" y1="284" x2="790" y2="284" class="grid"/>
+  <circle cx="330.0" cy="284" r="5" fill="#F5A524"/>
+  <path d="M342.0,284 L390.0,284" stroke="#F5A524" stroke-width="1.5"/>
+  <path d="M384.0,280 L390.0,284 L384.0,288" fill="none" stroke="#F5A524" stroke-width="1.5"/>
+  <text x="400.0" y="288" class="ts">client walking AP 1 to AP 2</text>
+
+  <text x="24" y="320" class="cap">The client decides. The AP can point (11k), ask (11v) or shove (deauth). It can't move anyone.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 1. Fundamentals first, then a lab on real gear</div>
-      <div class="prose"><p>This is the first lesson of the Wireless Academy, and it starts with the thing every wireless conversation eventually gets stuck on: the numbers. RSSI is -67 dBm. Is that good? The AP is at 20 dBm. Is that a lot? Somebody wants "more signal." How much more, and what does more even mean?</p>
-<p>By the end of this one you'll be able to answer those without a calculator, and you'll have measured it yourself on an AP you own.</p>
-<h2>What's actually leaving the antenna</h2>
-<p>A Wi-Fi radio sends an electromagnetic wave. Three things describe it. Frequency is how many times a second it oscillates, and it's what picks the band: 2.4 GHz, 5 GHz, 6 GHz. Wavelength is how long one cycle is in space, and it falls out of frequency directly: the speed of light divided by the frequency. At 2.4 GHz that's about 12.5 cm. At 5 GHz it's about 6 cm, and at 6 GHz about 5 cm.</p>
-<p>That matters more than it sounds. A shorter wavelength interacts with objects differently. It gets through gaps more easily but loses more energy going through walls, and it doesn't bend around corners as well. Most of the "5 GHz doesn't reach as far as 2.4" gap is wavelength. The frequency term in free space loss alone costs about 6 dB going from 2.4 to 5 GHz. It isn't all of it, though. Regulatory caps differ by band, and so does whatever per-band power your APs are actually set to.</p>
-<p>Amplitude is how strong the wave is, and that's the one we spend our lives measuring. The problem is the range. The AP transmits something like 100 milliwatts. The client, a few rooms away, receives something like a ten-billionth of that. Writing those two numbers next to each other in milliwatts is useless, so we don't.</p>
-<h2>The number that matters: dBm</h2>
-<p>We use decibels relative to one milliwatt, dBm. The definition is 10 times the log of the power in milliwatts, and you don't need to remember that. You need to remember three anchors and two rules.</p>
-<p>Anchors: 0 dBm is 1 mW. 20 dBm is 100 mW, roughly what an enterprise AP radio transmits. 30 dBm is 1 W. In the US that's the FCC ceiling for an AP at 2.4 GHz and in U-NII-1 and U-NII-3, while U-NII-2A and 2C cap you at 24 dBm. Indoor 6 GHz is a different kind of limit, 5 dBm per MHz of EIRP, so a 20 MHz channel tops out around 18 dBm EIRP and only a 320 MHz one gets near 30. Treat 30 dBm as the outer wall, not a number you're entitled to.</p>
-<p>Rule one: 3 dB doubles or halves the power. Rule two: 10 dB is ten times or a tenth. Everything else is those two combined. 23 dBm is 20 plus 3, so 200 mW. 13 dBm is 10 plus 3, so 20 mW. Going down, -70 dBm is seven tens below 1 mW, which is one ten-millionth of a milliwatt. That's a workable data signal, although most designs want -67 dBm or better once voice or density is involved, and it's why we don't write it in milliwatts.</p>
-<p>When two dBm numbers are compared you get a plain dB difference. An AP at 20 dBm and a client hearing it at -67 dBm are 87 dB apart. That 87 dB is the total link loss, path loss plus whatever the two antennas gave back or took away, and it's the number a wireless design lives or dies on.</p>
-<p>One rule for free space that you'll use constantly: every time you double the distance, you lose about 6 dB. Four times the distance is 12 dB. That's what the lab is about.</p>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 9. Fundamentals first, then a lab on real gear</div>
+      <div class="prose"><p>Last week was how many exchanges it takes to get on. This week is what happens when the client wants to get on somewhere else.</p>
+<p>Somebody walks from their desk to the meeting room and the call breaks up halfway. The ticket says the Wi-Fi dropped. It didn't. The laptop stayed loyal to the AP by the desk until it was three walls away, then did a full join to the meeting room AP, and the call didn't survive the gap. Nothing in the infrastructure chose that. The decision to roam, when and to where, is made by the device in the user's hand. The AP can only advise or refuse.</p>
+<h2>The client decides</h2>
+<p>A client watches the signal from the AP it's on. When it drops past a threshold the client chose, it scans the channels it thinks are worth scanning and moves if it finds something enough better. Every one of those numbers belongs to the client. Apple publishes theirs, which is why I can quote them. iPhone and iPad hold the current AP until the RSSI crosses -70 dBm. A Mac holds until -75. Once looking, an iPhone wants a candidate 8 dB stronger if it's passing traffic, 12 dB if idle. A Mac wants 12 dB either way. Microsoft doesn't publish a threshold that I can find. Intel adapters have a Roaming Aggressiveness setting, Lowest to Highest with Medium the default, described as moving the signal threshold where the adapter starts scanning. No number, and a driver setting survives nothing, so I don't build on it.</p>
+<p>That gap between "-70 dBm" and "8 dB better" is where sticky clients live. A phone at -71 next to a corridor AP that would give it -60 hasn't seen anything better because it hasn't scanned yet. It's always a laptop.</p>
+<p>The standards give the AP three ways to help.</p>
+<p><strong>802.11k</strong> is a neighbour report. The client asks its AP who the neighbours are and gets BSSIDs and channels. Apple's devices use the first six entries to pick which channels to scan, and Apple's doc says that without it the client scans every channel on every band, which can add several seconds. 11k shortens the search. It doesn't start it.</p>
+<p><strong>802.11v</strong> BSS transition management is a suggestion. The AP sends a frame saying "here's a better AP, please go". The client may go, may decline, may ignore it. Mist's doc says clients are free to ignore it and often do.</p>
+<p><strong>802.11r</strong> fast BSS transition changes what a roam costs, not when it happens. At the first join the client and network set up a top-level key, PMK-R0, and derive a per-AP key, PMK-R1, from it. On a roam the client authenticates to the new AP with FT elements in the authentication frames and finishes with a reassociation. The nonces that would have been the 4-way handshake ride inside those four frames, so there's no separate handshake and no trip to RADIUS. Over-the-air does it directly with the new AP; over-the-DS goes through the current AP in action frames. Mist's API notes its chips don't do over-the-DS and that forcing the bit on breaks iOS, so over-the-air is the one that matters. A client that doesn't speak 11r should still get a normal join on an 11r SSID; Apple's doc says its Intel Macs interoperate that way.</p>
+<p><strong>OKC</strong> is the non-standard cousin. The client reuses the PMK from its first EAP exchange on other APs and skips RADIUS, but as I read it the 4-way handshake still runs, because only the key was cached. Windows and some Android do it. Apple doesn't; Apple's doc is clear that its sticky key caching isn't OKC, and that flavour only helps going back to an AP you've already been on.</p>
+<p>Then there's the shove. Min RSSI, ClientMatch, a plain deauth: the AP decides the client should have left and throws it off. The client then does what it was going to do anyway, only with no connection while it thinks, and the AP only ever knew how well it heard the client, not how well the client heard it. Useful for a client that would otherwise never leave. Not a roaming strategy.</p>
+<p>The honest line: every AP-side mechanism is a suggestion or a shove. Never a decision.</p>
+<h2>The number that matters</h2>
+<p>The cost of a roam is the frames the client must get right before traffic flows again. Mist's roaming doc puts a standard roam at eight messages and an 11r roam at four. Add last week's EAP conversation for an enterprise SSID:</p>
+<pre><code>standard roam, PSK:  auth 2 + assoc 2 + 4-way 4                          =  8 frames
+standard roam, EAP:  auth 2 + assoc 2 + EAP-TLS (a dozen and up) + 4-way 4  = 20 or more
+11r roam, either:    FT auth 2 + FT reassoc 2                             =  4 frames
+</code></pre>
+<p>That's the whole pitch for 11r on a voice SSID: a quarter of the frames of a PSK roam, a fifth or less of an EAP-TLS one, and no RADIUS in the path. Nobody publishes a roam time you can plan against, so I use what the platforms grade against. Mist's Roaming SLE calls an 11r roam slow past 400 ms and a standard or OKC roam slow past 2 seconds. Central flags a roam as high latency past 50 ms. Two vendors, two ideas of slow, and both are just the line they drew.</p>
 <h2>What the gear shows you</h2>
-<p>Every platform reports received signal strength for a connected client, and they mostly agree on the unit even when they disagree on the name.</p>
-<p>In Aruba Central, open the client from the Clients list and watch the labels. The client detail gives you Signal Quality as SNR in dB, Device Health as a signal strength percentage, and the actual dBm figure as RSSI in the Roaming Experience table further down. Two of those are the received power in different clothes; SNR is that power measured against the noise floor. On the AP itself, <code>show ap debug client-table</code> lists every associated client, but its signal columns are <code>Last_ACK_SNR</code> and <code>Last_Rx_SNR</code>: SNR, dB above the noise floor, not dBm, and that's true on AOS 8, Instant and AOS 10 alike. On an AOS 8 controller the command also takes an <code>ap-name</code>. So don't be surprised when it's a small positive number, and if you want a dBm figure you're going back to Central for it. Same physics, different reference.</p>
-<p>In Mist, open the client from the Clients list and follow its Client Insights link. The status block gives you RSSI and SNR as current values; the charts of both over time need the Marvis for Wireless subscription. The graphed form is the useful one, because a single reading lies and a trend doesn't.</p>
-<p>On the Sidekick, Ekahau lists every AP it can hear with its signal strength (the Network Overview in the Analyzer app), which is the one measurement in this list that doesn't depend on your client's radio. The Sidekick has calibrated radios of its own, and that independence is the whole reason it exists.</p>
+<p><strong>Mist.</strong> Open the client from the Insights page and read Client Events. The names carry the roam type: Reassociation, 11r Roam, 11r Reassociation, OKC Roam, and Client Roamed Away from the AP it left. The failures are there too: 11r Auth Failure, 11r FBT Failure, 11r Key Lookup Failure. Click one for the summary and, where the AP kept the buffer, a packet capture. The Roaming SLE grades the same roams: Latency splits into Slow 11r Roams, Slow Standard Roams and Slow OKC Roams; Stability has Failed to Fast Roam; Signal Quality has Interband Roam, Suboptimal Roam (to an AP more than 6 dB worse, or below the coverage threshold) and Sticky Client (stayed put with something more than 6 dB better on offer). From the API, <code>GET /api/v1/sites/{site_id}/events/fast_roam</code> returns each roam with <code>fromap</code>, <code>ap_mac</code>, <code>latency</code> in seconds and a <code>type</code> of success, slow, poor, pingpong, fail or none. The walk test as a list.</p>
+<p>On the WLAN, Security has Fast Roaming: Default is local PMKID caching only, which the doc says doesn't scale, then OKC and .11r. The API's <code>roam_mode</code> takes <code>NONE</code>, <code>OKC</code> or <code>11r</code>. 802.11k and 802.11v are on by default, the WLAN options doc lists no switch for them, and the API's <code>disable_11k</code> sits in the site Wi-Fi settings.</p>
+<p><strong>Aruba Central.</strong> Open the client details page. The Roaming Experience pane lists each roam with Date/Time, SSID, Latency(ms), To BSSID, Source AP, Destination AP, Roaming Type, Band and RSSI (dBm). ClientMatch's own moves are under Analyze, Alerts &amp; Events, Events, with the Advanced Filtering option Client Match Steer. What ClientMatch does, per the doc: for an 11v-capable client it sends a BSS transition request and waits. For one that isn't, every neighbouring radio except the target refuses the client for 5 seconds, and 2 seconds later the current AP sends a deauthentication. A client that ignores five 11v requests goes on an unsteerable list for 24 hours; one that beats three deauth moves, 48. Load-balance moves are 11v only. On AOS 10 the whole thing runs from Central, not a controller.</p>
+<p>The WLAN toggles are on the Security page under Advanced Settings, in a Fast Roaming section: Opportunistic Key Caching (OKC), 802.11r, 802.11k, and 802.11v, worded "802.11v based BSS transition". The 11v toggle is documented on the personal-security page; the enterprise page as written lists only OKC, 11r and 11k, so check the box, as of September 2026.</p>
+<p><strong>AOS 8 and Instant CLI.</strong> <code>show ap client trail-info &lt;mac&gt;</code> prints the Mobility Trail: AP name, BSSID, ESSID and timestamp for every AP the client has been on, plus deauth reasons. <code>show ap arm client-match history client-mac &lt;mac&gt;</code> shows each ClientMatch move with Reason and Status/Roam Time/Mode columns, and <code>show ap arm client-match summary</code> totals moves by type, SM for sticky, LM for load balance, B5G and B6G for band steering, each with Total and Success, and a separate 11v Moves column. On Instant it's <code>show ap client-match-history</code>. 11r is <code>wlan dot11r-profile</code> with <code>dot11r</code> and <code>mob-domain-id</code>, attached to the ssid-profile; 11k is <code>wlan dot11k-profile</code> with <code>dot11k-enable</code>; ClientMatch's 11v use is <code>cm-dot11v</code> in the <code>rf arm-profile</code>, on by default.</p>
+<p><strong>Sidekick.</strong> In my experience, walking the corridor in a passive survey gives you the RSSI from both APs along the route. That's the crossing in the hero, which the client never sees, because it isn't looking.</p>
 <h2>The lab</h2>
-<p>One AP, one client, a tape measure, and forty minutes. Outdoors or a large open room, because walls will make the numbers lie and that's next lesson's problem.</p>
+<p>Two APs on different channels, one phone or laptop, a corridor, under an hour. Pin both APs' channel and power first.</p>
 <ol>
-<li>Note the AP's transmit power. Central shows it per radio; Mist shows it on the AP's radio settings. Fix it if it's on auto, so it doesn't change during the lab.</li>
-<li>Stand 2 m from the AP with the client associated on 5 GHz. Wait a minute for the reading to settle, then record RSSI from the platform and from the Sidekick.</li>
-<li>Move to 4 m. Record again. Then 8 m, then 16 m.</li>
-<li>Put the four numbers in a row.</li>
+<li>Start a continuous ping to the gateway on the client. Note the RSSI from AP 1.</li>
+<li>Walk from AP 1 to AP 2 and back, three times, at walking pace. Don't stop at the crossing.</li>
+<li>Mist: Client Events. Central: the Roaming Experience pane. For each roam write down the RSSI when it moved, the latency reported, and whether it went where you'd have sent it.</li>
+<li>Turn on 802.11r on the SSID. Mist: Fast Roaming to .11r. Central: the 802.11r toggle. Reconnect the client so its first association carries the FT elements.</li>
+<li>Walk again. Mist should now say 11r Roam; Central's Roaming Type should change. Compare latency.</li>
+<li>Turn on 802.11v where it's a toggle and walk once more, watching for a transition request and whether the client took it. On Mist it's on by default, so you're comparing against what you already had.</li>
 </ol>
-<p>What you should see: each step drops by something close to 6 dB. Not exactly. Reflections, the client's antenna, and the fact that you're standing there will push it around by a couple of dB, and that's fine.</p>
-<figure class="wide">
-<div class="pan"><img src="../media/academy-01-six-db.png" alt="Four link budget strips at 2, 4, 8 and 16 metres reading minus 27, minus 33, minus 39 and minus 45 dBm, each step 6 dB below the one above" width="1204" height="1176" loading="lazy"></div>
-<figcaption>The same link modelled in free space at your four distances, for a 26 dBm EIRP radio on 5 GHz: -27, -33, -39, -45 dBm, and 6.02 dB between each one. A 20 dBm radio starts 6 dB lower and steps the same. That is the whole rule. Your room will read lower than these and the steps will be bigger, which is next week's lesson and not a bad measurement.</figcaption>
-</figure>
-
-<figure>
-<video controls playsinline preload="metadata" poster="../media/academy-01-six-db.jpg" src="../media/academy-01-six-db.mp4" width="1280" height="600"></video>
-<figcaption>The same walk without stopping, 2 m out to 16 m, with the received power tracking it down the curve.</figcaption>
-</figure>
-
-<p>You can drive this one yourself in the <a href="../simulator.html">simulator</a>.</p>
-<p>What means something's off: a drop of 15 dB on one step usually means you walked behind something, or the client roamed to another AP, which the platform will show you. A reading that doesn't change at all across two steps means the number you're reading is being averaged too slowly, or the client picked a different radio. Check the BSSID the client is on before you trust any step.</p>
-<p>Then do it once on 2.4 GHz. The steps still drop about 6 dB each, and at the same transmit power they start from a higher number. Check the 2.4 GHz radio's power before you compare, because APs are routinely set lower on 2.4 to stop the cell swallowing the building, and that alone can erase the gap you're looking for. Match the power and the gap that's left is the wavelength difference from the top of this lesson, and now you've measured it.</p>
+<p><strong>What you should see.</strong> Six roams at roughly the same RSSI every time, and on Apple gear at or below the -70 dBm line, not at the crossing. The 11r walk should cut the reported latency hard; the standard says a quarter of the frames, and the platforms grade it against 400 ms instead of 2 seconds. The roam point doesn't move with 11r. Only 11k and 11v can move it, and only if the client listens. Those are the model's expectations; the measured numbers replace them.</p>
+<p><strong>What means it's broken.</strong> A client that never roams until the ping dies is sticky: compare its RSSI at the drop to the neighbour on the Sidekick trace. A roam to the weaker AP is Suboptimal Roam on Mist and usually a stale scan list; 11k is the fix. An 11r walk slower than the plain one means the client doesn't do FT and fell back, or the mobility domain doesn't match across APs; 11r Key Lookup Failure and 11r FBT Failure name it. A roam with no event at all is a disconnect and a rejoin, and the ping gap is last week's join sequence.</p>
 <h2>Three questions</h2>
-<p>Is 100 mW more or less than 23 dBm, and by how much? A client's signal went from -60 to -66 dBm; what happened to the received power? You've moved to four times your original distance from the AP; roughly how much signal did you give up?</p>
-<p>Answers: less, by 3 dB. It dropped to a quarter. About 12 dB.</p>
+<ol>
+<li>An iPhone sits at -68 dBm on AP 1 with AP 2 offering -58. Does it roam?</li>
+<li>An 11r roam on an EAP-TLS SSID: how many frames, and does RADIUS see it?</li>
+<li>ClientMatch wants a non-11v client off an AP. What does it actually do?</li>
+</ol>
+<p>Answers: Not yet. The iPhone's trigger is -70 dBm and it isn't looking until it crosses it, though once it does, 10 dB better clears the 8 dB bar. Four frames, FT authentication and FT reassociation, and RADIUS never hears about it; the key came from the PMK-R0 set up at the first join. It has every neighbouring radio except the target refuse the client for 5 seconds, waits 2, deauthenticates it, and relies on the client rejoining where it's allowed.</p>
 <h2>Next week</h2>
-<p>Bands, channels and widths. Where 2.4, 5 and 6 GHz live, what the U-NII blocks are, and what you pay for a wider channel. The lab is the same AP with the width changed, and the client's rate table telling you what it cost.</p></div>
+<p>Capacity, not coverage. Clients per radio, cell size and the minimum basic rate. We raise it on both platforms and watch the cell shrink.</p></div>
       
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 1 of 11</span></h3><div class="ser-steps"><a class="ser-step here" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-01-what-a-radio-actually-sends" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 8 of 11</span></h3><div class="ser-steps"><a class="ser-step" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span></a><a class="ser-step" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">5</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">6</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">7</span><span class="ser-t">Joining a Network</span></a><a class="ser-step here" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">8</span><span class="ser-t">Roaming: the Client Decides</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-10-capacity-not-coverage.html"><span class="ser-n">9</span><span class="ser-t">Capacity, Not Coverage</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">10</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">11</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-09-roaming-the-client-decides" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -805,7 +840,7 @@ html.qam-fs .rig{display:none}
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="channel-173-survey-blind-spot.html"><span class="eyebrow">Older</span>Your Survey Tool Can&#x27;t See Channel 173</a><a class="pn g-card" href="how-the-banner-works.html"><span class="eyebrow">Newer</span>The Banner Is a Wi-Fi Link You Can Break</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-08-joining-a-network.html"><span class="eyebrow">Older</span>Joining a Network</a><a class="pn g-card" href="academy-10-capacity-not-coverage.html"><span class="eyebrow">Newer</span>Capacity, Not Coverage</a></div>
     </section>
   </article>
 </div>
