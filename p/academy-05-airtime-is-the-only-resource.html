@@ -1,0 +1,2466 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Airtime Is the Only Resource</title>
+<meta name="description" content="Before a Wi-Fi radio starts a transmission, it waits for quiet, draws a random number and counts it down, and every other radio on the channel plays the same game. A laptop linked at 1201 Mb/s that sends one packet per turn moves 55 Mb/s. In the site&#x27;s model, one old 802.11a/g laptop downloading beside it takes its download from about 720 to about 480.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/academy-05-airtime-is-the-only-resource.html">
+<link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
+<meta property="og:site_name" content="Network Field Notes">
+<meta property="og:title" content="Airtime Is the Only Resource">
+<meta property="og:description" content="Before a Wi-Fi radio starts a transmission, it waits for quiet, draws a random number and counts it down, and every other radio on the channel plays the same game. A laptop linked at 1201 Mb/s that sends one packet per turn moves 55 Mb/s. In the site&#x27;s model, one old 802.11a/g laptop downloading beside it takes its download from about 720 to about 480.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/academy-05-airtime-is-the-only-resource.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/academy-05-airtime-is-the-only-resource.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Airtime Is the Only Resource">
+<meta name="twitter:description" content="Before a Wi-Fi radio starts a transmission, it waits for quiet, draws a random number and counts it down, and every other radio on the channel plays the same game. A laptop linked at 1201 Mb/s that sends one packet per turn moves 55 Mb/s. In the site&#x27;s model, one old 802.11a/g laptop downloading beside it takes its download from about 720 to about 480.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-05-airtime-is-the-only-resource.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-28"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Airtime Is the Only Resource", "description": "Before a Wi-Fi radio starts a transmission, it waits for quiet, draws a random number and counts it down, and every other radio on the channel plays the same game. A laptop linked at 1201 Mb/s that sends one packet per turn moves 55 Mb/s. In the site's model, one old 802.11a/g laptop downloading beside it takes its download from about 720 to about 480.", "datePublished": "2026-09-28", "image": "https://networkfieldnotes.com/og/academy-05-airtime-is-the-only-resource.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-05-airtime-is-the-only-resource.html", "keywords": "Wireless, Academy, MAC"}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
+:root{
+  --ink:#061019; --navy:#0E2A3C; --blue:#2FA8E0; --blue-light:#4FBDEA;
+  --teal:#5ED2DA; --green:#8CE05E; --orange:#F5A524; --red:#F0705F; --text:#EAF2F6; --text-dim:#B0C4CF; --text-muted:#8BA2AE;
+  --solid:rgba(3,10,16,0.55); --line:rgba(255,255,255,0.10);
+  --r-pill:999px; --r-inner:16px; --r-chrome:22px; --r-card:26px; --r-hero:32px;
+  --s1:6px; --s2:10px; --s3:14px; --s4:20px; --s5:24px; --s6:28px; --s7:44px;
+  --gutter:20px; --maxw:1120px; --measure:68ch;
+  --ease:cubic-bezier(0.32,0.72,0,1);
+  --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --gb:6px; --veil:0.80;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0;overflow-x:hidden;overscroll-behavior-y:none}
+body{min-height:100vh;min-height:100svh;background:var(--ink);color:var(--text);font-family:var(--sans);
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.ground{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+  radial-gradient(900px 620px at 12% -6%,rgba(47,168,224,0.42),transparent 62%),
+  radial-gradient(760px 560px at 88% 8%,rgba(140,224,94,0.26),transparent 60%),
+  radial-gradient(1000px 700px at 60% 108%,rgba(23,138,168,0.34),transparent 62%),var(--ink)}
+/* topographic ground: .ground is the fallback floor, the canvas is the map, .gx-pane is the
+   glass, .gx-grain is the frost. Frost stays sharp on purpose; scatter lives on the pane. */
+#nfn-fx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block;
+  filter:blur(var(--gb));transform:scale(1.10);transform-origin:center}
+.gx-pane{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--veil);
+  background:linear-gradient(158deg,rgba(255,255,255,0.038) 0%,rgba(255,255,255,0.010) 36%,rgba(255,255,255,0) 60%),
+             radial-gradient(1500px 950px at 50% 122%,rgba(3,10,16,0.22),transparent 72%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(255,255,255,0.04)}
+.gx-grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:calc(var(--veil) * 0.46);
+  mix-blend-mode:overlay;background-size:170px 170px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23n)'/%3E%3C/svg%3E")}
+.page{position:relative;z-index:1}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(var(--gutter),env(safe-area-inset-left));padding-right:max(var(--gutter),env(safe-area-inset-right))}
+.narrow{max-width:900px;margin:0 auto}
+
+/* glass: three levels, never nested */
+.g-chrome{background:rgba(255,255,255,0.07);-webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.16);border-radius:var(--r-chrome);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),inset 0 -1px 0 rgba(255,255,255,0.06),0 18px 44px -22px rgba(0,0,0,0.8)}
+.g-card{background:rgba(255,255,255,0.065);-webkit-backdrop-filter:blur(26px) saturate(175%);backdrop-filter:blur(26px) saturate(175%);
+  border:1px solid rgba(255,255,255,0.14);border-radius:var(--r-card);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 26px 54px -30px rgba(0,0,0,0.8)}
+.g-hero{background:rgba(255,255,255,0.075);-webkit-backdrop-filter:blur(34px) saturate(185%);backdrop-filter:blur(34px) saturate(185%);
+  border:1px solid rgba(255,255,255,0.17);border-radius:var(--r-hero);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.3),0 40px 80px -34px rgba(0,0,0,0.85)}
+.panel{background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+
+/* type */
+h1,h2,h3{margin:0;letter-spacing:-0.025em;text-wrap:pretty;font-weight:700}
+p{text-wrap:pretty;margin:0}
+.eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.16em;color:var(--text-muted)}
+.h-hero{font-size:clamp(30px,6vw,46px);line-height:1.06;letter-spacing:-0.035em}
+.h-card{font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-0.02em}
+.meta{font-family:var(--mono);font-size:13px;color:var(--text-muted)}
+.dim{color:var(--text-dim)}
+a{color:#a9ea82;text-decoration:none}
+a:hover{color:#cbf4b3}
+
+/* header */
+.hdr{position:sticky;top:var(--s4);z-index:40;margin:var(--s4) 0 var(--s6)}
+.hdr-in{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2);padding:var(--s2) var(--s3) var(--s2) var(--s3);
+  transition:background 320ms var(--ease),transform 320ms var(--ease),box-shadow 320ms var(--ease)}
+.hdr.scrolled .hdr-in{background:rgba(255,255,255,0.11);transform:scale(0.985);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 22px 54px -22px rgba(0,0,0,0.9)}
+.brand{display:flex;align-items:center;gap:var(--s2);min-height:44px;color:var(--text);font-weight:700;font-size:17px;letter-spacing:-0.02em}
+.brand:hover{color:var(--text)}
+.brand .mk{width:38px;height:38px;border-radius:12px;background:var(--solid);border:1px solid var(--line);display:grid;place-items:center}
+.brand .mk img{width:26px;height:26px;display:block}
+.brand .wm{white-space:nowrap}
+.nav{margin-left:auto;display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 var(--s3);border-radius:var(--r-pill);
+  border:1px solid transparent;color:var(--text-dim);font-size:15px;font-weight:500;
+  transition:transform 180ms var(--ease),background 220ms var(--ease),color 220ms var(--ease)}
+.pill:hover{color:var(--text);background:rgba(255,255,255,0.06)}
+.pill:active{transform:scale(0.94)}
+.pill.on{position:relative;color:var(--text);font-weight:700;background:rgba(245,165,36,0.12);
+  border-color:rgba(245,165,36,0.9);border-bottom-color:transparent;
+  box-shadow:0 0 0 1px rgba(245,165,36,0.25),0 10px 26px -10px rgba(245,165,36,0.85),inset 0 1px 0 rgba(255,255,255,0.18)}
+.pill.on:hover{color:var(--text);background:rgba(245,165,36,0.16)}
+.pill.soft{background:rgba(255,255,255,0.10);color:var(--text)}
+.pill.outline{border-color:rgba(255,255,255,0.16);background:rgba(255,255,255,0.05);font-family:var(--sans);color:var(--text-muted)}
+.pill.outline svg{width:15px;height:15px}
+.search{display:none;margin:var(--s3) 0 0;width:100%}
+.search input{width:100%;min-height:44px;font:16px var(--sans);color:var(--text);background:var(--solid);border:1px solid var(--line);
+  border-radius:var(--r-pill);padding:0 var(--s4);outline:none}
+.search input:focus{border-color:rgba(79,189,234,0.55)}
+.search.open{display:block}
+
+/* status + category pills */
+a.tag{text-decoration:none;transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+@media (pointer:coarse){a.tag{min-height:38px}#qam-dl{display:inline-flex;align-items:center;min-height:38px}}
+a.tag:hover{transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(0,0,0,0.7)}
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--blue-light);border:1px solid rgba(79,189,234,0.45);background:rgba(47,168,224,0.10);border-radius:var(--r-pill);padding:5px 12px;white-space:nowrap}
+.tag.green{color:#bdf29c;border-color:rgba(140,224,94,0.45);background:rgba(140,224,94,0.10)}
+.tag.c-green{color:#bdf29c;border-color:rgba(140,224,94,0.55);background:rgba(140,224,94,0.12)}
+.tag.c-blue{color:#a8d9f2;border-color:rgba(79,189,234,0.6);background:rgba(47,168,224,0.14)}
+.tag.c-red{color:#ffb3a8;border-color:rgba(240,112,95,0.6);background:rgba(240,112,95,0.14)}
+.chip.c-green{color:#bdf29c;border-color:rgba(140,224,94,0.45)}
+.chip.c-blue{color:#a8d9f2;border-color:rgba(79,189,234,0.5)}
+.chip.c-red{color:#ffb3a8;border-color:rgba(240,112,95,0.5)}
+.chip.on.c-green{background:rgba(140,224,94,0.16)}
+.chip.on.c-blue{background:rgba(47,168,224,0.18)}
+.chip.on.c-red{background:rgba(240,112,95,0.18)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(140,224,94,0.18)}
+
+/* hero = featured post */
+.hero{position:relative;overflow:hidden;padding:var(--s7) var(--s7) var(--s6);margin-bottom:var(--s6)}
+.hero .h-hero{margin:var(--s4) 0 var(--s3);max-width:20ch}
+.hero .lede{max-width:var(--measure)}
+.lede{color:var(--text-dim);font-size:18px;line-height:1.55}
+.sheen{position:absolute;top:-40%;left:0;width:38%;height:180%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,0.13),transparent);filter:blur(14px);animation:nfnSheen 7s linear infinite}
+.glow{position:absolute;right:-8%;top:-30%;width:55%;height:160%;pointer-events:none;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(255,255,255,0.10),transparent 70%)}
+.row{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;margin-top:var(--s5)}
+.btn{display:inline-flex;align-items:center;min-height:46px;padding:0 var(--s5);border-radius:var(--r-pill);
+  border:1px solid rgba(255,255,255,0.16);background:rgba(255,255,255,0.06);color:var(--text);font-weight:600;font-size:16px;
+  transition:transform 180ms var(--ease),background 220ms var(--ease)}
+.btn:hover{background:rgba(255,255,255,0.11);color:var(--text)}
+.btn:active{transform:scale(0.94)}
+.btn.cta{background:linear-gradient(180deg,rgba(255,255,255,0.55),rgba(255,255,255,0) 55%),var(--green);color:#06202A;border-color:transparent;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.65),0 14px 30px -14px rgba(140,224,94,0.9)}
+.btn.cta:hover{color:#06202A}
+
+/* filter */
+/* the home page runs wider than an article, because it carries the rail */
+.wrap.wide{max-width:1320px}
+
+/* browse: category rail beside the grid above 1180, a scroller below it */
+.browse{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s4);margin-top:var(--s6)}
+@media (min-width:1180px){.browse{grid-template-columns:190px minmax(0,1fr);gap:var(--s6);align-items:start}}
+.browse-main .grid{margin-top:0}
+.cat-rail{display:flex;gap:var(--s2);overflow-x:auto;padding:2px 2px var(--s2);scrollbar-width:none}
+.cat-rail::-webkit-scrollbar{display:none}
+.cat-rail .eyebrow{display:none}
+@media (min-width:1180px){
+  .cat-rail{position:sticky;top:92px;flex-direction:column;gap:5px;overflow:visible;padding:0}
+  .cat-rail .eyebrow{display:block;margin:0 0 var(--s2) 13px}
+}
+.cat{--c:rgba(255,255,255,0.30);display:inline-flex;align-items:center;gap:10px;flex:none;min-height:40px;
+  padding:0 var(--s3);border:1px solid rgba(255,255,255,0.16);border-radius:var(--r-pill);
+  background:rgba(255,255,255,0.05);color:var(--text-muted);font:600 13.5px var(--sans);
+  white-space:nowrap;cursor:pointer;-webkit-appearance:none;appearance:none;
+  transition:background 220ms var(--ease),color 220ms var(--ease),transform 180ms var(--ease)}
+.cat i{width:3px;height:16px;border-radius:2px;background:var(--c);flex:none}
+.cat b{margin-left:auto;padding-left:8px;font:600 11.5px var(--mono);color:var(--text-muted);font-variant-numeric:tabular-nums}
+.cat:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.cat:active{transform:scale(0.96)}
+.cat.on{background:rgba(255,255,255,0.13);color:var(--text);border-color:rgba(255,255,255,0.26)}
+.cat.on i{box-shadow:0 0 10px var(--c)}
+.cat.on b{color:var(--text-dim)}
+@media (min-width:1180px){.cat{width:100%;border-radius:12px;min-height:42px}.cat i{height:18px}}
+
+/* a series collapses into one tile: name, part count, the parts as links */
+.series-card{gap:var(--s2)}
+.series-card:active{transform:none}
+.series-card .parts{font:600 11.5px var(--mono);color:var(--text-muted)}
+.series-list{list-style:none;margin:var(--s2) 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.series-list a{display:flex;gap:10px;align-items:baseline;padding:7px 9px;margin:0 -9px;border-radius:10px;
+  color:var(--text-dim);font-size:14.5px;line-height:1.45;text-decoration:none;
+  transition:background 200ms var(--ease),color 200ms var(--ease)}
+.series-list a:hover{background:rgba(255,255,255,0.07);color:var(--text)}
+.series-list b{font:600 11px var(--mono);color:var(--text-muted);min-width:13px;flex:none}
+
+.filter{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;margin:0 0 var(--s5)}
+.filter .eyebrow{margin-right:var(--s1)}
+.chip{display:inline-flex;align-items:center;min-height:38px;padding:0 var(--s3);border-radius:var(--r-pill);border:1px solid rgba(255,255,255,0.16);
+  background:rgba(255,255,255,0.05);color:var(--text-dim);font-size:14px;font-weight:500;cursor:pointer;
+  transition:transform 180ms var(--ease),background 220ms var(--ease),color 220ms var(--ease)}
+.chip:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.chip:active{transform:scale(0.94)}
+.chip.on{background:rgba(255,255,255,0.14);color:var(--text);border-color:rgba(255,255,255,0.28)}
+
+/* cards */
+.grid{margin-top:var(--s7);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:var(--s4);position:relative}
+.card{position:relative;display:flex;flex-direction:column;gap:var(--s3);padding:var(--s5);color:var(--text);
+  transition:transform 260ms var(--ease),background 260ms var(--ease)}
+.card:hover{color:var(--text)}
+.card:active{transform:scale(0.975)}
+@media (hover:hover){.card:hover{transform:translateY(-4px);background:rgba(255,255,255,0.10)}}
+.card.hidden{display:none}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)}
+.card .h-card{margin:var(--s1) 0 0}
+.card p{color:var(--text-dim);font-size:15px;line-height:1.55}
+.card-foot{margin-top:auto;padding-top:var(--s3);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:var(--s2);
+  font-family:var(--mono);font-size:12.5px;color:var(--text-muted)}
+.card-foot b{color:var(--green);font-weight:600}
+.src{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:14px;color:var(--text-dim)}
+.src svg{width:14px;height:14px;color:var(--green)}
+.empty{display:none;padding:var(--s7) var(--s5);text-align:center;color:var(--text-muted)}
+.empty.show{display:block}
+
+/* bottom band */
+.band{position:relative;margin-top:var(--s7);padding:var(--s6) var(--s6);display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}
+.band h3{font-size:22px;letter-spacing:-0.02em}
+.band p{color:var(--text-dim);margin-top:4px}
+.band .row{margin-top:0}
+
+/* post page */
+.backbar{margin:0 0 var(--s4)}
+.post-head{padding:var(--s7) var(--s7) var(--s6)}
+.post-head .h-hero{margin:var(--s4) 0 0;max-width:24ch}
+.post-body{padding:var(--s7);margin-top:var(--s4)}
+.prose{max-width:var(--measure);font-size:16.5px;line-height:1.65}
+.prose h2{font-size:26px;margin:var(--s7) 0 var(--s3);letter-spacing:-0.03em}
+.prose h2:first-child{margin-top:0}
+.prose h3{font-size:19px;margin:var(--s6) 0 var(--s2);font-weight:600}
+.prose p{margin:0 0 var(--s4)}
+.prose strong{color:#fff}
+.prose ul,.prose ol{margin:0 0 var(--s4);padding-left:var(--s4)}
+.prose li{margin:var(--s1) 0}
+.prose blockquote,.callout{margin:0 0 var(--s4);padding:var(--s3) var(--s4);border:1px solid rgba(140,224,94,0.45);
+  background:rgba(140,224,94,0.08);border-radius:var(--r-inner);color:#e6f6db}
+.prose blockquote p:last-child{margin:0}
+.prose pre{background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);padding:var(--s4) var(--s5);overflow-x:auto;
+  -webkit-overflow-scrolling:touch;margin:0 0 var(--s4)}
+.prose code,.prose pre{font-family:var(--mono);font-size:14px;line-height:1.7}
+.prose :not(pre)>code{background:var(--solid);border:1px solid var(--line);border-radius:8px;padding:1px 6px;color:var(--green);font-size:0.88em}
+.prose pre code{background:none;border:0;padding:0;color:#D3E3EC}
+.prose table{width:100%;border-collapse:collapse;margin:0 0 var(--s4);font-size:14.5px;display:block;overflow-x:auto}
+.prose th{background:var(--solid);color:var(--blue-light);text-align:left;padding:var(--s2) var(--s3);border:1px solid var(--line);font-family:var(--mono);font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase}
+.prose td{padding:var(--s2) var(--s3);border:1px solid var(--line);vertical-align:top;color:var(--text-dim)}
+.figure{margin:0 0 var(--s5);padding:var(--s4);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.figure svg{display:block;width:100%;height:auto;min-width:0}
+.figure figcaption{margin-top:var(--s3);font-family:var(--mono);font-size:11.5px;line-height:1.65;color:var(--text-muted)}
+/* body figures carry detail: let them scroll on a phone rather than shrink past reading size */
+@media (max-width:700px){figure.figure svg{min-width:600px}figure.figure{padding:var(--s3)}}
+.origin{margin:0 0 var(--s5)}
+.origin .eyebrow{display:block;color:var(--teal);margin-bottom:4px}
+.end{position:relative;margin-top:var(--s4);padding:var(--s6) var(--s7)}
+.end h3{font-size:22px}
+.end p{color:var(--text-dim);margin-top:4px}
+.postnav{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--s3);margin-top:var(--s4)}
+.pn{padding:var(--s3) var(--s4);color:var(--text);font-weight:600;font-size:15px;transition:transform 180ms var(--ease),background 220ms var(--ease)}
+.pn:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.pn:active{transform:scale(0.975)}
+.pn .eyebrow{display:block;margin-bottom:2px}
+
+/* about + socials */
+.about{padding:var(--s7);display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s5)}
+.about .prose{max-width:var(--measure)}
+.chips{display:flex;gap:var(--s1);flex-wrap:wrap}
+.chips .tag{color:var(--text-dim);border-color:var(--line);background:var(--solid)}
+.socials{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:var(--s4);margin-top:var(--s5)}
+.social{display:flex;align-items:center;gap:var(--s3);padding:var(--s5);color:var(--text);transition:transform 260ms var(--ease),background 260ms var(--ease)}
+.social:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.social:active{transform:scale(0.975)}
+.social b{display:block;font-size:17px}
+.social span{font-size:14px;color:var(--text-muted)}
+.social-ico{width:44px;height:44px;flex:0 0 44px;border-radius:var(--r-inner);background:var(--solid);display:grid;place-items:center;border:1px solid var(--line)}
+
+/* mascot: one Rig per page, fixed in the lower-right, above everything */
+.rig{position:fixed;z-index:60;display:block;width:104px;line-height:0;
+  right:max(20px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));
+  filter:drop-shadow(0 14px 24px rgba(0,0,0,0.55));transition:transform 200ms var(--ease)}
+.rig img{display:block;width:100%;height:auto}
+.rig:hover{transform:translateY(-4px)}
+.rig:active{transform:scale(0.92)}
+@media (prefers-reduced-motion:no-preference){.rig img{animation:botFloat 5s ease-in-out infinite}}
+@media (max-width:520px){.rig{width:84px}}
+/* the page always ends with room for him, so nothing is permanently covered */
+.page{min-height:100vh;min-height:100svh;display:flex;flex-direction:column}
+.page>main{flex:1 0 auto;width:100%;padding-bottom:calc(104px + 40px)}  /* width:100% because the auto side margins would otherwise stop the flex stretch */
+
+footer{padding:var(--s6) 0 var(--s4);color:var(--text-muted);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--s2);padding-right:calc(104px + 40px)}
+
+/* motion */
+@keyframes nfnSheen{0%{transform:translateX(-120%)}100%{transform:translateX(220%)}}
+@keyframes botFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes nfnRise{from{opacity:0;transform:translate3d(0,22px,0) scale(0.985)}to{opacity:1;transform:none}}
+@keyframes nfnPush{from{opacity:0.4;transform:translate3d(28px,0,0)}to{opacity:1;transform:none}}
+@keyframes nfnPop{from{opacity:0.4;transform:translate3d(-22px,0,0)}to{opacity:1;transform:none}}
+@keyframes nfnZoom{from{opacity:0;transform:scale(0.78)}60%{opacity:1}to{opacity:1;transform:none}}
+@keyframes nfnGenie{0%{opacity:0;transform:scale(0.07,0.02) skewX(-14deg)}35%{opacity:1;transform:scale(0.42,0.55) skewX(-7deg)}70%{transform:scale(0.92,1.03) skewX(-1.5deg)}to{opacity:1;transform:none}}
+.rise{animation:nfnRise 520ms var(--ease) both}
+.hero.rise{animation-duration:560ms}
+.zoom{animation:nfnZoom 480ms var(--ease) both;will-change:transform}
+.genie{animation:nfnGenie 560ms var(--ease) both;will-change:transform}
+.pop{animation:nfnPop 420ms var(--ease) both}
+@media (prefers-reduced-motion:reduce){
+  @keyframes nfnRise{from{opacity:0}to{opacity:1}}@keyframes nfnPush{from{opacity:0}to{opacity:1}}@keyframes nfnPop{from{opacity:0}to{opacity:1}}
+  @keyframes nfnZoom{from{opacity:0}to{opacity:1}}@keyframes nfnGenie{from{opacity:0}to{opacity:1}}
+  @keyframes nfnSheen{0%,100%{opacity:0}}@keyframes botFloat{0%,100%{transform:none}}
+}
+
+/* narrow screens */
+@media (max-width:700px){
+  .nav .cat{display:none}
+  /* six pills at 360 px: tighter, and a nav that would not fit scrolls sideways instead of clipping the last one */
+  .nav{flex:1 0 100%;margin-left:0;flex-wrap:nowrap;justify-content:space-between;gap:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{display:none}
+  .hdr .wrap{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+  .hdr-in{padding-left:8px;padding-right:8px}
+  .pill{padding:0 6px;font-size:13px;letter-spacing:-0.01em;white-space:nowrap;flex:0 0 auto}
+  .pill.outline{padding:0 8px;gap:0}.pill.outline span{display:none}
+  .hero{padding:var(--s6) var(--s4)}
+  .post-head,.post-body,.about,.end{padding:var(--s6) var(--s4)}
+  .band{padding:var(--s5) var(--s4)}
+}
+
+/* ── what the box said ─────────────────────────────────────────────────── */
+.term{margin:var(--s5) 0;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);overflow:hidden}
+.term-bar{display:flex;align-items:center;gap:6px;padding:9px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,0.03)}
+.term-bar i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.12)}
+.term-bar i:first-child{background:rgba(140,224,94,0.45)}
+.term-bar b{margin-left:8px;font:600 11px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}
+.prose .term pre{margin:0;border:0;border-radius:0;background:none;padding:var(--s3) var(--s4)}
+.term .ln{display:block;padding:0 6px;margin:0 -6px;border-radius:6px}
+.term .pr{color:var(--green);font-weight:500}
+.term .ln.hot{background:rgba(140,224,94,0.10);border-left:3px solid var(--green);border-radius:0 6px 6px 0;padding-left:3px;color:var(--text)}
+
+/* ── interactive widgets ───────────────────────────────────────────────── */
+.widget{margin:var(--s5) 0 var(--s4);padding:var(--s4) var(--s5);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+.w-head{display:flex;flex-direction:column;gap:4px;margin-bottom:var(--s4)}
+.w-head b{font-size:17px;letter-spacing:-0.01em}
+.w-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:var(--s3) var(--s4);margin-bottom:var(--s4)}
+.w-controls label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-dim)}
+.w-controls select,.w-controls input[type=number]{font:14px var(--sans);color:var(--text);background:rgba(3,10,16,0.7);border:1px solid var(--line);border-radius:10px;min-height:40px;padding:0 10px}
+.w-controls input[type=number]{width:96px;display:inline-block}
+.w-unit{display:flex;align-items:center;gap:8px}
+.w-slider>span b{color:var(--green);font-size:15px;margin-left:6px}
+.w-slider{grid-column:1/-1}
+.w-controls input[type=range]{width:100%;accent-color:var(--green);min-height:32px}
+.w-bar{position:relative;height:18px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid var(--line);overflow:hidden;display:flex}
+.w-fill{height:100%;background:var(--green);transition:width 240ms var(--ease)}
+.w-fill.other{background:var(--teal);opacity:0.8}
+.widget.tight .w-fill{background:var(--orange)}
+.widget.over .w-fill{background:var(--orange)}
+.widget.over .w-bar{border-color:rgba(245,165,36,0.6);box-shadow:0 0 0 3px rgba(245,165,36,0.15)}
+.w-read{margin-top:var(--s3);font-size:15px;color:var(--text)}
+.w-read b{color:var(--green)}
+.widget.over .w-read b:first-child{color:var(--orange)}
+.w-note{margin-top:var(--s2);font-size:13px;color:var(--text-dim);line-height:1.6}
+/* the 5 GHz spectrum strip in the channel 173 post. NOT .band: that is the call-to-action card */
+.spectrum{position:relative;height:64px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);overflow:hidden}
+.band-scan{position:absolute;left:0;top:0;bottom:0;width:90.6%;background:repeating-linear-gradient(135deg,rgba(94,210,218,0.10) 0 6px,transparent 6px 12px);border-right:2px dashed rgba(94,210,218,0.7);pointer-events:none}
+.blk{position:absolute;top:8px;bottom:8px;left:var(--l);width:var(--w);font:600 11px var(--mono);letter-spacing:0.04em;color:var(--text-dim);background:rgba(3,10,16,0.55);border:1px solid rgba(255,255,255,0.14);border-radius:8px;cursor:pointer;padding:0;overflow:hidden;white-space:nowrap;transition:transform 200ms var(--ease),background 200ms var(--ease)}
+.blk:hover{transform:translateY(-1px)}
+.blk.on{color:#06202A;background:var(--teal);border-color:var(--teal)}
+.blk.hot{color:#bdf29c;border-color:rgba(140,224,94,0.6);font-size:9px}
+.blk.hot.on{color:#06202A;background:var(--green);border-color:var(--green)}
+.band-axis{position:relative;height:18px;margin-top:6px;font:11px var(--mono);color:var(--text-muted)}
+.band-axis span{position:absolute;transform:translateX(-50%)}
+.band-axis span:nth-child(1){left:0;transform:none}.band-axis span:nth-child(2){left:26.85%}.band-axis span:nth-child(3){left:42.95%}
+.band-axis span:nth-child(4){left:77.18%}.band-axis span:nth-child(5){left:93.96%}.band-axis span:nth-child(6){left:100%;transform:translateX(-100%)}
+@media (max-width:520px){.band-axis span:nth-child(2),.band-axis span:nth-child(3),.band-axis span:nth-child(5){display:none}
+  /* the narrow blocks cannot hold 'U-NII-2A' at this width, so show the number alone */
+  .blk{font-size:0}.blk::after{content:attr(data-short);font:600 11px var(--mono);letter-spacing:0.04em}.blk.hot::after{font-size:11px}}
+
+/* ── field kit ─────────────────────────────────────────────────────────── */
+.kit{margin-top:var(--s5);padding:var(--s5)}
+.kit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:var(--s3);margin-top:var(--s3)}
+.kit-item{position:relative;display:flex;flex-direction:column;gap:8px;padding:var(--s4);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);min-height:120px;outline:none;transition:transform 200ms var(--ease),border-color 200ms var(--ease)}
+.kit-item:hover,.kit-item:focus{transform:translateY(-2px);border-color:rgba(140,224,94,0.45)}
+.kit-ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(140,224,94,0.10);border:1px solid rgba(140,224,94,0.3)}
+.kit-ico svg{width:22px;height:22px;fill:none;stroke:var(--green);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kit-item b{font-size:14px}
+.kit-line{font-size:13px;color:var(--text-dim);line-height:1.5;opacity:0;transform:translateY(4px);transition:opacity 220ms var(--ease),transform 220ms var(--ease)}
+.kit-item:hover .kit-line,.kit-item:focus .kit-line{opacity:1;transform:none}
+@media (hover:none){.kit-line{opacity:1;transform:none}}
+
+/* ── RF motif on radio posts ───────────────────────────────────────────── */
+.post-head{position:relative;overflow:hidden}
+.post-head.cat-Wireless::before,.post-head.cat-RF-survey::before{content:"";position:absolute;right:-90px;top:-120px;width:420px;height:420px;pointer-events:none;opacity:0.10;
+  background:repeating-radial-gradient(circle at center,var(--teal) 0 1.5px,transparent 1.5px 26px)}
+.post-head>*{position:relative}
+
+/* ── reading path ──────────────────────────────────────────────────────── */
+.series{padding:var(--s5);margin-bottom:var(--s4)}
+.series h3{margin:6px 0 var(--s3);font-size:18px}
+.series h3 .meta{margin-left:8px;font-weight:400}
+.ser-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:var(--s3)}
+.ser-step{position:relative;display:flex;flex-direction:column;gap:6px;padding:var(--s3) var(--s4);color:var(--text-dim);text-decoration:none;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);transition:transform 200ms var(--ease),border-color 200ms var(--ease)}
+.ser-step:hover{transform:translateY(-2px)}
+.ser-n{font:600 11px var(--mono);letter-spacing:0.12em;color:var(--text-muted)}
+.ser-t{font-size:14px;font-weight:600;color:var(--text)}
+.ser-tag{font:600 10px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}
+.ser-step.here{border-color:rgba(255,255,255,0.28);opacity:0.75}
+.ser-step.next{border-color:rgba(140,224,94,0.6);box-shadow:0 10px 26px -14px rgba(140,224,94,0.8)}
+.ser-step.next .ser-tag,.ser-step.next .ser-n{color:var(--green)}
+
+/* ── Rig reactions ─────────────────────────────────────────────────────── */
+.rig img{transition:opacity 220ms var(--ease)}
+.rig.swap img{opacity:0}
+
+/* ── Wireless Academy (orange, for Airheads) ───────────────────────────── */
+.tag.c-orange{color:#ffd28a;border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.14)}
+.tag.c-orange .dot{background:var(--orange);box-shadow:0 0 0 4px rgba(245,165,36,0.18)}
+.chip.c-orange{border-color:rgba(245,165,36,0.45);color:#ffd28a}
+.chip.on.c-orange{background:rgba(245,165,36,0.18);border-color:rgba(245,165,36,0.9);color:#ffe0ad}
+.acad-hero .glow{background:radial-gradient(circle at 80% 20%,rgba(245,165,36,0.28),transparent 60%)}
+.acad-hero .btn.cta{background:linear-gradient(180deg,#ffbf4d,var(--orange));color:#2a1600;box-shadow:0 12px 30px -12px rgba(245,165,36,0.9)}
+.acad-why{padding:var(--s5);margin:0 0 var(--s6);border-color:rgba(245,165,36,0.35)}
+.acad-why p{margin:8px 0 0;color:var(--text-dim);line-height:1.65}
+.lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--s4)}
+.lesson{display:flex;flex-direction:column;gap:10px;padding:var(--s5);color:var(--text);text-decoration:none;position:relative}
+.lesson b{font-size:18px;letter-spacing:-0.01em;line-height:1.25}
+.lesson p{margin:0;color:var(--text-dim);font-size:14px;line-height:1.6}
+.lesson .lab{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--text-dim);padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+.lesson .lab .eyebrow{color:#ffd28a}
+.lesson .ser-n{color:#ffd28a}
+.lesson.live{border-color:rgba(245,165,36,0.5);transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+.lesson.live:hover{transform:translateY(-3px);box-shadow:0 18px 40px -20px rgba(245,165,36,0.8)}
+.lesson.live .meta{margin-top:auto;padding-top:6px}
+.lesson.soon{opacity:0.6}
+.lesson.soon .ser-n{color:var(--text-muted)}
+.post-head.cat-Academy::before{content:"";position:absolute;right:-90px;top:-120px;width:420px;height:420px;pointer-events:none;opacity:0.10;
+  background:repeating-radial-gradient(circle at center,var(--orange) 0 1.5px,transparent 1.5px 26px)}
+.ser-step.next.acad{border-color:rgba(245,165,36,0.6)}
+
+/* ── Academy theme: orange ground, switch-chassis black glass ──────────── */
+body.acad{background:#07070A}
+body.acad .ground{background:
+  radial-gradient(900px 620px at 12% -6%,rgba(245,165,36,0.34),transparent 62%),
+  radial-gradient(760px 560px at 88% 8%,rgba(255,120,40,0.20),transparent 60%),
+  radial-gradient(1000px 700px at 60% 108%,rgba(160,80,20,0.28),transparent 62%),#07070A}
+body.acad .g-chrome,body.acad .g-card,body.acad .g-hero{background:rgba(6,6,9,0.62);border-color:rgba(255,255,255,0.10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.10),0 30px 70px -40px rgba(0,0,0,0.95)}
+body.acad .hdr.scrolled .hdr-in{background:rgba(6,6,9,0.78)}
+body.acad .panel,body.acad .search input,body.acad .term,body.acad .widget,body.acad .callout,body.acad .lesson .lab{background:rgba(0,0,0,0.45)}
+body.acad .btn.cta{background:linear-gradient(180deg,#ffbf4d,var(--orange));color:#2a1600;box-shadow:0 12px 30px -12px rgba(245,165,36,0.9)}
+body.acad .eyebrow{color:#ffd28a}
+body.acad .tag.green{color:#ffd28a;border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.14)}
+body.acad .tag.green .dot{background:var(--orange);box-shadow:0 0 0 4px rgba(245,165,36,0.18)}
+body.acad .ser-step.next{border-color:rgba(245,165,36,0.6);box-shadow:0 10px 26px -14px rgba(245,165,36,0.8)}
+body.acad .ser-step.next .ser-tag,body.acad .ser-step.next .ser-n{color:#ffd28a}
+body.acad .term-bar i:first-child{background:rgba(245,165,36,0.55)}
+body.acad .term .pr{color:#ffd28a}
+body.acad .term .ln.hot{background:rgba(245,165,36,0.10);border-left-color:var(--orange)}
+body.acad .prose a{color:#ffd28a}
+body.acad .rig{filter:drop-shadow(0 14px 24px rgba(0,0,0,0.75))}
+body.acad .backbar .btn:hover{border-color:rgba(245,165,36,0.5)}
+body.acad .callout.origin{border-color:rgba(245,165,36,0.45)}
+body.acad .callout.origin .eyebrow{color:#ffd28a}
+
+/* ── on-the-air QAM banner ─────────────────────────────────────────────── */
+.qam{margin:0 0 var(--s6);padding:var(--s4) var(--s5) var(--s3);cursor:pointer;outline:none;overflow:hidden}
+.qam:focus-visible{box-shadow:0 0 0 2px rgba(140,224,94,0.6)}
+.qam-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);flex-wrap:wrap}
+.qam-ctl{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;font-size:12px;color:var(--text-dim)}
+.qam-ctl label{display:inline-flex;align-items:center;gap:8px}
+.qam-ctl select{font:13px var(--sans);color:var(--text);background:rgba(3,10,16,0.7);border:1px solid var(--line);border-radius:10px;min-height:38px;padding:0 8px}
+.qam-speed{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:100%}.qam-speed input{width:150px;max-width:40vw;accent-color:var(--green)}
+.qam-speed b{font:600 12px var(--mono);color:var(--green);min-width:84px;white-space:nowrap}
+.qam-band{font:10px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);padding:2px 7px;border:1px solid var(--line);border-radius:999px;white-space:nowrap}
+.qam[data-band="frames"] .qam-band{color:#ffd28a;border-color:rgba(245,165,36,0.5)}.qam[data-band="symbols"] .qam-band{color:var(--green);border-color:rgba(140,224,94,0.5)}.qam[data-band="waves"] .qam-band{color:var(--blue-light);border-color:rgba(79,189,234,0.5)}.qam[data-band="photons"] .qam-band{color:var(--teal);border-color:rgba(94,210,218,0.5)}
+.qam-ctl .chip{min-height:40px;padding:0 12px}
+.qam-ctl .chip.on{border-color:rgba(94,210,218,0.9);color:#bfeff2;background:rgba(94,210,218,0.14)}
+.qam canvas{display:block;width:100%;height:280px;margin-top:var(--s2);touch-action:pan-y;cursor:crosshair;border-radius:var(--r-inner)}
+.qam-rx{margin-top:8px;padding:8px 12px 10px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);cursor:default}
+.qam-rx-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px 14px;flex-wrap:wrap}
+.qam-rx-top a{font:11px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--blue-light);text-decoration:none;border-bottom:1px solid rgba(79,189,234,0.35)}
+.qam-rx-top a:hover{color:var(--text);border-color:var(--text)}
+.qam-key{display:flex;gap:10px;flex-wrap:wrap;font:10px var(--mono);letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)}
+.qam-key i{font-style:normal;display:inline-flex;align-items:center;gap:5px}.qam-key i::before{content:"";width:8px;height:8px;border-radius:2px;background:currentColor}
+.qam-hex{margin-top:8px;font:12px var(--mono);line-height:1.45;color:var(--text-muted)}
+.qam-row{display:grid;grid-template-columns:38px repeat(16,minmax(22px,28px)) minmax(0,1fr);gap:0 3px;align-items:baseline}
+.qam-row .off{color:var(--text-muted);opacity:0.55;font-size:10px;line-height:inherit}
+.qam-row .asc{margin-left:14px;color:var(--text);white-space:pre;overflow:hidden;letter-spacing:0.04em}.qam-row .asc .garble{color:#ffd28a;background:rgba(245,165,36,0.16);border-radius:3px}
+.qam-hex i.pad{visibility:hidden}
+.qam-hex i{font-style:normal;text-align:center;border-radius:4px;opacity:0.28;transition:opacity 0.2s,background 0.2s}
+.qam-hex i.rx{opacity:1}
+.f-mac{color:#5ED2DA}.f-llc{color:#8BA2AE}.f-ip{color:#4FBDEA}.f-icmp{color:#8CE05E}.f-pay{color:#EAF2F6}.f-fcs{color:#B0C4CF}.f-bad{color:#ffd28a}
+.qam-hex i.bad{color:#ffd28a;background:rgba(245,165,36,0.18)}
+.qam-hex i.hl{background:rgba(255,255,255,0.12);opacity:1}
+.qam-fld{margin-top:6px;font:12px var(--mono);color:var(--text-dim);min-height:18px;line-height:1.5}
+.qam-hit{margin-top:6px;padding:6px 10px;font:12px var(--mono);color:var(--text-dim);line-height:1.55;border-left:2px solid var(--green);background:rgba(140,224,94,0.06);border-radius:0 8px 8px 0}.qam-hit b{color:var(--text)}.qam-hit b.ok{color:var(--green)}.qam-hit b.warn{color:#ffd28a}.qam-hit code{color:#D3E3EC}.qam-hit a{color:var(--text-muted);margin-left:6px;text-decoration:underline}
+.qam-hex i.sel{outline:1px solid rgba(140,224,94,0.9);outline-offset:-1px;opacity:1}
+.qam-lbrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;padding:8px 12px;font-size:12px;color:var(--text-dim);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);cursor:default}.qam-lbrow label{display:inline-flex;align-items:center;gap:8px}.qam-lbrow input{width:130px;accent-color:var(--green)}.qam-lbrow b{font:600 12px var(--mono);color:var(--green);min-width:40px}.qam-lbrow[hidden]{display:none}
+.sim-intro{margin:0 0 var(--s4)}.sim-intro h1{margin:10px 0 12px}@media (max-width:700px){.sim-intro{padding:0 var(--s1)}.sim-intro .h-hero{font-size:30px}}.sim-intro .lede{max-width:820px}.sim-intro a{color:var(--blue-light)}
+.post-body video{display:block;width:100%;max-width:100%;margin:var(--s4) 0;border-radius:var(--r-inner);border:1px solid var(--line);background:#061019}
+.post-body img{display:block;width:100%;height:auto;border-radius:var(--r-inner);border:1px solid var(--line)}
+.post-body figure{margin:var(--s5) 0}
+.post-body figure video,.post-body figure img{margin:0}
+.post-body figcaption{margin-top:10px;font-size:13px;color:var(--text-muted);line-height:1.65}
+/* a dense figure stays legible on a phone by scrolling sideways, the way the tables do. the caption stays put. */
+.post-body figure.wide>.pan{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-radius:var(--r-inner)}
+.post-body figure.wide img{min-width:620px}
+/* a tall photo would run a thousand pixels down the page at full column width */
+.post-body figure.portrait{max-width:420px;margin-inline:auto}
+.qam-app{display:grid;grid-template-columns:minmax(240px,2fr) 3fr;gap:10px;margin-top:8px;cursor:default}
+@media (max-width:760px){.qam-app{grid-template-columns:1fr}}
+.qam-tile{padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);font-size:12.5px;color:var(--text-dim);line-height:1.5;min-height:110px}
+.qam-tile .eyebrow{display:block;margin-bottom:6px}.qam-tile p{margin:6px 0 0}.qam-tile b{color:var(--text)}.qam-tile b.ok{color:var(--green)}.qam-tile b.warn{color:#ffd28a}.qam-tile code{font-family:var(--mono);color:#D3E3EC}
+.qam-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px;margin-top:8px}.qam-metrics div{background:rgba(255,255,255,0.04);border-radius:8px;padding:6px 8px;text-align:center}.qam-metrics small{display:block;font:9px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:2px}.qam-metrics b{font:600 16px var(--mono)}.qam-metrics .meta{font-size:11px}.qam-stars{display:block;font-size:10px;color:#ffd28a;letter-spacing:1px}
+.qam-term{font:12px var(--mono);color:#D3E3EC;white-space:pre-wrap;margin:0;line-height:1.5}
+.qam-chat{display:flex;flex-direction:column;gap:6px}.qam-msg{max-width:82%;padding:6px 10px;border-radius:12px;background:rgba(255,255,255,0.06);color:var(--text);font-size:13px;line-height:1.4;align-self:flex-start}.qam-msg b{display:block;font:600 10px var(--mono);letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1px}.qam-msg.you{align-self:flex-end;background:rgba(79,189,234,0.16)}.qam-msg.pending{opacity:0.3}.qam-msg.sending{border:1px dashed rgba(255,255,255,0.35)}.qam-msg small{display:block;font:10px var(--mono);color:var(--text-muted);margin-top:3px}.qam-msg .qam-t{font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px;opacity:0.8}.qam-msg.delivered small{color:var(--green)}.qam-msg.retx small{color:#ffd28a}
+.qam-wave{display:block;width:100%;height:44px;margin-top:8px;background:rgba(255,255,255,0.03);border-radius:8px}
+.qam-avatar{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--navy);color:var(--text);align-items:center;justify-content:center;font:600 10px var(--sans);margin-right:8px;vertical-align:middle}.qam-lbrow .chip{min-height:40px;padding:0 10px;font-size:12px}.qam-lbnote{font-size:11px;color:var(--text-muted);flex-basis:100%}.qam-fld b{color:var(--text)}.qam-fld b.ok{color:var(--green)}.qam-fld b.warn{color:#ffd28a}.qam-fld code{color:#D3E3EC}
+.qam-ascii{display:flex;align-items:baseline;gap:12px;margin-top:6px;overflow:hidden}
+.qam-title{font:600 15px var(--sans);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qam-title.bad{color:var(--text)}
+.qam-title .garble{color:#ffd28a;background:rgba(245,165,36,0.16);border-radius:3px;padding:0 1px}
+@media (max-width:600px){.qam-hex{font-size:10px}.qam-row{grid-template-columns:repeat(16,minmax(0,1fr));gap:0 1px}.qam-row .off,.qam-row .asc,.qam-hex i.pad{display:none}.qam-key{display:none}.qam-title{font-size:14px}}
+.qam-stat{margin-top:8px;font-size:13px;color:var(--text-dim);line-height:1.6}.qam-stat b{color:var(--text)}.qam-stat b.warn{color:#ffd28a}
+.qam-time{margin-top:6px;font-size:13px;color:var(--text-dim);line-height:1.6}.qam-time b{color:var(--text)}
+.qam-table{margin-top:var(--s4);padding-top:var(--s3);border-top:1px solid var(--line);cursor:default}
+.qam-table .tbl{overflow-x:auto;margin-top:8px}.qam-table table{border-collapse:collapse;width:100%;font-size:13px;min-width:560px}
+.qam-table th,.qam-table td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.qam-table th{font:600 10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+.qam-table tr[data-m]{cursor:pointer}.qam-table tr[data-m]:hover td{background:rgba(255,255,255,0.04)}.qam-table tr.on td{background:rgba(140,224,94,0.10);color:var(--text)}.qam-table tr.on td:first-child{box-shadow:inset 3px 0 0 var(--green)}
+.qam-table .meta{margin-top:8px;font-size:12px}
+.qam-hint{font:11px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);text-align:center;margin-top:4px}
+.qam-x{margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid var(--line);color:var(--text-dim);font-size:14px;line-height:1.65;cursor:default}
+.qam-x p{margin:8px 0}.qam-x ol{margin:8px 0 0;padding-left:22px}.qam-x li{margin:6px 0}.qam-x code{font-family:var(--mono);font-size:12.5px;color:#D3E3EC;background:var(--solid);padding:1px 6px;border-radius:6px}
+.qam-x b{color:var(--text)}
+@media (max-width:600px){.qam canvas{height:260px}.qam-ctl{width:100%;justify-content:space-between}}
+
+/* ── QAM banner fullscreen (pseudo, works on iPhone too) ───────────────── */
+.qam.fs{position:fixed;inset:0;z-index:120;margin:0;border-radius:0;overflow:auto;padding:12px 14px;background:#061019;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;animation:none;opacity:1}
+.qam.fs canvas{touch-action:none;height:56vh}
+html.qam-fs,html.qam-fs body{overflow:hidden}
+html.qam-fs .rig{display:none}
+</style></head>
+<body class="acad">
+<div class="ground"></div>
+<canvas id="nfn-fx" aria-hidden="true"></canvas>
+<div class="gx-pane" aria-hidden="true"></div>
+<div class="gx-grain" aria-hidden="true"></div>
+<div class="page">
+<header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
+  <a class="brand" href="../"><span class="mk"><img src="../logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
+  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill on" href="../academy.html">Academy</a><a class="pill" href="../tools.html">Tools</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  
+</div></div></header>
+<main class="wrap">
+<div class="narrow">
+  <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
+  <article>
+    <header class="post-head g-hero cat-Academy" data-view="zoom">
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 28, 2026 &#183; 14 min</span></div>
+      <h1 class="h-hero">Airtime Is the Only Resource</h1>
+    </header>
+    <div class="post-body g-card" data-rise>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 5: Airtime is the only resource. Top: one turn on an empty 5 GHz channel for a laptop linked at 1201 Mb/s sending one 1500-byte packet, drawn to scale: a 43 microsecond gap, an average 67.5 microsecond countdown, a 50 microsecond preamble, 10 microseconds of actual packet and about 4 of headers and padding, SIFS 16 and an ACK of 28, 218.5 microseconds in all, which is 55 Mb/s. Bottom: the share of airtime for one laptop downloading alone at about 720 Mb/s, beside an old 802.11a/g laptop at 54 Mb/s where it drops to about 480, and beside one at 6 Mb/s where it drops to about 210 while the old laptop holds 59 percent of the air. Model numbers, averaged over twenty runs.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', -apple-system, Helvetica, sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', -apple-system, Helvetica, sans-serif; font-size: 12.5px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', -apple-system, Helvetica, sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .m  { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 11px; fill: #B0C4CF; }
+      .mo { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mw { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 12px; fill: #EAF2F6; font-weight: 600; }
+      .pi { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 10.5px; fill: #1a1000; font-weight: 600; }
+      .pd { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 10.5px; fill: #EAF2F6; }
+      .cap { font-family: 'Instrument Sans', -apple-system, Helvetica, sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .tick { stroke: rgba(255,255,255,0.35); stroke-width: 1; }
+    </style>
+  </defs>
+
+  <text x="24" y="36" class="eb">LESSON 5: AIRTIME IS THE ONLY RESOURCE</text>
+  <text x="24" y="66" class="hl">Every radio waits its turn. The rate only counts while it talks.</text>
+
+  <!-- top: one turn, to scale, 3.72 px per microsecond -->
+  <rect x="24" y="82" width="852" height="116" rx="8" class="box"/>
+  <text x="40" y="102" class="t">One turn on an empty channel: one 1500-byte packet at 1201 Mb/s, to scale</text>
+  <text x="860" y="102" text-anchor="end" class="mo">218.5 us a turn = 55 Mb/s</text>
+
+  <rect x="40" y="130" width="160" height="30" rx="3" fill="rgba(255,255,255,0.10)"/>
+  <g fill="rgba(245,165,36,0.10)" stroke="rgba(245,165,36,0.45)" stroke-width="1">
+    <rect x="200.0" y="130" width="33.5" height="30"/><rect x="233.5" y="130" width="33.5" height="30"/>
+    <rect x="267.0" y="130" width="33.5" height="30"/><rect x="300.5" y="130" width="33.5" height="30"/>
+    <rect x="334.0" y="130" width="33.5" height="30"/><rect x="367.5" y="130" width="33.5" height="30"/>
+    <rect x="401.0" y="130" width="33.5" height="30"/><rect x="434.5" y="130" width="16.6" height="30"/>
+  </g>
+  <rect x="451.1" y="130" width="187.5" height="30" fill="rgba(94,210,218,0.28)"/>
+  <rect x="638.6" y="130" width="37.2" height="30" fill="#F5A524"/>
+  <rect x="675.8" y="130" width="13.4" height="30" fill="rgba(94,210,218,0.28)"/>
+  <rect x="748.7" y="130" width="104.2" height="30" rx="2" fill="rgba(140,224,94,0.45)"/>
+
+  <line x1="657.2" y1="112" x2="657.2" y2="128" stroke="#F5A524" stroke-width="1.5"/>
+  <text x="652" y="122" text-anchor="end" class="mo">the packet: 10 us of a 64 us frame</text>
+
+  <text x="120" y="180" text-anchor="middle" class="m">gap 43</text>
+  <text x="325.5" y="180" text-anchor="middle" class="m">count, 67.5 on average</text>
+  <text x="545" y="180" text-anchor="middle" class="m">preamble 50</text>
+  <text x="719" y="180" text-anchor="middle" class="m">SIFS 16</text>
+  <text x="800.8" y="180" text-anchor="middle" class="m">ACK 28</text>
+
+  <!-- bottom: where the air goes, one download beside an old laptop -->
+  <rect x="24" y="208" width="852" height="98" rx="8" class="box"/>
+  <text x="40" y="228" class="t">One download, then with an old 802.11a/g laptop downloading beside it</text>
+  <rect x="614" y="219" width="10" height="10" rx="2" fill="#F5A524"/><text x="629" y="228" class="ts">yours</text>
+  <rect x="672" y="219" width="10" height="10" rx="2" fill="rgba(139,162,174,0.30)" stroke="rgba(139,162,174,0.9)" stroke-dasharray="3 2"/><text x="687" y="228" class="ts">old laptop</text>
+  <rect x="760" y="219" width="10" height="10" rx="2" fill="rgba(255,255,255,0.10)"/><text x="775" y="228" class="ts">overhead</text>
+
+  <text x="40" y="253" class="ts">alone</text>
+  <rect x="210" y="242" width="353.3" height="15" fill="#F5A524"/>
+  <rect x="563.3" y="242" width="130.7" height="15" fill="rgba(255,255,255,0.10)"/>
+  <text x="216" y="253" class="pi">73%</text>
+  <text x="860" y="253" text-anchor="end" class="mw">about 720 Mb/s</text>
+
+  <text x="40" y="274" class="ts">old laptop at 54 Mb/s</text>
+  <rect x="210" y="263" width="239.6" height="15" fill="#F5A524"/>
+  <rect x="449.6" y="263" width="81.8" height="15" fill="rgba(139,162,174,0.30)" stroke="rgba(139,162,174,0.9)" stroke-dasharray="3 2"/>
+  <rect x="531.4" y="263" width="162.6" height="15" fill="rgba(255,255,255,0.10)"/>
+  <text x="216" y="274" class="pi">50%</text>
+  <text x="455" y="274" class="pd">17%</text>
+  <text x="860" y="274" text-anchor="end" class="mw">about 480 Mb/s</text>
+
+  <text x="40" y="295" class="ts">old laptop at 6 Mb/s</text>
+  <rect x="210" y="284" width="104.1" height="15" fill="#F5A524"/>
+  <rect x="314.1" y="284" width="285.6" height="15" fill="rgba(139,162,174,0.30)" stroke="rgba(139,162,174,0.9)" stroke-dasharray="3 2"/>
+  <rect x="599.7" y="284" width="94.3" height="15" fill="rgba(255,255,255,0.10)"/>
+  <text x="216" y="295" class="pi">22%</text>
+  <text x="320" y="295" class="pd">59% of the air, for 3 Mb/s</text>
+  <text x="860" y="295" text-anchor="end" class="mw">about 210 Mb/s</text>
+
+  <text x="24" y="328" class="cap">Model numbers, averaged over twenty runs: 5 GHz, WMM best effort, 1500-byte packets, everybody hears everybody.</text>
+</svg></div>
+      <section class="wyt" id="waityourturn" data-rise>
+  <style>
+  .wyt{--wyt-line:rgba(255,255,255,0.12);--wyt-you:var(--orange,#F5A524);--wyt-data:var(--blue,#2FA8E0);--wyt-voice:var(--teal,#5ED2DA);
+    --wyt-slow:var(--red,#F0705F);--wyt-bcn:var(--text-muted,#8BA2AE);--wyt-mc:var(--blue-light,#4FBDEA);--wyt-ack:var(--green,#8CE05E)}
+  .wyt-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .wyt-head h3{font-size:19px;letter-spacing:-0.02em;margin:0}
+  .wyt-lv{font:11px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--orange)}
+  .wyt-score{margin-left:auto;font:12px var(--mono);color:var(--text-muted)}
+  .wyt-goal{margin:0 0 14px;font-size:14px;line-height:1.65;color:var(--text-dim)}
+  .wyt-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:18px;align-items:start}
+  @media (max-width:720px){.wyt-grid{grid-template-columns:minmax(0,1fr);gap:14px}}
+  .wyt-box{border:1px solid var(--wyt-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:10px 12px}
+  .wyt-cap{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font:10.5px var(--mono);letter-spacing:0.06em;
+    color:var(--text-muted);text-transform:uppercase;margin:2px 0 6px}
+  .wyt-cap b{color:var(--text-dim);font-weight:400;letter-spacing:0;text-transform:none;white-space:nowrap}
+  .wyt-cv{display:block;width:100%;border-radius:8px;background:rgba(0,0,0,0.35)}
+  .wyt-cv.strip{height:66px;margin-bottom:10px}
+  .wyt-cv.ruler{height:74px}
+  .wyt-play{display:flex;gap:12px;align-items:stretch;margin-top:12px}
+  .wyt-me{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:12px;border:1px solid var(--wyt-line);border-radius:12px;
+    background:rgba(3,10,16,0.6);padding:8px 12px}
+  .wyt-num{flex:0 0 auto;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font:600 24px var(--mono);
+    color:#2a1600;background:var(--orange);box-shadow:0 0 0 4px rgba(245,165,36,0.18)}
+  .wyt-num.hid{background:rgba(255,255,255,0.08);color:var(--text-dim);box-shadow:none}
+  .wyt-num.frz{background:rgba(245,165,36,0.35);color:#ffd28a}
+  .wyt-num.go{animation:wytPulse 0.6s ease-in-out infinite alternate}
+  @keyframes wytPulse{from{box-shadow:0 0 0 3px rgba(245,165,36,0.2)}to{box-shadow:0 0 0 9px rgba(245,165,36,0.45)}}
+  @media (prefers-reduced-motion:reduce){.wyt-num.go{animation:none;box-shadow:0 0 0 6px rgba(245,165,36,0.45)}}
+  .wyt-meinfo{min-width:0;font:12px/1.6 var(--mono);color:var(--text-muted)}
+  .wyt-meinfo b{display:block;color:var(--text);font:600 13px var(--sans)}
+  @media (max-width:560px){.wyt-play{flex-direction:column}.wyt-send{min-height:64px}}
+  .wyt-send{flex:0 0 auto;min-width:132px;min-height:72px;border-radius:14px;border:1px solid rgba(245,165,36,0.7);
+    background:linear-gradient(180deg,#ffbf4d,var(--orange,#F5A524));color:#2a1600;font:700 17px var(--sans);cursor:pointer;touch-action:manipulation;
+    -webkit-user-select:none;user-select:none}
+  .wyt-send.armed{background:rgba(245,165,36,0.18);color:#ffd28a}
+  .wyt-send.nope{transform:translateX(3px)}
+  .wyt-send:disabled{opacity:0.4;cursor:default}
+  .wyt-sheet{border:1px solid var(--wyt-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:12px 14px;font:12.5px/1.8 var(--mono)}
+  .wyt-row{display:flex;gap:10px;align-items:baseline}
+  .wyt-row i{font-style:normal;color:var(--text-muted);flex:1 1 auto;min-width:0}
+  .wyt-row b{color:var(--text);font-weight:600;flex:0 0 auto;text-align:right;white-space:nowrap}
+  .wyt-row.big b{font-size:15px}
+  .wyt-row.good b{color:var(--green)} .wyt-row.warn b{color:var(--orange)}
+  .wyt-bar{height:7px;border-radius:4px;background:rgba(255,255,255,0.07);overflow:hidden;margin:1px 0 7px}
+  .wyt-bar i{display:block;height:100%;width:0;background:var(--orange);transition:width 160ms linear}
+  .wyt-bar.t i{background:var(--text-muted)}
+  .wyt-rule{border-top:1px solid var(--wyt-line);margin:8px 0}
+  .wyt-pie{display:flex;gap:12px;align-items:center;margin:4px 0 8px}
+  .wyt-pie svg{flex:0 0 auto;width:96px;height:96px}
+  .wyt-leg{font:10.5px/1.7 var(--mono);color:var(--text-muted);min-width:0}
+  .wyt-leg span{display:grid;grid-template-columns:9px minmax(0,1fr) auto;gap:6px;align-items:center}
+  .wyt-leg span u{text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wyt-leg em{display:inline-block;width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+  .wyt-leg b{color:var(--text-dim);font-weight:400;text-align:right}
+  .wyt-pie .wyt-leg{flex:1 1 auto}
+  .wyt-say{min-height:46px;font-size:13.5px;line-height:1.65;color:var(--text-dim);margin:14px 0 4px}
+  .wyt-say b{color:var(--orange)} .wyt-say i{color:var(--green);font-style:normal}
+  .wyt-acts{display:flex;gap:9px;flex-wrap:wrap}
+  .wyt-btn{min-height:42px;padding:0 14px;border-radius:11px;border:1px solid var(--wyt-line);background:rgba(255,255,255,0.06);
+    color:var(--text);font:600 13px var(--sans);cursor:pointer}
+  .wyt-btn[aria-pressed="true"]{border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.12);color:#ffd28a}
+  .wyt-btn:disabled{opacity:0.35;cursor:default}
+  .wyt-btn.go{border-color:rgba(245,165,36,0.7);background:rgba(245,165,36,0.16);color:#ffd28a}
+  .wyt-knobs{margin-top:12px;display:grid;gap:10px}
+  .wyt-knob{border:1px solid var(--wyt-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:9px 12px}
+  .wyt-knob>span{display:flex;justify-content:space-between;gap:8px;font:10.5px var(--mono);letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px}
+  .wyt-knob>span b{color:var(--text-dim);font-weight:400;letter-spacing:0;text-transform:none}
+  .wyt-seg{display:flex;gap:6px;flex-wrap:wrap}
+  .wyt-seg button{flex:1 1 0;min-width:0;min-height:38px;padding:4px 8px;border-radius:9px;border:1px solid var(--wyt-line);background:rgba(255,255,255,0.05);
+    color:var(--text);font:600 12px var(--sans);cursor:pointer}
+  .wyt-seg button[aria-pressed="true"]{border-color:rgba(245,165,36,0.65);background:rgba(245,165,36,0.14);color:#ffd28a}
+  .wyt-seg button i{display:block;font:10px var(--mono);font-style:normal;color:var(--text-muted)}
+  .wyt-check{margin:0;padding:0;list-style:none;font:12.5px/1.55 var(--sans);color:var(--text-dim)}
+  .wyt-check li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;padding:4px 0;border-top:1px solid rgba(255,255,255,0.06)}
+  .wyt-check li:first-child{border-top:0}
+  .wyt-check li b{color:var(--text);font-weight:600}
+  .wyt-check li>em{font-style:normal;font-weight:700}
+  .wyt-check li.ok>em{color:var(--green)} .wyt-check li.no>em{color:var(--orange)} .wyt-check li.info>em{color:var(--text-muted)}
+  .wyt-fine{margin:12px 0 0;font:11px/1.6 var(--mono);color:var(--text-muted)}
+  .wyt [hidden]{display:none !important}
+  </style>
+
+  <div class="wyt-head">
+    <span class="wyt-lv" id="wyt-lv">Level 1</span>
+    <h3 id="wyt-title">Wait Your Turn</h3>
+    <span class="wyt-score" id="wyt-score">0 of 4 done</span>
+  </div>
+  <p class="wyt-goal" id="wyt-goal"></p>
+
+  <div class="wyt-grid">
+    <div>
+      <div class="wyt-box">
+        <div class="wyt-cap"><span id="wyt-stripcap">The air, last 6 ms, to scale</span><b id="wyt-clock">0 us</b></div>
+        <canvas class="wyt-cv strip" id="wyt-strip" role="img" aria-label="Timeline of the shared channel"></canvas>
+        <div class="wyt-cap" id="wyt-rulercap-row"><span id="wyt-rulercap">This quiet spell, slot by slot</span><b id="wyt-state">waiting to start</b></div>
+        <canvas class="wyt-cv ruler" id="wyt-ruler" role="img" aria-label="The current quiet spell in 9 microsecond slots"></canvas>
+      </div>
+      <div class="wyt-play" id="wyt-play">
+        <div class="wyt-me">
+          <div class="wyt-num hid" id="wyt-num" aria-hidden="true">?</div>
+          <div class="wyt-meinfo"><b id="wyt-mehead">Your number</b><span id="wyt-mesub">Press start when you're ready.</span></div>
+        </div>
+        <button class="wyt-send" id="wyt-send" type="button">Start</button>
+      </div>
+      <div class="wyt-knobs" id="wyt-knobs" hidden>
+        <div class="wyt-knob"><span>SSIDs on every radio <b id="wyt-k-ssids-v">8</b></span>
+          <div class="wyt-seg" id="wyt-k-ssids"></div></div>
+        <div class="wyt-knob"><span>Minimum rate <b>beacons, multicast and the floor</b></span>
+          <div class="wyt-seg" id="wyt-k-min"></div></div>
+        <div class="wyt-knob"><span>mDNS from the whole VLAN <b>765 packets a second</b></span>
+          <div class="wyt-seg" id="wyt-k-mc"></div></div>
+        <div class="wyt-knob"><span>Voice priority <b>WMM</b></span>
+          <div class="wyt-seg" id="wyt-k-qos"></div></div>
+      </div>
+      <p class="wyt-say" id="wyt-say" aria-live="polite"></p>
+    </div>
+
+    <div class="wyt-sheet" id="wyt-sheet">
+      <div id="wyt-rows"></div>
+      <div class="wyt-rule"></div>
+      <div class="wyt-cap" style="margin:0 0 2px"><span>Where the air went</span><b id="wyt-airtot"></b></div>
+      <div class="wyt-pie"><svg viewBox="0 0 100 100" id="wyt-pie" role="img" aria-label="Airtime by category"></svg><div class="wyt-leg" id="wyt-leg"></div></div>
+      <div class="wyt-row"><i>busy, as the AP's chart shows it</i><b id="wyt-util">0%</b></div>
+      <div class="wyt-bar t"><i id="wyt-utilbar"></i></div>
+      <div class="wyt-row"><i>actually carrying data</i><b id="wyt-useful">0%</b></div>
+      <div class="wyt-bar"><i id="wyt-usefulbar"></i></div>
+    </div>
+  </div>
+
+  <div class="wyt-acts" style="margin-top:14px">
+    <button class="wyt-btn" id="wyt-auto" type="button" aria-pressed="false">Let the radio do it</button>
+    <button class="wyt-btn" id="wyt-assist" type="button" aria-pressed="false">Show my number</button>
+    <button class="wyt-btn go" id="wyt-cant" type="button" hidden>This isn't mine to fix</button>
+    <button class="wyt-btn" id="wyt-reset" type="button">Restart level</button>
+    <button class="wyt-btn" id="wyt-next" type="button" disabled>Next level</button>
+  </div>
+  <p class="wyt-fine">A model, not a capture: 5 GHz, WMM timings from the standard, airtime from this site's own simulator. Everyone hears everyone, so there are no hidden nodes, nothing fails except collisions, and rates don't adapt. Quiet air plays slowly so you can count; busy air fast-forwards. The strip and the clock are to scale.</p>
+
+  <script>
+  /* ENGINE START
+   Wait Your Turn: the contention engine. No DOM and nothing drawn, so the tests
+   drive it exactly the way the widget does: one slot boundary at a time while the
+   air is quiet, one whole exchange at a time when somebody transmits.
+
+   Timings and airtime are copied from theme/sim/mac.js and theme/sim/phy.js so
+   the game and the lesson quote the same numbers; wyt-test.js loads those files
+   and fails if the two drift apart. What this adds is EDCA: a wait (AIFS) and a
+   window (CWmin to CWmax) per access category, from the WMM spec and the AOS 8
+   CLI defaults. */
+var WYT = (function () {
+  "use strict";
+
+  /* 5 GHz OFDM. SIFS 16 us, slot 9 us. After a collision everyone who heard the
+     garbage waits EIFS, which is AIFS plus SIFS plus an ACK at 6 Mb/s (16 + 44);
+     the senders' own 50 us ACK timeout ends inside that, so one rule covers both.
+     Seven attempts, then the frame is dropped (dot11ShortRetryLimit). */
+  var T = { SLOT: 9, SIFS: 16, EIFSX: 60, ATTEMPTS: 7, TBTT: 102400, PPDU_MAX: 5484 };
+
+  /* aifsn, cwmin, cwmax, txop limit in us (0 = one exchange per win).
+     AIFS = SIFS + AIFSN x slot: best effort waits 43 us, a client's voice 34,
+     the AP's voice 25. Client and AP differ exactly where WMM says they do. */
+  var EDCA = {
+    sta: { BK: { n: 7, cwmin: 15, cwmax: 1023, txop: 0 },    BE: { n: 3, cwmin: 15, cwmax: 1023, txop: 0 },
+           VI: { n: 2, cwmin: 7,  cwmax: 15,   txop: 3008 }, VO: { n: 2, cwmin: 3,  cwmax: 7,    txop: 1504 } },
+    ap:  { BK: { n: 7, cwmin: 15, cwmax: 1023, txop: 0 },    BE: { n: 3, cwmin: 15, cwmax: 63,   txop: 0 },
+           VI: { n: 1, cwmin: 7,  cwmax: 15,   txop: 3008 }, VO: { n: 1, cwmin: 3,  cwmax: 7,    txop: 1504 } },
+    /* beacons ride the AP's most urgent queue here, which is how most APs treat them */
+    bcn: { n: 1, cwmin: 3, cwmax: 3, txop: 0 }
+  };
+
+  /* ── PHY, the same arithmetic as theme/sim/phy.js ─────────────────────── */
+  var MCS = [[1, 1 / 2], [2, 1 / 2], [2, 3 / 4], [4, 1 / 2], [4, 3 / 4], [6, 2 / 3], [6, 3 / 4], [6, 5 / 6],
+             [8, 3 / 4], [8, 5 / 6], [10, 3 / 4], [10, 5 / 6]];
+  var AG = [[1, 1 / 2], [1, 3 / 4], [2, 1 / 2], [2, 3 / 4], [4, 1 / 2], [4, 3 / 4], [6, 2 / 3], [6, 3 / 4]];
+  var LEGACY = [6, 9, 12, 18, 24, 36, 48, 54];
+  function nLtf(ss) { return ss <= 2 ? ss : ss <= 4 ? 4 : ss <= 6 ? 6 : 8; }
+  var STD = {
+    a:  { tsym: 4,    nsd: { 20: 48 }, pre: function () { return 20; } },
+    ax: { tsym: 13.6, nsd: { 20: 234, 40: 468, 80: 980, 160: 1960 }, pre: function (ss) { return 36 + 7.2 * nLtf(ss); } }
+  };
+  function bitsPerSym(r) {
+    var s = STD[r.std], m = (r.std === "a" ? AG : MCS)[r.mcs];
+    return (r.ss || 1) * (s.nsd[r.bw] || s.nsd[20]) * m[0] * m[1];
+  }
+  function rate(r) { return bitsPerSym(r) / STD[r.std].tsym; }
+  function legacy(mbps) { return { std: "a", mcs: Math.max(0, LEGACY.indexOf(mbps)), ss: 1, bw: 20 }; }
+  /* QoS data header and FCS, LLC/SNAP, CCMP header and MIC; a management frame
+     is its header and FCS; "raw" means the byte count already is the whole frame */
+  var OVH = { data: 30 + 8 + 16, mgmt: 28, raw: 0 };
+  function airtime(r, bytes, agg, kind) {
+    agg = Math.max(1, agg || 1);
+    var mac = OVH[kind || "data"], delim = agg > 1 ? 4 : 0,
+        bits = 16 + 8 * agg * (bytes + mac + delim) + 6;
+    return STD[r.std].pre(r.ss || 1) + Math.ceil(bits / bitsPerSym(r)) * STD[r.std].tsym;
+  }
+  /* an ACK (14 bytes) or a BlockAck (32) at a legacy rate */
+  function ctrl(mbps, bytes) { return 20 + Math.ceil((16 + 8 * bytes + 6) / (mbps * 4)) * 4; }
+  /* control responses go at the highest basic rate not above the frame they answer;
+     anything HT or newer answers at the top of the basic set */
+  function respRate(basic, dataLegacy) {
+    var best = 0, i;
+    for (i = 0; i < basic.length; i++) if (basic[i] <= dataLegacy && basic[i] > best) best = basic[i];
+    return best || Math.min.apply(null, basic);
+  }
+
+  /* mulberry32, the same generator as theme/sim/core.js, with the same warm up
+     games.js gives small seeds */
+  function rng(seed) {
+    var a = (Math.imul((seed >>> 0) + 1, 2654435761) ^ 0x9E3779B9) >>> 0, i;
+    function r() {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+    for (i = 0; i < 6; i++) r();
+    return r;
+  }
+
+  function airtimeList(r, sizes, kind) {
+    var mac = OVH[kind || "data"], delim = sizes.length > 1 ? 4 : 0, bits = 22, i;
+    for (i = 0; i < sizes.length; i++) bits += 8 * (sizes[i] + mac + delim);
+    return STD[r.std].pre(r.ss || 1) + Math.ceil(bits / bitsPerSym(r)) * STD[r.std].tsym;
+  }
+  var PRIO = { VO: 4, VI: 3, BE: 2, BK: 1 };
+  var CATS = ["you", "data", "slow", "voice", "bcn", "mc", "coll", "ack", "wait", "idle"];
+
+  /* ── the room ───────────────────────────────────────────────────────────
+     cfg = { seed, basic: [6, 12, 24], ssids, neighbours, mcast: { pps, bytes },
+             nodes: [{ id, name, role, rate: { std, mcs, ss, bw }, agg, holds, dock }],
+             flows: [{ node, dir: "up" | "down", ac, bytes, type, period | pps, burst, acks }],
+             manual: node id or null, override: null | "VO" }
+     role "slow" and "voice" only colour the airtime; the physics is the rate. */
+  function Sim(cfg) {
+    var S = this, i;
+    S.cfg = cfg;
+    /* two kinds of chance, kept apart: when traffic shows up, and the number
+       each queue draws. Each queue has its own stream, so the room behaves the
+       same for a given seed however the player times the button. */
+    S.seed = (cfg.seed || 1) >>> 0;
+    S.r = rng(S.seed);
+    S.t = 0; S.idleStart = 0; S.k = -1;
+    S.basic = (cfg.basic || [6, 12, 24]).slice().sort(function (a, b) { return a - b; });
+    S.lowest = S.basic[0];
+    S.nodes = {}; S.q = []; S.ev = []; S.flows = [];
+    S.air = {}; CATS.forEach(function (c) { S.air[c] = 0; });
+    S.busy = 0; S.useful = 0;
+    S.log = [];            /* the last few exchanges, for the strip */
+    S.me = null;
+    S.nodes.ap = { id: "ap", name: "AP", role: "ap", connected: true };
+    (cfg.nodes || []).forEach(function (n) {
+      var nd = {}, k; for (k in n) nd[k] = n[k];
+      nd.connected = (nd.holds === undefined || nd.holds >= S.lowest);
+      nd.gone = nd.connected ? null : (nd.dock ? "roamed" : "dropped");
+      S.nodes[nd.id] = nd;
+    });
+    /* beacons: one per SSID every TBTT from this AP and from each other AP on the
+       channel you can hear, at the lowest basic rate */
+    var bss = [{ id: "ap", name: "AP" }];
+    for (i = 0; i < (cfg.neighbours || 0); i++) {
+      S.nodes["nb" + i] = { id: "nb" + i, name: "AP " + (i + 2), role: "ap", connected: true };
+      bss.push(S.nodes["nb" + i]);
+    }
+    bss.forEach(function (b, j) {
+      var e = S.edcaf(b.id, "BCN");
+      S.at(Math.floor((j + 0.5) * T.TBTT / bss.length), function beacon(t) {
+        for (var s = 0; s < (cfg.ssids === undefined ? 1 : cfg.ssids); s++) S.push(e, { bytes: 250, t0: t, dst: null, kind: "mgmt" }, t);
+        S.at(t + T.TBTT, beacon);
+      });
+    });
+    if (cfg.mcast && cfg.mcast.pps) {
+      var me = S.edcaf("ap", "MC"), gap = 1e6 / cfg.mcast.pps;
+      S.at(S.r() * gap, function mc(t) {
+        S.push(me, { bytes: cfg.mcast.bytes || 300, t0: t, dst: null, kind: "raw" }, t);
+        S.at(t - Math.log(1 - S.r()) * gap, mc);
+      });
+    }
+    (cfg.flows || []).forEach(function (f) { S.flow(f); });
+    if (cfg.manual) { S.me = S.edcaf(cfg.manual, "BE"); S.me.manual = true; }
+    /* a busy room is already busy when you walk in: run it for a while first,
+       then start every clock and counter the reader sees from there */
+    S.t0 = 0; S.base = null;
+    if (cfg.warm) S.warm(cfg.warm);
+  }
+
+  Sim.prototype.warm = function (us) {
+    var S = this, a = {};
+    while (S.t < us) S.step();
+    CATS.forEach(function (c) { a[c] = S.air[c]; });
+    var coll = 0; S.q.forEach(function (x) { coll += x.coll; });
+    S.t0 = S.t; S.base = { air: a, busy: S.busy, useful: S.useful, coll: coll };
+    S.log = S.log.slice(-80);
+  };
+
+  /* airtime so far as shares of the time since the clock started */
+  Sim.prototype.snap = function () {
+    var S = this, b = S.base || { air: {}, busy: 0, useful: 0 }, tot = (S.t - S.t0) || 1, o = { t: S.t - S.t0, air: {} };
+    CATS.forEach(function (c) { o.air[c] = (S.air[c] - (b.air[c] || 0)) / tot; });
+    o.util = (S.busy - b.busy) / tot; o.useful = (S.useful - b.useful) / tot;
+    return o;
+  };
+
+  Sim.prototype.at = function (t, fn) {
+    var ev = this.ev, i = ev.length;
+    while (i > 0 && ev[i - 1].t > t) i--;
+    ev.splice(i, 0, { t: t, fn: fn });
+  };
+
+  Sim.prototype.edcaf = function (id, ac) {
+    var S = this, i, e;
+    for (i = 0; i < S.q.length; i++) if (S.q[i].node === id && S.q[i].ac === ac) return S.q[i];
+    var isAp = S.nodes[id].role === "ap",
+        p = ac === "BCN" ? EDCA.bcn : ac === "MC" ? EDCA.ap.BE : (isAp ? EDCA.ap : EDCA.sta)[ac];
+    e = { node: id, ac: ac, p: p, q: [], cw: p.cwmin, bo: null, tries: 0, ta: 0, rr: 0,
+          r: rng((Math.imul(S.seed, 7919) + (S.q.length + 1) * 104729) >>> 0),
+          group: ac === "BCN" || ac === "MC", manual: false, sent: 0, ok: 0, coll: 0 };
+    S.q.push(e);
+    return e;
+  };
+
+  /* a frame arrives in a queue; an empty queue draws its number now */
+  Sim.prototype.push = function (e, fr, t) {
+    if (e.q.length >= 2000) { if (fr.flow && !fr.flow.refill) fr.flow.drop += 1; return false; }
+    if (!e.q.length && e.bo === null) { e.bo = Math.floor(e.r() * (e.cw + 1)); e.ta = t; }
+    e.q.push(fr);
+    return true;
+  };
+
+  Sim.prototype.flow = function (f) {
+    var S = this, nd = S.nodes[f.node];
+    if (!nd || !nd.connected) { if (nd) S.flows.push({ spec: f, dead: true, sent: 0, got: 0, drop: 0, bytes: 0, delays: [] }); return; }
+    var ac = f.ac || "BE";
+    /* "everything as voice": the AP's QoS map and the laptops' own marking both
+       send best effort through the voice queue. Legacy gear with no WMM keeps DCF. */
+    if (S.cfg.override && ac === "BE" && nd.rate && nd.rate.std !== "a") ac = S.cfg.override;
+    var fl = { spec: f, sent: 0, got: 0, drop: 0, bytes: 0, delays: [], ac: ac },
+        e = f.dir === "down" ? S.edcaf("ap", ac) : S.edcaf(f.node, ac),
+        dst = f.dir === "down" ? f.node : "ap";
+    S.flows.push(fl);
+    fl.e = e;
+    function one(t) {
+      var ok = S.push(e, { bytes: f.bytes || 1500, t0: t, dst: dst, flow: fl, src: f.node }, t);
+      if (ok) fl.sent += 1;
+      return ok;
+    }
+    if (f.type === "sat") {
+      /* a saturated source keeps its own share of the queue topped up, never more */
+      fl.refill = function (t) {
+        var have = 0, i;
+        for (i = 0; i < e.q.length; i++) if (e.q[i].flow === fl) have += 1;
+        for (; have < (f.depth || 64); have++) if (!one(t)) break;
+      };
+      S.at(f.start || 0, function (t) { fl.refill(t); });
+    } else if (f.type === "cbr") {
+      S.at((f.start || 0) + S.r() * f.period, function tick(t) { one(t); S.at(t + f.period, tick); });
+    } else if (f.type === "poisson") {
+      var gap = 1e6 / f.pps;
+      S.at((f.start || 0) - Math.log(1 - S.r()) * gap, function tick(t) { one(t); S.at(t - Math.log(1 - S.r()) * gap, tick); });
+    } else if (f.type === "burst") {
+      var g = f.gap;
+      S.at((f.start || 0) - Math.log(1 - S.r()) * g, function tick(t) {
+        for (var b = 0; b < f.burst; b++) one(t);
+        S.at(t - Math.log(1 - S.r()) * g, tick);
+      });
+    }
+    /* a download answers with TCP acks, one for every two segments, from the client */
+    if (f.acks && f.dir === "down") fl.ackE = S.edcaf(f.node, "BE");
+  };
+
+  /* ── the clock ─────────────────────────────────────────────────────────
+     Boundary k of a quiet spell sits at SIFS + k slots after the air went
+     quiet. A queue with AIFSN n starts acting at boundary n, which is AIFS.
+     At each boundary a counting queue either transmits (its number is 0) or
+     takes one off its number. Two or more transmitting at the same boundary
+     is a collision, and nobody finds out until the ACK doesn't come. */
+  Sim.prototype.bt = function (k) { return this.idleStart + T.SIFS + k * T.SLOT; };
+  Sim.prototype.drain = function (t) {
+    while (this.ev.length && this.ev[0].t <= t) { var x = this.ev.shift(); x.fn(x.t); }
+  };
+  Sim.prototype.queued = function () {
+    for (var i = 0; i < this.q.length; i++) if (this.q[i].q.length && this.nodes[this.q[i].node].connected) return true;
+    return false;
+  };
+  function counting(S, e, k, bk) {
+    return e.q.length > 0 && e.bo !== null && k >= e.p.n && bk >= e.ta && S.nodes[e.node].connected;
+  }
+
+  /* the player's button. Legal only when their number is 0; then it arms, and
+     the radio goes at the next boundary it is allowed to (straight away if the
+     wait is already over). Pressed any earlier, it is a foul and nothing happens. */
+  Sim.prototype.press = function () {
+    var e = this.me;
+    if (!e || !e.q.length) return "none";
+    if (e.bo === 0) { e.armed = true; return "armed"; }
+    return "foul";
+  };
+
+  Sim.prototype.step = function () {
+    var S = this, k = S.k + 1, bk = S.bt(k), prev = k === 0 ? S.idleStart : S.bt(k - 1), go = [], i, e;
+    S.drain(prev);
+    var was = S.queued() || (S.me && S.me.q.length);
+    S.air[was ? "wait" : "idle"] += bk - prev;
+    S.drain(bk);
+    for (i = 0; i < S.q.length; i++) {
+      e = S.q[i];
+      if (!counting(S, e, k, bk)) continue;
+      if (e.bo === 0) { if (!e.manual || e.armed) go.push(e); }
+      else e.bo -= 1;
+    }
+    S.k = k; S.t = bk;
+    if (!go.length) return { type: "slot", k: k, t: bk };
+    /* two queues in one radio: the higher category goes, the other counts it as a collision */
+    var byNode = {}, keep = [];
+    go.forEach(function (x) { (byNode[x.node] = byNode[x.node] || []).push(x); });
+    Object.keys(byNode).forEach(function (id) {
+      var l = byNode[id].sort(function (a, b) { return pr(b) - pr(a); });
+      keep.push(l[0]);
+      for (var j = 1; j < l.length; j++) S.fail(l[j], []);
+    });
+    return S.exchange(keep, bk);
+  };
+  function pr(e) { return e.ac === "BCN" ? 9 : e.ac === "MC" ? 2 : PRIO[e.ac]; }
+
+  /* what one queue puts on the air when it wins: a beacon or a group frame alone,
+     otherwise an A-MPDU to one destination, as deep as the radio allows and no
+     longer than a PPDU or the category's TXOP limit */
+  Sim.prototype.ppdu = function (e) {
+    var S = this, n, i, fr, dst, rt, agg, take = [], sizes = [];
+    if (e.group) {
+      fr = e.q[0];
+      return { frames: [fr], idx: [0], rate: legacy(S.lowest), air: airtime(legacy(S.lowest), fr.bytes, 1, fr.kind), group: true, dst: null };
+    }
+    if (e.node === "ap") {
+      var dsts = [];
+      e.q.forEach(function (f) { if (dsts.indexOf(f.dst) < 0 && S.nodes[f.dst].connected) dsts.push(f.dst); });
+      if (!dsts.length) return null;
+      dst = dsts[e.rr % dsts.length]; e.rr += 1;
+      n = S.nodes[dst];
+    } else { dst = "ap"; n = S.nodes[e.node]; }
+    rt = n.rate; agg = rt.std === "a" ? 1 : (n.agg || 1);
+    var lim = e.p.txop || T.PPDU_MAX;
+    for (i = 0; i < e.q.length && take.length < agg; i++) {
+      fr = e.q[i];
+      if (fr.dst !== dst) continue;
+      sizes.push(fr.bytes);
+      if (take.length && airtimeList(rt, sizes, "data") > lim) { sizes.pop(); break; }
+      take.push(i);
+    }
+    return { frames: take.map(function (j) { return e.q[j]; }), idx: take, rate: rt, air: airtimeList(rt, sizes, "data"), group: false, dst: dst };
+  };
+
+  Sim.prototype.cat = function (e, pp) {
+    if (e.ac === "BCN") return "bcn";
+    if (e.ac === "MC") return "mc";
+    var who = e.node === "ap" ? this.nodes[pp.dst] : this.nodes[e.node];
+    if (e.manual || who.id === this.cfg.manual || who.id === "you") return "you";
+    if (who.role === "slow") return "slow";
+    if (who.role === "voice") return "voice";
+    return "data";
+  };
+
+  Sim.prototype.fail = function (e, frames) {
+    e.tries += 1; e.coll += 1;
+    if (e.tries >= T.ATTEMPTS) {
+      var seen = [];
+      frames.forEach(function (f) { if (f.flow) { f.flow.drop += 1; if (f.flow.refill && seen.indexOf(f.flow) < 0) seen.push(f.flow); } });
+      e.q = e.q.filter(function (f) { return frames.indexOf(f) < 0; });
+      e.tries = 0; e.cw = e.p.cwmin;
+      /* a saturated source still has more to send after the chip gives up on a frame */
+      var t = this.t; seen.forEach(function (fl) { fl.refill(t); });
+    } else e.cw = Math.min((e.cw + 1) * 2 - 1, e.p.cwmax);
+    e.bo = e.q.length ? Math.floor(e.r() * (e.cw + 1)) : null;
+    e.ta = 0; e.armed = false;
+  };
+
+  Sim.prototype.dropGroup = function (e) {
+    e.q.shift(); this.lostGroup = (this.lostGroup || 0) + 1;
+    e.bo = e.q.length ? Math.floor(e.r() * (e.cw + 1)) : null; e.ta = 0;
+  };
+
+  Sim.prototype.ackFlow = function (fl) {
+    if (!fl.ackFlow) {
+      fl.ackFlow = { spec: { node: fl.spec.node, dir: "up", ack: true }, sent: 0, got: 0, drop: 0, bytes: 0, delays: [] };
+      this.flows.push(fl.ackFlow);
+    }
+    return fl.ackFlow;
+  };
+
+  Sim.prototype.deliver = function (e, pp, tDone, end) {
+    var S = this, r = rate(pp.rate), seen = [];
+    pp.idx.slice().sort(function (a, b) { return b - a; }).forEach(function (j) { e.q.splice(j, 1); });
+    e.ok += 1; e.tries = 0; e.cw = e.p.cwmin; e.armed = false;
+    if (!pp.group) {
+      pp.frames.forEach(function (f) {
+        S.useful += f.bytes * 8 / r;
+        if (!f.flow) return;
+        f.flow.got += 1; f.flow.bytes += f.bytes;
+        if (f.flow.delays.length < 60000) f.flow.delays.push(tDone - f.t0);
+        if (f.flow.ackE) {
+          f.flow.debt = (f.flow.debt || 0) + 1;
+          while (f.flow.debt >= 2) {
+            f.flow.debt -= 2;
+            var af = S.ackFlow(f.flow); af.sent += 1;
+            S.push(f.flow.ackE, { bytes: 64, t0: end, dst: "ap", flow: af, src: f.flow.spec.node }, end);
+          }
+        }
+        if (f.flow.refill && seen.indexOf(f.flow) < 0) seen.push(f.flow);
+      });
+      seen.forEach(function (fl) { fl.refill(end); });
+    } else S.groupSent = (S.groupSent || 0) + 1;
+    e.bo = e.q.length ? Math.floor(e.r() * (e.cw + 1)) : null;
+    e.ta = end;
+  };
+
+  Sim.prototype.exchange = function (list, bk) {
+    var S = this, parts = [], maxAir = 0;
+    list.forEach(function (e) {
+      var pp = S.ppdu(e);
+      if (!pp || !pp.frames.length) return;
+      pp.e = e; pp.cat = S.cat(e, pp);
+      parts.push(pp); maxAir = Math.max(maxAir, pp.air);
+      e.sent += 1;
+    });
+    if (!parts.length) return { type: "slot", k: S.k, t: bk };
+    var coll = parts.length > 1, end, seg = { t0: bk, parts: [], coll: coll };
+    if (coll) {
+      end = bk + maxAir + T.EIFSX;
+      S.air.coll += end - bk; S.busy += maxAir;
+      parts.forEach(function (pp) {
+        seg.parts.push({ node: pp.e.node, dst: pp.dst, cat: pp.cat, air: pp.air, n: pp.frames.length, ok: false, ac: pp.e.ac, rate: rate(pp.rate) });
+        if (pp.group) S.dropGroup(pp.e); else S.fail(pp.e, pp.frames);
+      });
+    } else {
+      var pp = parts[0], e = pp.e, resp = 0;
+      if (!pp.group) resp = ctrl(respRate(S.basic, pp.rate.std === "a" ? rate(pp.rate) : 54), pp.frames.length > 1 ? 32 : 14);
+      end = bk + pp.air + (pp.group ? 0 : T.SIFS + resp);
+      S.air[pp.cat] += pp.air;
+      if (!pp.group) S.air.ack += T.SIFS + resp;
+      S.busy += pp.air + resp;
+      seg.parts.push({ node: e.node, dst: pp.dst, cat: pp.cat, air: pp.air, n: pp.frames.length, ok: true, ac: e.ac, resp: resp, rate: rate(pp.rate) });
+      S.deliver(e, pp, bk + pp.air, end);
+    }
+    seg.t1 = end;
+    S.log.push(seg); if (S.log.length > 600) S.log.shift();
+    S.t = end; S.idleStart = end; S.k = -1;
+    return { type: "tx", seg: seg, t: bk, end: end };
+  };
+
+  /* headless: run until tEnd, letting a policy press the button for the player */
+  Sim.prototype.run = function (tEnd, policy) {
+    var S = this;
+    while (S.t < tEnd) {
+      if (policy && S.me) policy(S);
+      if (!S.queued() && !(S.me && S.me.q.length) && S.ev.length) {
+        var te = Math.min(S.ev[0].t, tEnd), kj = Math.floor((te - S.idleStart - T.SIFS) / T.SLOT) - 1;
+        if (kj >= 0 && kj > S.k) {
+          S.air.idle += S.bt(kj) - (S.k < 0 ? S.idleStart : S.bt(S.k));
+          S.k = kj; S.t = S.bt(kj);
+        }
+      }
+      S.step();
+    }
+    return S.report();
+  };
+
+  Sim.prototype.report = function () {
+    var S = this, sn = S.snap(), tot = sn.t || 1, o = { t: sn.t, util: sn.util, useful: sn.useful, air: sn.air, flows: [], nodes: {} };
+    S.flows.forEach(function (fl) {
+      var d = fl.delays.slice().sort(function (a, b) { return a - b; });
+      o.flows.push({ node: fl.spec.node, dir: fl.spec.dir, ack: !!fl.spec.ack, dead: !!fl.dead, tag: fl.spec.tag || "",
+        sent: fl.sent, got: fl.got, drop: fl.drop, mbps: fl.bytes * 8 / tot,
+        p95: d.length ? d[Math.floor(0.95 * (d.length - 1))] : null, max: d.length ? d[d.length - 1] : null });
+    });
+    Object.keys(S.nodes).forEach(function (id) { o.nodes[id] = { connected: S.nodes[id].connected, gone: S.nodes[id].gone || null }; });
+    if (S.me) o.me = { ok: S.me.ok, sent: S.me.sent, coll: S.me.coll };
+    o.lostGroup = S.lostGroup || 0;
+    return o;
+  };
+
+
+  /* ── the four levels ──────────────────────────────────────────────────────
+     Every level plays from a seed on its list. The lists were picked by
+     wyt-test.js, which plays each one with the radio's own timing and sixty
+     human ones: level 2's seeds are winnable by all of them, level 3's by none,
+     so "can't be won" is a checked property of the level, not a hope. */
+  var AX = function (mcs, ss) { return { std: "ax", mcs: mcs, ss: ss, bw: 80 }; };
+  var A6 = { std: "a", mcs: 0, ss: 1, bw: 20 };
+  function crowd(nodes, flows, busy) {
+    [["l1", "Laptop 1", 11], ["l2", "Laptop 2", 9], ["l3", "Laptop 3", 8], ["l4", "Laptop 4", 7]].forEach(function (x, i) {
+      nodes.push({ id: x[0], name: x[1], role: "sta", rate: AX(x[2], 2), agg: 32, holds: 54 });
+      flows.push({ node: x[0], dir: "up", type: "burst", burst: 6 + 2 * i, gap: busy.up, bytes: 1500, tag: "web" });
+      flows.push({ node: x[0], dir: "down", type: "burst", burst: 16 + 4 * i, gap: busy.down, bytes: 1500, acks: true, tag: "web" });
+    });
+    [["p1", "Phone 1", 7, 2], ["p2", "Phone 2", 5, 1]].forEach(function (x) {
+      nodes.push({ id: x[0], name: x[1], role: "sta", rate: AX(x[2], x[3]), agg: 16, holds: 54 });
+      flows.push({ node: x[0], dir: "up", type: "burst", burst: 3, gap: busy.up * 2, bytes: 1200, tag: "app" });
+      flows.push({ node: x[0], dir: "down", type: "burst", burst: 8, gap: busy.down * 2, bytes: 1500, acks: true, tag: "app" });
+    });
+    nodes.push({ id: "dp", name: "Desk phone", role: "voice", rate: AX(2, 1), agg: 1, holds: 18 });
+    flows.push({ node: "dp", dir: "up", ac: "VO", type: "cbr", period: 20000, bytes: 200, tag: "voice" });
+    flows.push({ node: "dp", dir: "down", ac: "VO", type: "cbr", period: 20000, bytes: 200, tag: "voice" });
+  }
+  var LEVELS = [
+    { id: "empty", name: "The empty room", goal: 5, bell: 0, show: true, seeds: [9, 15, 19, 32, 36, 41, 48, 25],
+      room: function (seed) {
+        return { seed: seed, basic: [6, 12, 24], ssids: 1, manual: "you",
+          nodes: [{ id: "you", name: "You", role: "sta", rate: AX(9, 2), agg: 16, holds: 54 }],
+          flows: [{ node: "you", dir: "up", type: "sat", bytes: 1500, depth: 16, tag: "file" },
+                  { node: "you", dir: "down", type: "burst", burst: 12, gap: 2500, bytes: 1500, tag: "web" }] };
+      } },
+    { id: "full", name: "The full room", goal: 10, bell: 15000, show: false, seeds: [2, 17, 18, 28, 66, 73, 34, 49],
+      room: function (seed) {
+        var nodes = [{ id: "you", name: "You", role: "sta", rate: AX(9, 2), agg: 16, holds: 54 }],
+            flows = [{ node: "you", dir: "up", type: "sat", bytes: 1500, depth: 16, tag: "file", start: 20000 }];
+        crowd(nodes, flows, { up: 8000, down: 6000 });
+        return { seed: seed, basic: [6, 12, 24], ssids: 3, manual: "you", nodes: nodes, flows: flows, warm: 20000 };
+      } },
+    { id: "scanner", name: "The scanner", goal: 10, bell: 15000, show: false, unwinnable: true, seeds: [39, 71, 78, 97, 120, 129, 139, 215],
+      room: function (seed) {
+        var c = LEVELS[1].room(seed);
+        c.nodes.push({ id: "sc", name: "Scanner", role: "slow", rate: A6, agg: 1, holds: 6, dock: true });
+        c.flows.push({ node: "sc", dir: "down", type: "sat", bytes: 1500, depth: 8, acks: true, tag: "update" });
+        c.flows.push({ node: "sc", dir: "up", type: "sat", bytes: 1500, depth: 8, tag: "sync" });
+        return c;
+      } },
+    { id: "engineer", name: "The engineer", engineer: true, seeds: [2], evalUs: 2000000,
+      knobs: { ssids: 8, min: 6, mc: "flood", qos: "normal" },
+      room: function (seed, kn) {
+        kn = kn || LEVELS[3].knobs;
+        var nodes = [{ id: "you", name: "You", role: "sta", rate: AX(9, 2), agg: 16, holds: 54 }],
+            flows = [{ node: "you", dir: "up", type: "cbr", period: 4000, bytes: 1200, tag: "call" },
+                     { node: "you", dir: "down", type: "cbr", period: 4000, bytes: 1200, tag: "call" }];
+        crowd(nodes, flows, { up: 8000, down: 6000 });
+        nodes.push({ id: "sc", name: "Scanner", role: "slow", rate: A6, agg: 1, holds: 6, dock: true });
+        flows.push({ node: "sc", dir: "down", type: "sat", bytes: 1500, depth: 8, acks: true, tag: "update" });
+        flows.push({ node: "sc", dir: "up", type: "sat", bytes: 1500, depth: 8, tag: "sync" });
+        var basic = kn.min === 24 ? [24] : kn.min === 12 ? [12, 24] : [6, 12, 24];
+        return { seed: seed, basic: basic, ssids: kn.ssids, neighbours: 5, manual: null,
+                 mcast: kn.mc === "flood" ? { pps: 765, bytes: 300 } : null,
+                 override: kn.qos === "voice" ? "VO" : null, nodes: nodes, flows: flows };
+      } }
+  ];
+
+  /* the engineer's checklist, judged over a run of the room. Delivered share
+     counts what got through against what got through or was given up on after
+     seven tries; frames still queued when the run stops are neither. */
+  var PASS = { call: 0.98, callMs: 50, phone: 0.99, phoneMs: 20, util: 0.67 };
+  function judge(rep) {
+    function fl(node, dir, tag) { return rep.flows.filter(function (f) { return f.node === node && f.dir === dir && (!tag || f.tag === tag); })[0]; }
+    var cu = fl("you", "up", "call"), cd = fl("you", "down", "call"), vu = fl("dp", "up"), vd = fl("dp", "down"),
+        share = function (f) { return f && (f.got + f.drop) ? f.got / (f.got + f.drop) : 0; },
+        ms = function (x) { return x === null || x === undefined ? Infinity : x / 1000; };
+    var out = {
+      call:  { up: share(cu), down: share(cd), p95: Math.max(ms(cu.p95), ms(cd.p95)) },
+      phone: { connected: rep.nodes.dp.connected, got: Math.min(share(vu), share(vd)), p95: Math.max(ms(vu && vu.p95), ms(vd && vd.p95)) },
+      scanner: { ok: true, home: rep.nodes.sc.connected },
+      util: { v: rep.util }
+    };
+    out.call.ok = out.call.up >= PASS.call && out.call.down >= PASS.call && out.call.p95 <= PASS.callMs;
+    out.phone.ok = out.phone.connected && out.phone.got >= PASS.phone && out.phone.p95 <= PASS.phoneMs;
+    out.util.ok = out.util.v <= PASS.util;
+    out.all = out.call.ok && out.phone.ok && out.scanner.ok && out.util.ok;
+    return out;
+  }
+
+  var policy = {
+    /* what the chip does: go the moment the number reaches 0 */
+    radio: function (S) { if (S.me.bo === 0 && !S.me.armed) S.press(); },
+    /* a person: usually on time, sometimes a slot or two late */
+    human: function (seed, pLate, maxLate) {
+      var r = rng(seed), wait = null;
+      return function (S) {
+        if (S.me.bo !== 0 || S.me.armed) { wait = null; return; }
+        if (wait === null) wait = r() < pLate ? 1 + Math.floor(r() * maxLate) : 0;
+        if (wait <= 0) { S.press(); wait = null; } else wait -= 1;
+      };
+    }
+  };
+
+  return { T: T, EDCA: EDCA, airtime: airtime, airtimeList: airtimeList, ctrl: ctrl, rate: rate, legacy: legacy,
+           respRate: respRate, rng: rng, Sim: Sim, LEGACY: LEGACY, CATS: CATS, policy: policy,
+           LEVELS: LEVELS, judge: judge, PASS: PASS };
+})();
+/* ENGINE END */
+  (function () {
+  "use strict";
+  var root = document.getElementById("waityourturn");
+  if (!root || typeof WYT === "undefined") return;
+  var $ = function (s) { return root.querySelector(s); };
+  var L = WYT.LEVELS, T = WYT.T;
+  var REDUCED = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var COL = { you: "#F5A524", data: "#2FA8E0", voice: "#5ED2DA", slow: "#F0705F", bcn: "#8BA2AE", mc: "#4FBDEA",
+              coll: "rgba(255,255,255,0.55)", ack: "#8CE05E", wait: "rgba(255,255,255,0.18)", idle: "rgba(255,255,255,0.06)" };
+  var NAME = { you: "you", data: "everyone else's data", voice: "desk phone", slow: "scanner", bcn: "beacons", mc: "mDNS",
+               coll: "collisions", ack: "ACKs", wait: "gaps and counting", idle: "nobody sending" };
+
+  /* the narrator. {x} fills from the numbers the model just produced */
+  var TX = {
+    empty: {
+      brief: "You're a laptop with a file to send, and it's just you and the AP. When the air goes quiet you wait out a short gap, then your number counts down one slot at a time. Press Send when it reads 0. The AP says got it and you draw a new number. Five frames.",
+      open: "The grey stretch on the ruler is the gap. The ticks after it are 9 microsecond slots, slowed down a lot so you can see them. Press Start.",
+      started: "Watch the number in the circle. Press Send when it hits 0.",
+      firstOk: "<i>Got it.</i> The green sliver after your frame is the AP's block ACK, sent 16 microseconds after you finished. New number: {n}.",
+      freeze: "The AP started talking. Your count froze at <b>{n}</b>. After the next gap it carries on from {n}, not from the top.",
+      foul: "Not yet, you still have {n} to go. A real radio can't jump the line; the chip does the counting.",
+      late: "You're at 0. Every slot you let pass is one somebody else could take.",
+      won: "<i>Five for five.</i> That's the whole game, for every frame that expects an ACK, on every Wi-Fi network: listen, wait out the gap, count, send, get the ACK. Now fill the room."
+    },
+    full: {
+      brief: "Same laptop, busy room: four laptops, two phones, a desk phone on a call and the AP, all playing the same game. Your number shows for a moment when you draw it, then you keep count yourself, and your count freezes whenever somebody else talks. Ten frames before the bell. The bell is fifteen milliseconds of air.",
+      open: "Count the slots after each gap. When somebody else starts first, hold your place. Press Start.",
+      started: "Your number shows for a second. Then it's yours to keep track of.",
+      coll: "<b>No ACK.</b> You and {who} picked the same slot and neither frame survived. Nobody on Wi-Fi hears a collision happen; they just never hear back. Your window doubled: the next number comes out of 0 to {cw}.",
+      voice: "The desk phone went ahead of you. Voice waits 34 microseconds instead of 43 (25 when the AP sends it), and draws from 0 to 3 instead of 0 to 15. That's WMM, and it's why a call can sound fine in a busy room.",
+      foul: "Not yet. Your number isn't down to 0, so that's a foul.",
+      won: "<i>Ten before the bell,</i> and {c} of your turns collided anyway. Now look at the pie. The AP would call this channel {u}% busy, and {d}% of the air carried data anybody asked for.",
+      lost: "<b>The bell.</b> {n} of 10. Late presses cost slots, and every slot you leave empty is one somebody else can take. Restart gives you a new room.",
+      radio: "The radio did that one. It never hesitates. Try it by hand, it's harder than it looks."
+    },
+    scanner: {
+      brief: "Same room, same ten frames, same bell. One new device: a handheld scanner on the loading dock, 802.11a only, pulling its nightly update at 6 Mb/s. It gets the same shot at every turn as everybody else.",
+      open: "Play it exactly like the last one. Press Start.",
+      started: "Same as before. Count, hold your place, send at 0.",
+      first: "That long bar is the scanner: one 1500-byte frame at 6 Mb/s, <b>{a} microseconds</b> on the air. Your last turn moved {n} frames in {b}.",
+      lost: "<b>The bell.</b> {n} of 10, and you played it right. The scanner's traffic held the air {s}% of the time and carried {x}% of the data. Nobody's turn got longer except his. There's a button for that.",
+      early: "Not yet. Play some of it out and watch the pie first.",
+      fixed: "<i>Right.</i> You can't fix this from a client. Everybody got the same turns; his just last {k} times longer than yours. The next level hands you the AP.",
+      lucky: "You beat the bell, which the scanner almost never allows. Press the button anyway: the problem is still how long his turns are, not how you took yours."
+    },
+    engineer: {
+      brief: "Now you're the engineer. Same room from the AP's side, plus the rest of the real world: five more of your APs on this channel, eight SSIDs on every one, the printers' mDNS from the whole VLAN at 765 packets a second, the scanner, and you on a video call. Four settings. Get the call and the desk phone clean, keep the scanner working, and leave the channel no more than two thirds busy.",
+      dropped: "<b>The desk phone dropped.</b> From the far wall it can't hold 24 Mb/s, and at this minimum it can't read the beacons. Survey before you move the floor.",
+      voice: "<b>Everything's in the voice queue now:</b> short waits, numbers from 0 to 3, and {c}% of the air is collisions. The desk phone is losing frames. Priority only works while most traffic doesn't have it.",
+      scanner: "<b>The scanner is still on your AP</b> at 6 Mb/s, holding {s}% of the air, and your call is starving. Clients decide when to roam. The AP can nudge them or kick them off, but the move that sticks is to stop answering them at a rate they can't use.",
+      flood: "The scanner moved to the dock AP. <b>Now the multicast:</b> {m}% of the air is mDNS at {r} Mb/s, and the channel is {u}% busy.",
+      ssids: "<b>Close.</b> The channel is {u}% busy and {b}% of it is beacons: {k} SSIDs on each of six APs, every tenth of a second, at {r} Mb/s.",
+      won: "<i>Clean.</i> The call's through, the phone's clean, the scanner's running on the dock AP, and the channel is {u}% busy. Nothing got faster. You stopped wasting air."
+    }
+  };
+  function fill(s, o) { return s.replace(/\{(\w+)\}/g, function (_, k) { return o && o[k] !== undefined ? o[k] : ""; }); }
+  function say(html, o) { $("#wyt-say").innerHTML = fill(html, o); }
+  function pct(x) { return Math.round(x * 100); }
+  function us(x) { return x >= 1000 ? (x / 1000).toFixed(2) + " ms" : Math.round(x) + " us"; }
+
+  var st = { lv: 0, seedIx: 0, sim: null, mode: "ready", from: 0, to: 0, t0: 0, dur: 1, disp: 0, auto: false, assist: false,
+             showUntil: 0, fouls: 0, late: 0, said: {}, done: [false, false, false, false], finished: [false, false, false, false],
+             kn: { ssids: 8, min: 6, mc: "flood", qos: "normal" }, raf: 0, visible: true, paused: 0, seg: null,
+             trail: [], prevTrail: [], prevIdle: 0, lastMine: null, evalRep: null, evalLog: null, touched: false };
+
+  function slotMs() { return st.auto ? 55 : (st.lv === 0 ? 240 : 165); }
+  function idleMs(u) { return slotMs() * u / T.SLOT; }
+  function busyMs(u) { var m = Math.max(300, Math.min(1000, 260 + 0.22 * u)); return st.auto ? m * 0.45 : m; }
+
+  /* ── levels ─────────────────────────────────────────────────────────── */
+  function load(lv, seedIx) {
+    cancelAnimationFrame(st.raf); st.raf = 0;
+    st.lv = lv; st.seedIx = seedIx || 0;
+    var l = L[lv];
+    st.auto = false; $("#wyt-auto").setAttribute("aria-pressed", "false");
+    st.fouls = 0; st.late = 0; st.said = {}; st.showUntil = 0; st.seg = null; st.trail = []; st.prevTrail = []; st.lastMine = null; st.autoUsed = false;
+    $("#wyt-lv").textContent = "Level " + (lv + 1) + " of " + L.length;
+    $("#wyt-title").textContent = l.name;
+    $("#wyt-goal").textContent = TX[l.id].brief;
+    $("#wyt-play").hidden = !!l.engineer;
+    $("#wyt-knobs").hidden = !l.engineer;
+    $("#wyt-auto").hidden = !!l.engineer;
+    $("#wyt-assist").hidden = !!l.engineer || l.show;
+    $("#wyt-cant").hidden = !l.unwinnable;
+    $("#wyt-rulercap-row").hidden = !!l.engineer;
+    $("#wyt-ruler").hidden = !!l.engineer;
+    $("#wyt-reset").textContent = l.engineer ? "Put it back" : "Restart level";
+    $("#wyt-stripcap").textContent = l.engineer ? "The air, a slice of the run, to scale" : "The air, last 6 ms, to scale";
+    st.win = l.engineer ? 20000 : 6000;
+    if (l.engineer) {
+      st.sim = null; st.mode = "eng";
+      buildKnobs(); evaluate();
+    } else {
+      st.sim = new WYT.Sim(l.room(l.seeds[st.seedIx % l.seeds.length]));
+      st.mode = "ready"; st.disp = 0;
+      $("#wyt-send").textContent = "Start"; $("#wyt-send").disabled = false; $("#wyt-send").classList.remove("armed");
+      say(TX[l.id].open);
+    }
+    $("#wyt-next").disabled = !st.finished[lv] || lv >= L.length - 1;
+    $("#wyt-next").hidden = lv >= L.length - 1;
+    score(); paint(performance.now()); draw(performance.now());
+  }
+
+  function begin() {
+    var S = st.sim;
+    st.mode = "idle"; st.from = S.t; st.to = S.bt(S.k + 1); st.dur = idleMs(st.to - st.from); st.t0 = performance.now();
+    $("#wyt-send").textContent = "Send";
+    say(TX[L[st.lv].id].started);
+    st.showUntil = performance.now() + 1500;
+    st.touched = true; saveHash();
+    loop();
+  }
+
+  function loop() { if (!st.raf) st.raf = requestAnimationFrame(frame); }
+  function running() { return (st.mode === "idle" || st.mode === "busy") && st.visible && !document.hidden; }
+
+  function frame(now) {
+    st.raf = 0;
+    if (!running()) { st.paused = st.paused || now; return; }
+    if (st.paused) { st.t0 += now - st.paused; st.paused = 0; }
+    var p = (now - st.t0) / st.dur;
+    if (p >= 1) { st.disp = st.to; advance(now); }
+    else st.disp = REDUCED ? st.from : st.from + (st.to - st.from) * p;
+    paint(now); draw(now);
+    if (running()) loop();
+  }
+
+  /* one boundary, or the end of one exchange */
+  function advance(now) {
+    var S = st.sim, l = L[st.lv];
+    if (ended()) return;
+    if (st.auto && S.me.bo === 0 && !S.me.armed) S.press();
+    var bo0 = S.me.bo, idle0 = S.idleStart, ev = S.step();
+    if (ev.type === "slot") {
+      st.trail.push({ k: S.k, bo: S.me.bo, n: S.me.p.n });
+      if (bo0 === 0 && S.me.bo === 0 && !S.me.armed && S.k >= S.me.p.n && S.me.q.length) {
+        st.late += 1;
+        if (!st.said.late && (l.show || st.assist) && st.late >= 3) { st.said.late = 1; say(TX.empty.late); }
+      }
+      st.mode = "idle"; st.from = ev.t; st.to = S.bt(S.k + 1); st.dur = idleMs(st.to - st.from);
+    } else {
+      st.prevIdle = idle0; st.prevTrail = st.trail; st.trail = [];
+      st.mode = "busy"; st.seg = ev.seg; st.from = ev.t; st.to = ev.end; st.dur = busyMs(ev.end - ev.t);
+      onTx(ev.seg, bo0, now);
+    }
+    st.t0 = now;
+  }
+
+  function ended() {
+    var S = st.sim, l = L[st.lv];
+    if (S.me.ok >= l.goal) { finish(true); return true; }
+    if (l.bell && S.t - S.t0 >= l.bell) { finish(false); return true; }
+    return false;
+  }
+
+  function mine(seg) { for (var i = 0; i < seg.parts.length; i++) if (seg.parts[i].node === "you") return seg.parts[i]; return null; }
+  function who(seg) {
+    var S = st.sim, names = [];
+    seg.parts.forEach(function (p) { if (p.node !== "you") names.push(label(p, S.nodes, true)); });
+    return names.join(" and ") || "somebody";
+  }
+
+  function onTx(seg, bo0, now) {
+    var S = st.sim, l = L[st.lv], me = mine(seg), id = l.id;
+    if (me) {
+      st.showUntil = now + st.dur + 1300;
+      if (seg.coll) {
+        if (id !== "empty") say(TX.full.coll, { who: who(seg), cw: S.me.cw });
+      } else {
+        st.lastMine = me;
+        if (id === "empty" && !st.said.firstOk) { st.said.firstOk = 1; say(TX.empty.firstOk, { n: S.me.bo === null ? 0 : S.me.bo }); }
+      }
+      $("#wyt-send").classList.remove("armed");
+      return;
+    }
+    var p0 = seg.parts[0];
+    if (id === "empty" && !seg.coll && bo0 > 0 && !st.said.freeze) { st.said.freeze = 1; say(TX.empty.freeze, { n: S.me.bo }); }
+    if (id === "full" && p0.cat === "voice" && !seg.coll && !st.said.voice) { st.said.voice = 1; say(TX.full.voice); }
+    if (id === "scanner" && p0.cat === "slow" && !seg.coll && p0.air > 1000 && !st.said.first) {
+      st.said.first = 1;
+      var lm = st.lastMine;
+      say(TX.scanner.first, { a: Math.round(p0.air), n: lm ? lm.n : 16, b: lm ? Math.round(lm.air) + " microseconds" : "a fraction of that" });
+    }
+  }
+
+  function finish(won) {
+    var S = st.sim, l = L[st.lv], id = l.id, rep = S.report();
+    st.mode = "done"; cancelAnimationFrame(st.raf); st.raf = 0;
+    st.finished[st.lv] = true;
+    if (won && !l.unwinnable) st.done[st.lv] = true;
+    $("#wyt-send").disabled = true; $("#wyt-send").classList.remove("armed");
+    $("#wyt-send").textContent = won ? "Done" : "Bell";
+    if (id === "empty") say(TX.empty.won);
+    else if (id === "full") say(won ? (st.autoUsed ? TX.full.radio : TX.full.won) : TX.full.lost,
+      { c: S.me.coll, u: pct(rep.util), d: pct(rep.useful), n: S.me.ok });
+    else if (id === "scanner") {
+      if (won) say(TX.scanner.lucky);
+      else {
+        var sb = 0, tb = 0;
+        rep.flows.forEach(function (f) { tb += f.mbps; if (f.node === "sc") sb += f.mbps; });
+        say(TX.scanner.lost, { n: S.me.ok, s: pct(rep.air.slow), x: Math.max(1, Math.round(100 * sb / (tb || 1))) });
+      }
+    }
+    $("#wyt-next").disabled = st.lv >= L.length - 1 || (l.unwinnable && !st.done[st.lv]);
+    score(); paint(performance.now()); draw(performance.now());
+  }
+
+  function press() {
+    var l = L[st.lv];
+    if (l.engineer || st.mode === "done") return;
+    if (st.mode === "ready") { begin(); return; }
+    if (st.auto) setAuto(false);
+    var r = st.sim.press(), b = $("#wyt-send");
+    if (r === "armed") b.classList.add("armed");
+    else if (r === "foul") {
+      st.fouls += 1;
+      say(l.show ? TX.empty.foul : TX.full.foul, { n: st.sim.me.bo });
+      b.classList.add("nope"); setTimeout(function () { b.classList.remove("nope"); }, 120);
+    }
+    paint(performance.now());
+  }
+
+  function setAuto(on) {
+    st.auto = on; if (on) st.autoUsed = true;
+    $("#wyt-auto").setAttribute("aria-pressed", on ? "true" : "false");
+    if (on && st.mode === "ready") begin();
+  }
+
+  /* ── the sheet ──────────────────────────────────────────────────────── */
+  function score() { $("#wyt-score").textContent = st.done.filter(Boolean).length + " of " + L.length + " done"; }
+
+  function row(label, val, cls, bar) {
+    return '<div class="wyt-row' + (cls ? " " + cls : "") + '"><i>' + label + "</i><b>" + val + "</b></div>" +
+      (bar === undefined ? "" : '<div class="wyt-bar"><i style="width:' + Math.max(0, Math.min(100, bar * 100)).toFixed(1) + '%"></i></div>');
+  }
+
+  function paint(now) {
+    var l = L[st.lv];
+    if (l.engineer) return paintEng();
+    var S = st.sim, e = S.me, h = "";
+    var sn = S.snap();
+    h += row("delivered", e.ok + " of " + l.goal, "big" + (e.ok >= l.goal ? " good" : ""), e.ok / l.goal);
+    if (l.bell) h += row("air used", (Math.min(sn.t, l.bell) / 1000).toFixed(1) + " of " + (l.bell / 1000) + " ms", sn.t > l.bell * 0.8 ? "warn" : "", sn.t / l.bell);
+    else h += row("air used", (sn.t / 1000).toFixed(2) + " ms");
+    h += row("your window", "0 to " + e.cw, e.cw > e.p.cwmin ? "warn" : "");
+    var roomColl = -(S.base ? S.base.coll : 0); S.q.forEach(function (x) { roomColl += x.coll; });
+    h += row("collisions, yours / room", e.coll + " / " + roomColl);
+    h += row("fouls / slots let pass", st.fouls + " / " + st.late);
+    $("#wyt-rows").innerHTML = h;
+    pie(sn.air, 1, sn.util, sn.useful);
+    $("#wyt-airtot").textContent = (sn.t / 1000).toFixed(1) + " ms";
+    paintMe(now);
+  }
+
+  function paintMe(now) {
+    var S = st.sim, e = S.me, l = L[st.lv], el = $("#wyt-num"), head = "Your number", sub = "", cls = "wyt-num";
+    var show = l.show || st.assist || now < st.showUntil;
+    var busy = st.mode === "busy", myTurn = busy && st.seg && mine(st.seg);
+    var inGap = st.mode === "idle" && S.k + 1 < e.p.n;
+    el.textContent = show ? String(e.bo === null ? 0 : e.bo) : "?";
+    if (!show) cls += " hid";
+    if (st.mode === "ready") { sub = "Press Start when you're ready."; }
+    else if (st.mode === "done") { head = "Finished"; sub = "Restart for another go, or move on."; }
+    else if (myTurn) { head = st.seg.coll ? "Collided" : "Sending"; sub = myTurn.n + " frames, " + Math.round(myTurn.air) + " microseconds on the air"; }
+    else if (busy) { head = "Frozen"; sub = "Somebody else is talking. Your count waits."; if (e.bo > 0) cls += " frz"; }
+    else if (inGap) { head = "The gap"; sub = "Nobody counts until the air has been quiet for 43 microseconds."; }
+    else if (show && e.bo === 0) { head = e.armed ? "Going" : "You're up"; sub = e.armed ? "You go at the next slot." : "Press Send."; if (!e.armed) cls += " go"; }
+    else { head = "Counting"; sub = show ? "One off every quiet slot." : "Count the quiet slots yourself."; }
+    el.className = cls;
+    $("#wyt-mehead").textContent = head;
+    $("#wyt-mesub").textContent = sub + (st.mode === "idle" || busy ? "  Window 0 to " + e.cw + "." : "");
+    $("#wyt-clock").textContent = Math.max(0, Math.round(st.disp - S.t0)) + " us of air";
+    var stt = st.mode === "busy" ? (st.seg.coll ? "collision" : "busy") : st.mode === "idle" ? (inGap ? "the gap" : "counting") : st.mode === "done" ? "finished" : "waiting to start";
+    $("#wyt-state").textContent = stt;
+  }
+
+  var ORDER = ["you", "data", "voice", "slow", "bcn", "mc", "coll", "ack", "wait", "idle"];
+  function pie(air, tot, util, useful) {
+    var C = 2 * Math.PI * 38, off = 0, svg = '<circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="18"/>', leg = "";
+    tot = tot || 1;
+    ORDER.forEach(function (k) {
+      var f = (air[k] || 0) / tot; if (air[k] === undefined) f = 0;
+      if (f < 0.002) return;
+      var len = f * C;
+      svg += '<circle cx="50" cy="50" r="38" fill="none" stroke="' + COL[k] + '" stroke-width="18" stroke-dasharray="' + len.toFixed(2) + " " + (C - len).toFixed(2) +
+             '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 50 50)"/>';
+      off += len;
+      if (f >= 0.01) leg += '<span><em style="background:' + COL[k] + '"></em><u>' + NAME[k] + "</u><b>" + pct(f) + "%</b></span>";
+    });
+    $("#wyt-pie").innerHTML = svg;
+    $("#wyt-leg").innerHTML = leg;
+    $("#wyt-util").textContent = pct(util) + "%"; $("#wyt-utilbar").style.width = Math.min(100, util * 100) + "%";
+    $("#wyt-useful").textContent = pct(useful) + "%"; $("#wyt-usefulbar").style.width = Math.min(100, useful * 100) + "%";
+  }
+
+  function label(p, nodes, short) {
+    if (p.cat === "bcn") return "beacon";
+    if (p.cat === "mc") return "mDNS";
+    var nm = function (id) { return id === "you" ? "you" : (nodes[id] && nodes[id].name) || id; };
+    if (p.node === "ap" || /^nb/.test(p.node)) return short ? "the AP" : "AP to " + nm(p.dst);
+    return nm(p.node);
+  }
+
+  /* ── drawing ────────────────────────────────────────────────────────── */
+  function fit(cv) {
+    var r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1,
+        w = Math.max(10, Math.round(r.width * d)), h = Math.max(10, Math.round(r.height * d));
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    return { w: w, h: h, d: d };
+  }
+  function hatch(c, x, y, w, h, d) {
+    c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
+    c.strokeStyle = "rgba(0,0,0,0.55)"; c.lineWidth = 1.5 * d;
+    for (var i = -h; i < w; i += 6 * d) { c.beginPath(); c.moveTo(x + i, y + h); c.lineTo(x + i + h, y); c.stroke(); }
+    c.restore();
+  }
+
+  function draw(now) {
+    if (L[st.lv].engineer) { drawStrip(st.evalLog || [], st.evalEnd || 0, st.evalNodes || {}); return; }
+    drawStrip(st.sim.log, st.disp, st.sim.nodes);
+    drawRuler();
+  }
+
+  function drawStrip(log, tNow, nodes) {
+    var cv = $("#wyt-strip"); if (!cv || cv.hidden) return;
+    var c = cv.getContext("2d"), z = fit(cv), d = z.d, W = st.win, t0 = tNow - W, top = 8 * d, H = z.h - 24 * d;
+    var X = function (t) { return (t - t0) / W * z.w; };
+    c.clearRect(0, 0, z.w, z.h);
+    c.fillStyle = "rgba(255,255,255,0.04)"; c.fillRect(0, top, z.w, H);
+    /* a tick every millisecond, labelled back from now */
+    c.font = (9 * d) + "px JetBrains Mono, ui-monospace, monospace"; c.textBaseline = "alphabetic";
+    var every = W > 10000 ? 5 : 1;
+    for (var ms = 0; ms <= W / 1000; ms++) {
+      var tx = X(tNow - ms * 1000); if (tx < 0) break;
+      c.fillStyle = "rgba(255,255,255,0.10)"; c.fillRect(Math.round(tx), top, Math.max(1, d), H);
+      if (tx < 22 * d || ms % every) continue;
+      c.fillStyle = "rgba(139,162,174,0.8)"; c.textAlign = ms === 0 ? "right" : "center";
+      c.fillText(ms === 0 ? "now" : "-" + ms + " ms", Math.min(z.w - 2 * d, tx), z.h - 5 * d);
+    }
+    for (var i = 0; i < log.length; i++) {
+      var sg = log[i];
+      if (sg.t1 < t0 || sg.t0 > tNow) continue;
+      if (sg.coll) {
+        var n = sg.parts.length, bh = H / n;
+        sg.parts.forEach(function (p, j) {
+          var a = X(sg.t0), b = X(Math.min(sg.t0 + p.air, tNow)); if (b <= a) return;
+          c.fillStyle = COL[p.cat]; c.fillRect(a, top + j * bh + (j ? d : 0), Math.max(d, b - a), bh - (j ? d : 0));
+          hatch(c, a, top + j * bh, Math.max(d, b - a), bh, d);
+        });
+        var cx = X(sg.t0) + 2 * d;
+        if (X(Math.min(sg.t1, tNow)) - X(sg.t0) > 52 * d) { c.fillStyle = "#fff"; c.textAlign = "left"; c.font = "600 " + (10 * d) + "px Instrument Sans, sans-serif"; c.fillText("collision", cx, top + H / 2 + 3 * d); }
+        continue;
+      }
+      var p = sg.parts[0], a = X(sg.t0), b = X(Math.min(sg.t0 + p.air, tNow));
+      if (b > a) {
+        var small = p.cat === "bcn" || p.cat === "mc";
+        c.fillStyle = COL[p.cat];
+        c.fillRect(a, small ? top + H * 0.35 : top, Math.max(d, b - a), small ? H * 0.65 : H);
+        if (b - a > 54 * d) {
+          c.fillStyle = "rgba(6,6,9,0.9)"; c.textAlign = "left"; c.font = "600 " + (10 * d) + "px Instrument Sans, sans-serif";
+          var txt = label(p, nodes) + (p.n > 1 ? " x" + p.n : "");
+          c.fillText(txt, a + 4 * d, top + 13 * d, b - a - 8 * d);
+        }
+      }
+      if (p.resp) {
+        var ra = sg.t0 + p.air + T.SIFS, rb = Math.min(ra + p.resp, tNow);
+        if (rb > ra) { c.fillStyle = COL.ack; c.fillRect(X(ra), top + H * 0.55, Math.max(d, X(rb) - X(ra)), H * 0.45); }
+      }
+    }
+    c.fillStyle = "rgba(255,255,255,0.7)"; c.fillRect(z.w - 2 * d, top - 3 * d, 2 * d, H + 6 * d);
+  }
+
+  /* the quiet spell under a magnifier: SIFS, the AIFS slots, then counting slots */
+  function drawRuler() {
+    var cv = $("#wyt-ruler"); if (!cv || cv.hidden) return;
+    var c = cv.getContext("2d"), z = fit(cv), d = z.d, S = st.sim, l = L[st.lv];
+    var busy = st.mode === "busy", start = busy ? st.prevIdle : S.idleStart, end = busy ? st.seg.t0 : st.disp,
+        trail = busy ? st.prevTrail : st.trail, show = l.show || st.assist, n = S.me.p.n;
+    var sp = (st.lv === 0 ? 26 : 22) * d, top = 22 * d, H = z.h - 36 * d;
+    var span = Math.max(0, end - start), wantX = span / T.SLOT * sp, shift = Math.max(0, wantX - (z.w - 40 * d));
+    var X = function (t) { return 8 * d + (t - start) / T.SLOT * sp - shift; };
+    c.clearRect(0, 0, z.w, z.h);
+    if (st.mode === "ready") {
+      c.fillStyle = "rgba(139,162,174,0.9)"; c.font = (11 * d) + "px JetBrains Mono, monospace"; c.textAlign = "left";
+      c.fillText("the ruler fills in slot by slot once you start", 8 * d, top + H / 2);
+      return;
+    }
+    /* the gap: SIFS plus n slots for best effort */
+    var gEnd = start + T.SIFS + n * T.SLOT;
+    c.fillStyle = "rgba(255,255,255,0.10)"; c.fillRect(X(start), top, Math.max(0, X(Math.min(gEnd, end)) - X(start)), H);
+    c.fillStyle = "rgba(139,162,174,0.95)"; c.font = (9.5 * d) + "px JetBrains Mono, monospace"; c.textAlign = "left";
+    if (X(gEnd) > 30 * d) c.fillText("gap " + (T.SIFS + n * T.SLOT) + " us", Math.max(2 * d, X(start) + 2 * d), top - 7 * d);
+    /* slot boundaries that have passed */
+    for (var k = 0; ; k++) {
+      var bk = start + T.SIFS + k * T.SLOT; if (bk > end + 0.01) break;
+      var x = X(bk); if (x < -sp) continue;
+      c.fillStyle = k >= n ? "rgba(245,165,36,0.9)" : "rgba(255,255,255,0.35)";
+      c.fillRect(Math.round(x), top - 2 * d, Math.max(1, d), H + 4 * d);
+      if (k >= n) { c.fillStyle = "rgba(245,165,36,0.10)"; c.fillRect(x + d, top, sp - 2 * d, H); }
+    }
+    if (show) {
+      c.textAlign = "center"; c.font = "600 " + (12 * d) + "px JetBrains Mono, monospace";
+      trail.forEach(function (tk) {
+        if (tk.k < tk.n) return;
+        var x = X(start + T.SIFS + tk.k * T.SLOT) + sp / 2; if (x < 0) return;
+        c.fillStyle = tk.bo === 0 ? "#F5A524" : "rgba(234,242,246,0.85)";
+        c.fillText(String(tk.bo), x, top + H / 2 + 4 * d);
+      });
+    }
+    /* the moving edge */
+    c.fillStyle = "rgba(255,255,255,0.8)"; c.fillRect(X(end), top - 4 * d, 2 * d, H + 8 * d);
+    if (busy) {
+      var p = mine(st.seg) || st.seg.parts[0];
+      c.fillStyle = "rgba(6,6,9,0.72)"; c.fillRect(0, 0, z.w, z.h);
+      c.fillStyle = st.seg.coll ? "#fff" : COL[p.cat]; c.textAlign = "left"; c.font = "600 " + (12 * d) + "px Instrument Sans, sans-serif";
+      var line = st.seg.coll ? "Collision: " + st.seg.parts.map(function (q) { return label(q, S.nodes, true); }).join(" and ") + ". Nobody gets an ACK."
+               : (mine(st.seg) ? "You're on the air: " : label(p, S.nodes) + ": ") + (p.n > 1 ? p.n + " frames, " : "") + Math.round(p.air) + " us" +
+                 (p.rate ? " at " + (p.rate >= 100 ? Math.round(p.rate) : p.rate.toFixed(p.rate % 1 ? 1 : 0)) + " Mb/s" : "");
+      c.fillText(line, 10 * d, top + H / 2 - 2 * d, z.w - 20 * d);
+      c.fillStyle = "rgba(139,162,174,0.95)"; c.font = (10 * d) + "px JetBrains Mono, monospace";
+      c.fillText(mine(st.seg) ? "everybody else is frozen" : "your count is frozen", 10 * d, top + H / 2 + 14 * d);
+    }
+  }
+
+  /* ── level 4: the engineer ──────────────────────────────────────────── */
+  var KN = {
+    ssids: [1, 2, 3, 4, 5, 6, 7, 8].map(function (v) { return [v, String(v), ""]; }),
+    min: [[6, "Most compatible", "6 Mb/s"], [12, "Balanced", "12 Mb/s"], [24, "High density", "24 Mb/s"]],
+    mc: [["flood", "Let it through", "on the air"], ["filter", "Filter it", "at the switch"]],
+    qos: [["normal", "Normal WMM", "voice is voice"], ["voice", "Everything as voice", "every queue"]]
+  };
+  function buildKnobs() {
+    Object.keys(KN).forEach(function (k) {
+      var box = $("#wyt-k-" + k), h = "";
+      KN[k].forEach(function (o) {
+        h += '<button type="button" data-k="' + k + '" data-v="' + o[0] + '" aria-pressed="' + (String(st.kn[k]) === String(o[0])) + '">' + o[1] + (o[2] ? "<i>" + o[2] + "</i>" : "") + "</button>";
+      });
+      box.innerHTML = h;
+    });
+    $("#wyt-k-ssids-v").textContent = st.kn.ssids + (st.kn.ssids === 1 ? " SSID" : " SSIDs");
+  }
+  function knob(k, v) {
+    st.kn[k] = k === "ssids" || k === "min" ? +v : v;
+    st.touched = true;
+    buildKnobs(); evaluate(); saveHash();
+  }
+
+  function evaluate() {
+    var l = L[3], s = new WYT.Sim(l.room(l.seeds[0], st.kn)), rep = s.run(l.evalUs), j = WYT.judge(rep);
+    st.evalRep = rep; st.evalJ = j; st.evalLog = s.log; st.evalEnd = s.t; st.evalNodes = s.nodes;
+    /* the strip shows 20 ms of the run; while the scanner is still here, make it 20 ms it was in */
+    if (j.scanner.home) for (var i = s.log.length - 1; i >= 0; i--) {
+      var g = s.log[i];
+      if (!g.coll && g.parts[0].cat === "slow") { st.evalEnd = Math.min(s.t, g.t1 + 7000); break; }
+    }
+    var o = { s: pct(rep.air.slow), m: pct(rep.air.mc), r: st.kn.min, u: pct(rep.util), b: pct(rep.air.bcn), k: st.kn.ssids, c: pct(rep.air.coll) };
+    if (!j.phone.connected) say(TX.engineer.dropped, o);
+    else if (j.all) say(TX.engineer.won, o);
+    else if (st.kn.qos === "voice") say(TX.engineer.voice, o);
+    else if (j.scanner.home) say(TX.engineer.scanner, o);
+    else if (st.kn.mc === "flood" && !j.util.ok) say(TX.engineer.flood, o);
+    else if (!j.util.ok) say(TX.engineer.ssids, o);
+    else say("Not yet. Check the list on the right.");
+    if (j.all) { st.done[3] = true; st.finished[3] = true; }
+    score(); paintEng(); draw(performance.now());
+  }
+
+  function paintEng() {
+    var rep = st.evalRep, j = st.evalJ; if (!rep) return;
+    var P = WYT.PASS, sc = j.scanner.home;
+    function li(ok, head, txt) { return '<li class="' + ok + '"><em>' + (ok === "ok" ? "&#10003;" : ok === "no" ? "&#10007;" : "&#8226;") + "</em><span><b>" + head + "</b> " + txt + "</span></li>"; }
+    var h = '<ul class="wyt-check">';
+    h += li(j.call.ok ? "ok" : "no", "Your video call", pct(j.call.up) + "% of frames through up, " + pct(j.call.down) + "% down, 95 in 100 inside " +
+      (isFinite(j.call.p95) ? Math.round(j.call.p95) + " ms" : "never") + ". Needs " + pct(P.call) + "% and " + P.callMs + " ms.");
+    h += li(j.phone.ok ? "ok" : "no", "Desk phone", j.phone.connected ? pct(j.phone.got) + "% through, 95 in 100 inside " + j.phone.p95.toFixed(1) + " ms. Needs " + pct(P.phone) + "% and " + P.phoneMs + " ms."
+      : "dropped. It can't hear 24 Mb/s beacons from the far wall.");
+    h += li(sc ? "info" : "ok", "Scanner", sc ? "still on your AP at 6 Mb/s, using " + pct(rep.air.slow) + "% of the air." : "roamed to the dock AP. Its update carries on over there.");
+    h += li(j.util.ok ? "ok" : "no", "Headroom", pct(rep.util) + "% busy. Needs " + pct(P.util) + "% or less.");
+    h += "</ul>";
+    $("#wyt-rows").innerHTML = h;
+    pie(rep.air, 1, rep.util, rep.useful);
+    $("#wyt-airtot").textContent = (rep.t / 1e6).toFixed(1) + " s modelled";
+    $("#wyt-clock").textContent = "20 ms out of " + (rep.t / 1e6).toFixed(1) + " s";
+  }
+
+  /* ── state in the hash, only once the reader has touched something ──── */
+  function saveHash() {
+    if (!st.touched) return;
+    try {
+      var h = "#waityourturn/v1?lv=" + (st.lv + 1) + (L[st.lv].engineer ? "&k=" + [st.kn.ssids, st.kn.min, st.kn.mc, st.kn.qos].join(".") : "&s=" + st.seedIx);
+      if (window.history && history.replaceState) history.replaceState(null, "", h);
+    } catch (e) {}
+  }
+  function readHash() {
+    var m = /^#waityourturn\/v1\?(.*)$/.exec(location.hash || ""), o = {};
+    if (!m) return null;
+    m[1].split("&").forEach(function (p) { var i = p.indexOf("="); if (i > 0) o[p.slice(0, i)] = decodeURIComponent(p.slice(i + 1)); });
+    var lv = Math.max(1, Math.min(L.length, parseInt(o.lv, 10) || 1)) - 1, s = Math.max(0, parseInt(o.s, 10) || 0);
+    if (o.k) {
+      var k = o.k.split(".");
+      if (+k[0] >= 1 && +k[0] <= 8) st.kn.ssids = +k[0];
+      if ([6, 12, 24].indexOf(+k[1]) >= 0) st.kn.min = +k[1];
+      if (k[2] === "flood" || k[2] === "filter") st.kn.mc = k[2];
+      if (k[3] === "normal" || k[3] === "voice") st.kn.qos = k[3];
+    }
+    return { lv: lv, s: s };
+  }
+
+  /* ── wiring ─────────────────────────────────────────────────────────── */
+  var send = $("#wyt-send");
+  send.addEventListener("pointerdown", function (e) { if (e.button !== undefined && e.button !== 0) return; e.preventDefault(); press(); });
+  send.addEventListener("click", function (e) { if (e.detail === 0) press(); });
+  $("#wyt-auto").addEventListener("click", function () { setAuto(!st.auto); if (st.auto) loop(); });
+  $("#wyt-assist").addEventListener("click", function () {
+    st.assist = !st.assist; this.setAttribute("aria-pressed", st.assist ? "true" : "false"); paint(performance.now()); draw(performance.now());
+  });
+  $("#wyt-cant").addEventListener("click", function () {
+    var S = st.sim;
+    if (st.mode === "ready" || (st.mode !== "done" && S.t - S.t0 < 5000)) { say(TX.scanner.early); return; }
+    var sc = 0; S.log.forEach(function (g) { if (!g.coll && g.parts[0].cat === "slow") sc = Math.max(sc, g.parts[0].air); });
+    var mineAir = st.lastMine ? st.lastMine.air : 212;
+    st.mode = "done"; cancelAnimationFrame(st.raf); st.raf = 0;
+    st.done[st.lv] = true; st.finished[st.lv] = true;
+    $("#wyt-send").disabled = true; $("#wyt-send").textContent = "Done";
+    say(TX.scanner.fixed, { k: Math.max(2, Math.round((sc || 2096) / mineAir)) });
+    $("#wyt-next").disabled = st.lv >= L.length - 1;
+    score(); paint(performance.now()); draw(performance.now());
+  });
+  $("#wyt-reset").addEventListener("click", function () {
+    st.touched = true;
+    if (L[st.lv].engineer) { st.kn = { ssids: 8, min: 6, mc: "flood", qos: "normal" }; buildKnobs(); evaluate(); saveHash(); }
+    else { load(st.lv, st.seedIx + 1); saveHash(); }
+  });
+  $("#wyt-next").addEventListener("click", function () { if (st.lv < L.length - 1) { st.touched = true; load(st.lv + 1, 0); saveHash(); } });
+  $("#wyt-knobs").addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("button[data-k]") : null; if (b) knob(b.getAttribute("data-k"), b.getAttribute("data-v"));
+  });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && running()) loop(); });
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (es) { st.visible = es[0].isIntersecting; if (st.visible) loop(); }, { threshold: 0.05 }).observe(root);
+  }
+  window.addEventListener("resize", function () { if (!running()) draw(performance.now()); });
+
+  /* test hooks, the same idea as the simulator's root._dbg() */
+  root._wyt = { st: st, load: load, press: press, knob: knob, evaluate: evaluate, setAuto: setAuto };
+
+  var h = readHash();
+  load(h ? h.lv : 0, h ? h.s : 0);
+})();
+  </script>
+</section>
+
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 5. Fundamentals first, then a lab on real gear</div>
+      <div class="prose"><p>Last week was the table. This week is why you never get the number in it.</p>
+<p>The laptop says 1201. The speed test says 480. Last week I said the gap was airtime. Nothing's broken. A radio spends most of its life waiting for a turn, and its rate only counts while it's actually talking.</p>
+<h2>The game every radio plays</h2>
+<p>A Wi-Fi channel is one conversation. One radio talks and everybody else on that channel listens. A radio can't hear anything while it's transmitting, which matters more than it sounds: old shared Ethernet could notice a collision halfway through a frame, and a radio can't. So Wi-Fi avoids collisions instead of detecting them. Every radio, client and AP alike, plays the same game before every transmission it starts on its own.</p>
+<p><strong>Listen for quiet.</strong> The air has to be idle for a set gap first: 43 microseconds for normal traffic on 5 GHz. The original rule, plain DCF, called it DIFS and made it 34. WMM, which everything from Wi-Fi 4 on uses, gives each traffic class its own gap, and 43 is best effort's.</p>
+<p><strong>Draw a number.</strong> A random whole number from 0 to 15. That's the backoff.</p>
+<p><strong>Count it down, one quiet slot at a time.</strong> A slot is 9 microseconds. Every slot the air stays quiet, take one off.</p>
+<p><strong>If somebody else starts talking, freeze.</strong> Don't start over. Wait for them to finish, wait out the gap again, carry on from where you stopped.</p>
+<p><strong>At zero, send.</strong> The receiver answers 16 microseconds after the frame ends with an ACK, or a block ACK if the frame was a bundle of packets.</p>
+<p><strong>No ACK means the frame failed, and the sender can't tell why.</strong> Two radios drawing the same number is one way it happens. Noise and a weak signal are others. Nobody hears a collision; they just never hear back. The rule is the same either way: double the range you draw from, 0 to 31, then 0 to 63, and so on up to 0 to 1023 for a laptop's best effort traffic (the AP's stops at 0 to 63), and go again. After seven attempts, the standard's default, the radio gives up on that frame.</p>
+<p>Why random? If everybody waited the same fixed time, everybody would start at the same moment, every time. The random number is all that stands between a busy channel and constant collisions.</p>
+<p>That's the whole thing, and the game under the hero makes you play it. Level 1 is you and the AP. Level 2 fills the room, hides your number and makes you keep count yourself. Level 3 can't be won, and I'll let you find out why. Level 4 hands you the AP. Play it before you read on. The next section will feel obvious.</p>
+<h2>The number that matters</h2>
+<p>Most of a turn costs the same whatever your rate is:</p>
+<pre><code>turn = gap + average count + frame + SIFS + ACK
+     = 43  + 67.5          + frame + 16   + 28   (microseconds)
+</code></pre>
+<p>The average count is half of 15 slots, 67.5 microseconds. So a radio with a steady stream to send waits 110.5 microseconds on average before every frame, even on a channel with nobody else on it.</p>
+<p>Take last week's laptop, 1201 Mb/s on two streams at 80 MHz, and have it send one 1500-byte packet per turn. The packet's bits take 10 microseconds at that rate. The preamble in front of them takes 50, and rounding up to a whole symbol makes the frame 64 microseconds long, inside a turn of 218.5.</p>
+<pre><code>1500 bytes x 8 / 218.5 us = 55 Mb/s
+</code></pre>
+<p>That's a 1201 Mb/s laptop, sending one packet per turn, moving 55 Mb/s. The rate is how fast the bits go once you're talking. Throughput is what you move per turn divided by how long a turn takes, and the waiting doesn't care how fast you talk.</p>
+<p>That's why aggregation exists. Pack 64 packets into one frame and the turn carries 64 times the data for four times the time: 717 microseconds on the air, 875 for the whole turn, 877 Mb/s. It's the only way anything gets near the PHY rate, and it only works while there's a backlog headed to one place.</p>
+<p>Then real life starts. A download isn't one-way. TCP sends acknowledgements back and they play the game too. The site's model puts one laptop alone on a quiet channel, downloading, at about <strong>720 Mb/s</strong>. Put one old laptop beside it that only speaks 802.11a/g, at 54 Mb/s, also downloading, and yours drops to about <strong>480</strong>. There's last week's speed test. If the old one is at the edge of the cell at 6 Mb/s, yours drops to about <strong>210</strong>, and the old laptop holds about 60 percent of the air to get 3 Mb/s.</p>
+<p>Those are computed, not measured, averaged over twenty runs of the model: 5 GHz, best effort, 1500-byte packets, no packet extension, everybody hearing everybody, nothing failing except collisions. Real radios also retry frames that fail for other reasons, so real numbers come out lower. The shape is the point. One slow device, and the fast one loses between a third and two thirds of what it had.</p>
+<h2>One slow client and everybody pays</h2>
+<p>The game is fair per turn, not per microsecond. Every radio gets the same shot at every turn, and nobody checks how long the winner will hold the air. Researchers named this the performance anomaly back in 2003, on 802.11b: one slow station drags every station on the channel down to about its own throughput. Aggregation softens that, which is why your laptop kept 210 rather than 3. It doesn't cure it.</p>
+<p>It isn't only far-away devices, either. Anything that can't aggregate is expensive per byte at any rate. That's how the 54 Mb/s laptop cost you a third of your download while sitting right next to the AP.</p>
+<p><strong>Airtime fairness</strong> used to be the knob for this: <code>shaping-policy fair-access</code> in the AOS 8 <code>wlan traffic-management-profile</code>, or <code>air-time-fairness-mode</code> under <code>arm</code> on Instant, both off by default (<code>default-access</code>). Then the gear moved on. The AOS 8 and Instant release notes for 8.10 and 8.11 both list it as not supported on 802.11ax APs. I couldn't find it in AOS 10, where the nearest thing is a per-SSID airtime share under Bandwidth Control that caps an SSID rather than balancing its clients, and I couldn't find it in Mist. The knob most of us learned on isn't on the gear we install now.</p>
+<p>What's left is design. Raise the minimum rate so the device at the edge has to find a closer AP. Keep legacy devices off the channel your fast clients live on, or retire them. Build coverage so clients sit near an AP. Level 4 is exactly this problem.</p>
+<h2>Overhead before anyone says anything</h2>
+<p>On 2.4 and 5 GHz, every SSID beacons about ten times a second, from every AP, at the lowest basic rate, whether or not a single client is connected. The model costs a beacon at 250 bytes, and bigger ones cost more. At 6 Mb/s that's 396 microseconds, 0.39 percent of the channel per SSID per AP.</p>
+<p>Sounds like nothing. Now multiply. Eight SSIDs on six APs sharing a channel is <strong>18.6 percent</strong> of it, gone, all day. Raise the floor to 12 Mb/s and it's 9.8. Cut to three SSIDs at 12 and it's 3.7. On 2.4 GHz at the 1 Mb/s default a beacon takes 2,416 microseconds, and eight SSIDs cost 19 percent of the channel from one AP before you count its neighbours. That's the old SSID horror story, and it's still true on any 2.4 radio left on defaults.</p>
+<p>Broadcast and multicast go out the same way: basic rate, no ACK, no aggregation. The printers post is the worked example. 765 mDNS frames a second, each one put on the air by every AP in the VLAN at 6 Mb/s, cost about 40 percent of a channel, and the main fix was on the switch.</p>
+<p>The minimum rate moves all of this at once. New Central's presets are Most Compatible (1 Mb/s on 2.4 GHz, 6 on 5), Balanced (12 and 12) and High Density (24 and 24), and HPE's AOS 10 design guidance recommends 12 or 24. Mist has Compatible, No Legacy and High Density, with High Density at 24 everywhere. The cost is the cell edge. A client that can't hold the new floor has to move or drop, so survey before you raise it in a warehouse.</p>
+<h2>WMM: voice cuts the line</h2>
+<p>WMM plays the same game four times with different rules, one queue per traffic class:</p>
+<table>
+<thead>
+<tr>
+<th>Queue</th>
+<th>Gap (client)</th>
+<th>Draws from</th>
+<th>Average wait</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Voice</td>
+<td>34 us</td>
+<td>0 to 3</td>
+<td>47.5 us</td>
+</tr>
+<tr>
+<td>Video</td>
+<td>34 us</td>
+<td>0 to 7</td>
+<td>65.5 us</td>
+</tr>
+<tr>
+<td>Best effort</td>
+<td>43 us</td>
+<td>0 to 15</td>
+<td>110.5 us</td>
+</tr>
+<tr>
+<td>Background</td>
+<td>79 us</td>
+<td>0 to 15</td>
+<td>146.5 us</td>
+</tr>
+</tbody>
+</table>
+<p>The AP plays voice and video with an even shorter gap, 25 microseconds. Voice waits less and draws smaller numbers, so it usually goes first, which is why a call can sound fine in a room that's struggling.</p>
+<p>It only works while voice is rare. Put eight busy radios in the voice queue and roughly seven turns in ten start with a collision. Draw from 0 to 15 and it's about two in ten. Mark everything as voice and the collisions pile up, and the calls get worse, not better. Level 4 has that switch. Try it.</p>
+<p><strong>The default map gotcha.</strong> On AOS 10 and on Mist, DSCP 46, the EF marking voice traffic actually carries, lands in the video queue by default, not voice. HPE's AOS 10 guidance says to map 46 to voice on any SSID that carries calls, and RFC 8325 says the same from the IETF side. The knob is the WMM DSCP list on the WLAN: <code>wmm-vo-dscp</code> on AOS 8, the DSCP mapping next to Voice Wifi Multimedia Share in Classic Central (the share itself is a bandwidth setting), <code>voice-dscp</code> under <code>wmm-cfg</code> in New Central. Mist's QoS Priority section has an Override QoS option that forces one class for the whole WLAN. That's the everything-as-voice switch, so leave it alone unless the WLAN really carries nothing but calls.</p>
+<h2>Wi-Fi 6 and 7, since you'll be asked</h2>
+<p>Wi-Fi 6 lets the AP run part of the game for its clients. Once the AP has won the air it can send a trigger frame, and several clients answer at once, each on its own slice of the channel. That's uplink OFDMA, with one block ACK covering all of them. The AP can also tell the clients it's scheduling to back off harder on their own for a while, so the scheduled uplink takes over. That's the MU EDCA parameter set, and AOS 8 has a profile for it. AOS 10 has OFDMA on by default in the SSID profile. None of this retires the game. The AP still has to win the air before it can schedule anything, and everything that isn't scheduled still contends.</p>
+<p>Wi-Fi 7 adds restricted target wake time, which reserves service periods for latency-sensitive traffic, with other Wi-Fi 7 stations expected to finish before a reserved period starts. Older ones only stay out of the way if the AP also schedules a quiet interval. It also adds multi-link operation, which gives a client more than one link to play on. On a walk through my house, MLO bought me fewer reconnections, not more speed.</p>
+<h2>What the gear shows you</h2>
+<p><strong>Aruba Central, classic.</strong> Open the AP, then the RF tab. Channel Utilization is split into Transmitting, Receiving and Non-Wifi Interference, and the total is the three added up.</p>
+<p><strong>New Central.</strong> The monitoring API has <code>channel-utilization-trends</code> per AP radio, returning <code>tx</code>, <code>rx</code> and <code>non_wifi_interference</code>. I couldn't find the matching UI labels in the docs as of September 2026, so I won't guess them.</p>
+<p><strong>On the AP.</strong> <code>show ap debug radio-stats 0</code> (or <code>1</code>, depending on which radio has the band you want) gives Channel Busy over 1, 4 and 64 seconds, plus Tx Time and Rx Time as a percentage of recent beacon intervals. <code>show ap arm rf-summary</code> has a utilization column per channel.</p>
+<p><strong>Mist.</strong> The AP's Insights page has Channels charts per band. From the API, the device stats carry a <code>radio_stat</code> per band with utilization split out:</p>
+<pre><code class="language-python">url = f&quot;https://{HOST}/api/v1/sites/{SITE}/stats/devices&quot;
+r = requests.get(url, headers={&quot;Authorization&quot;: f&quot;Token {TOKEN}&quot;}, timeout=30)
+for ap in r.json():
+    b5 = ap.get(&quot;radio_stat&quot;, {}).get(&quot;band_5&quot;, {})
+    print(ap.get(&quot;name&quot;), b5.get(&quot;channel&quot;), b5.get(&quot;util_all&quot;), b5.get(&quot;util_tx&quot;),
+          b5.get(&quot;util_rx_in_bss&quot;), b5.get(&quot;util_rx_other_bss&quot;), b5.get(&quot;util_non_wifi&quot;))
+</code></pre>
+<p>Placeholder host, token and site. <code>util_rx_in_bss</code> is traffic from this AP's own clients. <code>util_rx_other_bss</code> is everybody else's on your channel, which is next week's problem.</p>
+<p>Here's what to take away from all of them. Every number on these screens is busy air, not useful air. A collision is busy. A beacon nobody needed is busy. A scanner at 6 Mb/s is very busy. The chart looks the same whether the air was doing your work or wasting it. The game's two bars, busy against actually carrying data, are the gap none of these screens show you.</p>
+<h2>The lab</h2>
+<p>One AP, two laptops, a wired box running <code>iperf3 -s</code>, under an hour. Pin the AP's channel and power first, and note the Channel Changes and Power Changes counters so you can prove nothing moved.</p>
+<ol>
+<li><strong>Baseline.</strong> One SSID, nothing connected, a quiet 5 GHz channel. Read the utilization on both platforms and write it down.</li>
+<li><strong>The beacon tax.</strong> Turn on the AP's 2.4 GHz radio on a quiet channel, leave its minimum rate at the 1 Mb/s default, and add SSIDs until there are eight. Give it a few minutes, then read the transmit side of the 2.4 GHz radio's utilization. Set the minimum rate to 12 and read it again.</li>
+<li><strong>The fast laptop alone.</strong> Laptop A about 3 m from the AP on 5 GHz, <code>iperf3 -c &lt;host&gt; -R -t 60</code>. Write down throughput and utilization.</li>
+<li><strong>Add a slow one.</strong> Laptop B on the same SSID and radio, downloading at the same time. Make it slow: put it where it can barely hang on, or force it to 802.11a/g in the adapter's advanced settings if yours has that option. Write down both throughputs and the utilization.</li>
+<li><strong>Raise the floor.</strong> Move the minimum rate to 12, then 24, and rerun step 4. Watch where laptop B goes.</li>
+</ol>
+<p><strong>What you should see.</strong> Model expectations, labelled that way until I've run this on my own bench. Eight SSIDs on 2.4 GHz at 1 Mb/s should add about 19 percent of transmit utilization from one AP, and about 2 percent at 12 Mb/s. Laptop A alone should land well under its PHY rate: the model says about 720 Mb/s for a 1201 link, before real retries take their cut. With B downloading beside it at 6 or 12 Mb/s, A should lose half or more while utilization climbs. If B is only forced to 802.11a/g close to the AP, A should lose about a third while utilization actually drops a little, 83 to 77 percent in the model. Less busy, and a third less done. That's the whole lesson on one screen. Raise the floor past what B can hold and B leaves, and A gets its air back.</p>
+<p><strong>What means it's broken.</strong> If utilization doesn't move when you add SSIDs, check that the new ones are actually broadcasting on the radio you're watching. If A doesn't drop when B starts, B is probably on the other band or another AP, so check its channel in the client list. If utilization is high with nothing connected, something else is on your channel. Look at the receive and non-Wi-Fi split before you blame the SSIDs.</p>
+<h2>Three questions</h2>
+<ol>
+<li>A client linked at 1201 Mb/s sends one 1500-byte packet per turn on an empty channel. Roughly what does it get, and where did the rest go?</li>
+<li>Eight SSIDs, six APs sharing one 5 GHz channel, 6 Mb/s minimum. How much of that channel goes on beacons, and what does a 12 Mb/s minimum do to it?</li>
+<li>Why can't you just mark everything as voice?</li>
+</ol>
+<p>Answers: About 55 Mb/s. The packet's bits take 10 microseconds of a 218.5 microsecond turn; the rest is the gap, the count, the preamble, the padding in the last symbol, the 16 microsecond pause and the ACK. About 18.6 percent, and 12 Mb/s roughly halves it, to 9.8. Voice draws its number from 0 to 3, so with lots of busy radios in that queue most turns start with a collision and the real calls suffer. Priority only works while most traffic doesn't have it.</p>
+<h2>Next week</h2>
+<p>Interference from yourself. Somebody asked under lesson 2 whether adding APs to a big open floor makes the cell edge worse. The answer is mostly about channel width, and it starts where this lesson stops: <code>util_rx_other_bss</code>.</p></div>
+      
+    </div>
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 5 of 12</span></h3><div class="ser-steps"><a class="ser-step" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span></a><a class="ser-step" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step here" href="academy-05-airtime-is-the-only-resource.html"><span class="ser-n">5</span><span class="ser-t">Airtime Is the Only Resource</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-06-interference-from-yourself.html"><span class="ser-n">6</span><span class="ser-t">Interference From Yourself</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">7</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">8</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">9</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">10</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">11</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">12</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-05-airtime-is-the-only-resource" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+  <style>
+  .c-wrap{padding:var(--s5);margin-top:var(--s5)}
+  .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
+  .c-head h3{font-size:19px;letter-spacing:-0.02em}
+  .c-head .meta{font-family:var(--mono);font-size:12px;color:var(--text-muted)}
+  .c-list{list-style:none;margin:0 0 var(--s5);padding:0;display:flex;flex-direction:column;gap:var(--s3)}
+  .c-item{padding:var(--s4);border:1px solid var(--line);border-radius:var(--r-inner);background:var(--solid)}
+  .c-item.c-mine{border-color:rgba(140,224,94,0.35);background:rgba(140,224,94,0.06)}
+  .c-who{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .c-who b{font-size:14.5px}
+  .c-badge{font:600 10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;
+    border:1px solid rgba(140,224,94,0.45);color:var(--green)}
+  .c-when{font-family:var(--mono);font-size:11.5px;color:var(--text-muted)}
+  .c-body p{font-size:15px;line-height:1.7;color:var(--text-dim);margin:0 0 10px;overflow-wrap:anywhere}
+  .c-body p:last-child{margin-bottom:0}
+  .c-empty{font-size:14.5px;color:var(--text-muted);margin-bottom:var(--s5)}
+  .c-form{display:flex;flex-direction:column;gap:var(--s3)}
+  .c-form[hidden],.c-list[hidden]{display:none}   /* display:flex beats the hidden attribute without this */
+  .c-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
+  .c-f{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .c-f span{font:10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+  .c-wrap input[type=text],.c-wrap input[type=email],.c-wrap textarea{
+    width:100%;min-height:46px;font:15px var(--sans);color:var(--text);background:rgba(3,10,16,0.8);
+    border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .c-wrap textarea{min-height:120px;line-height:1.6;resize:vertical}
+  .c-wrap input:focus-visible,.c-wrap textarea:focus-visible,.c-wrap button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .c-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+  .c-actions{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+  .c-note{font-size:12.5px;line-height:1.6;color:var(--text-muted)}
+  .c-say{font-size:13.5px;line-height:1.6}
+  .c-say.c-ok{color:var(--green)}
+  .c-say.c-bad{color:var(--orange)}
+  .c-off{font-size:13.5px;color:var(--text-muted)}
+  @media (max-width:560px){.c-row{grid-template-columns:1fr}.c-wrap{padding:var(--s4)}}
+  </style>
+
+  <div class="c-head"><h3>Comments</h3><span class="meta" id="c-count"></span></div>
+  <ul class="c-list" id="c-list"></ul>
+  <p class="c-empty" id="c-empty" hidden>Nothing here yet. If you have run into this, or I have it wrong, say so.</p>
+
+  <form class="c-form" id="c-form" novalidate>
+    <div class="c-row">
+      <label class="c-f"><span>Name</span><input type="text" id="c-name" maxlength="60" autocomplete="name" placeholder="Optional"></label>
+      <label class="c-f"><span>Email, kept private</span><input type="email" id="c-email" maxlength="200" autocomplete="email" placeholder="Optional, never shown"></label>
+    </div>
+    <label class="c-f"><span>Comment</span><textarea id="c-body" maxlength="2000" required placeholder="What you saw, and on which version."></textarea></label>
+    <input class="c-hp" type="text" id="c-website" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="Leave this empty">
+    <div id="c-cap"></div>
+    <div class="c-actions">
+      <button class="btn cta" type="submit" id="c-send">Post comment</button>
+      <span class="c-say" id="c-say" role="status"></span>
+    </div>
+    <p class="c-note">Comments appear straight away. Your email, if you leave one, is stored so I can reply to you and is never shown on the page or passed to anyone. Anything abusive gets removed.</p>
+  </form>
+  <p class="c-off" id="c-offline" hidden>Comments are offline at the moment.</p>
+
+  <script>
+  (function () {
+    var root = document.getElementById("comments");
+    if (!root) return;
+    var API = root.dataset.api, SLUG = root.dataset.slug, KEY = root.dataset.sitekey;
+    var list = document.getElementById("c-list"), count = document.getElementById("c-count"),
+        empty = document.getElementById("c-empty"), form = document.getElementById("c-form"),
+        say = document.getElementById("c-say"), send = document.getElementById("c-send"),
+        cap = document.getElementById("c-cap"), offline = document.getElementById("c-offline");
+
+    function when(iso) {
+      var then = Date.parse(iso), mins = Math.round((Date.now() - then) / 60000);
+      if (isNaN(then)) return "";
+      if (mins < 1) return "just now";
+      if (mins < 60) return mins + (mins === 1 ? " minute ago" : " minutes ago");
+      var hrs = Math.round(mins / 60);
+      if (hrs < 24) return hrs + (hrs === 1 ? " hour ago" : " hours ago");
+      var days = Math.round(hrs / 24);
+      if (days < 8) return days + (days === 1 ? " day ago" : " days ago");
+      return new Date(then).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    }
+
+    function render(rows) {
+      list.textContent = "";
+      rows.forEach(function (c) {
+        var li = document.createElement("li");
+        li.className = "c-item" + (c.is_author ? " c-mine" : "");
+        var who = document.createElement("div"); who.className = "c-who";
+        var b = document.createElement("b"); b.textContent = c.name || "Anonymous"; who.appendChild(b);
+        if (c.is_author) { var tag = document.createElement("span"); tag.className = "c-badge"; tag.textContent = "Author"; who.appendChild(tag); }
+        var t = document.createElement("span"); t.className = "c-when"; t.textContent = when(c.created_at); who.appendChild(t);
+        li.appendChild(who);
+        var body = document.createElement("div"); body.className = "c-body";
+        String(c.body || "").split(/\n{2,}/).forEach(function (para) {
+          var p = document.createElement("p"); p.textContent = para;   // textContent, never innerHTML
+          body.appendChild(p);
+        });
+        li.appendChild(body);
+        list.appendChild(li);
+      });
+      count.textContent = rows.length ? rows.length + (rows.length === 1 ? " comment" : " comments") : "";
+      empty.hidden = rows.length > 0;
+    }
+
+    function load() {
+      return fetch(API + "/v1/comments?slug=" + encodeURIComponent(SLUG), { cache: "no-store" })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { render(d.comments || []); })
+        .catch(function () { form.hidden = true; empty.hidden = true; list.hidden = true; count.textContent = ""; offline.hidden = false; });
+    }
+
+    if (KEY) {
+      var box = document.createElement("div");
+      box.className = "cf-turnstile";
+      box.setAttribute("data-sitekey", KEY);
+      box.setAttribute("data-theme", "dark");
+      cap.appendChild(box);
+      var s = document.createElement("script");
+      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+      s.async = true; s.defer = true;
+      document.head.appendChild(s);
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var body = document.getElementById("c-body").value.trim();
+      if (body.length < 2) { say.className = "c-say c-bad"; say.textContent = "Write something first."; return; }
+      var token = (form.querySelector('[name="cf-turnstile-response"]') || {}).value || "";
+      if (KEY && !token) { say.className = "c-say c-bad"; say.textContent = "Wait for the spam check to finish, then post."; return; }
+      send.disabled = true; say.className = "c-say"; say.textContent = "Posting.";
+      fetch(API + "/v1/comments", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          slug: SLUG,
+          name: document.getElementById("c-name").value,
+          email: document.getElementById("c-email").value,
+          body: body,
+          website: document.getElementById("c-website").value,
+          token: token
+        })
+      }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          send.disabled = false;
+          if (!res.ok) { say.className = "c-say c-bad"; say.textContent = res.d.error || "That did not go through."; return; }
+          document.getElementById("c-body").value = "";
+          say.className = "c-say c-ok"; say.textContent = "Posted. Thanks.";
+          if (window.turnstile) { try { window.turnstile.reset(); } catch (err) {} }
+          load();
+        })
+        .catch(function () {
+          send.disabled = false; say.className = "c-say c-bad";
+          say.textContent = "Could not reach the comment service. Try again in a minute.";
+        });
+    });
+
+    load();
+  })();
+  </script>
+</section>
+
+    <section class="end g-card" data-rise>
+      <h3>More field notes</h3>
+      <div class="postnav"><a class="pn g-card" href="pmf-broke-the-printers.html"><span class="eyebrow">Older</span>Your WPA3 Transition SSID Didn&#x27;t Break the Printers. PMF Did.</a><a class="pn g-card" href="academy-04-modulation-and-data-rates.html"><span class="eyebrow">Newer</span>Modulation and Data Rates</a></div>
+    </section>
+  </article>
+</div>
+</main>
+<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-think.svg" alt="" width="104" height="104"></a>
+<footer><div class="wrap">
+  <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
+  <span><a href="/rss.xml">RSS</a></span>
+</div></footer>
+</div>
+<script>/* Network Field Notes. Only opacity and transform are animated. */
+(function () {
+  var KEY = 'nfn:origin';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
+
+  /* header tightens past 12px */
+  var hdr = $('.hdr');
+  if (hdr) {
+    var onScroll = function () { hdr.classList.toggle('scrolled', (window.scrollY || 0) > 12); };
+    onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  /* entrance, staggered 60ms, capped at 340ms */
+  $$('[data-rise]').forEach(function (el, i) {
+    el.style.animationDelay = Math.min(i * 60, 340) + 'ms';
+    el.classList.add('rise');
+  });
+
+
+  /* Rig reacts: sleeps when the tab is hidden, thinks when search is empty, waves at the bottom */
+  var rig = $('.rig img');
+  if (rig && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var base = rig.getAttribute('src'), dir = base.replace(/[^\/]+$/, '');
+    var pose = function (n) { return dir + 'nfn-bot-' + n + '.svg'; };
+    ['sleep', 'think', 'wave'].forEach(function (n) { var i = new Image(); i.src = pose(n); });
+    var cur = base, timer = null;
+    var setPose = function (src) {
+      if (src === cur) return; cur = src;
+      var a = rig.parentNode; a.classList.add('swap');
+      setTimeout(function () { rig.setAttribute('src', src); a.classList.remove('swap'); }, 220);
+    };
+    document.addEventListener('visibilitychange', function () {
+      setPose(document.hidden ? pose('sleep') : base);
+    });
+    window.addEventListener('nfn:empty', function (e) { setPose(e.detail ? pose('think') : base); });
+    var waved = false;
+    window.addEventListener('scroll', function () {
+      var atEnd = window.innerHeight + window.scrollY >= document.body.scrollHeight - 40;
+      if (atEnd && !waved) {
+        waved = true; setPose(pose('wave'));
+        clearTimeout(timer); timer = setTimeout(function () { setPose(base); waved = false; }, 3500);
+      }
+    }, { passive: true });
+  }
+
+  /* remember where a card or mascot was tapped, in page coordinates */
+  $$('[data-origin]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      var r = e.currentTarget.getBoundingClientRect();
+      try {
+        sessionStorage.setItem(KEY, JSON.stringify({
+          x: r.left + r.width / 2 + window.scrollX, y: r.top + r.height / 2 + window.scrollY,
+          kind: e.currentTarget.getAttribute('data-origin') || 'zoom'
+        }));
+      } catch (err) {}
+    });
+  });
+
+  /* incoming view: pin transform-origin to the tapped point */
+  var view = $('[data-view]');
+  if (view) {
+    var saved = null;
+    try { var raw = sessionStorage.getItem(KEY); if (raw) { saved = JSON.parse(raw); sessionStorage.removeItem(KEY); } } catch (err) {}
+    var wants = view.getAttribute('data-view');
+    var cls = wants === 'genie' ? 'genie' : wants === 'zoom' ? 'zoom' : 'pop';
+    if (saved && saved.kind === wants) {
+      var clamp = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
+      var box = view.getBoundingClientRect();
+      view.style.transformOrigin = clamp(saved.x - (box.left + window.scrollX), 0, box.width) + 'px ' +
+                                   clamp(saved.y - (box.top + window.scrollY), 0, box.height) + 'px';
+    }
+    view.classList.add(cls);
+  }
+
+  /* index only: category filter + search */
+  var grid = $('#posts');
+  if (!grid) return;
+  var cards = $$('.card[data-cat]', grid), chips = $$('.cat[data-cat]'), empty = $('.empty');
+  var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
+  var cat = 'all', q = '';
+
+  function apply() {
+    var shown = 0;
+    cards.forEach(function (c) {
+      /* data-cat is pipe separated: a series tile sits in every category its parts do */
+      var okCat = cat === 'all' ||
+        ('|' + (c.getAttribute('data-cat') || '') + '|').indexOf('|' + cat + '|') !== -1;
+      var on;
+      if (c.hasAttribute('data-series')) {
+        /* a series tile stands in for its parts, but a search wants the parts themselves */
+        on = okCat && !q;
+      } else {
+        var okQ = !q || (c.getAttribute('data-text') || '').indexOf(q) !== -1;
+        /* the featured post lives in the hero; only surface its card while a filter or search is active */
+        var okFeat = !c.hasAttribute('data-featured') || cat !== 'all' || !!q;
+        /* a post inside a series hides behind its tile until someone searches */
+        var okSeries = !c.hasAttribute('data-inseries') || !!q;
+        on = okCat && okQ && okFeat && okSeries;
+      }
+      c.classList.toggle('hidden', !on); if (on) shown++;
+    });
+    chips.forEach(function (ch) { ch.classList.toggle('on', ch.getAttribute('data-cat') === cat); });
+    if (empty) empty.classList.toggle('show', shown === 0);
+    try { window.dispatchEvent(new CustomEvent('nfn:empty', { detail: shown === 0 && !!q })); } catch (e) {}
+  }
+  chips.forEach(function (ch) {
+    ch.addEventListener('click', function () {
+      cat = ch.getAttribute('data-cat');
+      /* keep the URL honest so back/forward and the nav agree with the chips */
+      var h = cat === 'all' ? '' : '#cat=' + encodeURIComponent(cat);
+      if (history.replaceState) history.replaceState(null, '', location.pathname + h); else location.hash = h;
+      apply();
+      /* the tab takes you to the posts, but only when they are not already in view */
+      var r = grid.getBoundingClientRect();
+      if (r.top > window.innerHeight * 0.4) {
+        var soft = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: window.scrollY + r.top - 92, behavior: soft ? 'smooth' : 'auto' });
+      }
+    });
+  });
+  if (toggle && box && input) {
+    toggle.addEventListener('click', function (e) {
+      e.preventDefault(); box.classList.toggle('open');
+      if (box.classList.contains('open')) input.focus();
+    });
+    input.addEventListener('input', function () { q = input.value.trim().toLowerCase(); apply(); });
+  }
+  /* deep link: index.html#cat=NAC, on load AND on every hash change (nav pills, back/forward) */
+  function fromHash() {
+    var h = location.hash || '';
+    var m = h.match(/cat=([^&]+)/);
+    cat = m ? decodeURIComponent(m[1]) : 'all';
+    if (h.indexOf('search') !== -1 && box) { box.classList.add('open'); if (input) input.focus(); }
+    apply();
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+<script>/* Network Field Notes: the topographic ground.
+   A hypsometric elevation map on a canvas behind every page, drifting on a clock-derived
+   phase so it resumes mid-motion on a reload instead of restarting. Settings are fixed
+   here; the tuning surface lives in the preview, not on the live site.
+   Falls back to the .ground gradients when WebGL is missing, and renders one still frame
+   under prefers-reduced-motion. */
+(function () {
+  var cv = document.getElementById("nfn-fx");
+  if (!cv) return;
+
+  var TINT = 0.44,    // how far the flat elevation classes pull away from the site gradients
+      SCALE = 1.20,   // terrain scale: low means big sweeping landforms
+      BANDS = 13,     // contour interval, and every fifth boundary is an index contour
+      AMT = 0.75,     // contour brightness
+      WT = 0.70,      // line weight, in screen pixels
+      SPEED = 3.00,   // drift multiplier
+      CYCLE = 600;    // seconds; every term in the terrain is a whole multiple of this
+
+  function off() { cv.style.display = "none"; }
+
+  var gl = null;
+  try {
+    gl = cv.getContext("webgl", { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: "low-power" });
+  } catch (e) { gl = null; }
+  if (!gl) { off(); return; }
+
+  var deriv = gl.getExtension("OES_standard_derivatives");
+
+  var VERT = "attribute vec2 a;void main(){gl_Position=vec4(a,0.0,1.0);}";
+
+  var FRAG = [
+    deriv ? "#extension GL_OES_standard_derivatives : enable\n#define HAS_FW 1" : "",
+    "precision highp float;",
+    "uniform vec2 uRes;uniform float uPh;",
+    "const float TINT=" + TINT.toFixed(3) + ",SCALE=" + SCALE.toFixed(3) + ",BANDS=" + BANDS.toFixed(1) +
+      ",AMT=" + AMT.toFixed(3) + ",WT=" + WT.toFixed(3) + ";",
+
+    "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}",
+    "float vn(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.0-2.0*f);",
+    " return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x),u.y);}",
+    "float fbm(vec2 p){float s=0.0,a=0.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);",
+    " for(int i=0;i<5;i++){s+=a*vn(p);p=m*p;a*=0.5;}return s;}",
+
+    /* terrain: two-stage domain warp, so contours curl like a survey rather than lying in stripes */
+    "float H(vec2 p,vec2 dr){vec2 q=vec2(fbm(p+dr),fbm(p+dr+vec2(5.2,1.3)));",
+    " return fbm(p+(1.35+0.22*sin(uPh*2.0))*q+dr*0.55);}",
+
+    /* the site's own three radial gradients, so the map sits on the ground the site already has */
+    "float rg(vec2 px,vec2 c,vec2 r,float stop){return clamp(1.0-length((px-c)/r)/stop,0.0,1.0);}",
+    "vec3 ground(vec2 px,vec2 res){vec3 col=vec3(0.0235,0.0627,0.0980);",
+    " col=mix(col,vec3(0.1843,0.6588,0.8784),0.42*rg(px,vec2(res.x*0.12,res.y*-0.06),res.y*vec2(1.10,0.76),0.62));",
+    " col=mix(col,vec3(0.5490,0.8784,0.3686),0.26*rg(px,vec2(res.x*0.88,res.y*0.08),res.y*vec2(0.93,0.68),0.60));",
+    " col=mix(col,vec3(0.0902,0.5412,0.6588),0.34*rg(px,vec2(res.x*0.60,res.y*1.08),res.y*vec2(1.22,0.86),0.62));",
+    " return col;}",
+
+    /* hypsometric ramp, sampled at the CLASS so every band is one flat tone */
+    "vec3 hyps(float t){",
+    " vec3 c0=vec3(0.014,0.038,0.062);",
+    " vec3 c1=vec3(0.028,0.112,0.176);",
+    " vec3 c2=vec3(0.050,0.212,0.262);",
+    " vec3 c3=vec3(0.112,0.300,0.232);",
+    " vec3 c=mix(c0,c1,smoothstep(0.00,0.36,t));",
+    " c=mix(c,c2,smoothstep(0.32,0.70,t));",
+    " return mix(c,c3,smoothstep(0.66,1.00,t));}",
+
+    "void main(){",
+    " vec2 px=vec2(gl_FragCoord.x,uRes.y-gl_FragCoord.y);",
+    " vec2 uv=px/uRes.y;",
+    /* both harmonics are whole multiples of the cycle, so the wrap is invisible */
+    " vec2 dr=vec2(cos(uPh),sin(uPh))*0.30+vec2(cos(3.0*uPh+1.7),sin(2.0*uPh+0.6))*0.11;",
+    " float h=H(uv*SCALE,dr);",
+    /* fbm lands around 0.48 give or take 0.12, never 0 to 1, so remap before classing it */
+    " h=clamp((h-0.26)*2.05,0.0,1.0);",
+    " float e=h*BANDS;",
+    "#ifdef HAS_FW",
+    " float w=max(fwidth(e),1e-4);",
+    "#else",
+    " float ep=1.6/uRes.y;",
+    " float w=max(abs(H((uv+vec2(ep,0.0))*SCALE,dr)-h)+abs(H((uv+vec2(0.0,ep))*SCALE,dr)-h),1e-4)*BANDS;",
+    "#endif",
+
+    /* flat elevation classes: floor() before the ramp is what makes the step hard */
+    " float lvl=clamp(floor(e)/BANDS,0.0,1.0);",
+    " vec3 col=mix(ground(px,uRes),hyps(lvl),TINT);",
+
+    /* contours on the integer crossings, widths in screen pixels, every fifth one an index line */
+    " float fr=fract(e);float d=min(fr,1.0-fr);",
+    " float idx=step(mod(floor(e+0.5),5.0),0.5);",
+    " float wdt=w*WT*mix(1.0,2.6,idx);",
+    " float line=1.0-smoothstep(wdt,wdt+w*1.15,d);",
+    " vec3 lcol=mix(vec3(0.252,0.560,0.652),vec3(0.560,0.830,0.878),idx);",
+    " col+=lcol*line*(0.07+0.36*AMT)*mix(0.70,1.0,idx);",
+
+    " col+=(hash(gl_FragCoord.xy+uPh)-0.5)/255.0;",
+    " gl_FragColor=vec4(col,1.0);}"
+  ].join("\n") + "\n";
+
+  function sh(type, src) {
+    var s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+  }
+  var vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, FRAG);
+  if (!vs || !fs) { off(); return; }
+  var pr = gl.createProgram();
+  gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { off(); return; }
+  gl.useProgram(pr);
+
+  var buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  var loc = gl.getAttribLocation(pr, "a");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  var uRes = gl.getUniformLocation(pr, "uRes"), uPh = gl.getUniformLocation(pr, "uPh");
+  var W = 0, H = 0;
+
+  function resize() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var s = (window.innerWidth < 760 ? 0.66 : 0.92) - 6 * 0.013;
+    var w = Math.max(2, Math.round(window.innerWidth * dpr * s));
+    var h = Math.max(2, Math.round(window.innerHeight * dpr * s));
+    var cap = 1600, m = Math.max(w, h);
+    if (m > cap) { w = Math.round(w * cap / m); h = Math.round(h * cap / m); }
+    if (w === W && h === H) return;
+    W = w; H = h; cv.width = w; cv.height = h;
+    gl.viewport(0, 0, w, h);
+    gl.uniform2f(uRes, w, h);
+  }
+
+  function draw() {
+    gl.uniform1f(uPh, (((Date.now() / 1000) * SPEED % CYCLE) / CYCLE) * Math.PI * 2);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var last = 0, running = false;
+
+  function frame(now) {
+    if (!running) return;
+    requestAnimationFrame(frame);
+    if (now - last < 33) return;      /* 30 fps is plenty for something this slow */
+    last = now;
+    resize(); draw();
+  }
+  function still() { resize(); draw(); }
+  function start() {
+    if (reduced.matches) { running = false; still(); return; }
+    if (running) return;
+    running = true; last = 0; requestAnimationFrame(frame);
+  }
+  function stop() { running = false; }
+
+  window.addEventListener("resize", function () { if (!running) still(); });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stop(); else start();   /* resumes at the clock's phase, not where it paused */
+  });
+  if (reduced.addEventListener) reduced.addEventListener("change", function () { stop(); start(); });
+
+  start();
+})();
+</script>
+</body></html>

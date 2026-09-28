@@ -1,0 +1,1235 @@
+<section class="wyt" id="waityourturn" data-rise>
+  <style>
+  .wyt{--wyt-line:rgba(255,255,255,0.12);--wyt-you:var(--orange,#F5A524);--wyt-data:var(--blue,#2FA8E0);--wyt-voice:var(--teal,#5ED2DA);
+    --wyt-slow:var(--red,#F0705F);--wyt-bcn:var(--text-muted,#8BA2AE);--wyt-mc:var(--blue-light,#4FBDEA);--wyt-ack:var(--green,#8CE05E)}
+  .wyt-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .wyt-head h3{font-size:19px;letter-spacing:-0.02em;margin:0}
+  .wyt-lv{font:11px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--orange)}
+  .wyt-score{margin-left:auto;font:12px var(--mono);color:var(--text-muted)}
+  .wyt-goal{margin:0 0 14px;font-size:14px;line-height:1.65;color:var(--text-dim)}
+  .wyt-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:18px;align-items:start}
+  @media (max-width:720px){.wyt-grid{grid-template-columns:minmax(0,1fr);gap:14px}}
+  .wyt-box{border:1px solid var(--wyt-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:10px 12px}
+  .wyt-cap{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font:10.5px var(--mono);letter-spacing:0.06em;
+    color:var(--text-muted);text-transform:uppercase;margin:2px 0 6px}
+  .wyt-cap b{color:var(--text-dim);font-weight:400;letter-spacing:0;text-transform:none;white-space:nowrap}
+  .wyt-cv{display:block;width:100%;border-radius:8px;background:rgba(0,0,0,0.35)}
+  .wyt-cv.strip{height:66px;margin-bottom:10px}
+  .wyt-cv.ruler{height:74px}
+  .wyt-play{display:flex;gap:12px;align-items:stretch;margin-top:12px}
+  .wyt-me{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:12px;border:1px solid var(--wyt-line);border-radius:12px;
+    background:rgba(3,10,16,0.6);padding:8px 12px}
+  .wyt-num{flex:0 0 auto;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font:600 24px var(--mono);
+    color:#2a1600;background:var(--orange);box-shadow:0 0 0 4px rgba(245,165,36,0.18)}
+  .wyt-num.hid{background:rgba(255,255,255,0.08);color:var(--text-dim);box-shadow:none}
+  .wyt-num.frz{background:rgba(245,165,36,0.35);color:#ffd28a}
+  .wyt-num.go{animation:wytPulse 0.6s ease-in-out infinite alternate}
+  @keyframes wytPulse{from{box-shadow:0 0 0 3px rgba(245,165,36,0.2)}to{box-shadow:0 0 0 9px rgba(245,165,36,0.45)}}
+  @media (prefers-reduced-motion:reduce){.wyt-num.go{animation:none;box-shadow:0 0 0 6px rgba(245,165,36,0.45)}}
+  .wyt-meinfo{min-width:0;font:12px/1.6 var(--mono);color:var(--text-muted)}
+  .wyt-meinfo b{display:block;color:var(--text);font:600 13px var(--sans)}
+  @media (max-width:560px){.wyt-play{flex-direction:column}.wyt-send{min-height:64px}}
+  .wyt-send{flex:0 0 auto;min-width:132px;min-height:72px;border-radius:14px;border:1px solid rgba(245,165,36,0.7);
+    background:linear-gradient(180deg,#ffbf4d,var(--orange,#F5A524));color:#2a1600;font:700 17px var(--sans);cursor:pointer;touch-action:manipulation;
+    -webkit-user-select:none;user-select:none}
+  .wyt-send.armed{background:rgba(245,165,36,0.18);color:#ffd28a}
+  .wyt-send.nope{transform:translateX(3px)}
+  .wyt-send:disabled{opacity:0.4;cursor:default}
+  .wyt-sheet{border:1px solid var(--wyt-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:12px 14px;font:12.5px/1.8 var(--mono)}
+  .wyt-row{display:flex;gap:10px;align-items:baseline}
+  .wyt-row i{font-style:normal;color:var(--text-muted);flex:1 1 auto;min-width:0}
+  .wyt-row b{color:var(--text);font-weight:600;flex:0 0 auto;text-align:right;white-space:nowrap}
+  .wyt-row.big b{font-size:15px}
+  .wyt-row.good b{color:var(--green)} .wyt-row.warn b{color:var(--orange)}
+  .wyt-bar{height:7px;border-radius:4px;background:rgba(255,255,255,0.07);overflow:hidden;margin:1px 0 7px}
+  .wyt-bar i{display:block;height:100%;width:0;background:var(--orange);transition:width 160ms linear}
+  .wyt-bar.t i{background:var(--text-muted)}
+  .wyt-rule{border-top:1px solid var(--wyt-line);margin:8px 0}
+  .wyt-pie{display:flex;gap:12px;align-items:center;margin:4px 0 8px}
+  .wyt-pie svg{flex:0 0 auto;width:96px;height:96px}
+  .wyt-leg{font:10.5px/1.7 var(--mono);color:var(--text-muted);min-width:0}
+  .wyt-leg span{display:grid;grid-template-columns:9px minmax(0,1fr) auto;gap:6px;align-items:center}
+  .wyt-leg span u{text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wyt-leg em{display:inline-block;width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+  .wyt-leg b{color:var(--text-dim);font-weight:400;text-align:right}
+  .wyt-pie .wyt-leg{flex:1 1 auto}
+  .wyt-say{min-height:46px;font-size:13.5px;line-height:1.65;color:var(--text-dim);margin:14px 0 4px}
+  .wyt-say b{color:var(--orange)} .wyt-say i{color:var(--green);font-style:normal}
+  .wyt-acts{display:flex;gap:9px;flex-wrap:wrap}
+  .wyt-btn{min-height:42px;padding:0 14px;border-radius:11px;border:1px solid var(--wyt-line);background:rgba(255,255,255,0.06);
+    color:var(--text);font:600 13px var(--sans);cursor:pointer}
+  .wyt-btn[aria-pressed="true"]{border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.12);color:#ffd28a}
+  .wyt-btn:disabled{opacity:0.35;cursor:default}
+  .wyt-btn.go{border-color:rgba(245,165,36,0.7);background:rgba(245,165,36,0.16);color:#ffd28a}
+  .wyt-knobs{margin-top:12px;display:grid;gap:10px}
+  .wyt-knob{border:1px solid var(--wyt-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:9px 12px}
+  .wyt-knob>span{display:flex;justify-content:space-between;gap:8px;font:10.5px var(--mono);letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px}
+  .wyt-knob>span b{color:var(--text-dim);font-weight:400;letter-spacing:0;text-transform:none}
+  .wyt-seg{display:flex;gap:6px;flex-wrap:wrap}
+  .wyt-seg button{flex:1 1 0;min-width:0;min-height:38px;padding:4px 8px;border-radius:9px;border:1px solid var(--wyt-line);background:rgba(255,255,255,0.05);
+    color:var(--text);font:600 12px var(--sans);cursor:pointer}
+  .wyt-seg button[aria-pressed="true"]{border-color:rgba(245,165,36,0.65);background:rgba(245,165,36,0.14);color:#ffd28a}
+  .wyt-seg button i{display:block;font:10px var(--mono);font-style:normal;color:var(--text-muted)}
+  .wyt-check{margin:0;padding:0;list-style:none;font:12.5px/1.55 var(--sans);color:var(--text-dim)}
+  .wyt-check li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;padding:4px 0;border-top:1px solid rgba(255,255,255,0.06)}
+  .wyt-check li:first-child{border-top:0}
+  .wyt-check li b{color:var(--text);font-weight:600}
+  .wyt-check li>em{font-style:normal;font-weight:700}
+  .wyt-check li.ok>em{color:var(--green)} .wyt-check li.no>em{color:var(--orange)} .wyt-check li.info>em{color:var(--text-muted)}
+  .wyt-fine{margin:12px 0 0;font:11px/1.6 var(--mono);color:var(--text-muted)}
+  .wyt [hidden]{display:none !important}
+  </style>
+
+  <div class="wyt-head">
+    <span class="wyt-lv" id="wyt-lv">Level 1</span>
+    <h3 id="wyt-title">Wait Your Turn</h3>
+    <span class="wyt-score" id="wyt-score">0 of 4 done</span>
+  </div>
+  <p class="wyt-goal" id="wyt-goal"></p>
+
+  <div class="wyt-grid">
+    <div>
+      <div class="wyt-box">
+        <div class="wyt-cap"><span id="wyt-stripcap">The air, last 6 ms, to scale</span><b id="wyt-clock">0 us</b></div>
+        <canvas class="wyt-cv strip" id="wyt-strip" role="img" aria-label="Timeline of the shared channel"></canvas>
+        <div class="wyt-cap" id="wyt-rulercap-row"><span id="wyt-rulercap">This quiet spell, slot by slot</span><b id="wyt-state">waiting to start</b></div>
+        <canvas class="wyt-cv ruler" id="wyt-ruler" role="img" aria-label="The current quiet spell in 9 microsecond slots"></canvas>
+      </div>
+      <div class="wyt-play" id="wyt-play">
+        <div class="wyt-me">
+          <div class="wyt-num hid" id="wyt-num" aria-hidden="true">?</div>
+          <div class="wyt-meinfo"><b id="wyt-mehead">Your number</b><span id="wyt-mesub">Press start when you're ready.</span></div>
+        </div>
+        <button class="wyt-send" id="wyt-send" type="button">Start</button>
+      </div>
+      <div class="wyt-knobs" id="wyt-knobs" hidden>
+        <div class="wyt-knob"><span>SSIDs on every radio <b id="wyt-k-ssids-v">8</b></span>
+          <div class="wyt-seg" id="wyt-k-ssids"></div></div>
+        <div class="wyt-knob"><span>Minimum rate <b>beacons, multicast and the floor</b></span>
+          <div class="wyt-seg" id="wyt-k-min"></div></div>
+        <div class="wyt-knob"><span>mDNS from the whole VLAN <b>765 packets a second</b></span>
+          <div class="wyt-seg" id="wyt-k-mc"></div></div>
+        <div class="wyt-knob"><span>Voice priority <b>WMM</b></span>
+          <div class="wyt-seg" id="wyt-k-qos"></div></div>
+      </div>
+      <p class="wyt-say" id="wyt-say" aria-live="polite"></p>
+    </div>
+
+    <div class="wyt-sheet" id="wyt-sheet">
+      <div id="wyt-rows"></div>
+      <div class="wyt-rule"></div>
+      <div class="wyt-cap" style="margin:0 0 2px"><span>Where the air went</span><b id="wyt-airtot"></b></div>
+      <div class="wyt-pie"><svg viewBox="0 0 100 100" id="wyt-pie" role="img" aria-label="Airtime by category"></svg><div class="wyt-leg" id="wyt-leg"></div></div>
+      <div class="wyt-row"><i>busy, as the AP's chart shows it</i><b id="wyt-util">0%</b></div>
+      <div class="wyt-bar t"><i id="wyt-utilbar"></i></div>
+      <div class="wyt-row"><i>actually carrying data</i><b id="wyt-useful">0%</b></div>
+      <div class="wyt-bar"><i id="wyt-usefulbar"></i></div>
+    </div>
+  </div>
+
+  <div class="wyt-acts" style="margin-top:14px">
+    <button class="wyt-btn" id="wyt-auto" type="button" aria-pressed="false">Let the radio do it</button>
+    <button class="wyt-btn" id="wyt-assist" type="button" aria-pressed="false">Show my number</button>
+    <button class="wyt-btn go" id="wyt-cant" type="button" hidden>This isn't mine to fix</button>
+    <button class="wyt-btn" id="wyt-reset" type="button">Restart level</button>
+    <button class="wyt-btn" id="wyt-next" type="button" disabled>Next level</button>
+  </div>
+  <p class="wyt-fine">A model, not a capture: 5 GHz, WMM timings from the standard, airtime from this site's own simulator. Everyone hears everyone, so there are no hidden nodes, nothing fails except collisions, and rates don't adapt. Quiet air plays slowly so you can count; busy air fast-forwards. The strip and the clock are to scale.</p>
+
+  <script>
+  /* ENGINE START
+   Wait Your Turn: the contention engine. No DOM and nothing drawn, so the tests
+   drive it exactly the way the widget does: one slot boundary at a time while the
+   air is quiet, one whole exchange at a time when somebody transmits.
+
+   Timings and airtime are copied from theme/sim/mac.js and theme/sim/phy.js so
+   the game and the lesson quote the same numbers; wyt-test.js loads those files
+   and fails if the two drift apart. What this adds is EDCA: a wait (AIFS) and a
+   window (CWmin to CWmax) per access category, from the WMM spec and the AOS 8
+   CLI defaults. */
+var WYT = (function () {
+  "use strict";
+
+  /* 5 GHz OFDM. SIFS 16 us, slot 9 us. After a collision everyone who heard the
+     garbage waits EIFS, which is AIFS plus SIFS plus an ACK at 6 Mb/s (16 + 44);
+     the senders' own 50 us ACK timeout ends inside that, so one rule covers both.
+     Seven attempts, then the frame is dropped (dot11ShortRetryLimit). */
+  var T = { SLOT: 9, SIFS: 16, EIFSX: 60, ATTEMPTS: 7, TBTT: 102400, PPDU_MAX: 5484 };
+
+  /* aifsn, cwmin, cwmax, txop limit in us (0 = one exchange per win).
+     AIFS = SIFS + AIFSN x slot: best effort waits 43 us, a client's voice 34,
+     the AP's voice 25. Client and AP differ exactly where WMM says they do. */
+  var EDCA = {
+    sta: { BK: { n: 7, cwmin: 15, cwmax: 1023, txop: 0 },    BE: { n: 3, cwmin: 15, cwmax: 1023, txop: 0 },
+           VI: { n: 2, cwmin: 7,  cwmax: 15,   txop: 3008 }, VO: { n: 2, cwmin: 3,  cwmax: 7,    txop: 1504 } },
+    ap:  { BK: { n: 7, cwmin: 15, cwmax: 1023, txop: 0 },    BE: { n: 3, cwmin: 15, cwmax: 63,   txop: 0 },
+           VI: { n: 1, cwmin: 7,  cwmax: 15,   txop: 3008 }, VO: { n: 1, cwmin: 3,  cwmax: 7,    txop: 1504 } },
+    /* beacons ride the AP's most urgent queue here, which is how most APs treat them */
+    bcn: { n: 1, cwmin: 3, cwmax: 3, txop: 0 }
+  };
+
+  /* ── PHY, the same arithmetic as theme/sim/phy.js ─────────────────────── */
+  var MCS = [[1, 1 / 2], [2, 1 / 2], [2, 3 / 4], [4, 1 / 2], [4, 3 / 4], [6, 2 / 3], [6, 3 / 4], [6, 5 / 6],
+             [8, 3 / 4], [8, 5 / 6], [10, 3 / 4], [10, 5 / 6]];
+  var AG = [[1, 1 / 2], [1, 3 / 4], [2, 1 / 2], [2, 3 / 4], [4, 1 / 2], [4, 3 / 4], [6, 2 / 3], [6, 3 / 4]];
+  var LEGACY = [6, 9, 12, 18, 24, 36, 48, 54];
+  function nLtf(ss) { return ss <= 2 ? ss : ss <= 4 ? 4 : ss <= 6 ? 6 : 8; }
+  var STD = {
+    a:  { tsym: 4,    nsd: { 20: 48 }, pre: function () { return 20; } },
+    ax: { tsym: 13.6, nsd: { 20: 234, 40: 468, 80: 980, 160: 1960 }, pre: function (ss) { return 36 + 7.2 * nLtf(ss); } }
+  };
+  function bitsPerSym(r) {
+    var s = STD[r.std], m = (r.std === "a" ? AG : MCS)[r.mcs];
+    return (r.ss || 1) * (s.nsd[r.bw] || s.nsd[20]) * m[0] * m[1];
+  }
+  function rate(r) { return bitsPerSym(r) / STD[r.std].tsym; }
+  function legacy(mbps) { return { std: "a", mcs: Math.max(0, LEGACY.indexOf(mbps)), ss: 1, bw: 20 }; }
+  /* QoS data header and FCS, LLC/SNAP, CCMP header and MIC; a management frame
+     is its header and FCS; "raw" means the byte count already is the whole frame */
+  var OVH = { data: 30 + 8 + 16, mgmt: 28, raw: 0 };
+  function airtime(r, bytes, agg, kind) {
+    agg = Math.max(1, agg || 1);
+    var mac = OVH[kind || "data"], delim = agg > 1 ? 4 : 0,
+        bits = 16 + 8 * agg * (bytes + mac + delim) + 6;
+    return STD[r.std].pre(r.ss || 1) + Math.ceil(bits / bitsPerSym(r)) * STD[r.std].tsym;
+  }
+  /* an ACK (14 bytes) or a BlockAck (32) at a legacy rate */
+  function ctrl(mbps, bytes) { return 20 + Math.ceil((16 + 8 * bytes + 6) / (mbps * 4)) * 4; }
+  /* control responses go at the highest basic rate not above the frame they answer;
+     anything HT or newer answers at the top of the basic set */
+  function respRate(basic, dataLegacy) {
+    var best = 0, i;
+    for (i = 0; i < basic.length; i++) if (basic[i] <= dataLegacy && basic[i] > best) best = basic[i];
+    return best || Math.min.apply(null, basic);
+  }
+
+  /* mulberry32, the same generator as theme/sim/core.js, with the same warm up
+     games.js gives small seeds */
+  function rng(seed) {
+    var a = (Math.imul((seed >>> 0) + 1, 2654435761) ^ 0x9E3779B9) >>> 0, i;
+    function r() {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+    for (i = 0; i < 6; i++) r();
+    return r;
+  }
+
+  function airtimeList(r, sizes, kind) {
+    var mac = OVH[kind || "data"], delim = sizes.length > 1 ? 4 : 0, bits = 22, i;
+    for (i = 0; i < sizes.length; i++) bits += 8 * (sizes[i] + mac + delim);
+    return STD[r.std].pre(r.ss || 1) + Math.ceil(bits / bitsPerSym(r)) * STD[r.std].tsym;
+  }
+  var PRIO = { VO: 4, VI: 3, BE: 2, BK: 1 };
+  var CATS = ["you", "data", "slow", "voice", "bcn", "mc", "coll", "ack", "wait", "idle"];
+
+  /* ── the room ───────────────────────────────────────────────────────────
+     cfg = { seed, basic: [6, 12, 24], ssids, neighbours, mcast: { pps, bytes },
+             nodes: [{ id, name, role, rate: { std, mcs, ss, bw }, agg, holds, dock }],
+             flows: [{ node, dir: "up" | "down", ac, bytes, type, period | pps, burst, acks }],
+             manual: node id or null, override: null | "VO" }
+     role "slow" and "voice" only colour the airtime; the physics is the rate. */
+  function Sim(cfg) {
+    var S = this, i;
+    S.cfg = cfg;
+    /* two kinds of chance, kept apart: when traffic shows up, and the number
+       each queue draws. Each queue has its own stream, so the room behaves the
+       same for a given seed however the player times the button. */
+    S.seed = (cfg.seed || 1) >>> 0;
+    S.r = rng(S.seed);
+    S.t = 0; S.idleStart = 0; S.k = -1;
+    S.basic = (cfg.basic || [6, 12, 24]).slice().sort(function (a, b) { return a - b; });
+    S.lowest = S.basic[0];
+    S.nodes = {}; S.q = []; S.ev = []; S.flows = [];
+    S.air = {}; CATS.forEach(function (c) { S.air[c] = 0; });
+    S.busy = 0; S.useful = 0;
+    S.log = [];            /* the last few exchanges, for the strip */
+    S.me = null;
+    S.nodes.ap = { id: "ap", name: "AP", role: "ap", connected: true };
+    (cfg.nodes || []).forEach(function (n) {
+      var nd = {}, k; for (k in n) nd[k] = n[k];
+      nd.connected = (nd.holds === undefined || nd.holds >= S.lowest);
+      nd.gone = nd.connected ? null : (nd.dock ? "roamed" : "dropped");
+      S.nodes[nd.id] = nd;
+    });
+    /* beacons: one per SSID every TBTT from this AP and from each other AP on the
+       channel you can hear, at the lowest basic rate */
+    var bss = [{ id: "ap", name: "AP" }];
+    for (i = 0; i < (cfg.neighbours || 0); i++) {
+      S.nodes["nb" + i] = { id: "nb" + i, name: "AP " + (i + 2), role: "ap", connected: true };
+      bss.push(S.nodes["nb" + i]);
+    }
+    bss.forEach(function (b, j) {
+      var e = S.edcaf(b.id, "BCN");
+      S.at(Math.floor((j + 0.5) * T.TBTT / bss.length), function beacon(t) {
+        for (var s = 0; s < (cfg.ssids === undefined ? 1 : cfg.ssids); s++) S.push(e, { bytes: 250, t0: t, dst: null, kind: "mgmt" }, t);
+        S.at(t + T.TBTT, beacon);
+      });
+    });
+    if (cfg.mcast && cfg.mcast.pps) {
+      var me = S.edcaf("ap", "MC"), gap = 1e6 / cfg.mcast.pps;
+      S.at(S.r() * gap, function mc(t) {
+        S.push(me, { bytes: cfg.mcast.bytes || 300, t0: t, dst: null, kind: "raw" }, t);
+        S.at(t - Math.log(1 - S.r()) * gap, mc);
+      });
+    }
+    (cfg.flows || []).forEach(function (f) { S.flow(f); });
+    if (cfg.manual) { S.me = S.edcaf(cfg.manual, "BE"); S.me.manual = true; }
+    /* a busy room is already busy when you walk in: run it for a while first,
+       then start every clock and counter the reader sees from there */
+    S.t0 = 0; S.base = null;
+    if (cfg.warm) S.warm(cfg.warm);
+  }
+
+  Sim.prototype.warm = function (us) {
+    var S = this, a = {};
+    while (S.t < us) S.step();
+    CATS.forEach(function (c) { a[c] = S.air[c]; });
+    var coll = 0; S.q.forEach(function (x) { coll += x.coll; });
+    S.t0 = S.t; S.base = { air: a, busy: S.busy, useful: S.useful, coll: coll };
+    S.log = S.log.slice(-80);
+  };
+
+  /* airtime so far as shares of the time since the clock started */
+  Sim.prototype.snap = function () {
+    var S = this, b = S.base || { air: {}, busy: 0, useful: 0 }, tot = (S.t - S.t0) || 1, o = { t: S.t - S.t0, air: {} };
+    CATS.forEach(function (c) { o.air[c] = (S.air[c] - (b.air[c] || 0)) / tot; });
+    o.util = (S.busy - b.busy) / tot; o.useful = (S.useful - b.useful) / tot;
+    return o;
+  };
+
+  Sim.prototype.at = function (t, fn) {
+    var ev = this.ev, i = ev.length;
+    while (i > 0 && ev[i - 1].t > t) i--;
+    ev.splice(i, 0, { t: t, fn: fn });
+  };
+
+  Sim.prototype.edcaf = function (id, ac) {
+    var S = this, i, e;
+    for (i = 0; i < S.q.length; i++) if (S.q[i].node === id && S.q[i].ac === ac) return S.q[i];
+    var isAp = S.nodes[id].role === "ap",
+        p = ac === "BCN" ? EDCA.bcn : ac === "MC" ? EDCA.ap.BE : (isAp ? EDCA.ap : EDCA.sta)[ac];
+    e = { node: id, ac: ac, p: p, q: [], cw: p.cwmin, bo: null, tries: 0, ta: 0, rr: 0,
+          r: rng((Math.imul(S.seed, 7919) + (S.q.length + 1) * 104729) >>> 0),
+          group: ac === "BCN" || ac === "MC", manual: false, sent: 0, ok: 0, coll: 0 };
+    S.q.push(e);
+    return e;
+  };
+
+  /* a frame arrives in a queue; an empty queue draws its number now */
+  Sim.prototype.push = function (e, fr, t) {
+    if (e.q.length >= 2000) { if (fr.flow && !fr.flow.refill) fr.flow.drop += 1; return false; }
+    if (!e.q.length && e.bo === null) { e.bo = Math.floor(e.r() * (e.cw + 1)); e.ta = t; }
+    e.q.push(fr);
+    return true;
+  };
+
+  Sim.prototype.flow = function (f) {
+    var S = this, nd = S.nodes[f.node];
+    if (!nd || !nd.connected) { if (nd) S.flows.push({ spec: f, dead: true, sent: 0, got: 0, drop: 0, bytes: 0, delays: [] }); return; }
+    var ac = f.ac || "BE";
+    /* "everything as voice": the AP's QoS map and the laptops' own marking both
+       send best effort through the voice queue. Legacy gear with no WMM keeps DCF. */
+    if (S.cfg.override && ac === "BE" && nd.rate && nd.rate.std !== "a") ac = S.cfg.override;
+    var fl = { spec: f, sent: 0, got: 0, drop: 0, bytes: 0, delays: [], ac: ac },
+        e = f.dir === "down" ? S.edcaf("ap", ac) : S.edcaf(f.node, ac),
+        dst = f.dir === "down" ? f.node : "ap";
+    S.flows.push(fl);
+    fl.e = e;
+    function one(t) {
+      var ok = S.push(e, { bytes: f.bytes || 1500, t0: t, dst: dst, flow: fl, src: f.node }, t);
+      if (ok) fl.sent += 1;
+      return ok;
+    }
+    if (f.type === "sat") {
+      /* a saturated source keeps its own share of the queue topped up, never more */
+      fl.refill = function (t) {
+        var have = 0, i;
+        for (i = 0; i < e.q.length; i++) if (e.q[i].flow === fl) have += 1;
+        for (; have < (f.depth || 64); have++) if (!one(t)) break;
+      };
+      S.at(f.start || 0, function (t) { fl.refill(t); });
+    } else if (f.type === "cbr") {
+      S.at((f.start || 0) + S.r() * f.period, function tick(t) { one(t); S.at(t + f.period, tick); });
+    } else if (f.type === "poisson") {
+      var gap = 1e6 / f.pps;
+      S.at((f.start || 0) - Math.log(1 - S.r()) * gap, function tick(t) { one(t); S.at(t - Math.log(1 - S.r()) * gap, tick); });
+    } else if (f.type === "burst") {
+      var g = f.gap;
+      S.at((f.start || 0) - Math.log(1 - S.r()) * g, function tick(t) {
+        for (var b = 0; b < f.burst; b++) one(t);
+        S.at(t - Math.log(1 - S.r()) * g, tick);
+      });
+    }
+    /* a download answers with TCP acks, one for every two segments, from the client */
+    if (f.acks && f.dir === "down") fl.ackE = S.edcaf(f.node, "BE");
+  };
+
+  /* ── the clock ─────────────────────────────────────────────────────────
+     Boundary k of a quiet spell sits at SIFS + k slots after the air went
+     quiet. A queue with AIFSN n starts acting at boundary n, which is AIFS.
+     At each boundary a counting queue either transmits (its number is 0) or
+     takes one off its number. Two or more transmitting at the same boundary
+     is a collision, and nobody finds out until the ACK doesn't come. */
+  Sim.prototype.bt = function (k) { return this.idleStart + T.SIFS + k * T.SLOT; };
+  Sim.prototype.drain = function (t) {
+    while (this.ev.length && this.ev[0].t <= t) { var x = this.ev.shift(); x.fn(x.t); }
+  };
+  Sim.prototype.queued = function () {
+    for (var i = 0; i < this.q.length; i++) if (this.q[i].q.length && this.nodes[this.q[i].node].connected) return true;
+    return false;
+  };
+  function counting(S, e, k, bk) {
+    return e.q.length > 0 && e.bo !== null && k >= e.p.n && bk >= e.ta && S.nodes[e.node].connected;
+  }
+
+  /* the player's button. Legal only when their number is 0; then it arms, and
+     the radio goes at the next boundary it is allowed to (straight away if the
+     wait is already over). Pressed any earlier, it is a foul and nothing happens. */
+  Sim.prototype.press = function () {
+    var e = this.me;
+    if (!e || !e.q.length) return "none";
+    if (e.bo === 0) { e.armed = true; return "armed"; }
+    return "foul";
+  };
+
+  Sim.prototype.step = function () {
+    var S = this, k = S.k + 1, bk = S.bt(k), prev = k === 0 ? S.idleStart : S.bt(k - 1), go = [], i, e;
+    S.drain(prev);
+    var was = S.queued() || (S.me && S.me.q.length);
+    S.air[was ? "wait" : "idle"] += bk - prev;
+    S.drain(bk);
+    for (i = 0; i < S.q.length; i++) {
+      e = S.q[i];
+      if (!counting(S, e, k, bk)) continue;
+      if (e.bo === 0) { if (!e.manual || e.armed) go.push(e); }
+      else e.bo -= 1;
+    }
+    S.k = k; S.t = bk;
+    if (!go.length) return { type: "slot", k: k, t: bk };
+    /* two queues in one radio: the higher category goes, the other counts it as a collision */
+    var byNode = {}, keep = [];
+    go.forEach(function (x) { (byNode[x.node] = byNode[x.node] || []).push(x); });
+    Object.keys(byNode).forEach(function (id) {
+      var l = byNode[id].sort(function (a, b) { return pr(b) - pr(a); });
+      keep.push(l[0]);
+      for (var j = 1; j < l.length; j++) S.fail(l[j], []);
+    });
+    return S.exchange(keep, bk);
+  };
+  function pr(e) { return e.ac === "BCN" ? 9 : e.ac === "MC" ? 2 : PRIO[e.ac]; }
+
+  /* what one queue puts on the air when it wins: a beacon or a group frame alone,
+     otherwise an A-MPDU to one destination, as deep as the radio allows and no
+     longer than a PPDU or the category's TXOP limit */
+  Sim.prototype.ppdu = function (e) {
+    var S = this, n, i, fr, dst, rt, agg, take = [], sizes = [];
+    if (e.group) {
+      fr = e.q[0];
+      return { frames: [fr], idx: [0], rate: legacy(S.lowest), air: airtime(legacy(S.lowest), fr.bytes, 1, fr.kind), group: true, dst: null };
+    }
+    if (e.node === "ap") {
+      var dsts = [];
+      e.q.forEach(function (f) { if (dsts.indexOf(f.dst) < 0 && S.nodes[f.dst].connected) dsts.push(f.dst); });
+      if (!dsts.length) return null;
+      dst = dsts[e.rr % dsts.length]; e.rr += 1;
+      n = S.nodes[dst];
+    } else { dst = "ap"; n = S.nodes[e.node]; }
+    rt = n.rate; agg = rt.std === "a" ? 1 : (n.agg || 1);
+    var lim = e.p.txop || T.PPDU_MAX;
+    for (i = 0; i < e.q.length && take.length < agg; i++) {
+      fr = e.q[i];
+      if (fr.dst !== dst) continue;
+      sizes.push(fr.bytes);
+      if (take.length && airtimeList(rt, sizes, "data") > lim) { sizes.pop(); break; }
+      take.push(i);
+    }
+    return { frames: take.map(function (j) { return e.q[j]; }), idx: take, rate: rt, air: airtimeList(rt, sizes, "data"), group: false, dst: dst };
+  };
+
+  Sim.prototype.cat = function (e, pp) {
+    if (e.ac === "BCN") return "bcn";
+    if (e.ac === "MC") return "mc";
+    var who = e.node === "ap" ? this.nodes[pp.dst] : this.nodes[e.node];
+    if (e.manual || who.id === this.cfg.manual || who.id === "you") return "you";
+    if (who.role === "slow") return "slow";
+    if (who.role === "voice") return "voice";
+    return "data";
+  };
+
+  Sim.prototype.fail = function (e, frames) {
+    e.tries += 1; e.coll += 1;
+    if (e.tries >= T.ATTEMPTS) {
+      var seen = [];
+      frames.forEach(function (f) { if (f.flow) { f.flow.drop += 1; if (f.flow.refill && seen.indexOf(f.flow) < 0) seen.push(f.flow); } });
+      e.q = e.q.filter(function (f) { return frames.indexOf(f) < 0; });
+      e.tries = 0; e.cw = e.p.cwmin;
+      /* a saturated source still has more to send after the chip gives up on a frame */
+      var t = this.t; seen.forEach(function (fl) { fl.refill(t); });
+    } else e.cw = Math.min((e.cw + 1) * 2 - 1, e.p.cwmax);
+    e.bo = e.q.length ? Math.floor(e.r() * (e.cw + 1)) : null;
+    e.ta = 0; e.armed = false;
+  };
+
+  Sim.prototype.dropGroup = function (e) {
+    e.q.shift(); this.lostGroup = (this.lostGroup || 0) + 1;
+    e.bo = e.q.length ? Math.floor(e.r() * (e.cw + 1)) : null; e.ta = 0;
+  };
+
+  Sim.prototype.ackFlow = function (fl) {
+    if (!fl.ackFlow) {
+      fl.ackFlow = { spec: { node: fl.spec.node, dir: "up", ack: true }, sent: 0, got: 0, drop: 0, bytes: 0, delays: [] };
+      this.flows.push(fl.ackFlow);
+    }
+    return fl.ackFlow;
+  };
+
+  Sim.prototype.deliver = function (e, pp, tDone, end) {
+    var S = this, r = rate(pp.rate), seen = [];
+    pp.idx.slice().sort(function (a, b) { return b - a; }).forEach(function (j) { e.q.splice(j, 1); });
+    e.ok += 1; e.tries = 0; e.cw = e.p.cwmin; e.armed = false;
+    if (!pp.group) {
+      pp.frames.forEach(function (f) {
+        S.useful += f.bytes * 8 / r;
+        if (!f.flow) return;
+        f.flow.got += 1; f.flow.bytes += f.bytes;
+        if (f.flow.delays.length < 60000) f.flow.delays.push(tDone - f.t0);
+        if (f.flow.ackE) {
+          f.flow.debt = (f.flow.debt || 0) + 1;
+          while (f.flow.debt >= 2) {
+            f.flow.debt -= 2;
+            var af = S.ackFlow(f.flow); af.sent += 1;
+            S.push(f.flow.ackE, { bytes: 64, t0: end, dst: "ap", flow: af, src: f.flow.spec.node }, end);
+          }
+        }
+        if (f.flow.refill && seen.indexOf(f.flow) < 0) seen.push(f.flow);
+      });
+      seen.forEach(function (fl) { fl.refill(end); });
+    } else S.groupSent = (S.groupSent || 0) + 1;
+    e.bo = e.q.length ? Math.floor(e.r() * (e.cw + 1)) : null;
+    e.ta = end;
+  };
+
+  Sim.prototype.exchange = function (list, bk) {
+    var S = this, parts = [], maxAir = 0;
+    list.forEach(function (e) {
+      var pp = S.ppdu(e);
+      if (!pp || !pp.frames.length) return;
+      pp.e = e; pp.cat = S.cat(e, pp);
+      parts.push(pp); maxAir = Math.max(maxAir, pp.air);
+      e.sent += 1;
+    });
+    if (!parts.length) return { type: "slot", k: S.k, t: bk };
+    var coll = parts.length > 1, end, seg = { t0: bk, parts: [], coll: coll };
+    if (coll) {
+      end = bk + maxAir + T.EIFSX;
+      S.air.coll += end - bk; S.busy += maxAir;
+      parts.forEach(function (pp) {
+        seg.parts.push({ node: pp.e.node, dst: pp.dst, cat: pp.cat, air: pp.air, n: pp.frames.length, ok: false, ac: pp.e.ac, rate: rate(pp.rate) });
+        if (pp.group) S.dropGroup(pp.e); else S.fail(pp.e, pp.frames);
+      });
+    } else {
+      var pp = parts[0], e = pp.e, resp = 0;
+      if (!pp.group) resp = ctrl(respRate(S.basic, pp.rate.std === "a" ? rate(pp.rate) : 54), pp.frames.length > 1 ? 32 : 14);
+      end = bk + pp.air + (pp.group ? 0 : T.SIFS + resp);
+      S.air[pp.cat] += pp.air;
+      if (!pp.group) S.air.ack += T.SIFS + resp;
+      S.busy += pp.air + resp;
+      seg.parts.push({ node: e.node, dst: pp.dst, cat: pp.cat, air: pp.air, n: pp.frames.length, ok: true, ac: e.ac, resp: resp, rate: rate(pp.rate) });
+      S.deliver(e, pp, bk + pp.air, end);
+    }
+    seg.t1 = end;
+    S.log.push(seg); if (S.log.length > 600) S.log.shift();
+    S.t = end; S.idleStart = end; S.k = -1;
+    return { type: "tx", seg: seg, t: bk, end: end };
+  };
+
+  /* headless: run until tEnd, letting a policy press the button for the player */
+  Sim.prototype.run = function (tEnd, policy) {
+    var S = this;
+    while (S.t < tEnd) {
+      if (policy && S.me) policy(S);
+      if (!S.queued() && !(S.me && S.me.q.length) && S.ev.length) {
+        var te = Math.min(S.ev[0].t, tEnd), kj = Math.floor((te - S.idleStart - T.SIFS) / T.SLOT) - 1;
+        if (kj >= 0 && kj > S.k) {
+          S.air.idle += S.bt(kj) - (S.k < 0 ? S.idleStart : S.bt(S.k));
+          S.k = kj; S.t = S.bt(kj);
+        }
+      }
+      S.step();
+    }
+    return S.report();
+  };
+
+  Sim.prototype.report = function () {
+    var S = this, sn = S.snap(), tot = sn.t || 1, o = { t: sn.t, util: sn.util, useful: sn.useful, air: sn.air, flows: [], nodes: {} };
+    S.flows.forEach(function (fl) {
+      var d = fl.delays.slice().sort(function (a, b) { return a - b; });
+      o.flows.push({ node: fl.spec.node, dir: fl.spec.dir, ack: !!fl.spec.ack, dead: !!fl.dead, tag: fl.spec.tag || "",
+        sent: fl.sent, got: fl.got, drop: fl.drop, mbps: fl.bytes * 8 / tot,
+        p95: d.length ? d[Math.floor(0.95 * (d.length - 1))] : null, max: d.length ? d[d.length - 1] : null });
+    });
+    Object.keys(S.nodes).forEach(function (id) { o.nodes[id] = { connected: S.nodes[id].connected, gone: S.nodes[id].gone || null }; });
+    if (S.me) o.me = { ok: S.me.ok, sent: S.me.sent, coll: S.me.coll };
+    o.lostGroup = S.lostGroup || 0;
+    return o;
+  };
+
+
+  /* ── the four levels ──────────────────────────────────────────────────────
+     Every level plays from a seed on its list. The lists were picked by
+     wyt-test.js, which plays each one with the radio's own timing and sixty
+     human ones: level 2's seeds are winnable by all of them, level 3's by none,
+     so "can't be won" is a checked property of the level, not a hope. */
+  var AX = function (mcs, ss) { return { std: "ax", mcs: mcs, ss: ss, bw: 80 }; };
+  var A6 = { std: "a", mcs: 0, ss: 1, bw: 20 };
+  function crowd(nodes, flows, busy) {
+    [["l1", "Laptop 1", 11], ["l2", "Laptop 2", 9], ["l3", "Laptop 3", 8], ["l4", "Laptop 4", 7]].forEach(function (x, i) {
+      nodes.push({ id: x[0], name: x[1], role: "sta", rate: AX(x[2], 2), agg: 32, holds: 54 });
+      flows.push({ node: x[0], dir: "up", type: "burst", burst: 6 + 2 * i, gap: busy.up, bytes: 1500, tag: "web" });
+      flows.push({ node: x[0], dir: "down", type: "burst", burst: 16 + 4 * i, gap: busy.down, bytes: 1500, acks: true, tag: "web" });
+    });
+    [["p1", "Phone 1", 7, 2], ["p2", "Phone 2", 5, 1]].forEach(function (x) {
+      nodes.push({ id: x[0], name: x[1], role: "sta", rate: AX(x[2], x[3]), agg: 16, holds: 54 });
+      flows.push({ node: x[0], dir: "up", type: "burst", burst: 3, gap: busy.up * 2, bytes: 1200, tag: "app" });
+      flows.push({ node: x[0], dir: "down", type: "burst", burst: 8, gap: busy.down * 2, bytes: 1500, acks: true, tag: "app" });
+    });
+    nodes.push({ id: "dp", name: "Desk phone", role: "voice", rate: AX(2, 1), agg: 1, holds: 18 });
+    flows.push({ node: "dp", dir: "up", ac: "VO", type: "cbr", period: 20000, bytes: 200, tag: "voice" });
+    flows.push({ node: "dp", dir: "down", ac: "VO", type: "cbr", period: 20000, bytes: 200, tag: "voice" });
+  }
+  var LEVELS = [
+    { id: "empty", name: "The empty room", goal: 5, bell: 0, show: true, seeds: [9, 15, 19, 32, 36, 41, 48, 25],
+      room: function (seed) {
+        return { seed: seed, basic: [6, 12, 24], ssids: 1, manual: "you",
+          nodes: [{ id: "you", name: "You", role: "sta", rate: AX(9, 2), agg: 16, holds: 54 }],
+          flows: [{ node: "you", dir: "up", type: "sat", bytes: 1500, depth: 16, tag: "file" },
+                  { node: "you", dir: "down", type: "burst", burst: 12, gap: 2500, bytes: 1500, tag: "web" }] };
+      } },
+    { id: "full", name: "The full room", goal: 10, bell: 15000, show: false, seeds: [2, 17, 18, 28, 66, 73, 34, 49],
+      room: function (seed) {
+        var nodes = [{ id: "you", name: "You", role: "sta", rate: AX(9, 2), agg: 16, holds: 54 }],
+            flows = [{ node: "you", dir: "up", type: "sat", bytes: 1500, depth: 16, tag: "file", start: 20000 }];
+        crowd(nodes, flows, { up: 8000, down: 6000 });
+        return { seed: seed, basic: [6, 12, 24], ssids: 3, manual: "you", nodes: nodes, flows: flows, warm: 20000 };
+      } },
+    { id: "scanner", name: "The scanner", goal: 10, bell: 15000, show: false, unwinnable: true, seeds: [39, 71, 78, 97, 120, 129, 139, 215],
+      room: function (seed) {
+        var c = LEVELS[1].room(seed);
+        c.nodes.push({ id: "sc", name: "Scanner", role: "slow", rate: A6, agg: 1, holds: 6, dock: true });
+        c.flows.push({ node: "sc", dir: "down", type: "sat", bytes: 1500, depth: 8, acks: true, tag: "update" });
+        c.flows.push({ node: "sc", dir: "up", type: "sat", bytes: 1500, depth: 8, tag: "sync" });
+        return c;
+      } },
+    { id: "engineer", name: "The engineer", engineer: true, seeds: [2], evalUs: 2000000,
+      knobs: { ssids: 8, min: 6, mc: "flood", qos: "normal" },
+      room: function (seed, kn) {
+        kn = kn || LEVELS[3].knobs;
+        var nodes = [{ id: "you", name: "You", role: "sta", rate: AX(9, 2), agg: 16, holds: 54 }],
+            flows = [{ node: "you", dir: "up", type: "cbr", period: 4000, bytes: 1200, tag: "call" },
+                     { node: "you", dir: "down", type: "cbr", period: 4000, bytes: 1200, tag: "call" }];
+        crowd(nodes, flows, { up: 8000, down: 6000 });
+        nodes.push({ id: "sc", name: "Scanner", role: "slow", rate: A6, agg: 1, holds: 6, dock: true });
+        flows.push({ node: "sc", dir: "down", type: "sat", bytes: 1500, depth: 8, acks: true, tag: "update" });
+        flows.push({ node: "sc", dir: "up", type: "sat", bytes: 1500, depth: 8, tag: "sync" });
+        var basic = kn.min === 24 ? [24] : kn.min === 12 ? [12, 24] : [6, 12, 24];
+        return { seed: seed, basic: basic, ssids: kn.ssids, neighbours: 5, manual: null,
+                 mcast: kn.mc === "flood" ? { pps: 765, bytes: 300 } : null,
+                 override: kn.qos === "voice" ? "VO" : null, nodes: nodes, flows: flows };
+      } }
+  ];
+
+  /* the engineer's checklist, judged over a run of the room. Delivered share
+     counts what got through against what got through or was given up on after
+     seven tries; frames still queued when the run stops are neither. */
+  var PASS = { call: 0.98, callMs: 50, phone: 0.99, phoneMs: 20, util: 0.67 };
+  function judge(rep) {
+    function fl(node, dir, tag) { return rep.flows.filter(function (f) { return f.node === node && f.dir === dir && (!tag || f.tag === tag); })[0]; }
+    var cu = fl("you", "up", "call"), cd = fl("you", "down", "call"), vu = fl("dp", "up"), vd = fl("dp", "down"),
+        share = function (f) { return f && (f.got + f.drop) ? f.got / (f.got + f.drop) : 0; },
+        ms = function (x) { return x === null || x === undefined ? Infinity : x / 1000; };
+    var out = {
+      call:  { up: share(cu), down: share(cd), p95: Math.max(ms(cu.p95), ms(cd.p95)) },
+      phone: { connected: rep.nodes.dp.connected, got: Math.min(share(vu), share(vd)), p95: Math.max(ms(vu && vu.p95), ms(vd && vd.p95)) },
+      scanner: { ok: true, home: rep.nodes.sc.connected },
+      util: { v: rep.util }
+    };
+    out.call.ok = out.call.up >= PASS.call && out.call.down >= PASS.call && out.call.p95 <= PASS.callMs;
+    out.phone.ok = out.phone.connected && out.phone.got >= PASS.phone && out.phone.p95 <= PASS.phoneMs;
+    out.util.ok = out.util.v <= PASS.util;
+    out.all = out.call.ok && out.phone.ok && out.scanner.ok && out.util.ok;
+    return out;
+  }
+
+  var policy = {
+    /* what the chip does: go the moment the number reaches 0 */
+    radio: function (S) { if (S.me.bo === 0 && !S.me.armed) S.press(); },
+    /* a person: usually on time, sometimes a slot or two late */
+    human: function (seed, pLate, maxLate) {
+      var r = rng(seed), wait = null;
+      return function (S) {
+        if (S.me.bo !== 0 || S.me.armed) { wait = null; return; }
+        if (wait === null) wait = r() < pLate ? 1 + Math.floor(r() * maxLate) : 0;
+        if (wait <= 0) { S.press(); wait = null; } else wait -= 1;
+      };
+    }
+  };
+
+  return { T: T, EDCA: EDCA, airtime: airtime, airtimeList: airtimeList, ctrl: ctrl, rate: rate, legacy: legacy,
+           respRate: respRate, rng: rng, Sim: Sim, LEGACY: LEGACY, CATS: CATS, policy: policy,
+           LEVELS: LEVELS, judge: judge, PASS: PASS };
+})();
+/* ENGINE END */
+  (function () {
+  "use strict";
+  var root = document.getElementById("waityourturn");
+  if (!root || typeof WYT === "undefined") return;
+  var $ = function (s) { return root.querySelector(s); };
+  var L = WYT.LEVELS, T = WYT.T;
+  var REDUCED = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var COL = { you: "#F5A524", data: "#2FA8E0", voice: "#5ED2DA", slow: "#F0705F", bcn: "#8BA2AE", mc: "#4FBDEA",
+              coll: "rgba(255,255,255,0.55)", ack: "#8CE05E", wait: "rgba(255,255,255,0.18)", idle: "rgba(255,255,255,0.06)" };
+  var NAME = { you: "you", data: "everyone else's data", voice: "desk phone", slow: "scanner", bcn: "beacons", mc: "mDNS",
+               coll: "collisions", ack: "ACKs", wait: "gaps and counting", idle: "nobody sending" };
+
+  /* the narrator. {x} fills from the numbers the model just produced */
+  var TX = {
+    empty: {
+      brief: "You're a laptop with a file to send, and it's just you and the AP. When the air goes quiet you wait out a short gap, then your number counts down one slot at a time. Press Send when it reads 0. The AP says got it and you draw a new number. Five frames.",
+      open: "The grey stretch on the ruler is the gap. The ticks after it are 9 microsecond slots, slowed down a lot so you can see them. Press Start.",
+      started: "Watch the number in the circle. Press Send when it hits 0.",
+      firstOk: "<i>Got it.</i> The green sliver after your frame is the AP's block ACK, sent 16 microseconds after you finished. New number: {n}.",
+      freeze: "The AP started talking. Your count froze at <b>{n}</b>. After the next gap it carries on from {n}, not from the top.",
+      foul: "Not yet, you still have {n} to go. A real radio can't jump the line; the chip does the counting.",
+      late: "You're at 0. Every slot you let pass is one somebody else could take.",
+      won: "<i>Five for five.</i> That's the whole game, for every frame that expects an ACK, on every Wi-Fi network: listen, wait out the gap, count, send, get the ACK. Now fill the room."
+    },
+    full: {
+      brief: "Same laptop, busy room: four laptops, two phones, a desk phone on a call and the AP, all playing the same game. Your number shows for a moment when you draw it, then you keep count yourself, and your count freezes whenever somebody else talks. Ten frames before the bell. The bell is fifteen milliseconds of air.",
+      open: "Count the slots after each gap. When somebody else starts first, hold your place. Press Start.",
+      started: "Your number shows for a second. Then it's yours to keep track of.",
+      coll: "<b>No ACK.</b> You and {who} picked the same slot and neither frame survived. Nobody on Wi-Fi hears a collision happen; they just never hear back. Your window doubled: the next number comes out of 0 to {cw}.",
+      voice: "The desk phone went ahead of you. Voice waits 34 microseconds instead of 43 (25 when the AP sends it), and draws from 0 to 3 instead of 0 to 15. That's WMM, and it's why a call can sound fine in a busy room.",
+      foul: "Not yet. Your number isn't down to 0, so that's a foul.",
+      won: "<i>Ten before the bell,</i> and {c} of your turns collided anyway. Now look at the pie. The AP would call this channel {u}% busy, and {d}% of the air carried data anybody asked for.",
+      lost: "<b>The bell.</b> {n} of 10. Late presses cost slots, and every slot you leave empty is one somebody else can take. Restart gives you a new room.",
+      radio: "The radio did that one. It never hesitates. Try it by hand, it's harder than it looks."
+    },
+    scanner: {
+      brief: "Same room, same ten frames, same bell. One new device: a handheld scanner on the loading dock, 802.11a only, pulling its nightly update at 6 Mb/s. It gets the same shot at every turn as everybody else.",
+      open: "Play it exactly like the last one. Press Start.",
+      started: "Same as before. Count, hold your place, send at 0.",
+      first: "That long bar is the scanner: one 1500-byte frame at 6 Mb/s, <b>{a} microseconds</b> on the air. Your last turn moved {n} frames in {b}.",
+      lost: "<b>The bell.</b> {n} of 10, and you played it right. The scanner's traffic held the air {s}% of the time and carried {x}% of the data. Nobody's turn got longer except his. There's a button for that.",
+      early: "Not yet. Play some of it out and watch the pie first.",
+      fixed: "<i>Right.</i> You can't fix this from a client. Everybody got the same turns; his just last {k} times longer than yours. The next level hands you the AP.",
+      lucky: "You beat the bell, which the scanner almost never allows. Press the button anyway: the problem is still how long his turns are, not how you took yours."
+    },
+    engineer: {
+      brief: "Now you're the engineer. Same room from the AP's side, plus the rest of the real world: five more of your APs on this channel, eight SSIDs on every one, the printers' mDNS from the whole VLAN at 765 packets a second, the scanner, and you on a video call. Four settings. Get the call and the desk phone clean, keep the scanner working, and leave the channel no more than two thirds busy.",
+      dropped: "<b>The desk phone dropped.</b> From the far wall it can't hold 24 Mb/s, and at this minimum it can't read the beacons. Survey before you move the floor.",
+      voice: "<b>Everything's in the voice queue now:</b> short waits, numbers from 0 to 3, and {c}% of the air is collisions. The desk phone is losing frames. Priority only works while most traffic doesn't have it.",
+      scanner: "<b>The scanner is still on your AP</b> at 6 Mb/s, holding {s}% of the air, and your call is starving. Clients decide when to roam. The AP can nudge them or kick them off, but the move that sticks is to stop answering them at a rate they can't use.",
+      flood: "The scanner moved to the dock AP. <b>Now the multicast:</b> {m}% of the air is mDNS at {r} Mb/s, and the channel is {u}% busy.",
+      ssids: "<b>Close.</b> The channel is {u}% busy and {b}% of it is beacons: {k} SSIDs on each of six APs, every tenth of a second, at {r} Mb/s.",
+      won: "<i>Clean.</i> The call's through, the phone's clean, the scanner's running on the dock AP, and the channel is {u}% busy. Nothing got faster. You stopped wasting air."
+    }
+  };
+  function fill(s, o) { return s.replace(/\{(\w+)\}/g, function (_, k) { return o && o[k] !== undefined ? o[k] : ""; }); }
+  function say(html, o) { $("#wyt-say").innerHTML = fill(html, o); }
+  function pct(x) { return Math.round(x * 100); }
+  function us(x) { return x >= 1000 ? (x / 1000).toFixed(2) + " ms" : Math.round(x) + " us"; }
+
+  var st = { lv: 0, seedIx: 0, sim: null, mode: "ready", from: 0, to: 0, t0: 0, dur: 1, disp: 0, auto: false, assist: false,
+             showUntil: 0, fouls: 0, late: 0, said: {}, done: [false, false, false, false], finished: [false, false, false, false],
+             kn: { ssids: 8, min: 6, mc: "flood", qos: "normal" }, raf: 0, visible: true, paused: 0, seg: null,
+             trail: [], prevTrail: [], prevIdle: 0, lastMine: null, evalRep: null, evalLog: null, touched: false };
+
+  function slotMs() { return st.auto ? 55 : (st.lv === 0 ? 240 : 165); }
+  function idleMs(u) { return slotMs() * u / T.SLOT; }
+  function busyMs(u) { var m = Math.max(300, Math.min(1000, 260 + 0.22 * u)); return st.auto ? m * 0.45 : m; }
+
+  /* ── levels ─────────────────────────────────────────────────────────── */
+  function load(lv, seedIx) {
+    cancelAnimationFrame(st.raf); st.raf = 0;
+    st.lv = lv; st.seedIx = seedIx || 0;
+    var l = L[lv];
+    st.auto = false; $("#wyt-auto").setAttribute("aria-pressed", "false");
+    st.fouls = 0; st.late = 0; st.said = {}; st.showUntil = 0; st.seg = null; st.trail = []; st.prevTrail = []; st.lastMine = null; st.autoUsed = false;
+    $("#wyt-lv").textContent = "Level " + (lv + 1) + " of " + L.length;
+    $("#wyt-title").textContent = l.name;
+    $("#wyt-goal").textContent = TX[l.id].brief;
+    $("#wyt-play").hidden = !!l.engineer;
+    $("#wyt-knobs").hidden = !l.engineer;
+    $("#wyt-auto").hidden = !!l.engineer;
+    $("#wyt-assist").hidden = !!l.engineer || l.show;
+    $("#wyt-cant").hidden = !l.unwinnable;
+    $("#wyt-rulercap-row").hidden = !!l.engineer;
+    $("#wyt-ruler").hidden = !!l.engineer;
+    $("#wyt-reset").textContent = l.engineer ? "Put it back" : "Restart level";
+    $("#wyt-stripcap").textContent = l.engineer ? "The air, a slice of the run, to scale" : "The air, last 6 ms, to scale";
+    st.win = l.engineer ? 20000 : 6000;
+    if (l.engineer) {
+      st.sim = null; st.mode = "eng";
+      buildKnobs(); evaluate();
+    } else {
+      st.sim = new WYT.Sim(l.room(l.seeds[st.seedIx % l.seeds.length]));
+      st.mode = "ready"; st.disp = 0;
+      $("#wyt-send").textContent = "Start"; $("#wyt-send").disabled = false; $("#wyt-send").classList.remove("armed");
+      say(TX[l.id].open);
+    }
+    $("#wyt-next").disabled = !st.finished[lv] || lv >= L.length - 1;
+    $("#wyt-next").hidden = lv >= L.length - 1;
+    score(); paint(performance.now()); draw(performance.now());
+  }
+
+  function begin() {
+    var S = st.sim;
+    st.mode = "idle"; st.from = S.t; st.to = S.bt(S.k + 1); st.dur = idleMs(st.to - st.from); st.t0 = performance.now();
+    $("#wyt-send").textContent = "Send";
+    say(TX[L[st.lv].id].started);
+    st.showUntil = performance.now() + 1500;
+    st.touched = true; saveHash();
+    loop();
+  }
+
+  function loop() { if (!st.raf) st.raf = requestAnimationFrame(frame); }
+  function running() { return (st.mode === "idle" || st.mode === "busy") && st.visible && !document.hidden; }
+
+  function frame(now) {
+    st.raf = 0;
+    if (!running()) { st.paused = st.paused || now; return; }
+    if (st.paused) { st.t0 += now - st.paused; st.paused = 0; }
+    var p = (now - st.t0) / st.dur;
+    if (p >= 1) { st.disp = st.to; advance(now); }
+    else st.disp = REDUCED ? st.from : st.from + (st.to - st.from) * p;
+    paint(now); draw(now);
+    if (running()) loop();
+  }
+
+  /* one boundary, or the end of one exchange */
+  function advance(now) {
+    var S = st.sim, l = L[st.lv];
+    if (ended()) return;
+    if (st.auto && S.me.bo === 0 && !S.me.armed) S.press();
+    var bo0 = S.me.bo, idle0 = S.idleStart, ev = S.step();
+    if (ev.type === "slot") {
+      st.trail.push({ k: S.k, bo: S.me.bo, n: S.me.p.n });
+      if (bo0 === 0 && S.me.bo === 0 && !S.me.armed && S.k >= S.me.p.n && S.me.q.length) {
+        st.late += 1;
+        if (!st.said.late && (l.show || st.assist) && st.late >= 3) { st.said.late = 1; say(TX.empty.late); }
+      }
+      st.mode = "idle"; st.from = ev.t; st.to = S.bt(S.k + 1); st.dur = idleMs(st.to - st.from);
+    } else {
+      st.prevIdle = idle0; st.prevTrail = st.trail; st.trail = [];
+      st.mode = "busy"; st.seg = ev.seg; st.from = ev.t; st.to = ev.end; st.dur = busyMs(ev.end - ev.t);
+      onTx(ev.seg, bo0, now);
+    }
+    st.t0 = now;
+  }
+
+  function ended() {
+    var S = st.sim, l = L[st.lv];
+    if (S.me.ok >= l.goal) { finish(true); return true; }
+    if (l.bell && S.t - S.t0 >= l.bell) { finish(false); return true; }
+    return false;
+  }
+
+  function mine(seg) { for (var i = 0; i < seg.parts.length; i++) if (seg.parts[i].node === "you") return seg.parts[i]; return null; }
+  function who(seg) {
+    var S = st.sim, names = [];
+    seg.parts.forEach(function (p) { if (p.node !== "you") names.push(label(p, S.nodes, true)); });
+    return names.join(" and ") || "somebody";
+  }
+
+  function onTx(seg, bo0, now) {
+    var S = st.sim, l = L[st.lv], me = mine(seg), id = l.id;
+    if (me) {
+      st.showUntil = now + st.dur + 1300;
+      if (seg.coll) {
+        if (id !== "empty") say(TX.full.coll, { who: who(seg), cw: S.me.cw });
+      } else {
+        st.lastMine = me;
+        if (id === "empty" && !st.said.firstOk) { st.said.firstOk = 1; say(TX.empty.firstOk, { n: S.me.bo === null ? 0 : S.me.bo }); }
+      }
+      $("#wyt-send").classList.remove("armed");
+      return;
+    }
+    var p0 = seg.parts[0];
+    if (id === "empty" && !seg.coll && bo0 > 0 && !st.said.freeze) { st.said.freeze = 1; say(TX.empty.freeze, { n: S.me.bo }); }
+    if (id === "full" && p0.cat === "voice" && !seg.coll && !st.said.voice) { st.said.voice = 1; say(TX.full.voice); }
+    if (id === "scanner" && p0.cat === "slow" && !seg.coll && p0.air > 1000 && !st.said.first) {
+      st.said.first = 1;
+      var lm = st.lastMine;
+      say(TX.scanner.first, { a: Math.round(p0.air), n: lm ? lm.n : 16, b: lm ? Math.round(lm.air) + " microseconds" : "a fraction of that" });
+    }
+  }
+
+  function finish(won) {
+    var S = st.sim, l = L[st.lv], id = l.id, rep = S.report();
+    st.mode = "done"; cancelAnimationFrame(st.raf); st.raf = 0;
+    st.finished[st.lv] = true;
+    if (won && !l.unwinnable) st.done[st.lv] = true;
+    $("#wyt-send").disabled = true; $("#wyt-send").classList.remove("armed");
+    $("#wyt-send").textContent = won ? "Done" : "Bell";
+    if (id === "empty") say(TX.empty.won);
+    else if (id === "full") say(won ? (st.autoUsed ? TX.full.radio : TX.full.won) : TX.full.lost,
+      { c: S.me.coll, u: pct(rep.util), d: pct(rep.useful), n: S.me.ok });
+    else if (id === "scanner") {
+      if (won) say(TX.scanner.lucky);
+      else {
+        var sb = 0, tb = 0;
+        rep.flows.forEach(function (f) { tb += f.mbps; if (f.node === "sc") sb += f.mbps; });
+        say(TX.scanner.lost, { n: S.me.ok, s: pct(rep.air.slow), x: Math.max(1, Math.round(100 * sb / (tb || 1))) });
+      }
+    }
+    $("#wyt-next").disabled = st.lv >= L.length - 1 || (l.unwinnable && !st.done[st.lv]);
+    score(); paint(performance.now()); draw(performance.now());
+  }
+
+  function press() {
+    var l = L[st.lv];
+    if (l.engineer || st.mode === "done") return;
+    if (st.mode === "ready") { begin(); return; }
+    if (st.auto) setAuto(false);
+    var r = st.sim.press(), b = $("#wyt-send");
+    if (r === "armed") b.classList.add("armed");
+    else if (r === "foul") {
+      st.fouls += 1;
+      say(l.show ? TX.empty.foul : TX.full.foul, { n: st.sim.me.bo });
+      b.classList.add("nope"); setTimeout(function () { b.classList.remove("nope"); }, 120);
+    }
+    paint(performance.now());
+  }
+
+  function setAuto(on) {
+    st.auto = on; if (on) st.autoUsed = true;
+    $("#wyt-auto").setAttribute("aria-pressed", on ? "true" : "false");
+    if (on && st.mode === "ready") begin();
+  }
+
+  /* ── the sheet ──────────────────────────────────────────────────────── */
+  function score() { $("#wyt-score").textContent = st.done.filter(Boolean).length + " of " + L.length + " done"; }
+
+  function row(label, val, cls, bar) {
+    return '<div class="wyt-row' + (cls ? " " + cls : "") + '"><i>' + label + "</i><b>" + val + "</b></div>" +
+      (bar === undefined ? "" : '<div class="wyt-bar"><i style="width:' + Math.max(0, Math.min(100, bar * 100)).toFixed(1) + '%"></i></div>');
+  }
+
+  function paint(now) {
+    var l = L[st.lv];
+    if (l.engineer) return paintEng();
+    var S = st.sim, e = S.me, h = "";
+    var sn = S.snap();
+    h += row("delivered", e.ok + " of " + l.goal, "big" + (e.ok >= l.goal ? " good" : ""), e.ok / l.goal);
+    if (l.bell) h += row("air used", (Math.min(sn.t, l.bell) / 1000).toFixed(1) + " of " + (l.bell / 1000) + " ms", sn.t > l.bell * 0.8 ? "warn" : "", sn.t / l.bell);
+    else h += row("air used", (sn.t / 1000).toFixed(2) + " ms");
+    h += row("your window", "0 to " + e.cw, e.cw > e.p.cwmin ? "warn" : "");
+    var roomColl = -(S.base ? S.base.coll : 0); S.q.forEach(function (x) { roomColl += x.coll; });
+    h += row("collisions, yours / room", e.coll + " / " + roomColl);
+    h += row("fouls / slots let pass", st.fouls + " / " + st.late);
+    $("#wyt-rows").innerHTML = h;
+    pie(sn.air, 1, sn.util, sn.useful);
+    $("#wyt-airtot").textContent = (sn.t / 1000).toFixed(1) + " ms";
+    paintMe(now);
+  }
+
+  function paintMe(now) {
+    var S = st.sim, e = S.me, l = L[st.lv], el = $("#wyt-num"), head = "Your number", sub = "", cls = "wyt-num";
+    var show = l.show || st.assist || now < st.showUntil;
+    var busy = st.mode === "busy", myTurn = busy && st.seg && mine(st.seg);
+    var inGap = st.mode === "idle" && S.k + 1 < e.p.n;
+    el.textContent = show ? String(e.bo === null ? 0 : e.bo) : "?";
+    if (!show) cls += " hid";
+    if (st.mode === "ready") { sub = "Press Start when you're ready."; }
+    else if (st.mode === "done") { head = "Finished"; sub = "Restart for another go, or move on."; }
+    else if (myTurn) { head = st.seg.coll ? "Collided" : "Sending"; sub = myTurn.n + " frames, " + Math.round(myTurn.air) + " microseconds on the air"; }
+    else if (busy) { head = "Frozen"; sub = "Somebody else is talking. Your count waits."; if (e.bo > 0) cls += " frz"; }
+    else if (inGap) { head = "The gap"; sub = "Nobody counts until the air has been quiet for 43 microseconds."; }
+    else if (show && e.bo === 0) { head = e.armed ? "Going" : "You're up"; sub = e.armed ? "You go at the next slot." : "Press Send."; if (!e.armed) cls += " go"; }
+    else { head = "Counting"; sub = show ? "One off every quiet slot." : "Count the quiet slots yourself."; }
+    el.className = cls;
+    $("#wyt-mehead").textContent = head;
+    $("#wyt-mesub").textContent = sub + (st.mode === "idle" || busy ? "  Window 0 to " + e.cw + "." : "");
+    $("#wyt-clock").textContent = Math.max(0, Math.round(st.disp - S.t0)) + " us of air";
+    var stt = st.mode === "busy" ? (st.seg.coll ? "collision" : "busy") : st.mode === "idle" ? (inGap ? "the gap" : "counting") : st.mode === "done" ? "finished" : "waiting to start";
+    $("#wyt-state").textContent = stt;
+  }
+
+  var ORDER = ["you", "data", "voice", "slow", "bcn", "mc", "coll", "ack", "wait", "idle"];
+  function pie(air, tot, util, useful) {
+    var C = 2 * Math.PI * 38, off = 0, svg = '<circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="18"/>', leg = "";
+    tot = tot || 1;
+    ORDER.forEach(function (k) {
+      var f = (air[k] || 0) / tot; if (air[k] === undefined) f = 0;
+      if (f < 0.002) return;
+      var len = f * C;
+      svg += '<circle cx="50" cy="50" r="38" fill="none" stroke="' + COL[k] + '" stroke-width="18" stroke-dasharray="' + len.toFixed(2) + " " + (C - len).toFixed(2) +
+             '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 50 50)"/>';
+      off += len;
+      if (f >= 0.01) leg += '<span><em style="background:' + COL[k] + '"></em><u>' + NAME[k] + "</u><b>" + pct(f) + "%</b></span>";
+    });
+    $("#wyt-pie").innerHTML = svg;
+    $("#wyt-leg").innerHTML = leg;
+    $("#wyt-util").textContent = pct(util) + "%"; $("#wyt-utilbar").style.width = Math.min(100, util * 100) + "%";
+    $("#wyt-useful").textContent = pct(useful) + "%"; $("#wyt-usefulbar").style.width = Math.min(100, useful * 100) + "%";
+  }
+
+  function label(p, nodes, short) {
+    if (p.cat === "bcn") return "beacon";
+    if (p.cat === "mc") return "mDNS";
+    var nm = function (id) { return id === "you" ? "you" : (nodes[id] && nodes[id].name) || id; };
+    if (p.node === "ap" || /^nb/.test(p.node)) return short ? "the AP" : "AP to " + nm(p.dst);
+    return nm(p.node);
+  }
+
+  /* ── drawing ────────────────────────────────────────────────────────── */
+  function fit(cv) {
+    var r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1,
+        w = Math.max(10, Math.round(r.width * d)), h = Math.max(10, Math.round(r.height * d));
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    return { w: w, h: h, d: d };
+  }
+  function hatch(c, x, y, w, h, d) {
+    c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
+    c.strokeStyle = "rgba(0,0,0,0.55)"; c.lineWidth = 1.5 * d;
+    for (var i = -h; i < w; i += 6 * d) { c.beginPath(); c.moveTo(x + i, y + h); c.lineTo(x + i + h, y); c.stroke(); }
+    c.restore();
+  }
+
+  function draw(now) {
+    if (L[st.lv].engineer) { drawStrip(st.evalLog || [], st.evalEnd || 0, st.evalNodes || {}); return; }
+    drawStrip(st.sim.log, st.disp, st.sim.nodes);
+    drawRuler();
+  }
+
+  function drawStrip(log, tNow, nodes) {
+    var cv = $("#wyt-strip"); if (!cv || cv.hidden) return;
+    var c = cv.getContext("2d"), z = fit(cv), d = z.d, W = st.win, t0 = tNow - W, top = 8 * d, H = z.h - 24 * d;
+    var X = function (t) { return (t - t0) / W * z.w; };
+    c.clearRect(0, 0, z.w, z.h);
+    c.fillStyle = "rgba(255,255,255,0.04)"; c.fillRect(0, top, z.w, H);
+    /* a tick every millisecond, labelled back from now */
+    c.font = (9 * d) + "px JetBrains Mono, ui-monospace, monospace"; c.textBaseline = "alphabetic";
+    var every = W > 10000 ? 5 : 1;
+    for (var ms = 0; ms <= W / 1000; ms++) {
+      var tx = X(tNow - ms * 1000); if (tx < 0) break;
+      c.fillStyle = "rgba(255,255,255,0.10)"; c.fillRect(Math.round(tx), top, Math.max(1, d), H);
+      if (tx < 22 * d || ms % every) continue;
+      c.fillStyle = "rgba(139,162,174,0.8)"; c.textAlign = ms === 0 ? "right" : "center";
+      c.fillText(ms === 0 ? "now" : "-" + ms + " ms", Math.min(z.w - 2 * d, tx), z.h - 5 * d);
+    }
+    for (var i = 0; i < log.length; i++) {
+      var sg = log[i];
+      if (sg.t1 < t0 || sg.t0 > tNow) continue;
+      if (sg.coll) {
+        var n = sg.parts.length, bh = H / n;
+        sg.parts.forEach(function (p, j) {
+          var a = X(sg.t0), b = X(Math.min(sg.t0 + p.air, tNow)); if (b <= a) return;
+          c.fillStyle = COL[p.cat]; c.fillRect(a, top + j * bh + (j ? d : 0), Math.max(d, b - a), bh - (j ? d : 0));
+          hatch(c, a, top + j * bh, Math.max(d, b - a), bh, d);
+        });
+        var cx = X(sg.t0) + 2 * d;
+        if (X(Math.min(sg.t1, tNow)) - X(sg.t0) > 52 * d) { c.fillStyle = "#fff"; c.textAlign = "left"; c.font = "600 " + (10 * d) + "px Instrument Sans, sans-serif"; c.fillText("collision", cx, top + H / 2 + 3 * d); }
+        continue;
+      }
+      var p = sg.parts[0], a = X(sg.t0), b = X(Math.min(sg.t0 + p.air, tNow));
+      if (b > a) {
+        var small = p.cat === "bcn" || p.cat === "mc";
+        c.fillStyle = COL[p.cat];
+        c.fillRect(a, small ? top + H * 0.35 : top, Math.max(d, b - a), small ? H * 0.65 : H);
+        if (b - a > 54 * d) {
+          c.fillStyle = "rgba(6,6,9,0.9)"; c.textAlign = "left"; c.font = "600 " + (10 * d) + "px Instrument Sans, sans-serif";
+          var txt = label(p, nodes) + (p.n > 1 ? " x" + p.n : "");
+          c.fillText(txt, a + 4 * d, top + 13 * d, b - a - 8 * d);
+        }
+      }
+      if (p.resp) {
+        var ra = sg.t0 + p.air + T.SIFS, rb = Math.min(ra + p.resp, tNow);
+        if (rb > ra) { c.fillStyle = COL.ack; c.fillRect(X(ra), top + H * 0.55, Math.max(d, X(rb) - X(ra)), H * 0.45); }
+      }
+    }
+    c.fillStyle = "rgba(255,255,255,0.7)"; c.fillRect(z.w - 2 * d, top - 3 * d, 2 * d, H + 6 * d);
+  }
+
+  /* the quiet spell under a magnifier: SIFS, the AIFS slots, then counting slots */
+  function drawRuler() {
+    var cv = $("#wyt-ruler"); if (!cv || cv.hidden) return;
+    var c = cv.getContext("2d"), z = fit(cv), d = z.d, S = st.sim, l = L[st.lv];
+    var busy = st.mode === "busy", start = busy ? st.prevIdle : S.idleStart, end = busy ? st.seg.t0 : st.disp,
+        trail = busy ? st.prevTrail : st.trail, show = l.show || st.assist, n = S.me.p.n;
+    var sp = (st.lv === 0 ? 26 : 22) * d, top = 22 * d, H = z.h - 36 * d;
+    var span = Math.max(0, end - start), wantX = span / T.SLOT * sp, shift = Math.max(0, wantX - (z.w - 40 * d));
+    var X = function (t) { return 8 * d + (t - start) / T.SLOT * sp - shift; };
+    c.clearRect(0, 0, z.w, z.h);
+    if (st.mode === "ready") {
+      c.fillStyle = "rgba(139,162,174,0.9)"; c.font = (11 * d) + "px JetBrains Mono, monospace"; c.textAlign = "left";
+      c.fillText("the ruler fills in slot by slot once you start", 8 * d, top + H / 2);
+      return;
+    }
+    /* the gap: SIFS plus n slots for best effort */
+    var gEnd = start + T.SIFS + n * T.SLOT;
+    c.fillStyle = "rgba(255,255,255,0.10)"; c.fillRect(X(start), top, Math.max(0, X(Math.min(gEnd, end)) - X(start)), H);
+    c.fillStyle = "rgba(139,162,174,0.95)"; c.font = (9.5 * d) + "px JetBrains Mono, monospace"; c.textAlign = "left";
+    if (X(gEnd) > 30 * d) c.fillText("gap " + (T.SIFS + n * T.SLOT) + " us", Math.max(2 * d, X(start) + 2 * d), top - 7 * d);
+    /* slot boundaries that have passed */
+    for (var k = 0; ; k++) {
+      var bk = start + T.SIFS + k * T.SLOT; if (bk > end + 0.01) break;
+      var x = X(bk); if (x < -sp) continue;
+      c.fillStyle = k >= n ? "rgba(245,165,36,0.9)" : "rgba(255,255,255,0.35)";
+      c.fillRect(Math.round(x), top - 2 * d, Math.max(1, d), H + 4 * d);
+      if (k >= n) { c.fillStyle = "rgba(245,165,36,0.10)"; c.fillRect(x + d, top, sp - 2 * d, H); }
+    }
+    if (show) {
+      c.textAlign = "center"; c.font = "600 " + (12 * d) + "px JetBrains Mono, monospace";
+      trail.forEach(function (tk) {
+        if (tk.k < tk.n) return;
+        var x = X(start + T.SIFS + tk.k * T.SLOT) + sp / 2; if (x < 0) return;
+        c.fillStyle = tk.bo === 0 ? "#F5A524" : "rgba(234,242,246,0.85)";
+        c.fillText(String(tk.bo), x, top + H / 2 + 4 * d);
+      });
+    }
+    /* the moving edge */
+    c.fillStyle = "rgba(255,255,255,0.8)"; c.fillRect(X(end), top - 4 * d, 2 * d, H + 8 * d);
+    if (busy) {
+      var p = mine(st.seg) || st.seg.parts[0];
+      c.fillStyle = "rgba(6,6,9,0.72)"; c.fillRect(0, 0, z.w, z.h);
+      c.fillStyle = st.seg.coll ? "#fff" : COL[p.cat]; c.textAlign = "left"; c.font = "600 " + (12 * d) + "px Instrument Sans, sans-serif";
+      var line = st.seg.coll ? "Collision: " + st.seg.parts.map(function (q) { return label(q, S.nodes, true); }).join(" and ") + ". Nobody gets an ACK."
+               : (mine(st.seg) ? "You're on the air: " : label(p, S.nodes) + ": ") + (p.n > 1 ? p.n + " frames, " : "") + Math.round(p.air) + " us" +
+                 (p.rate ? " at " + (p.rate >= 100 ? Math.round(p.rate) : p.rate.toFixed(p.rate % 1 ? 1 : 0)) + " Mb/s" : "");
+      c.fillText(line, 10 * d, top + H / 2 - 2 * d, z.w - 20 * d);
+      c.fillStyle = "rgba(139,162,174,0.95)"; c.font = (10 * d) + "px JetBrains Mono, monospace";
+      c.fillText(mine(st.seg) ? "everybody else is frozen" : "your count is frozen", 10 * d, top + H / 2 + 14 * d);
+    }
+  }
+
+  /* ── level 4: the engineer ──────────────────────────────────────────── */
+  var KN = {
+    ssids: [1, 2, 3, 4, 5, 6, 7, 8].map(function (v) { return [v, String(v), ""]; }),
+    min: [[6, "Most compatible", "6 Mb/s"], [12, "Balanced", "12 Mb/s"], [24, "High density", "24 Mb/s"]],
+    mc: [["flood", "Let it through", "on the air"], ["filter", "Filter it", "at the switch"]],
+    qos: [["normal", "Normal WMM", "voice is voice"], ["voice", "Everything as voice", "every queue"]]
+  };
+  function buildKnobs() {
+    Object.keys(KN).forEach(function (k) {
+      var box = $("#wyt-k-" + k), h = "";
+      KN[k].forEach(function (o) {
+        h += '<button type="button" data-k="' + k + '" data-v="' + o[0] + '" aria-pressed="' + (String(st.kn[k]) === String(o[0])) + '">' + o[1] + (o[2] ? "<i>" + o[2] + "</i>" : "") + "</button>";
+      });
+      box.innerHTML = h;
+    });
+    $("#wyt-k-ssids-v").textContent = st.kn.ssids + (st.kn.ssids === 1 ? " SSID" : " SSIDs");
+  }
+  function knob(k, v) {
+    st.kn[k] = k === "ssids" || k === "min" ? +v : v;
+    st.touched = true;
+    buildKnobs(); evaluate(); saveHash();
+  }
+
+  function evaluate() {
+    var l = L[3], s = new WYT.Sim(l.room(l.seeds[0], st.kn)), rep = s.run(l.evalUs), j = WYT.judge(rep);
+    st.evalRep = rep; st.evalJ = j; st.evalLog = s.log; st.evalEnd = s.t; st.evalNodes = s.nodes;
+    /* the strip shows 20 ms of the run; while the scanner is still here, make it 20 ms it was in */
+    if (j.scanner.home) for (var i = s.log.length - 1; i >= 0; i--) {
+      var g = s.log[i];
+      if (!g.coll && g.parts[0].cat === "slow") { st.evalEnd = Math.min(s.t, g.t1 + 7000); break; }
+    }
+    var o = { s: pct(rep.air.slow), m: pct(rep.air.mc), r: st.kn.min, u: pct(rep.util), b: pct(rep.air.bcn), k: st.kn.ssids, c: pct(rep.air.coll) };
+    if (!j.phone.connected) say(TX.engineer.dropped, o);
+    else if (j.all) say(TX.engineer.won, o);
+    else if (st.kn.qos === "voice") say(TX.engineer.voice, o);
+    else if (j.scanner.home) say(TX.engineer.scanner, o);
+    else if (st.kn.mc === "flood" && !j.util.ok) say(TX.engineer.flood, o);
+    else if (!j.util.ok) say(TX.engineer.ssids, o);
+    else say("Not yet. Check the list on the right.");
+    if (j.all) { st.done[3] = true; st.finished[3] = true; }
+    score(); paintEng(); draw(performance.now());
+  }
+
+  function paintEng() {
+    var rep = st.evalRep, j = st.evalJ; if (!rep) return;
+    var P = WYT.PASS, sc = j.scanner.home;
+    function li(ok, head, txt) { return '<li class="' + ok + '"><em>' + (ok === "ok" ? "&#10003;" : ok === "no" ? "&#10007;" : "&#8226;") + "</em><span><b>" + head + "</b> " + txt + "</span></li>"; }
+    var h = '<ul class="wyt-check">';
+    h += li(j.call.ok ? "ok" : "no", "Your video call", pct(j.call.up) + "% of frames through up, " + pct(j.call.down) + "% down, 95 in 100 inside " +
+      (isFinite(j.call.p95) ? Math.round(j.call.p95) + " ms" : "never") + ". Needs " + pct(P.call) + "% and " + P.callMs + " ms.");
+    h += li(j.phone.ok ? "ok" : "no", "Desk phone", j.phone.connected ? pct(j.phone.got) + "% through, 95 in 100 inside " + j.phone.p95.toFixed(1) + " ms. Needs " + pct(P.phone) + "% and " + P.phoneMs + " ms."
+      : "dropped. It can't hear 24 Mb/s beacons from the far wall.");
+    h += li(sc ? "info" : "ok", "Scanner", sc ? "still on your AP at 6 Mb/s, using " + pct(rep.air.slow) + "% of the air." : "roamed to the dock AP. Its update carries on over there.");
+    h += li(j.util.ok ? "ok" : "no", "Headroom", pct(rep.util) + "% busy. Needs " + pct(P.util) + "% or less.");
+    h += "</ul>";
+    $("#wyt-rows").innerHTML = h;
+    pie(rep.air, 1, rep.util, rep.useful);
+    $("#wyt-airtot").textContent = (rep.t / 1e6).toFixed(1) + " s modelled";
+    $("#wyt-clock").textContent = "20 ms out of " + (rep.t / 1e6).toFixed(1) + " s";
+  }
+
+  /* ── state in the hash, only once the reader has touched something ──── */
+  function saveHash() {
+    if (!st.touched) return;
+    try {
+      var h = "#waityourturn/v1?lv=" + (st.lv + 1) + (L[st.lv].engineer ? "&k=" + [st.kn.ssids, st.kn.min, st.kn.mc, st.kn.qos].join(".") : "&s=" + st.seedIx);
+      if (window.history && history.replaceState) history.replaceState(null, "", h);
+    } catch (e) {}
+  }
+  function readHash() {
+    var m = /^#waityourturn\/v1\?(.*)$/.exec(location.hash || ""), o = {};
+    if (!m) return null;
+    m[1].split("&").forEach(function (p) { var i = p.indexOf("="); if (i > 0) o[p.slice(0, i)] = decodeURIComponent(p.slice(i + 1)); });
+    var lv = Math.max(1, Math.min(L.length, parseInt(o.lv, 10) || 1)) - 1, s = Math.max(0, parseInt(o.s, 10) || 0);
+    if (o.k) {
+      var k = o.k.split(".");
+      if (+k[0] >= 1 && +k[0] <= 8) st.kn.ssids = +k[0];
+      if ([6, 12, 24].indexOf(+k[1]) >= 0) st.kn.min = +k[1];
+      if (k[2] === "flood" || k[2] === "filter") st.kn.mc = k[2];
+      if (k[3] === "normal" || k[3] === "voice") st.kn.qos = k[3];
+    }
+    return { lv: lv, s: s };
+  }
+
+  /* ── wiring ─────────────────────────────────────────────────────────── */
+  var send = $("#wyt-send");
+  send.addEventListener("pointerdown", function (e) { if (e.button !== undefined && e.button !== 0) return; e.preventDefault(); press(); });
+  send.addEventListener("click", function (e) { if (e.detail === 0) press(); });
+  $("#wyt-auto").addEventListener("click", function () { setAuto(!st.auto); if (st.auto) loop(); });
+  $("#wyt-assist").addEventListener("click", function () {
+    st.assist = !st.assist; this.setAttribute("aria-pressed", st.assist ? "true" : "false"); paint(performance.now()); draw(performance.now());
+  });
+  $("#wyt-cant").addEventListener("click", function () {
+    var S = st.sim;
+    if (st.mode === "ready" || (st.mode !== "done" && S.t - S.t0 < 5000)) { say(TX.scanner.early); return; }
+    var sc = 0; S.log.forEach(function (g) { if (!g.coll && g.parts[0].cat === "slow") sc = Math.max(sc, g.parts[0].air); });
+    var mineAir = st.lastMine ? st.lastMine.air : 212;
+    st.mode = "done"; cancelAnimationFrame(st.raf); st.raf = 0;
+    st.done[st.lv] = true; st.finished[st.lv] = true;
+    $("#wyt-send").disabled = true; $("#wyt-send").textContent = "Done";
+    say(TX.scanner.fixed, { k: Math.max(2, Math.round((sc || 2096) / mineAir)) });
+    $("#wyt-next").disabled = st.lv >= L.length - 1;
+    score(); paint(performance.now()); draw(performance.now());
+  });
+  $("#wyt-reset").addEventListener("click", function () {
+    st.touched = true;
+    if (L[st.lv].engineer) { st.kn = { ssids: 8, min: 6, mc: "flood", qos: "normal" }; buildKnobs(); evaluate(); saveHash(); }
+    else { load(st.lv, st.seedIx + 1); saveHash(); }
+  });
+  $("#wyt-next").addEventListener("click", function () { if (st.lv < L.length - 1) { st.touched = true; load(st.lv + 1, 0); saveHash(); } });
+  $("#wyt-knobs").addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("button[data-k]") : null; if (b) knob(b.getAttribute("data-k"), b.getAttribute("data-v"));
+  });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && running()) loop(); });
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (es) { st.visible = es[0].isIntersecting; if (st.visible) loop(); }, { threshold: 0.05 }).observe(root);
+  }
+  window.addEventListener("resize", function () { if (!running()) draw(performance.now()); });
+
+  /* test hooks, the same idea as the simulator's root._dbg() */
+  root._wyt = { st: st, load: load, press: press, knob: knob, evaluate: evaluate, setAuto: setAuto };
+
+  var h = readHash();
+  load(h ? h.lv : 0, h ? h.s : 0);
+})();
+  </script>
+</section>

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 5: Airtime is the only resource. Top: one turn on an empty 5 GHz channel for a laptop linked at 1201 Mb/s sending one 1500-byte packet, drawn to scale: a 43 microsecond gap, an average 67.5 microsecond countdown, a 50 microsecond preamble, 10 microseconds of actual packet and about 4 of headers and padding, SIFS 16 and an ACK of 28, 218.5 microseconds in all, which is 55 Mb/s. Bottom: the share of airtime for one laptop downloading alone at about 720 Mb/s, beside an old 802.11a/g laptop at 54 Mb/s where it drops to about 480, and beside one at 6 Mb/s where it drops to about 210 while the old laptop holds 59 percent of the air. Model numbers, averaged over twenty runs.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', -apple-system, Helvetica, sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', -apple-system, Helvetica, sans-serif; font-size: 12.5px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', -apple-system, Helvetica, sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .m  { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 11px; fill: #B0C4CF; }
+      .mo { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mw { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 12px; fill: #EAF2F6; font-weight: 600; }
+      .pi { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 10.5px; fill: #1a1000; font-weight: 600; }
+      .pd { font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-size: 10.5px; fill: #EAF2F6; }
+      .cap { font-family: 'Instrument Sans', -apple-system, Helvetica, sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .tick { stroke: rgba(255,255,255,0.35); stroke-width: 1; }
+    </style>
+  </defs>
+
+  <text x="24" y="36" class="eb">LESSON 5: AIRTIME IS THE ONLY RESOURCE</text>
+  <text x="24" y="66" class="hl">Every radio waits its turn. The rate only counts while it talks.</text>
+
+  <!-- top: one turn, to scale, 3.72 px per microsecond -->
+  <rect x="24" y="82" width="852" height="116" rx="8" class="box"/>
+  <text x="40" y="102" class="t">One turn on an empty channel: one 1500-byte packet at 1201 Mb/s, to scale</text>
+  <text x="860" y="102" text-anchor="end" class="mo">218.5 us a turn = 55 Mb/s</text>
+
+  <rect x="40" y="130" width="160" height="30" rx="3" fill="rgba(255,255,255,0.10)"/>
+  <g fill="rgba(245,165,36,0.10)" stroke="rgba(245,165,36,0.45)" stroke-width="1">
+    <rect x="200.0" y="130" width="33.5" height="30"/><rect x="233.5" y="130" width="33.5" height="30"/>
+    <rect x="267.0" y="130" width="33.5" height="30"/><rect x="300.5" y="130" width="33.5" height="30"/>
+    <rect x="334.0" y="130" width="33.5" height="30"/><rect x="367.5" y="130" width="33.5" height="30"/>
+    <rect x="401.0" y="130" width="33.5" height="30"/><rect x="434.5" y="130" width="16.6" height="30"/>
+  </g>
+  <rect x="451.1" y="130" width="187.5" height="30" fill="rgba(94,210,218,0.28)"/>
+  <rect x="638.6" y="130" width="37.2" height="30" fill="#F5A524"/>
+  <rect x="675.8" y="130" width="13.4" height="30" fill="rgba(94,210,218,0.28)"/>
+  <rect x="748.7" y="130" width="104.2" height="30" rx="2" fill="rgba(140,224,94,0.45)"/>
+
+  <line x1="657.2" y1="112" x2="657.2" y2="128" stroke="#F5A524" stroke-width="1.5"/>
+  <text x="652" y="122" text-anchor="end" class="mo">the packet: 10 us of a 64 us frame</text>
+
+  <text x="120" y="180" text-anchor="middle" class="m">gap 43</text>
+  <text x="325.5" y="180" text-anchor="middle" class="m">count, 67.5 on average</text>
+  <text x="545" y="180" text-anchor="middle" class="m">preamble 50</text>
+  <text x="719" y="180" text-anchor="middle" class="m">SIFS 16</text>
+  <text x="800.8" y="180" text-anchor="middle" class="m">ACK 28</text>
+
+  <!-- bottom: where the air goes, one download beside an old laptop -->
+  <rect x="24" y="208" width="852" height="98" rx="8" class="box"/>
+  <text x="40" y="228" class="t">One download, then with an old 802.11a/g laptop downloading beside it</text>
+  <rect x="614" y="219" width="10" height="10" rx="2" fill="#F5A524"/><text x="629" y="228" class="ts">yours</text>
+  <rect x="672" y="219" width="10" height="10" rx="2" fill="rgba(139,162,174,0.30)" stroke="rgba(139,162,174,0.9)" stroke-dasharray="3 2"/><text x="687" y="228" class="ts">old laptop</text>
+  <rect x="760" y="219" width="10" height="10" rx="2" fill="rgba(255,255,255,0.10)"/><text x="775" y="228" class="ts">overhead</text>
+
+  <text x="40" y="253" class="ts">alone</text>
+  <rect x="210" y="242" width="353.3" height="15" fill="#F5A524"/>
+  <rect x="563.3" y="242" width="130.7" height="15" fill="rgba(255,255,255,0.10)"/>
+  <text x="216" y="253" class="pi">73%</text>
+  <text x="860" y="253" text-anchor="end" class="mw">about 720 Mb/s</text>
+
+  <text x="40" y="274" class="ts">old laptop at 54 Mb/s</text>
+  <rect x="210" y="263" width="239.6" height="15" fill="#F5A524"/>
+  <rect x="449.6" y="263" width="81.8" height="15" fill="rgba(139,162,174,0.30)" stroke="rgba(139,162,174,0.9)" stroke-dasharray="3 2"/>
+  <rect x="531.4" y="263" width="162.6" height="15" fill="rgba(255,255,255,0.10)"/>
+  <text x="216" y="274" class="pi">50%</text>
+  <text x="455" y="274" class="pd">17%</text>
+  <text x="860" y="274" text-anchor="end" class="mw">about 480 Mb/s</text>
+
+  <text x="40" y="295" class="ts">old laptop at 6 Mb/s</text>
+  <rect x="210" y="284" width="104.1" height="15" fill="#F5A524"/>
+  <rect x="314.1" y="284" width="285.6" height="15" fill="rgba(139,162,174,0.30)" stroke="rgba(139,162,174,0.9)" stroke-dasharray="3 2"/>
+  <rect x="599.7" y="284" width="94.3" height="15" fill="rgba(255,255,255,0.10)"/>
+  <text x="216" y="295" class="pi">22%</text>
+  <text x="320" y="295" class="pd">59% of the air, for 3 Mb/s</text>
+  <text x="860" y="295" text-anchor="end" class="mw">about 210 Mb/s</text>
+
+  <text x="24" y="328" class="cap">Model numbers, averaged over twenty runs: 5 GHz, WMM best effort, 1500-byte packets, everybody hears everybody.</text>
+</svg>

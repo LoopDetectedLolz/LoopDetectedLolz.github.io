@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>What a Radio Actually Sends</title>
-<meta name="description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
+<title>Your Wi-Fi Takes Turns, and the Slowest Talker Sets the Pace</title>
+<meta name="description" content="Every time a Wi-Fi radio wants the air, it waits for quiet and counts down a random number, and every radio on the channel plays the same game. A laptop linked at 1201 Mb/s that sends one packet per turn moves 55 Mb/s, and one old laptop downloading beside it can take most of the air.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/wifi-takes-turns.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="What a Radio Actually Sends">
-<meta property="og:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
+<meta property="og:title" content="Your Wi-Fi Takes Turns, and the Slowest Talker Sets the Pace">
+<meta property="og:description" content="Every time a Wi-Fi radio wants the air, it waits for quiet and counts down a random number, and every radio on the channel plays the same game. A laptop linked at 1201 Mb/s that sends one packet per turn moves 55 Mb/s, and one old laptop downloading beside it can take most of the air.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/wifi-takes-turns.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/wifi-takes-turns.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="What a Radio Actually Sends">
-<meta name="twitter:description" content="Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-10"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "What a Radio Actually Sends", "description": "Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.", "datePublished": "2026-09-10", "image": "https://networkfieldnotes.com/og/academy-01-what-a-radio-actually-sends.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-01-what-a-radio-actually-sends.html", "keywords": "Wireless, Academy, RF"}</script>
+<meta name="twitter:title" content="Your Wi-Fi Takes Turns, and the Slowest Talker Sets the Pace">
+<meta name="twitter:description" content="Every time a Wi-Fi radio wants the air, it waits for quiet and counts down a random number, and every radio on the channel plays the same game. A laptop linked at 1201 Mb/s that sends one packet per turn moves 55 Mb/s, and one old laptop downloading beside it can take most of the air.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/wifi-takes-turns.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-28"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your Wi-Fi Takes Turns, and the Slowest Talker Sets the Pace", "description": "Every time a Wi-Fi radio wants the air, it waits for quiet and counts down a random number, and every radio on the channel plays the same game. A laptop linked at 1201 Mb/s that sends one packet per turn moves 55 Mb/s, and one old laptop downloading beside it can take most of the air.", "datePublished": "2026-09-28", "image": "https://networkfieldnotes.com/og/wifi-takes-turns.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/wifi-takes-turns.html", "keywords": "Wireless, Airtime, WMM"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -537,7 +537,7 @@ body.acad .callout.origin .eyebrow{color:#ffd28a}
 html.qam-fs,html.qam-fs body{overflow:hidden}
 html.qam-fs .rig{display:none}
 </style></head>
-<body class="acad">
+<body>
 <div class="ground"></div>
 <canvas id="nfn-fx" aria-hidden="true"></canvas>
 <div class="gx-pane" aria-hidden="true"></div>
@@ -545,107 +545,129 @@ html.qam-fs .rig{display:none}
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
   <a class="brand" href="../"><span class="mk"><img src="../logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
-  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill on" href="../academy.html">Academy</a><a class="pill" href="../tools.html">Tools</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill" href="../academy.html">Academy</a><a class="pill" href="../tools.html">Tools</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
   
 </div></div></header>
 <main class="wrap">
 <div class="narrow">
-  <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
+  <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
-    <header class="post-head g-hero cat-Academy" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 10, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">What a Radio Actually Sends</h1>
+    <header class="post-head g-hero cat-Wireless" data-view="zoom">
+      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Sep 28, 2026 &#183; 5 min</span></div>
+      <h1 class="h-hero">Your Wi-Fi Takes Turns, and the Slowest Talker Sets the Pace</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A dBm ladder from 30 dBm (1 W) down to -90 dBm (1 pW) with the 3 dB, 10 dB and doubling-distance rules, and a wavelength comparison for 2.4, 5 and 6 GHz">
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Two radios send the same 1500-byte packet, drawn to scale. A laptop at 1201 Mb/s takes a 218.5 microsecond turn, most of it waiting, with the packet itself taking 10 microseconds. An old laptop at 6 Mb/s takes 2,266.5 microseconds for the same packet. Taking strict turns one packet at a time, with no collisions, the old laptop holds 91 percent of the air and both end up at 4.8 Mb/s.">
   <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#F5A524;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
-    .bx{fill:rgba(0,0,0,0.45);stroke:rgba(255,255,255,0.12)}.bt{fill:#fff;font-size:13px;font-weight:600}.mut{fill:#8BA2AE;font-size:11px}
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .lbl{fill:#B0C4CF;font-size:11px}
+    .mut{fill:#8BA2AE;font-size:11px}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .hd{fill:#EAF2F6;font-size:12.5px;font-weight:700}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:11px;fill:#5ED2DA}
+    .monow{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:11px;fill:#EAF2F6}
   </style></defs>
-  <text x="30" y="36" class="t eyebrow">LESSON 1: WHAT A RADIO ACTUALLY SENDS</text>
-  <text x="30" y="66" class="t big">Three anchors, two rules, and you can do the math in your head.</text>
 
-  <!-- the ladder -->
+  <text x="30" y="36" class="t eyebrow">EVERY RADIO WAITS ITS TURN</text>
+  <text x="30" y="66" class="t big">Same packet, same turn. One of them holds the air ten times longer.</text>
+
   <g class="t">
-    <line x1="120" y1="96" x2="120" y2="306" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
-    <g font-size="12">
-      <circle cx="120" cy="100" r="5" fill="#F5A524"/><text x="136" y="104" class="mono" fill="#fff">+30 dBm</text><text x="216" y="104" class="mut">1 W, legal ceiling for most of what we do</text>
-      <circle cx="120" cy="134" r="5" fill="#F5A524"/><text x="136" y="138" class="mono" fill="#fff">+20 dBm</text><text x="216" y="138" class="mut">100 mW, an enterprise AP radio</text>
-      <circle cx="120" cy="168" r="5" fill="#F5A524"/><text x="136" y="172" class="mono" fill="#fff">  0 dBm</text><text x="216" y="172" class="mut">1 mW, the reference</text>
-      <circle cx="120" cy="202" r="4" fill="#8BA2AE"/><text x="136" y="206" class="mono" fill="#B0C4CF">-30 dBm</text><text x="216" y="206" class="mut">1 microwatt</text>
-      <circle cx="120" cy="236" r="5" fill="#8CE05E"/><text x="136" y="240" class="mono" fill="#fff">-67 dBm</text><text x="216" y="240" class="mut">a good client signal, two ten-millionths of a mW</text>
-      <circle cx="120" cy="270" r="4" fill="#8BA2AE"/><text x="136" y="274" class="mono" fill="#B0C4CF">-90 dBm</text><text x="216" y="274" class="mut">1 picowatt, where the noise floor lives</text>
-    </g>
-    <text x="30" y="104" class="mut">strong</text><text x="30" y="274" class="mut">weak</text>
+    <rect x="30" y="84" width="840" height="150" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+    <text x="46" y="106" class="lbl">One 1500-byte packet each, to scale: 0.36 pixels per microsecond</text>
+    <rect x="690" y="97" width="10" height="10" rx="2" fill="rgba(255,255,255,0.14)"/><text x="705" y="106" class="mut">waiting</text>
+    <rect x="757" y="97" width="10" height="10" rx="2" fill="#8CE05E"/><text x="772" y="106" class="mut">got it</text>
+
+    <!-- fast: 110.5 wait, 64 frame, 16 SIFS, 28 ACK = 218.5 us -->
+    <text x="46" y="132" class="hd">Laptop at 1201 Mb/s</text>
+    <rect x="46" y="140" width="40.0" height="24" rx="2" fill="rgba(255,255,255,0.14)"/>
+    <rect x="86.0" y="140" width="23.2" height="24" fill="#2FA8E0"/>
+    <rect x="115.0" y="140" width="10.1" height="24" fill="#8CE05E"/>
+    <text x="140" y="157" class="mono">218.5 us a turn. The packet's own bits are 10 of it.</text>
+
+    <!-- slow: 110.5 wait, 2096 frame, 16 SIFS, 44 ACK = 2266.5 us -->
+    <text x="46" y="190" class="hd">Old laptop at 6 Mb/s</text>
+    <rect x="46" y="198" width="40.0" height="24" rx="2" fill="rgba(255,255,255,0.14)"/>
+    <rect x="86.0" y="198" width="758.8" height="24" fill="rgba(139,162,174,0.22)" stroke="rgba(139,162,174,0.85)" stroke-dasharray="5 3"/>
+    <rect x="850.6" y="198" width="15.9" height="24" fill="#8CE05E"/>
+    <text x="100" y="215" class="monow">2,266.5 us for the same 1500 bytes</text>
+
+    <!-- taking turns -->
+    <rect x="30" y="246" width="840" height="58" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+    <text x="46" y="268" class="lbl">Taking strict turns, one packet each, no collisions: share of the air</text>
+    <rect x="46" y="278" width="72.3" height="16" fill="#2FA8E0"/>
+    <rect x="118.3" y="278" width="731.7" height="16" fill="rgba(139,162,174,0.22)" stroke="rgba(139,162,174,0.85)" stroke-dasharray="5 3"/>
+    <text x="52" y="290" class="t" font-size="10.5" font-weight="700" fill="#061019">9%</text>
+    <text x="128" y="290" class="monow">old laptop 91%. Both end up at 4.8 Mb/s.</text>
   </g>
 
-  <!-- rules -->
-  <g class="t">
-    <rect x="560" y="92" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="115" class="bt">3 dB is double, or half.</text>
-    <text x="576" y="137" class="lbl">10 dB is ten times, or a tenth. 23 dBm is 200 mW.</text>
-    <rect x="560" y="162" width="310" height="58" rx="10" class="bx"/>
-    <text x="576" y="185" class="bt">Double the distance, lose about 6 dB.</text>
-    <text x="576" y="207" class="lbl">Four times the distance, 12 dB. That is the lab.</text>
-    <rect x="560" y="232" width="310" height="74" rx="10" class="bx"/>
-    <text x="576" y="255" class="bt">Wavelength picks the behaviour.</text>
-    <text x="576" y="276" class="mono" fill="#B0C4CF">2.4 GHz  12.5 cm     5 GHz  6 cm     6 GHz  5 cm</text>
-    <text x="576" y="296" class="lbl">Shorter gets through gaps, loses more in walls.</text>
-  </g>
-
-  <text x="30" y="326" class="t mono" fill="#F5A524">An AP at +20 dBm heard at -67 dBm: 87 dB of path loss. That number is the whole design.</text>
+  <text x="30" y="324" class="t mut">Model numbers: 5 GHz, best effort, one 1500-byte packet per turn, no bundling, no collisions.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 1. Fundamentals first, then a lab on real gear</div>
-      <div class="prose"><p>This is the first lesson of the Wireless Academy, and it starts with the thing every wireless conversation eventually gets stuck on: the numbers. RSSI is -67 dBm. Is that good? The AP is at 20 dBm. Is that a lot? Somebody wants "more signal." How much more, and what does more even mean?</p>
-<p>By the end of this one you'll be able to answer those without a calculator, and you'll have measured it yourself on an AP you own.</p>
-<h2>What's actually leaving the antenna</h2>
-<p>A Wi-Fi radio sends an electromagnetic wave. Three things describe it. Frequency is how many times a second it oscillates, and it's what picks the band: 2.4 GHz, 5 GHz, 6 GHz. Wavelength is how long one cycle is in space, and it falls out of frequency directly: the speed of light divided by the frequency. At 2.4 GHz that's about 12.5 cm. At 5 GHz it's about 6 cm, and at 6 GHz about 5 cm.</p>
-<p>That matters more than it sounds. A shorter wavelength interacts with objects differently. It gets through gaps more easily but loses more energy going through walls, and it doesn't bend around corners as well. Most of the "5 GHz doesn't reach as far as 2.4" gap is wavelength. The frequency term in free space loss alone costs about 6 dB going from 2.4 to 5 GHz. It isn't all of it, though. Regulatory caps differ by band, and so does whatever per-band power your APs are actually set to.</p>
-<p>Amplitude is how strong the wave is, and that's the one we spend our lives measuring. The problem is the range. The AP transmits something like 100 milliwatts. The client, a few rooms away, receives something like a ten-billionth of that. Writing those two numbers next to each other in milliwatts is useless, so we don't.</p>
-<h2>The number that matters: dBm</h2>
-<p>We use decibels relative to one milliwatt, dBm. The definition is 10 times the log of the power in milliwatts, and you don't need to remember that. You need to remember three anchors and two rules.</p>
-<p>Anchors: 0 dBm is 1 mW. 20 dBm is 100 mW, roughly what an enterprise AP radio transmits. 30 dBm is 1 W. In the US that's the FCC ceiling for an AP at 2.4 GHz and in U-NII-1 and U-NII-3, while U-NII-2A and 2C cap you at 24 dBm. Indoor 6 GHz is a different kind of limit, 5 dBm per MHz of EIRP, so a 20 MHz channel tops out around 18 dBm EIRP and only a 320 MHz one gets near 30. Treat 30 dBm as the outer wall, not a number you're entitled to.</p>
-<p>Rule one: 3 dB doubles or halves the power. Rule two: 10 dB is ten times or a tenth. Everything else is those two combined. 23 dBm is 20 plus 3, so 200 mW. 13 dBm is 10 plus 3, so 20 mW. Going down, -70 dBm is seven tens below 1 mW, which is one ten-millionth of a milliwatt. That's a workable data signal, although most designs want -67 dBm or better once voice or density is involved, and it's why we don't write it in milliwatts.</p>
-<p>When two dBm numbers are compared you get a plain dB difference. An AP at 20 dBm and a client hearing it at -67 dBm are 87 dB apart. That 87 dB is the total link loss, path loss plus whatever the two antennas gave back or took away, and it's the number a wireless design lives or dies on.</p>
-<p>One rule for free space that you'll use constantly: every time you double the distance, you lose about 6 dB. Four times the distance is 12 dB. That's what the lab is about.</p>
-<h2>What the gear shows you</h2>
-<p>Every platform reports received signal strength for a connected client, and they mostly agree on the unit even when they disagree on the name.</p>
-<p>In Aruba Central, open the client from the Clients list and watch the labels. The client detail gives you Signal Quality as SNR in dB, Device Health as a signal strength percentage, and the actual dBm figure as RSSI in the Roaming Experience table further down. Two of those are the received power in different clothes; SNR is that power measured against the noise floor. On the AP itself, <code>show ap debug client-table</code> lists every associated client, but its signal columns are <code>Last_ACK_SNR</code> and <code>Last_Rx_SNR</code>: SNR, dB above the noise floor, not dBm, and that's true on AOS 8, Instant and AOS 10 alike. On an AOS 8 controller the command also takes an <code>ap-name</code>. So don't be surprised when it's a small positive number, and if you want a dBm figure you're going back to Central for it. Same physics, different reference.</p>
-<p>In Mist, open the client from the Clients list and follow its Client Insights link. The status block gives you RSSI and SNR as current values; the charts of both over time need the Marvis for Wireless subscription. The graphed form is the useful one, because a single reading lies and a trend doesn't.</p>
-<p>On the Sidekick, Ekahau lists every AP it can hear with its signal strength (the Network Overview in the Analyzer app), which is the one measurement in this list that doesn't depend on your client's radio. The Sidekick has calibrated radios of its own, and that independence is the whole reason it exists.</p>
-<h2>The lab</h2>
-<p>One AP, one client, a tape measure, and forty minutes. Outdoors or a large open room, because walls will make the numbers lie and that's next lesson's problem.</p>
-<ol>
-<li>Note the AP's transmit power. Central shows it per radio; Mist shows it on the AP's radio settings. Fix it if it's on auto, so it doesn't change during the lab.</li>
-<li>Stand 2 m from the AP with the client associated on 5 GHz. Wait a minute for the reading to settle, then record RSSI from the platform and from the Sidekick.</li>
-<li>Move to 4 m. Record again. Then 8 m, then 16 m.</li>
-<li>Put the four numbers in a row.</li>
-</ol>
-<p>What you should see: each step drops by something close to 6 dB. Not exactly. Reflections, the client's antenna, and the fact that you're standing there will push it around by a couple of dB, and that's fine.</p>
-<figure class="wide">
-<div class="pan"><img src="../media/academy-01-six-db.png" alt="Four link budget strips at 2, 4, 8 and 16 metres reading minus 27, minus 33, minus 39 and minus 45 dBm, each step 6 dB below the one above" width="1204" height="1176" loading="lazy"></div>
-<figcaption>The same link modelled in free space at your four distances, for a 26 dBm EIRP radio on 5 GHz: -27, -33, -39, -45 dBm, and 6.02 dB between each one. A 20 dBm radio starts 6 dB lower and steps the same. That is the whole rule. Your room will read lower than these and the steps will be bigger, which is next week's lesson and not a bad measurement.</figcaption>
-</figure>
-
-<figure>
-<video controls playsinline preload="metadata" poster="../media/academy-01-six-db.jpg" src="../media/academy-01-six-db.mp4" width="1280" height="600"></video>
-<figcaption>The same walk without stopping, 2 m out to 16 m, with the received power tracking it down the curve.</figcaption>
-</figure>
-
-<p>You can drive this one yourself in the <a href="../simulator.html">simulator</a>.</p>
-<p>What means something's off: a drop of 15 dB on one step usually means you walked behind something, or the client roamed to another AP, which the platform will show you. A reading that doesn't change at all across two steps means the number you're reading is being averaged too slowly, or the client picked a different radio. Check the BSSID the client is on before you trust any step.</p>
-<p>Then do it once on 2.4 GHz. The steps still drop about 6 dB each, and at the same transmit power they start from a higher number. Check the 2.4 GHz radio's power before you compare, because APs are routinely set lower on 2.4 to stop the cell swallowing the building, and that alone can erase the gap you're looking for. Match the power and the gap that's left is the wavelength difference from the top of this lesson, and now you've measured it.</p>
-<h2>Three questions</h2>
-<p>Is 100 mW more or less than 23 dBm, and by how much? A client's signal went from -60 to -66 dBm; what happened to the received power? You've moved to four times your original distance from the AP; roughly how much signal did you give up?</p>
-<p>Answers: less, by 3 dB. It dropped to a quarter. About 12 dB.</p>
-<h2>Next week</h2>
-<p>Bands, channels and widths. Where 2.4, 5 and 6 GHz live, what the U-NII blocks are, and what you pay for a wider channel. The lab is the same AP with the width changed, and the client's rate table telling you what it cost.</p></div>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Written as the companion to Academy lesson 5, because this is the part of Wi-Fi almost nobody gets taught</div>
+      <div class="prose"><h2>Why I'm writing this</h2>
+<p>Not a lot of people get this side of wireless. We talk about signal, channels, rates and antennas. Almost nobody talks about the part where every radio on a channel has to wait its turn, and that's where most of your Wi-Fi performance goes.</p>
+<p>Every slow Wi-Fi conversation ends up in the same place. The laptop says it's connected at 1201 Mbps. The speed test says a fraction of that. Somebody concludes the AP is bad, or the laptop is, and starts changing things. Usually neither is broken. They're taking turns.</p>
+<h2>The game, in plain words</h2>
+<p>Picture a meeting room with one microphone and a strict set of rules.</p>
+<p>Nobody talks until the room has been quiet for a moment. Then everybody who wants to talk picks a random number and counts down silently, one tick for every moment the room stays quiet. If somebody else starts talking, you stop counting and hold your place. Whoever reaches zero first gets the microphone. When they finish, the person they were talking to says "got it."</p>
+<p>If you don't hear "got it," you don't know why. Maybe you and somebody else hit zero together and talked over each other. Maybe the frame just didn't make it. Nobody actually hears a collision. You just never get the answer, so you treat it like one: pick your next number from a range twice as big and play again.</p>
+<p>That's the whole thing, and a radio plays it every time it wants the air, on every Wi-Fi network. The client plays it. The AP plays it. On 5 GHz the quiet moment is 43 microseconds for normal traffic, a tick is 9, the first number comes out of 0 to 15, and "got it" comes back 16 microseconds after the frame ends.</p>
+<h2>Speed is how fast you talk once you have the microphone</h2>
+<p>Here's the part that surprises people. A turn has a cost that doesn't care how fast you talk: the quiet moment, plus the countdown, which averages 67.5 microseconds, plus the answer. A radio with a steady stream to send waits about 110 microseconds on average before each frame, even on an empty channel.</p>
+<p>Take a laptop at 1201 Mbps and have it send one 1500-byte packet per turn. The packet's bits take 10 microseconds. The whole turn takes 218.5. That's 55 Mbps. Same laptop, same "1201" on the screen.</p>
+<p>That's why radios bundle packets together. Put 64 in one frame and the turn gets about four times longer while carrying 64 times the data, and you're at 877 Mbps. Bundling only works when there's a pile of traffic going to one place, though, and a lot of real traffic isn't like that.</p>
+<h2>The slow talker sets the pace</h2>
+<p>The game gives every radio the same shot at every turn. It doesn't care how long the winner holds the microphone.</p>
+<p>So picture one old laptop that only speaks 802.11a/g, downloading beside yours. It can't bundle. In the model behind this site, your download alone on a quiet channel runs at about 720 Mbps. With the old laptop at 54 Mbps, right next to the AP, yours drops to about 480. Move the old one to the edge of the room, where it's down to 6 Mbps, and yours drops to about 210, while the old laptop holds about 60 percent of the air to get 3 Mbps out of it.</p>
+<p>Those are modelled numbers, not a capture: 5 GHz, everybody hearing everybody, nothing failing except collisions. Real radios lose frames to more than collisions, so expect real numbers to come in lower.</p>
+<p>The fix you've probably heard of is airtime fairness. It's a real feature on AOS 8 and Instant, but the release notes for both say it isn't supported on 802.11ax APs, and I couldn't find it in AOS 10 or in Mist. What's left is design, which is below.</p>
+<h2>The meter lies</h2>
+<p>Your AP's channel utilization chart measures how often the air is busy. It doesn't measure whether anything useful happened. A collision is busy. A beacon is busy. A 6 Mbps frame is busy for a very long time.</p>
+<p>Beacons are the tax nobody budgets for. Every SSID sends one about ten times a second from every AP at the lowest rate you allow. At 6 Mbps a 250-byte beacon costs about 0.4 percent of the channel per SSID per AP, and bigger beacons cost more. Eight SSIDs on six APs that share a channel is 18.6 percent at that size, gone before anybody connects. The printers post was the same story with multicast: 765 mDNS frames a second at 6 Mbps, about 40 percent of a channel.</p>
+<p>Utilization tells you the room is loud. It doesn't tell you whether anybody's being understood.</p>
+<h2>What good looks like</h2>
+<table>
+<thead>
+<tr>
+<th>Do this</th>
+<th>Because</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Run fewer SSIDs</td>
+<td>Each one costs a beacon about ten times a second on every AP, at the lowest rate</td>
+</tr>
+<tr>
+<td>Raise the minimum rate after a survey</td>
+<td>Beacons and multicast get cheaper, and edge clients move to a closer AP or drop if there isn't one</td>
+</tr>
+<tr>
+<td>Get legacy devices off your fast channel</td>
+<td>They can't bundle, so every byte costs more air</td>
+</tr>
+<tr>
+<td>Stop multicast chatter at the switch</td>
+<td>It goes out at the basic rate with no retries and no bundling</td>
+</tr>
+<tr>
+<td>Keep voice for voice</td>
+<td>The voice queue draws from 0 to 3; crowd it and it collides</td>
+</tr>
+<tr>
+<td>Map DSCP 46 to voice</td>
+<td>By default AOS 10 and Mist put EF in the video queue</td>
+</tr>
+</tbody>
+</table>
+<h2>Bottom line</h2>
+<p>Wi-Fi is a room where everybody takes turns. The rate on the laptop is how fast it talks once it has the microphone, not how much it gets done. Anything that makes a turn longer, or adds turns nobody needed, comes out of everybody's share.</p>
+<p>If you'd rather feel it than read it, <a href="academy-05-airtime-is-the-only-resource.html">Academy lesson 5</a> has a game where you play the radio. You count your own number, you freeze when somebody else talks, and in level 3 you meet the scanner.</p></div>
       
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 1 of 12</span></h3><div class="ser-steps"><a class="ser-step here" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-05-airtime-is-the-only-resource.html"><span class="ser-n">5</span><span class="ser-t">Airtime Is the Only Resource</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">6</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">7</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step" href="academy-08-joining-a-network.html"><span class="ser-n">8</span><span class="ser-t">Joining a Network</span></a><a class="ser-step" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">9</span><span class="ser-t">Roaming: the Client Decides</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">10</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">11</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">12</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-01-what-a-radio-actually-sends" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="wifi-takes-turns" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -805,12 +827,12 @@ html.qam-fs .rig{display:none}
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="clearpass-intune-eap-tls-lab.html"><span class="eyebrow">Older</span>Your ClearPass Intune Integration Probably Authenticates Nothing</a><a class="pn g-card" href="how-the-banner-works.html"><span class="eyebrow">Newer</span>The Banner Is a Wi-Fi Link You Can Break</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-04-modulation-and-data-rates.html"><span class="eyebrow">Older</span>Modulation and Data Rates</a><a class="pn g-card" href="academy-06-interference-from-yourself.html"><span class="eyebrow">Newer</span>Interference From Yourself</a></div>
     </section>
   </article>
 </div>
 </main>
-<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-think.svg" alt="" width="104" height="104"></a>
+<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-signal.svg" alt="" width="104" height="104"></a>
 <footer><div class="wrap">
   <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
   <span><a href="/rss.xml">RSS</a></span>

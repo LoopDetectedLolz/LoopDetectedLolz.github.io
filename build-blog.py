@@ -449,7 +449,7 @@ ACADEMY = [
     ("Bands, Channels and Widths", "2.4, 5 and 6 GHz, the U-NII blocks, DFS, and what a wider channel actually costs.", "Change channel width on both platforms and watch client PHY rates and airtime move."),
     ("The Link Budget", "EIRP, antenna gain, receive sensitivity, free space path loss. Where the signal goes.", "Predict RSSI at 10 m, measure it, explain the gap."),
     ("Modulation and Data Rates", "MCS, coding rate, spatial streams. Why \"speed\" is a table, not a number.", "Read MCS in the Central and Mist client views, force a lower rate, measure throughput."),
-    ("Airtime Is the Only Resource", "Half duplex, contention, PHY rate versus throughput, and the overhead nobody budgets for.", "Airtime utilisation per SSID, with the mDNS post as the case study."),
+    ("Airtime Is the Only Resource", "Half duplex, contention, PHY rate versus throughput, and the overhead nobody budgets for.", "Count the beacon tax, run a slow laptop beside a fast one, then raise the floor and watch it leave."),
     ("Interference From Yourself", "Co-channel and adjacent-channel interference, reuse, cell overlap.", "Two APs on one channel. Count retries, watch airtime."),
     ("Noise, SNR, and Why RSSI Lies", "Noise floor, SNR, and what a spectrum analyser shows that a Wi-Fi card can't.", "Spectrum view with a real interferer. RSSI stays put, SNR collapses."),
     ("Joining a Network", "Probe, authentication, association, the 4-way handshake, EAP. What happens before the first packet.", "Capture a join on Mist and on Aruba, then read the same join in ClearPass Access Tracker."),

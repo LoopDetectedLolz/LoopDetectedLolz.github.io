@@ -8,11 +8,16 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
 
 ## What is live on the site
 
+- **Academy lesson 5, Airtime Is the Only Resource** (2026-09-28): the Wait Your Turn game
+  (`theme/widgets/waityourturn.html`, four levels, `node wyttest.js`), and a companion field note,
+  Your Wi-Fi Takes Turns, and the Slowest Talker Sets the Pace. Model figures are twenty-run means from
+  the game's engine; the lab figures are expectations until measured. Audits are in `audit/` on the Mac.
+  Poster frames not rendered yet.
 - **Academy lessons 6 to 12** staged 2026-09-28 (dated one a day, 09-29 to 10-05, change the dates if
   they go out on a different rhythm): posts, heroes and OG cards. Lab figures are the model's or the
   standard's expectations, labelled as such. Audits, questions for Dustin, war-story slots and game
-  candidates are in the Cowork project under `academy/drafts/lesson-NN-audit.md`. Lesson 5 is being
-  drafted in another session and slots in by date. No games built for 6 to 12 yet.
+  candidates are in the Cowork project under `academy/drafts/lesson-NN-audit.md`. Lesson 5 went out
+  2026-09-28 (below). No games built for 6 to 12 yet.
 - **Academy lesson 4, Modulation and Data Rates** (2026-09-28): the Be the Radio game
   (`theme/widgets/betheradio.html`), the constellation noise slider (`constellation.html`, inlined
   with the new `{{widget: name}}` body hook), the Wi-Fi 7 sidebar, and `mist-rates.py` (one GET
