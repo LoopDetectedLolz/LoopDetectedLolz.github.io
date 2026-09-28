@@ -57,7 +57,9 @@
     this.lesson = lesson || {};
     this.modelId = this.lesson.model || "6200F-12";
     this.model = MODELS[this.modelId] || MODELS["6200F-12"];
-    this.version = this.lesson.version || ((this.model.img || "ML") + "." + VERSION);
+    // the release this box runs: what the lesson asks for, else the newest one the command set knows
+    var rels = releases();
+    this.setRelease(saved && saved.release || this.lesson.release || rels[rels.length - 1]);
     this.boot = Date.now() - (this.lesson.uptime || 0) * 1000;
     this.tick = 0;                          // command counter, drives fake timestamps
     this.reset();
@@ -69,6 +71,18 @@
     this.stack = [{ ctx: "exec" }];
     this.history = [];
   }
+
+  // Picking a release changes which syntax the box takes (the command set of that release) and what show
+  // version reports. The output layouts stay the ones checked against 10.18.
+  Switch.prototype.setRelease = function (rel) {
+    var rels = releases();
+    if (rels.indexOf(rel) < 0) rel = rels[rels.length - 1];
+    this.release = rel;
+    this.version = this.lesson.version || ((this.model.img || "ML") + "." + buildOf(rel));
+    return rel;
+  };
+  function relNum(r) { var p = String(r).split("."); return (+p[0] || 0) * 1000 + (+p[1] || 0); }
+  Switch.prototype.atLeast = function (rel) { return relNum(this.release) >= relNum(rel); };
 
   Switch.prototype.reset = function () {
     var self = this;
@@ -143,12 +157,17 @@
     o.push("user admin group administrators password ciphertext <hidden>", "!", "!", "!", "!");
     this.radius.forEach(function (r) { o.push("radius-server host " + r.host + (r.key ? (showKeys ? " key plaintext " + r.key : " key ciphertext <hidden>") : "") + (r.vrf ? " vrf " + r.vrf : "")); });
     o.push("!", "!");
+    // 10.16 added server priority in a group and started printing the built-in `radius` group; 10.15 printed
+    // neither (same config pushed to 10.15.1060, 10.16.1060 and 10.17.1030 on 2026-09-28)
+    var prio = this.atLeast("10.16");
     Object.keys(this.groups).forEach(function (g) {
       o.push("aaa group server radius " + g);
-      self.groups[g].servers.forEach(function (sv, i) { o.push("    server " + sv + (showKeys ? "" : " priority " + (i + 1))); });
+      // shown: what the release prints; parser form (showKeys): a priority only where one was typed
+      var gp = self.groups[g].prio || {}, gx = self.groups[g].explicit || {};
+      self.groups[g].servers.forEach(function (sv, i) { var p = gp[sv] || (i + 1); o.push("    server " + sv + (showKeys ? (gx[sv] ? " priority " + p : "") : (prio ? " priority " + p : ""))); });
       o.push("!");
     });
-    if (this.radius.length && !showKeys) { o.push("aaa group server radius radius"); this.radius.forEach(function (r, i) { o.push("    server " + r.host + " priority " + (i + 1)); }); o.push("!"); }
+    if (this.radius.length && !showKeys && prio) { o.push("aaa group server radius radius"); this.radius.forEach(function (r, i) { o.push("    server " + r.host + " priority " + (i + 1)); }); o.push("!"); }
     if (this.pa.dynAuth) o.push("radius dyn-authorization enable");
     var dyn = Object.keys(this.pa.dynClients);
     if (dyn.length) { if (!showKeys) o.push("!"); dyn.forEach(function (ip) { o.push("radius dyn-authorization client " + ip + " secret-key " + (showKeys ? "plaintext " + self.pa.dynClients[ip].key : "ciphertext <hidden>")); }); }
@@ -249,10 +268,14 @@
   };
 
   // apply a list of config lines (lesson start config, saved state) through the parser
+  // Lines the sandbox itself feeds in (a lesson's start config, a saved session, a rollback). They were written
+  // for the newest release, so the release gate does not apply to them.
   Switch.prototype.apply = function (lines) {
     var self = this, saved = this.stack, quiet = [];
     this.stack = [{ ctx: "exec" }, { ctx: "config" }];
-    lines.forEach(function (l) { var r = self.run(l, true); if (r && /^(Invalid|Ambiguous|Incomplete)/.test(r.out)) quiet.push(l + " -> " + r.out); });
+    this.applying = true;
+    try { lines.forEach(function (l) { var r = self.run(l, true); if (r && isFail(r.out)) quiet.push(l + " -> " + r.out); }); }
+    finally { this.applying = false; }
     this.stack = saved || [{ ctx: "exec" }];
     return quiet;
   };
@@ -266,7 +289,7 @@
 
   Switch.prototype.save = function () {
     var self = this;
-    return { config: this.configLines(), devices: this.devices, clients: this.clients, errdisabled: this.errdisabled, checkpoints: this.checkpoints, startup: this.startup };
+    return { config: this.configLines(), devices: this.devices, clients: this.clients, errdisabled: this.errdisabled, checkpoints: this.checkpoints, startup: this.startup, release: this.release };
   };
   Switch.prototype.load = function (s) {
     var self = this;
@@ -312,6 +335,7 @@
     "<1-2>": ["Link 1 or 2", function (t) { return t === "1" || t === "2"; }],
     "<1-10>": ["Count", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 10; }],
     "<2-1000>": ["Lines per page", function (t) { return /^\d+$/.test(t) && +t >= 2 && +t <= 1000; }],
+    "<1-65535>": ["Priority, lower is asked first", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 65535; }],
     "<A.B.C.D>": ["IPv4 address", isIp],
     "<AREA>": ["Area id, a number or dotted form", function (t) { return isIp(t) || /^\d+$/.test(t); }],
     "<A.B.C.D/M>": ["IPv4 prefix", function (t) { var p = t.split("/"); return p.length === 2 && isIp(p[0]) && /^\d+$/.test(p[1]) && +p[1] <= 32; }],
@@ -442,6 +466,10 @@
       return { out: "% Ambiguous command.", prompt: this.prompt() };
     }
     var pick = full[0];
+    // The release gate: a line the newest release takes but the picked one does not gets that release's own
+    // answer, plus a note saying when the syntax arrived. Lines the sandbox feeds itself are never gated.
+    var gate = this.releaseGate(toks);
+    if (gate) return { out: gate, prompt: this.prompt() };
     if (pick.c.level >= 0 && pick.c.level < this.stack.length - 1) this.stack = this.stack.slice(0, pick.c.level + 1);
     try { out = pick.c.cmd.fn.call(this, pick.m.args, toks) || ""; }
     catch (e) { out = "Error: " + (e.message || e); }
@@ -483,27 +511,42 @@
   function isFail(out) { return /^(Invalid input|% |This command is not used|Command not supported|Error:)/.test(String(out)); }
 
   // ── the real command set ────────────────────────────────────────────────
-  // theme/cxsim/corpus/10.18.js is every command template the AOS-CX Switch Simulator printed with `list`,
-  // packed by cxcorpus.py into one shared trie per context. The model uses it to answer a command it does
-  // not carry the way the box would: real syntax gets "not used in this scenario", anything else gets the
-  // box's own "Invalid input: <first token it could not place>". It is loaded before the engine in the page
+  // theme/cxsim/corpus/aoscx.js is every command template the AOS-CX Switch Simulator printed with `list`, one
+  // run per release, merged by cxcorpus.py into one shared trie per context whose edges carry the releases they
+  // exist in. The model uses it to answer a command it does not carry the way the box would, in the release the
+  // reader picked: real syntax gets "not used in this scenario", anything else gets the box's own
+  // "Invalid input: <first token it could not place>". It is loaded before the engine in the page
   // (self.CXCorpus) and required from ./corpus under Node. Without it the curated OUTSIDE list still works.
   var CORPUS = null, CORPUS_SRC = null;
-  try { if (typeof module === "object" && module.exports && typeof require === "function") CORPUS_SRC = require("./corpus/10.18.js"); } catch (e) { CORPUS_SRC = null; }
+  try { if (typeof module === "object" && module.exports && typeof require === "function") CORPUS_SRC = require("./corpus/aoscx.js"); } catch (e) { CORPUS_SRC = null; }
   function corpus() {
     if (CORPUS) return CORPUS;
-    var src = CORPUS_SRC || (typeof self !== "undefined" && self.CXCorpus && self.CXCorpus["10.18"]) || null;
-    if (!src) return null;
-    var words = src.t.split(" ");
+    var src = CORPUS_SRC || (typeof self !== "undefined" && self.CXCorpus) || null;
+    if (!src || !src.v) return null;
+    var words = src.t.split(" "), all = (1 << src.v.length) - 1;
     var nodes = src.n.split("|").map(function (s) {
-      var parts = s.split(","), n = { e: parts[0] === "1", k: {}, w: [] };
-      for (var i = 1; i < parts.length; i++) { var p = parts[i].split("."), t = parseInt(p[0], 36), c = parseInt(p[1], 36); if (t < 0) n.w.push([t, c]); else n.k[words[t]] = c; }
+      var parts = s.split(","), n = { e: parseInt(parts[0], 36), k: {}, w: [] };
+      for (var i = 1; i < parts.length; i++) {
+        var p = parts[i].split("."), t = parseInt(p[0], 36), c = parseInt(p[1], 36), m = p.length > 2 ? parseInt(p[2], 36) : all;
+        if (t < 0) n.w.push([t, c, m]); else n.k[words[t]] = [c, m];
+      }
       n.keys = Object.keys(n.k);
       return n;
     });
-    CORPUS = { version: src.version, nodes: nodes, roots: src.r };
+    CORPUS = { releases: src.v.map(function (x) { return x[0]; }), builds: src.v.map(function (x) { return x[1]; }), nodes: nodes, roots: src.r, harvested: src.h || {}, all: all };
     return CORPUS;
   }
+  // The bit a release has in a context. A context `list` was not captured in for that release borrows the nearest
+  // newer release that has it (then the nearest older), so a gap in the harvest never reads as a missing command.
+  function relBit(C, release, ctx) {
+    var i = C.releases.indexOf(release), h = C.harvested[ctx] || 0, j;
+    if (i < 0) i = C.releases.length - 1;
+    for (j = i; j < C.releases.length; j++) if (h & (1 << j)) return 1 << j;
+    for (j = i - 1; j >= 0; j--) if (h & (1 << j)) return 1 << j;
+    return 0;
+  }
+  function releases() { var C = corpus(); return C ? C.releases.slice() : [VERSION.split(".").slice(0, 2).join(".")]; }
+  function buildOf(release) { var C = corpus(), i = C ? C.releases.indexOf(release) : -1; return i >= 0 ? C.builds[i] : VERSION; }
   // placeholder classes cxcorpus.py writes as negative tokens
   var PH_NAME = { "-1": "<number>", "-2": "A.B.C.D", "-3": "A.B.C.D/M", "-4": "X:X::X:X", "-5": "IFNAME", "-6": "MAC", "-7": "WORD", "-8": "LINE" };
   function phOk(cls, t) {
@@ -519,28 +562,32 @@
   }
   var RANK = { invalid: 0, ambiguous: 1, partial: 1, full: 2 };
   function better(a, b) { return !b || RANK[a.state] > RANK[b.state] || (RANK[a.state] === RANK[b.state] && a.at > b.at); }
+  // the keywords a node offers in one release: the exact word if it exists there, else the unique prefixes
+  function litsAt(n, t, bit) {
+    if (n.k.hasOwnProperty(t) && (n.k[t][1] & bit)) return [t];
+    return n.keys.filter(function (k) { return k.indexOf(t) === 0 && (n.k[k][1] & bit); });
+  }
   // walk the trie the way the box's parser does: exact keyword, else a unique prefix, else a placeholder
-  function walkReal(ni, toks, i) {
+  function walkReal(ni, toks, i, bit) {
     var n = CORPUS.nodes[ni];
-    if (i === toks.length) return { state: n.e ? "full" : "partial", at: i };
-    var t = toks[i].toLowerCase(), best = { state: "invalid", at: i };
-    var lits = n.k.hasOwnProperty(t) ? [t] : n.keys.filter(function (k) { return k.indexOf(t) === 0; });
+    if (i === toks.length) return { state: (n.e & bit) ? "full" : "partial", at: i };
+    var t = toks[i].toLowerCase(), best = { state: "invalid", at: i }, lits = litsAt(n, t, bit);
     if (lits.length > 1) best = { state: "ambiguous", at: i };
-    else if (lits.length === 1) { var r = walkReal(n.k[lits[0]], toks, i + 1); if (r.state === "full") return r; if (better(r, best)) best = r; }
+    else if (lits.length === 1) { var r = walkReal(n.k[lits[0]][0], toks, i + 1, bit); if (r.state === "full") return r; if (better(r, best)) best = r; }
     for (var w = 0; w < n.w.length; w++) {
+      if (!(n.w[w][2] & bit)) continue;
       var cls = n.w[w][0];
       if (cls === -8) return { state: "full", at: toks.length };
       if (!phOk(cls, toks[i])) continue;
-      var r2 = walkReal(n.w[w][1], toks, i + 1); if (r2.state === "full") return r2; if (better(r2, best)) best = r2;
+      var r2 = walkReal(n.w[w][1], toks, i + 1, bit); if (r2.state === "full") return r2; if (better(r2, best)) best = r2;
     }
     return best;
   }
-  function reachReal(ni, toks, i, acc) {
+  function reachReal(ni, toks, i, acc, bit) {
     if (i === toks.length) { if (acc.indexOf(ni) < 0) acc.push(ni); return acc; }
-    var n = CORPUS.nodes[ni], t = toks[i].toLowerCase();
-    var lits = n.k.hasOwnProperty(t) ? [t] : n.keys.filter(function (k) { return k.indexOf(t) === 0; });
-    if (lits.length === 1) reachReal(n.k[lits[0]], toks, i + 1, acc);
-    n.w.forEach(function (w) { if (w[0] !== -8 && phOk(w[0], toks[i])) reachReal(w[1], toks, i + 1, acc); });
+    var n = CORPUS.nodes[ni], lits = litsAt(n, toks[i].toLowerCase(), bit);
+    if (lits.length === 1) reachReal(n.k[lits[0]][0], toks, i + 1, acc, bit);
+    n.w.forEach(function (w) { if ((w[2] & bit) && w[0] !== -8 && phOk(w[0], toks[i])) reachReal(w[1], toks, i + 1, acc, bit); });
     return acc;
   }
   var CORPUS_CTX = { exec: "exec", config: "config", "if": "if", lag: "lag", vlan: "vlan", svi: "svi", role: "pa-role", dot1x: "dot1x", macauth: "macauth",
@@ -552,28 +599,45 @@
     if (toks.length && toks[0].length > 1 && "show".indexOf(toks[0].toLowerCase()) === 0 && out.indexOf("exec") < 0) out.push("exec");
     return out;
   };
-  Switch.prototype.realLookup = function (toks) {
+  // What the box of `release` (default: the one this switch runs) makes of a line it would take in this context.
+  Switch.prototype.realLookup = function (toks, release) {
     var C = corpus(); if (!C || this.ctx().ctx === "vsf") return null;
-    var best = null, ctxs = this.realCtxs(toks);
+    var best = null, ctxs = this.realCtxs(toks), rel = release || this.release;
     for (var k = 0; k < ctxs.length; k++) {
-      if (C.roots[ctxs[k]] === undefined) continue;
-      var r = walkReal(C.roots[ctxs[k]], toks, 0);
+      var bit = relBit(C, rel, ctxs[k]);
+      if (C.roots[ctxs[k]] === undefined || !bit) continue;
+      var r = walkReal(C.roots[ctxs[k]], toks, 0, bit);
       if (r.state === "full") return r;
       if (better(r, best)) best = r;
     }
     return best;
+  };
+  function realError(r, toks) {
+    if (r.state === "partial") return "% Command incomplete.";
+    if (r.state === "ambiguous") return "% Ambiguous command.";
+    return "Invalid input: " + toks[Math.min(r.at, toks.length - 1)];
+  }
+  Switch.prototype.releaseGate = function (toks) {
+    var C = corpus(); if (!C || this.applying || this.ctx().ctx === "vsf") return "";
+    var newest = C.releases[C.releases.length - 1]; if (this.release === newest) return "";
+    var now = this.realLookup(toks, newest); if (!now || now.state !== "full") return "";
+    var then = this.realLookup(toks); if (!then || then.state === "full") return "";
+    var from = C.releases.indexOf(this.release), since = newest;
+    for (var i = from + 1; i < C.releases.length; i++) { var r = this.realLookup(toks, C.releases[i]); if (r && r.state === "full") { since = C.releases[i]; break; } }
+    return realError(then, toks) + "\n(sandbox: " + this.release + " does not take this line; the syntax arrived in " + since + ".)";
   };
   // real next words for "?": keywords plus placeholder classes, and <cr> when the line is already complete
   Switch.prototype.realNext = function (toks, partialTok) {
     var C = corpus(), out = {}; if (!C || this.ctx().ctx === "vsf") return out;
     var self = this, pt = (partialTok || "").toLowerCase();
     this.realCtxs(toks.length ? toks : [partialTok || ""]).forEach(function (ctx) {
-      if (C.roots[ctx] === undefined) return;
-      reachReal(C.roots[ctx], toks, 0, []).forEach(function (ni) {
+      var bit = relBit(C, self.release, ctx);
+      if (C.roots[ctx] === undefined || !bit) return;
+      reachReal(C.roots[ctx], toks, 0, [], bit).forEach(function (ni) {
         var n = C.nodes[ni];
-        if (n.e && !pt) out["<cr>"] = "cr";
-        n.keys.forEach(function (k) { if (k.indexOf(pt) === 0) out[k] = "k"; });
-        n.w.forEach(function (w) { if (!pt || phOk(w[0], partialTok)) out[PH_NAME[w[0]]] = "w"; });
+        if ((n.e & bit) && !pt) out["<cr>"] = "cr";
+        n.keys.forEach(function (k) { if ((n.k[k][1] & bit) && k.indexOf(pt) === 0) out[k] = "k"; });
+        n.w.forEach(function (w) { if ((w[2] & bit) && (!pt || phOk(w[0], partialTok))) out[PH_NAME[w[0]]] = "w"; });
       });
     });
     return out;
@@ -719,7 +783,13 @@
   cmd("*", "checkpoint rollback <WORD>", function (a) {
     var cfg = a[2] === "startup-config" ? (this.startupKeys || this.startup) : (this.checkpoints.filter(function (c) { return c.name === a[2]; })[0] || {}).config;
     if (!cfg) return "Checkpoint " + a[2] + " doesn't exist";
-    var lines = cfg.split("\n").filter(function (l) { return l && l[0] !== "!" && !/^Current configuration|^user admin|^https-server|^ssh server|^interface mgmt|^    ip dhcp|^aaa group server radius radius$/.test(l); }).map(function (l) { return l.trim().replace(/ priority \d+$/, ""); });
+    // the built-in `radius` group is the box's own and its lines go with it
+    var skip = false, lines = cfg.split("\n").filter(function (l) {
+      if (/^aaa group server radius radius$/.test(l)) { skip = true; return false; }
+      if (skip && /^\s/.test(l)) return false;
+      skip = false;
+      return l && l[0] !== "!" && !/^Current configuration|^user admin|^https-server|^ssh server|^interface mgmt|^    ip dhcp/.test(l);
+    }).map(function (l) { return l.trim(); });
     // a rollback replaces the configuration, not the checkpoint store or what is plugged in
     var devs = this.devices, cps = this.checkpoints; this.reset(); this.devices = devs; this.checkpoints = cps; this.apply(lines); this.reauthAll();
     this.stack = [{ ctx: "exec" }];
@@ -906,8 +976,20 @@
   cmd("svi", "no ip ospf", function () { this.svis[this.ctx().id].ospf = null; });
 
   // ── server group, role, vsf, ospf ───────────────────────────────────────
-  cmd("sg", "server <A.B.C.D>", function (a) { var g = this.groups[this.ctx().id]; if (!this.radius.some(function (r) { return r.host === a[1]; })) return "RADIUS server " + a[1] + " is not configured. Add it with `radius-server host " + a[1] + " key plaintext <key>` first."; if (g.servers.indexOf(a[1]) < 0) g.servers.push(a[1]); this.reauthAll(); });
-  cmd("sg", "no server <A.B.C.D>", function (a) { var g = this.groups[this.ctx().id]; g.servers = g.servers.filter(function (s) { return s !== a[2]; }); this.reauthAll(); });
+  // A server joins the group at the next priority unless one is given (10.16 and later take `priority`);
+  // the group asks them in priority order.
+  Switch.prototype.addGroupServer = function (host, prio) {
+    var g = this.groups[this.ctx().id];
+    if (!this.radius.some(function (r) { return r.host === host; })) return "RADIUS server " + host + " is not configured. Add it with `radius-server host " + host + " key plaintext <key>` first.";
+    g.prio = g.prio || {}; g.explicit = g.explicit || {};
+    if (g.servers.indexOf(host) < 0) g.servers.push(host);
+    if (prio) { g.prio[host] = prio; g.explicit[host] = true; } else if (!g.prio[host]) g.prio[host] = g.servers.length;
+    g.servers.sort(function (x, y) { return (g.prio[x] || 99999) - (g.prio[y] || 99999); });
+    this.reauthAll();
+  };
+  cmd("sg", "server <A.B.C.D>", function (a) { return this.addGroupServer(a[1], 0); });
+  cmd("sg", "server <A.B.C.D> priority <1-65535>", function (a) { return this.addGroupServer(a[1], +a[3]); });
+  cmd("sg", "no server <A.B.C.D>", function (a) { var g = this.groups[this.ctx().id]; g.servers = g.servers.filter(function (s) { return s !== a[2]; }); if (g.prio) delete g.prio[a[2]]; this.reauthAll(); });
   cmd("role", "vlan access <1-4094>", function (a) { var v = +a[2]; if (!this.vlans[v]) return "VLAN " + v + " does not exist. Create it first with `vlan " + v + "`."; this.pa.roles[this.ctx().id].vlan = v; this.reauthAll(); });
   cmd("role", "no vlan access", function () { this.pa.roles[this.ctx().id].vlan = 0; this.reauthAll(); });
   cmd("role", "description <LINE>", function (a) { this.pa.roles[this.ctx().id].desc = a[1]; });
@@ -1256,8 +1338,13 @@
     else if (err) o.push(" State information: " + err);
     else if (i.shutdown) o.push(" State information: Administratively down");
     else if (!up) o.push(" State information: " + (i.copper ? "Waiting for link" : "No XCVR installed"));
-    o.push(" Link state: " + (up ? "up" : "down"), " Link transitions: 0", " Description: " + (i.desc || ""), " Persona: ", " Hardware: Ethernet, MAC Address: 00:00:5e:00:53:" + pad((portKey(n) % 256).toString(16), 2, true).replace(/ /g, "0") + " ",
-      " Hardware port: " + n.split("/")[2] + " ", " MTU " + i.mtu + " ", " Type --", " Full-duplex ", " qos trust none", " Speed " + (up ? portSpeed(i) : 0) + " Mb/s ", " Auto-negotiation is off", " Flow-control: off ", " Error-control: off ", " MDI mode: none ");
+    // 10.15 says how long the link has been up; 10.17 added the Hardware port line (checked on 10.15, 10.16, 10.17 and 10.18)
+    var since = new Date(this.boot), mins = Math.max(1, Math.floor((this.now() - this.boot) / 60000));
+    var linkLine = up && !this.atLeast("10.16") ? "up for " + mins + " minute" + (mins > 1 ? "s" : "") + " (since " + ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][since.getUTCDay()] + " " +
+      ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][since.getUTCMonth()] + " " + pad(since.getUTCDate(), 2, true) + " " + tsClock(since.getTime()) + " UTC " + since.getUTCFullYear() + ")" : (up ? "up" : "down");
+    o.push(" Link state: " + linkLine, " Link transitions: 0", " Description: " + (i.desc || ""), " Persona: ", " Hardware: Ethernet, MAC Address: 00:00:5e:00:53:" + pad((portKey(n) % 256).toString(16), 2, true).replace(/ /g, "0") + " ");
+    if (this.atLeast("10.17")) o.push(" Hardware port: " + n.split("/")[2] + " ");
+    o.push(" MTU " + i.mtu + " ", " Type --", " Full-duplex ", " qos trust none", " Speed " + (up ? portSpeed(i) : 0) + " Mb/s ", " Auto-negotiation is off", " Flow-control: off ", " Error-control: off ", " MDI mode: none ");
     if (i.lag) { var lg = this.lags[i.lag]; o = o.concat(vlanLines(lg)); } else if (!i.routing) o = o.concat(vlanLines(i));
     o.push(" Rate collection interval: 300 seconds");
     o = o.concat(statTables(up, this.tick));
@@ -1288,11 +1375,10 @@
     var st = l.lacp === "off" ? "" : (l.lacp === "active" ? "A" : "P") + "LF" + (active ? "NCD" : "OE");
     var pst = active ? ((d && d.lacp && d.lacp.mode === "passive") ? "P" : "A") + "LFNCD" : (up ? "PLFOEX" : "");
     var row = function (label, x, y) { return pad(label, 19) + "| " + pad(x, 19) + "| " + pad(y, 19); };
-    return ["", "State abbreviations :", "A - Active        P - Passive      F - Aggregable I - Individual", "S - Short-timeout L - Long-timeout N - InSync     O - OutofSync", "C - Collecting    D - Distributing ",
-      "X - State m/c expired              E - Default neighbor state", "", "IE - LACP Fallback mode is active", "", "", "Aggregate-name : lag" + id, "-------------------------------------------------",
+    return this.lacpLegend().concat(["", "Aggregate-name : lag" + id, "-------------------------------------------------",
       "                       Actor             Partner", "-------------------------------------------------", row("Port-id", up ? portKey(n) % 1000 : "", active ? portKey(n) % 1000 : 0),
       row("Port-priority", up ? 1 : "", active ? 1 : 0), row("Key", id, active ? id : 0), row("State", st, pst), row("System-ID", "00:00:5e:00:53:00", active && d && d.lacp ? (d.lacp.sysid || "") : "00:00:00:00:00:00"),
-      row("System-priority", 65534, active ? 65534 : 0), ""].join("\n");
+      row("System-priority", 65534, active ? 65534 : 0), ""]).join("\n");
   });
   Switch.prototype.macRows = function () {
     var self = this, rows = [];
@@ -1364,9 +1450,13 @@
       });
     });
     var rule = pad("", 82).replace(/ /g, "-");
-    return ["", "State abbreviations :", "A - Active        P - Passive      F - Aggregable I - Individual", "S - Short-timeout L - Long-timeout N - InSync     O - OutofSync", "C - Collecting    D - Distributing ", "X - State m/c expired              E - Default neighbor state", "", "IE - LACP Fallback mode is active", "",
-      "Actor details of all interfaces:", rule, "Intf       Aggr       Port  Port  State   System-ID         System Aggr Forwarding", "           Name       Id    Pri                             Pri    Key  State     ", rule].concat(actor).concat(["", "", "Partner details of all interfaces:", rule, "Intf       Aggr       Port  Port  State   System-ID         System Aggr           ", "           Name       Id    Pri                             Pri    Key            ", rule]).concat(partner).join("\n");
+    return this.lacpLegend().concat(["Actor details of all interfaces:", rule, "Intf       Aggr       Port  Port  State   System-ID         System Aggr Forwarding", "           Name       Id    Pri                             Pri    Key  State     ", rule].concat(actor).concat(["", "", "Partner details of all interfaces:", rule, "Intf       Aggr       Port  Port  State   System-ID         System Aggr           ", "           Name       Id    Pri                             Pri    Key            ", rule]).concat(partner)).join("\n");
   });
+  // the state legend both LACP views open with; 10.18 added the fallback line (10.17.1030 has none)
+  Switch.prototype.lacpLegend = function () {
+    return ["", "State abbreviations :", "A - Active        P - Passive      F - Aggregable I - Individual", "S - Short-timeout L - Long-timeout N - InSync     O - OutofSync", "C - Collecting    D - Distributing ",
+      "X - State m/c expired              E - Default neighbor state", ""].concat(this.atLeast("10.18") ? ["IE - LACP Fallback mode is active", ""] : []);
+  };
   cmd("*", "show spanning-tree", function () { return this.showStp(); });
   Switch.prototype.showStp = function () {
     var self = this;
@@ -1416,7 +1506,8 @@
     return ["OSPF Process ID " + n[0].proc + " VRF default", "", "Total Number of Neighbors : " + n.filter(function (x) { return x.state === "FULL"; }).length, "", pad("Neighbor ID", 16) + pad("Priority", 10) + pad("State", 26) + pad("Nbr Address", 18) + "Interface", pad("", 84).replace(/ /g, "-")].concat(rows).join("\n");
   });
   cmd("*", "show ip ospf interface", function () {
-    var self = this, o = ["Codes: DR - Designated router  BDR - Backup Designated router", "State: P2P - Point-to-point  P2MP - Point-to-multipoint"];
+    // the State legend arrived in 10.18 with point-to-multipoint {dynamic}; 10.17.1030 prints the Codes line alone
+    var self = this, o = ["Codes: DR - Designated router  BDR - Backup Designated router"].concat(this.atLeast("10.18") ? ["State: P2P - Point-to-point  P2MP - Point-to-multipoint"] : []);
     function block(name, up, proc, area, ip, passive, nbr) {
       o.push("Interface " + name + " is " + (up ? "up, line protocol is up" : "down, line protocol is down"), "--------------------------------------------",
         "VRF                 : default                         Process             : " + proc, "IP Address          : " + pad(ip || "", 32) + "Area                : " + area,
@@ -1487,7 +1578,7 @@
   });
   cmd("*", "show aaa server-groups", function () {
     var self = this, rows = [];
-    Object.keys(this.groups).forEach(function (g) { self.groups[g].servers.forEach(function (sv, i) { rows.push(pad(g, 32) + "| " + pad(sv, 45) + "| " + pad("", 5) + "| " + pad("1812", 5) + "| " + pad("default", 32) + "| " + (i + 1)); rows.push(RS_RULE); }); });
+    Object.keys(this.groups).forEach(function (g) { var gp = self.groups[g].prio || {}; self.groups[g].servers.forEach(function (sv, i) { rows.push(pad(g, 32) + "| " + pad(sv, 45) + "| " + pad("", 5) + "| " + pad("1812", 5) + "| " + pad("default", 32) + "| " + (gp[sv] || (i + 1))); rows.push(RS_RULE); }); });
     this.radius.forEach(function (r, i) { rows.push(pad("radius", 32) + "| " + pad(r.host, 45) + "| " + pad("", 5) + "| " + pad("1812", 5) + "| " + pad("default", 32) + "| " + (i + 1) + "       "); rows.push(RS_RULE); });
     return ["******* AAA Mechanism TACACS+ *******", RS_RULE, "GROUP NAME                      | SERVER NAME                                  | PORT | VRF                             | PRIORITY", RS_RULE, "******* AAA Mechanism RADIUS *******", RS_RULE, "GROUP NAME                      | SERVER NAME                                  | TLS  | PORT | VRF                             | PRIORITY", RS_RULE].concat(rows).join("\n");
   });
@@ -1619,7 +1710,17 @@
     return rows.length ? table(["Id", "Device", "Port", "Cable", "Auth"], rows) : "This lab has no devices.";
   });
   cmd("*", "sim reset", function () { return "__RESET__"; });
-  cmd("*", "sim help", function () { return "sim commands are the sandbox talking, not the switch:\n  sim connect <id>       plug a device from the Devices panel into its port\n  sim disconnect <id>    unplug it\n  sim coa <id> role <r>  have the fake ClearPass send a change of authorization\n  sim status             what is plugged in and how it authenticated\n  sim reset              put the lab back to its starting state\nEverything else you type goes to the modelled switch."; });
+  cmd("*", "sim release", function () {
+    return "This switch runs " + this.release + " (" + this.version + ").\nReleases the sandbox knows: " + releases().join(", ") + ".\n" +
+      "sim release <x> switches. The syntax follows that release's command set;\nthe output layouts are 10.18's except where a release is known to differ.";
+  });
+  cmd("*", "sim release <WORD>", function (a) {
+    var want = a[2], rels = releases();
+    if (rels.indexOf(want) < 0) return "The sandbox knows " + rels.join(", ") + ". Pick one of those.";
+    this.setRelease(want);
+    return "Now running " + this.release + " (" + this.version + ").\nThe configuration stays as it is; new lines are checked against " + this.release + "'s syntax.";
+  });
+  cmd("*", "sim help", function () { return "sim commands are the sandbox talking, not the switch:\n  sim connect <id>       plug a device from the Devices panel into its port\n  sim disconnect <id>    unplug it\n  sim coa <id> role <r>  have the fake ClearPass send a change of authorization\n  sim status             what is plugged in and how it authenticated\n  sim release [<x>]      which AOS-CX release the syntax follows, or switch it\n  sim reset              put the lab back to its starting state\nEverything else you type goes to the modelled switch."; });
 
   // ── lesson checks ───────────────────────────────────────────────────────
   Switch.prototype.check = function () {
@@ -1652,6 +1753,7 @@
   // ── factory ─────────────────────────────────────────────────────────────
   return {
     MODELS: MODELS, VERSION: VERSION,
+    releases: function () { return releases(); },
     create: function (lesson, saved) {
       var sw = new Switch(lesson, saved);
       return {

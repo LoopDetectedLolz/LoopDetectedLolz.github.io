@@ -9,6 +9,9 @@ body.acad .cxsim{--cx-accent:var(--orange);--cx-accent-soft:rgba(245,165,36,0.16
 .cx-head .eyebrow{color:var(--cx-accent)}
 .cx-head b{font-size:17px;letter-spacing:-0.01em}
 .cx-head .meta{margin-left:auto}
+.cx-rel{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font:12px var(--mono);color:var(--text-muted)}
+.cx-head .meta + .cx-rel{margin-left:0}
+.cx-rel select{font:12px var(--mono);color:var(--text);background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:var(--r-pill);min-height:38px;padding:0 10px;cursor:pointer}
 .cx-body{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:0}
 .cx-side{border-left:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
 .cx-term{position:relative;min-width:0;background:rgba(3,10,16,0.72);font:13px/1.5 var(--mono);color:var(--text);min-height:380px;max-height:520px;display:flex;flex-direction:column;cursor:text}
@@ -137,6 +140,16 @@ body.acad .cx-line .pr{color:#ffd28a}
     head.appendChild(el("span", "eyebrow", "CX Sandbox"));
     head.appendChild(el("b", "", lesson.title || "Try it on a modelled switch"));
     if (lesson.track) head.appendChild(el("span", "meta", lesson.track + (lesson.number ? " · lab " + lesson.number : "")));
+    // the release the syntax follows; picking one runs `sim release <x>` so the change shows in the terminal
+    var rels = CXSim.releases ? CXSim.releases() : [], relSel = null;
+    if (rels.length > 1) {
+      var relBox = el("label", "cx-rel", "AOS-CX");
+      relSel = el("select"); relSel.setAttribute("aria-label", "AOS-CX release the syntax follows");
+      rels.slice().reverse().forEach(function (r) { var o = el("option", "", r); o.value = r; relSel.appendChild(o); });
+      relSel.value = sim.sw.release;
+      relSel.addEventListener("change", function () { exec("sim release " + relSel.value); inp.focus(); });
+      relBox.appendChild(relSel); head.appendChild(relBox);
+    }
     root.appendChild(head);
 
     var body = el("div", "cx-body"), term = el("div", "cx-term"), out = el("pre", "cx-out"), line = el("div", "cx-line");
@@ -205,10 +218,12 @@ body.acad .cx-line .pr{color:#ffd28a}
       if (kind) track(lesson.id, "err", { cmd: cmd.trim().slice(0, 150), err: kind });
       if (/^sim connect /.test(cmd.trim())) track(lesson.id, "connect", { cmd: cmd.trim().split(/\s+/)[2] || "" });
       write(r.out, /^sim /.test(cmd.trim()) ? "sys" : classify(r.out));
+      if (relSel) relSel.value = sim.sw.release;
       refreshPrompt(); renderDevices(); if (checks.childNodes.length) renderChecks(); persist();
     }
     function reset() {
-      track(lesson.id, "reset"); store(skey, null); saved = null; boot(false); out.innerHTML = ""; history = []; hi = 0; hintN = 0; hintBox.innerHTML = ""; checks.innerHTML = ""; score.textContent = "";
+      var keepRel = sim.sw.release;   // the release is the reader's choice, not part of the lab
+      track(lesson.id, "reset"); store(skey, null); saved = null; boot(false); sim.sw.setRelease(keepRel); out.innerHTML = ""; history = []; hi = 0; hintN = 0; hintBox.innerHTML = ""; checks.innerHTML = ""; score.textContent = "";
       write("Lab reset. " + (lesson.startConfig ? "The starting configuration is back." : "The switch is back to its factory state."), "sys");
       refreshPrompt(); renderDevices(); persist();
     }

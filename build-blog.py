@@ -130,7 +130,7 @@ def cxsim(html):
 def cxsim_block():
     engine = open(os.path.join(ROOT, "theme", "cxsim", "engine.js"), encoding="utf-8").read()
     # the real 10.18 command set (cxcorpus.py), loaded before the engine so an unmodelled command gets the box's answer
-    cpath = os.path.join(ROOT, "theme", "cxsim", "corpus", "10.18.js")
+    cpath = os.path.join(ROOT, "theme", "cxsim", "corpus", "aoscx.js")
     corpus = "<script>%s</script>" % open(cpath, encoding="utf-8").read().replace("</", "<\\/") if os.path.exists(cpath) else ""
     return "%s<script>%s</script>%s" % (corpus, engine, widget("cxsim").replace("__SBAPI__", E(SANDBOX_API.rstrip("/"))))
 

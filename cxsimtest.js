@@ -204,6 +204,55 @@ has(cc.help("lldp "), "Real ", "? under a real prefix merges the box's words");
 cc.exec("end");
 eq(cc.exec("show aaa authentication port-access").out, "% Command incomplete.", "incomplete when the box wants more");
 
+// ── releases: syntax per release from the merged corpus, layouts where a release differs ─────
+section = "release";
+eq(CX.releases().join(" "), "10.15 10.16 10.17 10.18", "four releases harvested");
+var rv = CX.create(lesson("sandbox"));
+eq(rv.sw.release, "10.18", "newest by default");
+has(rv.exec("sim release").out, "10.15, 10.16, 10.17, 10.18", "sim release lists them");
+has(rv.exec("sim release 10.15").out, "ML.10.15.1060", "switching says what it runs");
+has(rv.exec("show version").out, "ML.10.15.1060", "show version follows");
+has(rv.exec("sim release 9.99").out, "Pick one of those", "unknown release refused");
+run(rv, ["conf t", "radius-server host 192.0.2.10 key plaintext cppm-lab-key", "aaa group server radius CP"]);
+var pr15 = rv.exec("server 192.0.2.10 priority 1").out;
+has(pr15, "Invalid input: priority", "10.15 has no server priority");
+has(pr15, "the syntax arrived in 10.16", "and the note says when it came");
+eq(rv.exec("server 192.0.2.10").out, "", "plain server works in 10.15");
+run(rv, ["end"]);
+ok(/aaa group server radius CP\n    server 192\.0\.2\.10\n/.test(rv.exec("show running-config").out), "10.15 prints the server without priority");
+ok(rv.exec("show running-config").out.indexOf("aaa group server radius radius") < 0, "10.15 does not print the built-in radius group");
+rv.exec("sim release 10.16");
+has(rv.exec("show running-config").out, "    server 192.0.2.10 priority 1\n!\naaa group server radius radius", "10.16 prints priority and the built-in group");
+run(rv, ["conf t", "interface 1/1/1"]);
+eq(rv.exec("aaa authentication port-access lldp-loop-guard enable").out, "Invalid input: lldp-loop-guard", "lldp-loop-guard is not in 10.16");
+rv.exec("sim release 10.17");
+has(rv.exec("aaa authentication port-access lldp-loop-guard enable").out, "not used in this scenario", "it is in 10.17");
+eq(rv.exec("lldp med force-send").out, "Invalid input: force-send", "lldp med force-send is not in 10.17");
+rv.exec("sim release 10.18");
+has(rv.exec("lldp med force-send").out, "not used in this scenario", "it is in 10.18");
+rv.exec("end");
+var rl = CX.create(lesson("nac-03-mac-auth")); rl.connect("printer");
+rl.exec("sim release 10.15");
+has(rl.exec("show interface 1/1/5").out, " Link state: up for ", "10.15 says how long the link has been up");
+ok(rl.exec("show interface 1/1/5").out.indexOf("Hardware port") < 0, "no Hardware port line before 10.17");
+rl.exec("sim release 10.17");
+has(rl.exec("show interface 1/1/5").out, " Link state: up\n", "10.16 and later just say up");
+has(rl.exec("show interface 1/1/5").out, " Hardware port: 5 ", "10.17 added Hardware port");
+var rs = CX.create(lesson("sandbox")); rs.exec("sim release 10.16"); var saved16 = rs.save();
+eq(CX.create(lesson("sandbox"), saved16).sw.release, "10.16", "save and load keep the release");
+// the labs still solve in every release: the gate only refuses what that release lacks
+CX.releases().forEach(function (rel) {
+  var l2r = CX.create(lesson("l2-01-uplink")); l2r.exec("sim release " + rel);
+  run(l2r, ["conf t", "interface lag 1", "no shutdown", "no routing", "vlan trunk allowed 10,20,30", "lacp mode active", "interface 1/1/13-1/1/14", "lag 1", "spanning-tree", "interface 1/1/1-1/1/12", "spanning-tree port-type admin-edge", "spanning-tree bpdu-guard", "end"]);
+  ["core-01", "desk-switch", "printer", "laptop", "phone"].forEach(function (d) { l2r.connect(d); });
+  allPass(l2r, "L2 lab solves on " + rel);
+  var legend = l2r.exec("show lacp interfaces").out;
+  ok((legend.indexOf("IE - LACP Fallback mode is active") >= 0) === (rel === "10.18"), "LACP fallback legend only on 10.18 (" + rel + ")");
+  var n3 = CX.create(lesson("nac-03-mac-auth")); n3.exec("sim release " + rel); n3.connect("printer");
+  run(n3, ["conf t", "aaa authentication port-access mac-auth", "radius server-group CLEARPASS", "enable", "exit", "interface 1/1/5", "aaa authentication port-access mac-auth", "enable", "exit", "exit", "radius-server host 192.0.2.10 key plaintext cppm-lab-key", "port-access role PRINTERS", "vlan access 20", "end"]);
+  allPass(n3, "lab 3 solves on " + rel);
+});
+
 // ── running config round trip ─────────────────────────────────────────────
 section = "roundtrip";
 run(s, ["conf t", "interface lag 1", "no routing", "vlan trunk allowed 10", "lacp mode active", "interface 1/1/13", "lag 1", "interface 1/1/5", "description printer port", "aaa authentication port-access mac-auth", "enable", "exit", "aaa authentication port-access client-limit 2", "spanning-tree port-type admin-edge", "spanning-tree bpdu-guard", "end"]);
