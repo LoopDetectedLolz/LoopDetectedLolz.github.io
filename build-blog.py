@@ -129,7 +129,10 @@ def cxsim(html):
     return CXSIM_RE.sub(one, html)
 def cxsim_block():
     engine = open(os.path.join(ROOT, "theme", "cxsim", "engine.js"), encoding="utf-8").read()
-    return "<script>%s</script>%s" % (engine, widget("cxsim").replace("__SBAPI__", E(SANDBOX_API.rstrip("/"))))
+    # the real 10.18 command set (cxcorpus.py), loaded before the engine so an unmodelled command gets the box's answer
+    cpath = os.path.join(ROOT, "theme", "cxsim", "corpus", "10.18.js")
+    corpus = "<script>%s</script>" % open(cpath, encoding="utf-8").read().replace("</", "<\\/") if os.path.exists(cpath) else ""
+    return "%s<script>%s</script>%s" % (corpus, engine, widget("cxsim").replace("__SBAPI__", E(SANDBOX_API.rstrip("/"))))
 
 def parse_post(path):
     raw = open(path, encoding="utf-8").read()
@@ -495,7 +498,7 @@ sb += f'''
 <section class="sim-intro">
   <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
   <h1 class="h-hero">A switch you can type on</h1>
-  <p class="lede">A modelled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes were checked line by line against AOS-CX 10.18.1002 running on my own bench on September 25, 2026, the wording where it differs is mine, and anything the lab did not need is not in it.</p>
+  <p class="lede">A modelled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes were checked line by line against AOS-CX 10.18.1002 running on my own bench, last on September 28, 2026, and the wording where it differs is mine. The 10.18 command list sits behind it, so a real command it doesn't model says so, and a line the box would refuse gets the box's own error. Pipes work too: <code>include</code>, <code>exclude</code>, <code>begin</code> and <code>count</code>.</p>
 </section>
 <nav class="sb-picker" aria-label="Labs">{sb_pills}</nav>
 {sb_labs}

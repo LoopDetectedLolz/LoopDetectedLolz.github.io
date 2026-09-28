@@ -1,0 +1,20 @@
+# Real AOS-CX commands that switch hardware has and the AOS-CX Switch Simulator hides, because its ports are
+# virtual. cxcorpus.py adds these to the harvested command set, by context. Syntax is from HPE's guides:
+#
+#   speed                  AOS-CX 10.13 Fundamentals Guide, 6300/6400, "speed" (config-if). Since 10.09.0001 the
+#                          CLI hides speeds the port cannot do, which on the simulator is all of them.
+#   diag cable-diagnostic  AOS-CX 10.13 Diagnostics and Supportability Guide, 4100i/6000/6100, Manager (#),
+#                          introduced in 10.11. The 10.15 guide for 5420/6200 documents the same TDR test.
+#
+# Only the speeds a 6200 or 6300 access port can take are listed; auto takes up to three.
+
+[if]
+speed (10-full|10-half|100-full|100-half|1000-full|10g|25g)
+speed auto
+speed auto (10m|100m|1g|2.5g|5g|10g)
+speed auto (10m|100m|1g|2.5g|5g|10g) (10m|100m|1g|2.5g|5g|10g)
+speed auto (10m|100m|1g|2.5g|5g|10g) (10m|100m|1g|2.5g|5g|10g) (10m|100m|1g|2.5g|5g|10g)
+no speed
+
+[exec since=10.11]
+diag cable-diagnostic (test|show|clear) IFNAME

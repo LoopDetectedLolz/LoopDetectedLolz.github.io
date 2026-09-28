@@ -60,7 +60,7 @@ body.acad .cx-line .pr{color:#ffd28a}
 .cx-devs button{font:600 12px var(--sans);color:var(--text);background:rgba(255,255,255,0.07);border:1px solid var(--line);border-radius:var(--r-pill);min-height:34px;padding:0 11px;cursor:pointer;white-space:nowrap}
 .cx-devs button:hover{background:rgba(255,255,255,0.12)}
 .cx-foot{display:flex;flex-wrap:wrap;gap:6px 14px;padding:var(--s2) var(--s5);border-top:1px solid var(--line);font-size:12px;color:var(--text-muted)}
-.cx-foot span{white-space:nowrap}
+.cx-foot span{max-width:100%}
 .sb-picker{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s4)}
 .sb-picker .pill{cursor:pointer;font:600 13px var(--sans);background:rgba(255,255,255,0.04);border-color:var(--line);color:var(--text-dim)}
 .sb-picker .pill.on{background:var(--cx-accent-soft,rgba(47,168,224,0.16));border-color:var(--blue);border-bottom-color:var(--blue);color:var(--text);box-shadow:none}
@@ -104,8 +104,9 @@ body.acad .cx-line .pr{color:#ffd28a}
   function errKind(out) {
     if (!out) return "";
     if (/^Invalid input/.test(out)) return "invalid";
-    if (/^Ambiguous/.test(out)) return "ambiguous";
-    if (/^Incomplete/.test(out)) return "incomplete";
+    if (/^% Ambiguous/.test(out)) return "ambiguous";
+    if (/^% Command incomplete/.test(out)) return "incomplete";
+    if (/^Command not supported/.test(out)) return "unsupported";
     if (/^This command is not used/.test(out)) return "scope";
     if (/^Error:/.test(out)) return "crash";
     if (/does not exist|is not defined|is not configured|cannot be|Use `|first\.$|is a LAG member|Port-access needs|Remove port-access|is reserved|Unknown member|must be/.test(out)) return "refused";
@@ -184,7 +185,11 @@ body.acad .cx-line .pr{color:#ffd28a}
       out.scrollTop = out.scrollHeight;
     }
     function echo(cmd) { var s = el("span"); s.appendChild(el("span", "pr", pr.textContent)); s.appendChild(document.createTextNode(cmd + "\n")); out.appendChild(s); out.scrollTop = out.scrollHeight; }
-    function classify(text) { return /^(Invalid input|Ambiguous|Incomplete command|Error:|Interface .* does not exist|VLAN .* does not exist|.* is not defined|.* does not exist)/.test(text) ? "err" : ""; }
+    // the switch refusing a line is red; the sandbox saying a real command is outside the model is its own voice
+    function classify(text) {
+      if (/^This command is not used in this scenario/.test(text)) return "sys";
+      return /^(Invalid input|% Ambiguous|% Command incomplete|Command not supported|Error:|Interface .* does not exist|VLAN .* does not exist|.* is not defined|.* does not exist)/.test(text) ? "err" : "";
+    }
     function persist() {
       var lines = [], n = 0; for (var i = out.childNodes.length - 1; i >= 0 && n < 200; i--, n++) lines.unshift({ t: out.childNodes[i].textContent, c: out.childNodes[i].className || "" });
       store(skey, { sim: sim.save(), lines: lines, history: history.slice(-50), hintN: hintN });
@@ -266,7 +271,7 @@ body.acad .cx-line .pr{color:#ffd28a}
 
     // ── restore ──────────────────────────────────────────────────────────
     if (saved && saved.lines) { saved.lines.forEach(function (l) { var s = el("span", l.c, l.t); out.appendChild(s); }); history = saved.history || []; hi = history.length; hintN = saved.hintN || 0; if (hintN && hintBtn && lesson.hints.length) { var d = el("div", "cx-hint"); d.appendChild(inlineCode(lesson.hints[(hintN - 1) % lesson.hints.length])); hintBox.appendChild(d); } out.scrollTop = out.scrollHeight; write("(picked up where you left off)", "sys"); }
-    else { write((lesson.hostname || "switch") + " (modelled " + (CXSim.MODELS[lesson.model || "6200F-12"] || {}).name + ", " + CXSim.VERSION + ")", "sys"); write("Type ? for what is available here. sim help explains the sandbox commands.", "sys"); }
+    else { write((lesson.hostname || "switch") + " (modelled " + (CXSim.MODELS[lesson.model || "6200F-12"] || {}).name + ", " + (sim.sw && sim.sw.version || CXSim.VERSION) + ")", "sys"); write("Type ? for what is available here. sim help explains the sandbox commands.", "sys"); }
     refreshPrompt(); renderDevices();
     track(lesson.id, "start", { n: saved ? 1 : 0 });
     root._cxsim = { sim: sim, exec: exec, reset: reset };
