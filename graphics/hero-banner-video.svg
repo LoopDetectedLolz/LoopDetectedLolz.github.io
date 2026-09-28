@@ -36,7 +36,7 @@
     <!-- 3: chat bubble late -->
     <rect x="564" y="0" width="256" height="118" rx="6" class="frame"/>
     <rect x="590" y="18" width="150" height="30" rx="10" fill="rgba(255,255,255,0.08)"/><text x="602" y="37" class="t lbl">Can you hear me?</text>
-    <rect x="640" y="60" width="164" height="30" rx="10" fill="rgba(79,189,234,0.18)"/><text x="652" y="79" class="t lbl">Microwave. Watch it.</text>
+    <rect x="640" y="60" width="164" height="30" rx="10" fill="rgba(79,189,234,0.18)"/><text x="652" y="79" class="t lbl">Barely. Warehouse AP?</text>
     <text x="692" y="108" class="t mono" fill="#F5A524" text-anchor="middle">delivered 200 ms late, 1 retransmit</text>
   </g>
 
@@ -47,5 +47,5 @@
     <text x="430" y="0" class="wh">The echo</text><text x="430" y="16" class="mut">phase flip, per-subcarrier fade</text>
     <text x="645" y="0" class="wh">The apps</text><text x="645" y="16" class="mut">UDP loses packets, TCP arrives late</text>
   </g>
-  <text x="30" y="326" class="t mut">Every number in the video is the one the banner computes; the caveats are listed in its explainer.</text>
+  <text x="30" y="326" class="t mut">Recorded 10 September 2026; the note under the video lists what has changed since.</text>
 </svg>
