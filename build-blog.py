@@ -113,6 +113,16 @@ def figures(html):
             '<figcaption>%s</figcaption>' % cap if cap else '')
     return FIG_RE.sub(one, html)
 
+WIDGET_RE = re.compile(r'<p>\{\{widget:\s*([a-z0-9-]+)\s*\}\}</p>')
+def widgets(html):
+    """{{widget: name}} on its own line inlines theme/widgets/<name>.html in the body, for a
+    teaching device that belongs beside a paragraph rather than under the hero."""
+    def one(m):
+        w = widget(m.group(1))
+        if not w: sys.exit("no widget theme/widgets/%s.html" % m.group(1))
+        return w
+    return WIDGET_RE.sub(one, html)
+
 # ── CX Sandbox ───────────────────────────────────────────────────────────────
 # {{cxsim: lesson-id}} (or {{cxsim}} for the free sandbox) on its own line becomes a modelled
 # AOS-CX terminal. The lesson JSON from theme/cxsim/lessons/ is inlined into the div and the
@@ -152,7 +162,7 @@ def parse_post(path):
     meta["tags"] = [t.strip() for t in meta.get("tags", "").split(",") if t.strip()]
     rendered = terminalize(markdown.markdown(body, extensions=["fenced_code", "tables"]))
     meta["cxsim"] = bool(CXSIM_RE.search(rendered))
-    meta["html"] = cxsim(figures(rendered))
+    meta["html"] = cxsim(widgets(figures(rendered)))
     meta["series"] = meta.get("series", "").strip()
     meta["series_order"] = int(meta.get("series_order", "0") or 0)
     meta["interactive"] = meta.get("interactive", "").strip()

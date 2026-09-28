@@ -8,6 +8,14 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
 
 ## What is live on the site
 
+- **Academy lesson 4, Modulation and Data Rates** (2026-09-28): the Be the Radio game
+  (`theme/widgets/betheradio.html`), the constellation noise slider (`constellation.html`, inlined
+  with the new `{{widget: name}}` body hook), the Wi-Fi 7 sidebar, and `mist-rates.py` (one GET
+  against Mist client stats, prints the candidate MCS rows). "Read it backwards" is the sixth tab on
+  Tools. The lab section carries the model's expectations, labelled as such like lesson 2; measured
+  figures still to come. Poster frames for the game not rendered yet. Audit is in the Cowork project
+  (`academy/drafts/lesson-04-audit.md`, 61 items, 91 percent), not in `audit/` on the Mac.
+
 - **The simulator** at `simulator.html`, its own tab between Academy and About, with a
   teaser card on the front page. Antenna menu with six patterns, an aimable antenna and
   a draggable client, Room mode, a Long link scene with Fresnel and earth curvature, and

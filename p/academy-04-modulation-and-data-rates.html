@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Your WPA3 Transition SSID Didn&#x27;t Break the Printers. PMF Did.</title>
-<meta name="description" content="Flip a Personal SSID from WPA2 to WPA2/WPA3 transition and a class of older clients falls off, with the same name and the same passphrase. One bit and a longer AKM list did it, and the fix is a design decision, not a driver hunt.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/pmf-broke-the-printers.html">
+<title>Modulation and Data Rates</title>
+<meta name="description" content="The speed of a Wi-Fi link isn&#x27;t a number, it&#x27;s a row in a table, and the radio picks a row for every transmission. Neither Central nor Mist will tell you which row. This is how to read it backwards from what they do show, then cap it on purpose and measure what it cost.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/academy-04-modulation-and-data-rates.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="Your WPA3 Transition SSID Didn&#x27;t Break the Printers. PMF Did.">
-<meta property="og:description" content="Flip a Personal SSID from WPA2 to WPA2/WPA3 transition and a class of older clients falls off, with the same name and the same passphrase. One bit and a longer AKM list did it, and the fix is a design decision, not a driver hunt.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/pmf-broke-the-printers.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/pmf-broke-the-printers.png">
+<meta property="og:title" content="Modulation and Data Rates">
+<meta property="og:description" content="The speed of a Wi-Fi link isn&#x27;t a number, it&#x27;s a row in a table, and the radio picks a row for every transmission. Neither Central nor Mist will tell you which row. This is how to read it backwards from what they do show, then cap it on purpose and measure what it cost.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/academy-04-modulation-and-data-rates.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/academy-04-modulation-and-data-rates.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Your WPA3 Transition SSID Didn&#x27;t Break the Printers. PMF Did.">
-<meta name="twitter:description" content="Flip a Personal SSID from WPA2 to WPA2/WPA3 transition and a class of older clients falls off, with the same name and the same passphrase. One bit and a longer AKM list did it, and the fix is a design decision, not a driver hunt.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/pmf-broke-the-printers.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-26"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your WPA3 Transition SSID Didn't Break the Printers. PMF Did.", "description": "Flip a Personal SSID from WPA2 to WPA2/WPA3 transition and a class of older clients falls off, with the same name and the same passphrase. One bit and a longer AKM list did it, and the fix is a design decision, not a driver hunt.", "datePublished": "2026-09-26", "image": "https://networkfieldnotes.com/og/pmf-broke-the-printers.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/pmf-broke-the-printers.html", "keywords": "Wireless, WPA3, AOS-10, Security"}</script>
+<meta name="twitter:title" content="Modulation and Data Rates">
+<meta name="twitter:description" content="The speed of a Wi-Fi link isn&#x27;t a number, it&#x27;s a row in a table, and the radio picks a row for every transmission. Neither Central nor Mist will tell you which row. This is how to read it backwards from what they do show, then cap it on purpose and measure what it cost.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-04-modulation-and-data-rates.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-28"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Modulation and Data Rates", "description": "The speed of a Wi-Fi link isn't a number, it's a row in a table, and the radio picks a row for every transmission. Neither Central nor Mist will tell you which row. This is how to read it backwards from what they do show, then cap it on purpose and measure what it cost.", "datePublished": "2026-09-28", "image": "https://networkfieldnotes.com/og/academy-04-modulation-and-data-rates.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-04-modulation-and-data-rates.html", "keywords": "Wireless, Academy, PHY"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -537,7 +537,7 @@ body.acad .callout.origin .eyebrow{color:#ffd28a}
 html.qam-fs,html.qam-fs body{overflow:hidden}
 html.qam-fs .rig{display:none}
 </style></head>
-<body>
+<body class="acad">
 <div class="ground"></div>
 <canvas id="nfn-fx" aria-hidden="true"></canvas>
 <div class="gx-pane" aria-hidden="true"></div>
@@ -545,254 +545,827 @@ html.qam-fs .rig{display:none}
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
   <a class="brand" href="../"><span class="mk"><img src="../logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
-  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill" href="../academy.html">Academy</a><a class="pill" href="../tools.html">Tools</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill on" href="../academy.html">Academy</a><a class="pill" href="../tools.html">Tools</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
   
 </div></div></header>
 <main class="wrap">
 <div class="narrow">
-  <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
+  <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
   <article>
-    <header class="post-head g-hero cat-Wireless" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Sep 26, 2026 &#183; 13 min</span></div>
-      <h1 class="h-hero">Your WPA3 Transition SSID Didn&#x27;t Break the Printers. PMF Did.</h1>
+    <header class="post-head g-hero cat-Academy" data-view="zoom">
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Sep 28, 2026 &#183; 11 min</span></div>
+      <h1 class="h-hero">Modulation and Data Rates</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="The RSN element of a WPA2 SSID before and after WPA2/WPA3 transition mode is enabled: SAE joins PSK in the AKM list, a group management cipher applies and the MFPC bit is set. A four-cell table shows the legal outcomes of the AP's and client's management frame protection bits, plus a fifth outcome where an old driver never parses the element and sends no association request at all." xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTowZGQzMmUzZC03NzczLTRlZTYtODMzZC0zOTRjMzg0NjM2ZjAAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaDScdNu9InJdPIoeTMuEsUsAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDo0ZDdmODgwOC00NmNjLTRmMDMtODA2Mi1mZTY3MTI1Y2IzZTlscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoQYvzb8ao+ifn3U9uQsw32QAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFgg9WkMD300E3nYtG2MQqzyhCJSB8CyU/qGV8WemvSFZSqkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaDZoQqWo+BXaeRPiArrxP+4AAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYIOo7evn1u3olMCAyhNT33JLZC+fnNvTOk/kWZuLJUJh1ZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GQIWZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjBkZDMyZTNkLTc3NzMtNGVlNi04MzNkLTM5NGMzODQ2MzZmMC9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmEwMDJjYjAwLWMzMTAtNDhkNi05NDUyLWMxMzA5NzgyOTg2OHJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCD1aQwPfTQTedi0bYxCrPKEIlIHwLJT+oZXxZ6a9IVlKqJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggP6yzP1Tj3OWP7rD0blqElMSLbs7MiBmwBqBGFkmDaRCiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFgglsdRI3eZzpu97oHXDn9gJC4TyBd9Vc9SWobExjZaTUh0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQE0Wr8hqgVbUY9KidHiNtaOlTNKM93Lf9UstXpsKtNbqlpREeymncxsdZ/FJsBq3ykcazQ5Dqs9vEDYxFrenB14=</c2pa:manifest></metadata>
-  <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
-    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
-    .big{font-size:20px;font-weight:700}
-    .eyebrow{font-size:11px;letter-spacing:2px;font-weight:600}
-    .lane{font-size:10.5px;letter-spacing:2px}
-    .f{font-size:11.5px}
-    .fb{font-size:11.5px;font-weight:700}
-    .cell{font-size:11.5px;font-weight:600}
-    .note{font-size:12px}
-  </style>
-  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8CE05E"/></marker>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 4: Modulation and data rates. Three constellation diagrams, BPSK, 16-QAM and 256-QAM, showing points packing closer together as bits per symbol rise, beside a table of six Wi-Fi 6 MCS rows with modulation, coding rate, data rate at 20 MHz one stream and 80 MHz two streams, and the IEEE minimum receiver sensitivity. Caption: neither Central nor Mist shows the MCS, they show the Mbps, so read the table backwards.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .m  { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #EAF2F6; }
+      .md { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #B0C4CF; }
+      .mh { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.5px; fill: #8BA2AE; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mt { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #5ED2DA; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .grid { stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .pt { fill: #5ED2DA; }
+      .pto { fill: #F5A524; }
+    </style>
   </defs>
 
-  <text x="30" y="34" class="t mono eyebrow" fill="#8CE05E">SAME NAME, SAME PASSPHRASE, DIFFERENT ELEMENT</text>
-  <text x="30" y="64" class="t big" fill="#ffffff">Transition mode rewrites the RSN element. Old drivers have to read it first.</text>
+  <text x="24" y="36" class="eb">LESSON 4: MODULATION AND DATA RATES</text>
+  <text x="24" y="66" class="hl">Speed is a table. The radio picks a row every frame.</text>
 
-  <!-- before -->
-  <text x="30" y="96" class="t mono lane" fill="#8BA2AE">RSN ELEMENT, WPA2-PSK</text>
-  <rect x="30" y="104" width="190" height="126" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
-  <g class="t mono f" fill="#B0C4CF">
-    <text x="44" y="128">pairwise   CCMP</text>
-    <text x="44" y="150">AKM        PSK</text>
-    <text x="44" y="172">grp mgmt   n/a</text>
-    <text x="44" y="202">MFPC 0   MFPR 0</text>
+  <!-- left: constellations -->
+  <rect x="24" y="86" width="256" height="210" rx="8" class="box"/>
+  <text x="40" y="106" class="t">One symbol on one subcarrier</text>
+
+  <!-- BPSK -->
+  <rect x="40" y="118" width="64" height="64" rx="4" class="box"/>
+  <line x1="72" y1="118" x2="72" y2="182" class="grid"/>
+  <line x1="40" y1="150" x2="104" y2="150" class="grid"/>
+  <circle cx="56" cy="150" r="4" class="pt"/>
+  <circle cx="88" cy="150" r="4" class="pt"/>
+  <text x="72" y="200" text-anchor="middle" class="m">BPSK</text>
+  <text x="72" y="214" text-anchor="middle" class="ts">1 bit</text>
+
+  <!-- 16-QAM -->
+  <rect x="120" y="118" width="64" height="64" rx="4" class="box"/>
+  <line x1="152" y1="118" x2="152" y2="182" class="grid"/>
+  <line x1="120" y1="150" x2="184" y2="150" class="grid"/>
+  <g class="pt">
+    <circle cx="128" cy="126" r="2.6"/><circle cx="144" cy="126" r="2.6"/><circle cx="160" cy="126" r="2.6"/><circle cx="176" cy="126" r="2.6"/>
+    <circle cx="128" cy="142" r="2.6"/><circle cx="144" cy="142" r="2.6"/><circle cx="160" cy="142" r="2.6"/><circle cx="176" cy="142" r="2.6"/>
+    <circle cx="128" cy="158" r="2.6"/><circle cx="144" cy="158" r="2.6"/><circle cx="160" cy="158" r="2.6"/><circle cx="176" cy="158" r="2.6"/>
+    <circle cx="128" cy="174" r="2.6"/><circle cx="144" cy="174" r="2.6"/><circle cx="160" cy="174" r="2.6"/><circle cx="176" cy="174" r="2.6"/>
   </g>
-  <line x1="44" y1="184" x2="206" y2="184" stroke="#ffffff" stroke-opacity="0.12"/>
+  <text x="152" y="200" text-anchor="middle" class="m">16-QAM</text>
+  <text x="152" y="214" text-anchor="middle" class="ts">4 bits</text>
 
-  <path d="M226 167 L262 167" stroke="#8CE05E" stroke-width="1.6" fill="none" marker-end="url(#ag)"/>
-
-  <!-- after -->
-  <text x="270" y="96" class="t mono lane" fill="#8BA2AE">WPA2/WPA3 TRANSITION</text>
-  <rect x="270" y="104" width="226" height="126" rx="10" fill="rgba(3,10,16,0.55)" stroke="#4FBDEA" stroke-opacity="0.7"/>
-  <g class="t mono f" fill="#B0C4CF">
-    <text x="284" y="128">pairwise   CCMP</text>
-    <text x="284" y="150">AKM        PSK <tspan fill="#4FBDEA" font-weight="700">+ SAE</tspan></text>
-    <text x="284" y="172">grp mgmt   <tspan fill="#4FBDEA" font-weight="700">BIP-CMAC-128</tspan><tspan fill="#8BA2AE"> (default)</tspan></text>
-    <text x="284" y="202"><tspan fill="#4FBDEA" font-weight="700">MFPC 1</tspan>   MFPR 0</text>
+  <!-- 256-QAM: 16 x 16 grid of tiny points -->
+  <rect x="200" y="118" width="64" height="64" rx="4" class="box"/>
+  <line x1="232" y1="118" x2="232" y2="182" class="grid"/>
+  <line x1="200" y1="150" x2="264" y2="150" class="grid"/>
+  <g class="pto">
+    <circle cx="202" cy="120" r="0.9"/>
+    <circle cx="202" cy="124" r="0.9"/>
+    <circle cx="202" cy="128" r="0.9"/>
+    <circle cx="202" cy="132" r="0.9"/>
+    <circle cx="202" cy="136" r="0.9"/>
+    <circle cx="202" cy="140" r="0.9"/>
+    <circle cx="202" cy="144" r="0.9"/>
+    <circle cx="202" cy="148" r="0.9"/>
+    <circle cx="202" cy="152" r="0.9"/>
+    <circle cx="202" cy="156" r="0.9"/>
+    <circle cx="202" cy="160" r="0.9"/>
+    <circle cx="202" cy="164" r="0.9"/>
+    <circle cx="202" cy="168" r="0.9"/>
+    <circle cx="202" cy="172" r="0.9"/>
+    <circle cx="202" cy="176" r="0.9"/>
+    <circle cx="202" cy="180" r="0.9"/>
+    <circle cx="206" cy="120" r="0.9"/>
+    <circle cx="206" cy="124" r="0.9"/>
+    <circle cx="206" cy="128" r="0.9"/>
+    <circle cx="206" cy="132" r="0.9"/>
+    <circle cx="206" cy="136" r="0.9"/>
+    <circle cx="206" cy="140" r="0.9"/>
+    <circle cx="206" cy="144" r="0.9"/>
+    <circle cx="206" cy="148" r="0.9"/>
+    <circle cx="206" cy="152" r="0.9"/>
+    <circle cx="206" cy="156" r="0.9"/>
+    <circle cx="206" cy="160" r="0.9"/>
+    <circle cx="206" cy="164" r="0.9"/>
+    <circle cx="206" cy="168" r="0.9"/>
+    <circle cx="206" cy="172" r="0.9"/>
+    <circle cx="206" cy="176" r="0.9"/>
+    <circle cx="206" cy="180" r="0.9"/>
+    <circle cx="210" cy="120" r="0.9"/>
+    <circle cx="210" cy="124" r="0.9"/>
+    <circle cx="210" cy="128" r="0.9"/>
+    <circle cx="210" cy="132" r="0.9"/>
+    <circle cx="210" cy="136" r="0.9"/>
+    <circle cx="210" cy="140" r="0.9"/>
+    <circle cx="210" cy="144" r="0.9"/>
+    <circle cx="210" cy="148" r="0.9"/>
+    <circle cx="210" cy="152" r="0.9"/>
+    <circle cx="210" cy="156" r="0.9"/>
+    <circle cx="210" cy="160" r="0.9"/>
+    <circle cx="210" cy="164" r="0.9"/>
+    <circle cx="210" cy="168" r="0.9"/>
+    <circle cx="210" cy="172" r="0.9"/>
+    <circle cx="210" cy="176" r="0.9"/>
+    <circle cx="210" cy="180" r="0.9"/>
+    <circle cx="214" cy="120" r="0.9"/>
+    <circle cx="214" cy="124" r="0.9"/>
+    <circle cx="214" cy="128" r="0.9"/>
+    <circle cx="214" cy="132" r="0.9"/>
+    <circle cx="214" cy="136" r="0.9"/>
+    <circle cx="214" cy="140" r="0.9"/>
+    <circle cx="214" cy="144" r="0.9"/>
+    <circle cx="214" cy="148" r="0.9"/>
+    <circle cx="214" cy="152" r="0.9"/>
+    <circle cx="214" cy="156" r="0.9"/>
+    <circle cx="214" cy="160" r="0.9"/>
+    <circle cx="214" cy="164" r="0.9"/>
+    <circle cx="214" cy="168" r="0.9"/>
+    <circle cx="214" cy="172" r="0.9"/>
+    <circle cx="214" cy="176" r="0.9"/>
+    <circle cx="214" cy="180" r="0.9"/>
+    <circle cx="218" cy="120" r="0.9"/>
+    <circle cx="218" cy="124" r="0.9"/>
+    <circle cx="218" cy="128" r="0.9"/>
+    <circle cx="218" cy="132" r="0.9"/>
+    <circle cx="218" cy="136" r="0.9"/>
+    <circle cx="218" cy="140" r="0.9"/>
+    <circle cx="218" cy="144" r="0.9"/>
+    <circle cx="218" cy="148" r="0.9"/>
+    <circle cx="218" cy="152" r="0.9"/>
+    <circle cx="218" cy="156" r="0.9"/>
+    <circle cx="218" cy="160" r="0.9"/>
+    <circle cx="218" cy="164" r="0.9"/>
+    <circle cx="218" cy="168" r="0.9"/>
+    <circle cx="218" cy="172" r="0.9"/>
+    <circle cx="218" cy="176" r="0.9"/>
+    <circle cx="218" cy="180" r="0.9"/>
+    <circle cx="222" cy="120" r="0.9"/>
+    <circle cx="222" cy="124" r="0.9"/>
+    <circle cx="222" cy="128" r="0.9"/>
+    <circle cx="222" cy="132" r="0.9"/>
+    <circle cx="222" cy="136" r="0.9"/>
+    <circle cx="222" cy="140" r="0.9"/>
+    <circle cx="222" cy="144" r="0.9"/>
+    <circle cx="222" cy="148" r="0.9"/>
+    <circle cx="222" cy="152" r="0.9"/>
+    <circle cx="222" cy="156" r="0.9"/>
+    <circle cx="222" cy="160" r="0.9"/>
+    <circle cx="222" cy="164" r="0.9"/>
+    <circle cx="222" cy="168" r="0.9"/>
+    <circle cx="222" cy="172" r="0.9"/>
+    <circle cx="222" cy="176" r="0.9"/>
+    <circle cx="222" cy="180" r="0.9"/>
+    <circle cx="226" cy="120" r="0.9"/>
+    <circle cx="226" cy="124" r="0.9"/>
+    <circle cx="226" cy="128" r="0.9"/>
+    <circle cx="226" cy="132" r="0.9"/>
+    <circle cx="226" cy="136" r="0.9"/>
+    <circle cx="226" cy="140" r="0.9"/>
+    <circle cx="226" cy="144" r="0.9"/>
+    <circle cx="226" cy="148" r="0.9"/>
+    <circle cx="226" cy="152" r="0.9"/>
+    <circle cx="226" cy="156" r="0.9"/>
+    <circle cx="226" cy="160" r="0.9"/>
+    <circle cx="226" cy="164" r="0.9"/>
+    <circle cx="226" cy="168" r="0.9"/>
+    <circle cx="226" cy="172" r="0.9"/>
+    <circle cx="226" cy="176" r="0.9"/>
+    <circle cx="226" cy="180" r="0.9"/>
+    <circle cx="230" cy="120" r="0.9"/>
+    <circle cx="230" cy="124" r="0.9"/>
+    <circle cx="230" cy="128" r="0.9"/>
+    <circle cx="230" cy="132" r="0.9"/>
+    <circle cx="230" cy="136" r="0.9"/>
+    <circle cx="230" cy="140" r="0.9"/>
+    <circle cx="230" cy="144" r="0.9"/>
+    <circle cx="230" cy="148" r="0.9"/>
+    <circle cx="230" cy="152" r="0.9"/>
+    <circle cx="230" cy="156" r="0.9"/>
+    <circle cx="230" cy="160" r="0.9"/>
+    <circle cx="230" cy="164" r="0.9"/>
+    <circle cx="230" cy="168" r="0.9"/>
+    <circle cx="230" cy="172" r="0.9"/>
+    <circle cx="230" cy="176" r="0.9"/>
+    <circle cx="230" cy="180" r="0.9"/>
+    <circle cx="234" cy="120" r="0.9"/>
+    <circle cx="234" cy="124" r="0.9"/>
+    <circle cx="234" cy="128" r="0.9"/>
+    <circle cx="234" cy="132" r="0.9"/>
+    <circle cx="234" cy="136" r="0.9"/>
+    <circle cx="234" cy="140" r="0.9"/>
+    <circle cx="234" cy="144" r="0.9"/>
+    <circle cx="234" cy="148" r="0.9"/>
+    <circle cx="234" cy="152" r="0.9"/>
+    <circle cx="234" cy="156" r="0.9"/>
+    <circle cx="234" cy="160" r="0.9"/>
+    <circle cx="234" cy="164" r="0.9"/>
+    <circle cx="234" cy="168" r="0.9"/>
+    <circle cx="234" cy="172" r="0.9"/>
+    <circle cx="234" cy="176" r="0.9"/>
+    <circle cx="234" cy="180" r="0.9"/>
+    <circle cx="238" cy="120" r="0.9"/>
+    <circle cx="238" cy="124" r="0.9"/>
+    <circle cx="238" cy="128" r="0.9"/>
+    <circle cx="238" cy="132" r="0.9"/>
+    <circle cx="238" cy="136" r="0.9"/>
+    <circle cx="238" cy="140" r="0.9"/>
+    <circle cx="238" cy="144" r="0.9"/>
+    <circle cx="238" cy="148" r="0.9"/>
+    <circle cx="238" cy="152" r="0.9"/>
+    <circle cx="238" cy="156" r="0.9"/>
+    <circle cx="238" cy="160" r="0.9"/>
+    <circle cx="238" cy="164" r="0.9"/>
+    <circle cx="238" cy="168" r="0.9"/>
+    <circle cx="238" cy="172" r="0.9"/>
+    <circle cx="238" cy="176" r="0.9"/>
+    <circle cx="238" cy="180" r="0.9"/>
+    <circle cx="242" cy="120" r="0.9"/>
+    <circle cx="242" cy="124" r="0.9"/>
+    <circle cx="242" cy="128" r="0.9"/>
+    <circle cx="242" cy="132" r="0.9"/>
+    <circle cx="242" cy="136" r="0.9"/>
+    <circle cx="242" cy="140" r="0.9"/>
+    <circle cx="242" cy="144" r="0.9"/>
+    <circle cx="242" cy="148" r="0.9"/>
+    <circle cx="242" cy="152" r="0.9"/>
+    <circle cx="242" cy="156" r="0.9"/>
+    <circle cx="242" cy="160" r="0.9"/>
+    <circle cx="242" cy="164" r="0.9"/>
+    <circle cx="242" cy="168" r="0.9"/>
+    <circle cx="242" cy="172" r="0.9"/>
+    <circle cx="242" cy="176" r="0.9"/>
+    <circle cx="242" cy="180" r="0.9"/>
+    <circle cx="246" cy="120" r="0.9"/>
+    <circle cx="246" cy="124" r="0.9"/>
+    <circle cx="246" cy="128" r="0.9"/>
+    <circle cx="246" cy="132" r="0.9"/>
+    <circle cx="246" cy="136" r="0.9"/>
+    <circle cx="246" cy="140" r="0.9"/>
+    <circle cx="246" cy="144" r="0.9"/>
+    <circle cx="246" cy="148" r="0.9"/>
+    <circle cx="246" cy="152" r="0.9"/>
+    <circle cx="246" cy="156" r="0.9"/>
+    <circle cx="246" cy="160" r="0.9"/>
+    <circle cx="246" cy="164" r="0.9"/>
+    <circle cx="246" cy="168" r="0.9"/>
+    <circle cx="246" cy="172" r="0.9"/>
+    <circle cx="246" cy="176" r="0.9"/>
+    <circle cx="246" cy="180" r="0.9"/>
+    <circle cx="250" cy="120" r="0.9"/>
+    <circle cx="250" cy="124" r="0.9"/>
+    <circle cx="250" cy="128" r="0.9"/>
+    <circle cx="250" cy="132" r="0.9"/>
+    <circle cx="250" cy="136" r="0.9"/>
+    <circle cx="250" cy="140" r="0.9"/>
+    <circle cx="250" cy="144" r="0.9"/>
+    <circle cx="250" cy="148" r="0.9"/>
+    <circle cx="250" cy="152" r="0.9"/>
+    <circle cx="250" cy="156" r="0.9"/>
+    <circle cx="250" cy="160" r="0.9"/>
+    <circle cx="250" cy="164" r="0.9"/>
+    <circle cx="250" cy="168" r="0.9"/>
+    <circle cx="250" cy="172" r="0.9"/>
+    <circle cx="250" cy="176" r="0.9"/>
+    <circle cx="250" cy="180" r="0.9"/>
+    <circle cx="254" cy="120" r="0.9"/>
+    <circle cx="254" cy="124" r="0.9"/>
+    <circle cx="254" cy="128" r="0.9"/>
+    <circle cx="254" cy="132" r="0.9"/>
+    <circle cx="254" cy="136" r="0.9"/>
+    <circle cx="254" cy="140" r="0.9"/>
+    <circle cx="254" cy="144" r="0.9"/>
+    <circle cx="254" cy="148" r="0.9"/>
+    <circle cx="254" cy="152" r="0.9"/>
+    <circle cx="254" cy="156" r="0.9"/>
+    <circle cx="254" cy="160" r="0.9"/>
+    <circle cx="254" cy="164" r="0.9"/>
+    <circle cx="254" cy="168" r="0.9"/>
+    <circle cx="254" cy="172" r="0.9"/>
+    <circle cx="254" cy="176" r="0.9"/>
+    <circle cx="254" cy="180" r="0.9"/>
+    <circle cx="258" cy="120" r="0.9"/>
+    <circle cx="258" cy="124" r="0.9"/>
+    <circle cx="258" cy="128" r="0.9"/>
+    <circle cx="258" cy="132" r="0.9"/>
+    <circle cx="258" cy="136" r="0.9"/>
+    <circle cx="258" cy="140" r="0.9"/>
+    <circle cx="258" cy="144" r="0.9"/>
+    <circle cx="258" cy="148" r="0.9"/>
+    <circle cx="258" cy="152" r="0.9"/>
+    <circle cx="258" cy="156" r="0.9"/>
+    <circle cx="258" cy="160" r="0.9"/>
+    <circle cx="258" cy="164" r="0.9"/>
+    <circle cx="258" cy="168" r="0.9"/>
+    <circle cx="258" cy="172" r="0.9"/>
+    <circle cx="258" cy="176" r="0.9"/>
+    <circle cx="258" cy="180" r="0.9"/>
+    <circle cx="262" cy="120" r="0.9"/>
+    <circle cx="262" cy="124" r="0.9"/>
+    <circle cx="262" cy="128" r="0.9"/>
+    <circle cx="262" cy="132" r="0.9"/>
+    <circle cx="262" cy="136" r="0.9"/>
+    <circle cx="262" cy="140" r="0.9"/>
+    <circle cx="262" cy="144" r="0.9"/>
+    <circle cx="262" cy="148" r="0.9"/>
+    <circle cx="262" cy="152" r="0.9"/>
+    <circle cx="262" cy="156" r="0.9"/>
+    <circle cx="262" cy="160" r="0.9"/>
+    <circle cx="262" cy="164" r="0.9"/>
+    <circle cx="262" cy="168" r="0.9"/>
+    <circle cx="262" cy="172" r="0.9"/>
+    <circle cx="262" cy="176" r="0.9"/>
+    <circle cx="262" cy="180" r="0.9"/>
   </g>
-  <line x1="284" y1="184" x2="482" y2="184" stroke="#ffffff" stroke-opacity="0.12"/>
-  <text x="30" y="254" class="t note" fill="#B0C4CF">A longer AKM list and one new bit. The passphrase never changed.</text>
+  <text x="232" y="200" text-anchor="middle" class="mo">256-QAM</text>
+  <text x="232" y="214" text-anchor="middle" class="ts">8 bits</text>
 
-  <!-- truth table -->
-  <text x="530" y="96" class="t mono lane" fill="#8BA2AE">WHAT THE TWO BITS ALLOW</text>
-  <text x="640" y="118" class="t f" fill="#8BA2AE" text-anchor="middle">client capable</text>
-  <text x="783" y="118" class="t f" fill="#8BA2AE" text-anchor="middle">client not capable</text>
-  <text x="575" y="151" class="t f" fill="#8BA2AE" text-anchor="end">AP optional</text>
-  <text x="575" y="201" class="t f" fill="#8BA2AE" text-anchor="end">AP required</text>
+  <text x="40" y="240" class="t">More points, packed closer.</text>
+  <text x="40" y="256" class="t">Each rung up buys bits per symbol</text>
+  <text x="40" y="272" class="t">and costs a few dB of signal margin.</text>
 
-  <g class="t cell" text-anchor="middle">
-    <rect x="582" y="128" width="116" height="40" rx="8" fill="#8CE05E"/>
-    <text x="640" y="153" fill="#06202A">PMF on</text>
-    <rect x="716" y="128" width="134" height="40" rx="8" fill="#5ED2DA"/>
-    <text x="783" y="153" fill="#06202A">joins, no PMF</text>
-    <rect x="582" y="178" width="116" height="40" rx="8" fill="#8CE05E"/>
-    <text x="640" y="203" fill="#06202A">PMF on</text>
-    <rect x="716" y="178" width="134" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="#8BA2AE" stroke-dasharray="5 4"/>
-    <text x="783" y="203" fill="#B0C4CF">rejected, status 31</text>
-  </g>
+  <!-- right: MCS table -->
+  <rect x="300" y="86" width="576" height="210" rx="8" class="box"/>
+  <text x="316" y="106" class="mh">MCS</text>
+  <text x="356" y="106" class="mh">MODULATION</text>
+  <text x="456" y="106" class="mh">CODE</text>
+  <text x="586" y="106" text-anchor="end" class="mh">20 MHz 1SS</text>
+  <text x="686" y="106" text-anchor="end" class="mh">80 MHz 2SS</text>
+  <text x="860" y="106" text-anchor="end" class="mh">IEEE MIN, 20 MHz</text>
+  <line x1="312" y1="114" x2="864" y2="114" class="grid"/>
 
-  <!-- fifth outcome -->
-  <rect x="520" y="236" width="350" height="44" rx="9" fill="#F5A524" fill-opacity="0.10" stroke="#F5A524" stroke-width="1.4" stroke-dasharray="6 5"/>
-  <text x="695" y="254" class="t fb" fill="#FFC168" text-anchor="middle">The fifth outcome, not in any table</text>
-  <text x="695" y="271" class="t f" fill="#FFC168" text-anchor="middle">driver gives up on the element, never associates, no log</text>
+  <text x="316" y="136" class="md">0</text>
+  <text x="356" y="136" class="md">BPSK</text>
+  <text x="456" y="136" class="md">1/2</text>
+  <text x="586" y="136" text-anchor="end" class="md">8.6</text>
+  <text x="686" y="136" text-anchor="end" class="md">72.1</text>
+  <text x="860" y="136" text-anchor="end" class="md">-82 dBm</text>
+  <text x="316" y="162" class="md">3</text>
+  <text x="356" y="162" class="md">16-QAM</text>
+  <text x="456" y="162" class="md">1/2</text>
+  <text x="586" y="162" text-anchor="end" class="md">34.4</text>
+  <text x="686" y="162" text-anchor="end" class="md">288.2</text>
+  <text x="860" y="162" text-anchor="end" class="md">-74 dBm</text>
+  <text x="316" y="188" class="md">5</text>
+  <text x="356" y="188" class="md">64-QAM</text>
+  <text x="456" y="188" class="md">2/3</text>
+  <text x="586" y="188" text-anchor="end" class="md">68.8</text>
+  <text x="686" y="188" text-anchor="end" class="md">576.5</text>
+  <text x="860" y="188" text-anchor="end" class="md">-66 dBm</text>
+  <text x="316" y="214" class="mt">7</text>
+  <text x="356" y="214" class="mt">64-QAM</text>
+  <text x="456" y="214" class="mt">5/6</text>
+  <text x="586" y="214" text-anchor="end" class="mt">86.0</text>
+  <text x="686" y="214" text-anchor="end" class="mt">720.6</text>
+  <text x="860" y="214" text-anchor="end" class="mt">-64 dBm</text>
+  <text x="316" y="240" class="md">9</text>
+  <text x="356" y="240" class="md">256-QAM</text>
+  <text x="456" y="240" class="md">5/6</text>
+  <text x="586" y="240" text-anchor="end" class="md">114.7</text>
+  <text x="686" y="240" text-anchor="end" class="md">960.8</text>
+  <text x="860" y="240" text-anchor="end" class="md">-57 dBm</text>
+  <rect x="308" y="251" width="560" height="24" rx="4" fill="rgba(245,165,36,0.10)" stroke="rgba(245,165,36,0.35)" stroke-width="1"/>
+  <text x="316" y="266" class="mo">11</text>
+  <text x="356" y="266" class="mo">1024-QAM</text>
+  <text x="456" y="266" class="mo">5/6</text>
+  <text x="586" y="266" text-anchor="end" class="mo">143.4</text>
+  <text x="686" y="266" text-anchor="end" class="mo">1201</text>
+  <text x="860" y="266" text-anchor="end" class="mo">-52 dBm</text>
+  <text x="316" y="288" class="ts">Mbps at 0.8 us guard interval. Sensitivity is the 802.11ax conformance floor. Real radios beat it.</text>
 
-  <text x="30" y="320" class="t note" fill="#8BA2AE">Optional never rejects a WPA2 client. The old printer module rejects itself, from its side, and your AP has no association to log.</text>
+  <text x="24" y="320" class="cap">Neither Central nor Mist shows the MCS. They show the Mbps. Read the table backwards.</text>
 </svg></div>
-      
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>A 6 GHz readiness change that took the printers in receiving with it</div>
-      <div class="prose"><p>The change request said "enable WPA3 transition on the staff SSID so we're ready for 6 GHz." Same SSID name, same passphrase, nobody touched anything called PMF. By the next morning the label printers in receiving were offline, two handheld scanners wouldn't join, and a conference room TV had decided it had never heard of the network.</p>
-<p>Everyone went looking for a WPA3 problem. There wasn't one. Every one of those clients was still doing WPA2-PSK, exactly as before. What changed was the security element the AP advertises, and the two things that changed in it are the management frame protection bit and the list of ways you're allowed to authenticate. The printer never got as far as either. It read the element, didn't like it, and walked away.</p>
-<h2>What actually changed on the air</h2>
-<p>An SSID advertises how to talk to it in the RSN element of every beacon and probe response. Before the change, that element said: AKM is PSK, pairwise cipher is CCMP, and the RSN capabilities field had both management frame protection bits clear.</p>
-<p>WPA2/WPA3 transition mode is defined by the Wi-Fi Alliance, not by any one vendor, and it changes the element in two places at once. The AKM list grows: SAE alongside PSK at minimum, and the spec says the AP should also offer PSK with SHA-256 and the newer group-dependent-hash flavour of SAE, so a client can see four or more where it used to see one. HPE's own decoder ring for an AOS AP shows PSK and SAE on 2.4 and 5 GHz, and the two 802.11r variants on top if fast roaming is on. And in the capabilities field, MFPC goes to 1 while MFPR stays at 0: protection is capable, not required. That is the "optional" everyone points at and says can't break anything. A group management cipher for broadcast management frames may show up too, though the default is BIP-CMAC-128 and an AP is allowed to leave the field out when that's what it uses.</p>
-<p>So the SSID your printer saw yesterday and the SSID it sees today have the same name and the same passphrase and a different RSN element. The printer has to parse that element before it can decide to associate. That is where the problem is, and the Wi-Fi Alliance says so in its own spec: the whole reason a later revision added a workaround (more on that below) is stations that are expected to have trouble with an RSN element advertising everything the AP has enabled.</p>
-<h2>The two bits</h2>
-<p>Take the pair as a truth table. The AP sets MFPC and MFPR. The client sets its own pair in its association request. For an AP that is optional or required, and a client that is capable or not, there are four outcomes.</p>
-<p>AP required and client capable: PMF negotiated. AP optional and client capable: PMF negotiated, because a capable client on a capable AP uses it. AP optional and client not capable: association proceeds without PMF, which is what "transition" promised. AP required and client not capable: association rejected, status code 31, robust management frame policy violation.</p>
-<p>An optional AP never rejects a WPA2-PSK client on PMF grounds. It does reject one thing: a client that picks SAE and then doesn't negotiate PMF, because the spec says WPA3 and PMF go together. That's rare and it's a WPA3 client's problem. The printers are in a fifth outcome the table doesn't have, and it has nothing to do with the bits themselves.</p>
-<p><strong>The driver chokes on the element.</strong> An embedded Wi-Fi module from a decade ago was written against an RSN element with one AKM and no extra fields. Hand it two or four AKMs and a group management cipher and some of them stop parsing, decide the network isn't one they support, and never send an association request at all. They may still probe, so you might see them scanning, but from the AP's side there is no auth and no association to log. The client simply stopped showing up. The people who maintain hostapd describe these as stations that don't implement RSN element extensibility correctly, which is a polite way of putting it.</p>
-<p><strong>The client claims capable and isn't.</strong> Some older stacks set MFPC in their association request because the driver knows the bit exists, then fail the first thing PMF asks of them. These associate fine, pass the handshake, run for a while, and fall over the first time the AP sends a protected management frame they can't handle. The tickets say "randomly disconnects since the change." This one is field observation, mine and other people's, rather than something I can point you to in a doc, so weight it accordingly.</p>
-<p><strong>The SAE stack is early.</strong> Anything that does try WPA3 needs a working SAE implementation. Early ones exist in firmware nobody will update. On a transition SSID they can fall back to PSK; on a WPA3-only SSID they can't, which is why the WPA3-only SSID should be a separate decision, not the next step.</p>
-<p>None of those three is a bug in WPA3. They are all the same thing: you changed what the client has to understand before it can join, and the client is what it is.</p>
-<h2>What PMF actually protects, and what it doesn't</h2>
-<p>Worth being exact here because the marketing version is "encrypts management frames" and that isn't it.</p>
-<p>PMF protects the robust management frames: deauthentication, disassociation, and the robust action frames (block ack setup, spectrum management, radio measurement and the like). Unicast ones are encrypted with the pairwise key, same as data. Broadcast ones, like a deauth to the whole cell, get an integrity check under BIP using a separate integrity group key, the IGTK, which is handed out in the 4-way handshake alongside the GTK.</p>
-<p>It does not protect probe requests or responses, authentication frames, or the association exchange itself, because there is no key yet when those go by. Beacons are unprotected too unless the AP and client both do beacon protection, an optional addition that arrived with the 802.11-2020 revision, with its own key (the BIGTK) and, on AOS 10, its own release floor. PMF doesn't touch the 4-way handshake either; EAPOL rides in data frames and has its own integrity check. And it does nothing about the channel being jammed. A pen tester who used to knock every client off with a spoofed deauth will find that stops working against the clients that negotiated PMF, that the WPA2 clients on a transition SSID are exactly as exposed as they were last week, and that RF jamming still works on everyone. The report will say so.</p>
-<p>The piece that catches people is what happens when a client with PMF loses its state, comes back, and asks to associate again while the AP still thinks the old session is alive.</p>
-<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 270" role="img" aria-label="Timeline of a protected management frame client reassociating while the access point still holds its old association: association request, status 30 with a comeback time, SA Query request to the old association, the SA Query timeout of about a second, then the second association request succeeds." xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTpkZWFmMjhjMC1jNWMyLTQzNDUtYjE4OC1kZDQ2YzJkMTczMjUAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaKijEJ4pEdxdlF7vafgeLqUAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDo0NTNhOTZmYi0wYzgyLTRmMDMtODFhZS01Mjc1MmU0NGRhNDhscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoSIuZjMB6lbKC2R2F+i81eAAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggRaz5pZXWXCW4/60PndmBvEn4L12+5wczc3RGkLrFytOkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaBrTsvNzDsf4nAmIbOZlzEIAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYILSunXrzPEhjTSYglO1BwJzIZqus2AndaMiyCuMjwLALZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GQG/Zmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOmRlYWYyOGMwLWM1YzItNDM0NS1iMTg4LWRkNDZjMmQxNzMyNS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmZmYWUwYTc1LWY2NzMtNDZiMS05ZDAyLWU0YWMzZDY3OTllMnJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCBFrPmlldZcJbj/rQ+d2YG8SfgvXb7nBzNzdEaQusXK06JjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggo/KReTaLSAhwQ0bzcUelaps47qyZX7bp+WArWclEZhKiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggZVMNrbF2rwpxoJL75gZPpSyJ2b276e3lQc6qtW67Ddh0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQCnErqytMuJbOr6a23Z+2sFPh/ht/JP7g41x5hASlK8o1KF0PouoB+SKr6i5O3O43pFhAwXrccQIY2F4RlDg1N0=</c2pa:manifest></metadata>
-  <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
-    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
-    .hd{font-size:15px;font-weight:700}
-    .lane{font-size:10.5px;letter-spacing:2px}
-    .f{font-size:11.5px}
-    .fb{font-size:11.5px;font-weight:700}
-    .note{font-size:12px}
+      <section class="btr" id="betheradio" data-rise>
+  <style>
+  .btr{--btr-line:rgba(255,255,255,0.12)}
+  .btr-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .btr-head h3{font-size:19px;letter-spacing:-0.02em}
+  .btr-lv{font:11px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--orange)}
+  .btr-score{margin-left:auto;font:12px var(--mono);color:var(--text-muted)}
+  .btr-goal{margin:0 0 16px;font-size:14px;line-height:1.65;color:var(--text-dim)}
+  .btr-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:start}
+  @media (max-width:640px){.btr-grid{grid-template-columns:minmax(0,1fr);gap:16px}}
+  .btr-snr{border:1px solid var(--btr-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:12px 14px;margin-bottom:12px}
+  .btr-snr>span{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+    font:10.5px var(--mono);letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px}
+  .btr-snr>span b{color:var(--teal);font-size:18px;letter-spacing:0;text-transform:none;white-space:nowrap}
+  .btr-meter{height:10px;border-radius:5px;background:rgba(255,255,255,0.07);overflow:hidden;position:relative}
+  .btr-meter i{display:block;height:100%;width:0;background:var(--teal);transition:width 160ms linear}
+  .btr-meter em{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--orange);opacity:0.9}
+  .btr-ladder{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .btr-rung{min-height:46px;padding:5px 8px;border-radius:10px;border:1px solid var(--btr-line);
+    background:rgba(255,255,255,0.05);color:var(--text);cursor:pointer;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:2px}
+  .btr-rung{min-width:0;overflow:hidden}
+  .btr-rung b{font:600 12.5px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btr-rung i{font:10px var(--mono);color:var(--text-muted);font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btr-rung:disabled{opacity:0.35;cursor:default}
+  .btr-rung.hi{border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.12)}
+  .btr-rung.ok{border-color:rgba(140,224,94,0.5)}
+  .btr-rung.bad{border-color:rgba(245,165,36,0.7)}
+  .btr-fixed{margin-top:12px;padding-top:12px;border-top:1px solid var(--btr-line);font:11px/1.9 var(--mono);color:var(--text-muted)}
+  .btr-fixed b{color:var(--text-dim);font-weight:400}
+  .btr-sheet{border:1px solid var(--btr-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:14px 16px;font:12.5px/1.85 var(--mono)}
+  .btr-row{display:flex;gap:10px;align-items:baseline}
+  .btr-row i{font-style:normal;color:var(--text-muted);flex:1 1 auto;min-width:0}
+  .btr-row b{color:var(--text);font-weight:600;flex:0 0 auto;text-align:right;white-space:nowrap}
+  .btr-row.big b{font-size:15px}
+  .btr-rule{border-top:1px solid var(--btr-line);margin:8px 0}
+  .btr-good b{color:var(--green)}
+  .btr-warn b{color:var(--orange)}
+  .btr-log{margin-top:10px;display:flex;gap:3px;height:34px;align-items:flex-end}
+  .btr-log i{flex:1 1 0;min-width:0;background:rgba(255,255,255,0.08);border-radius:2px 2px 0 0;height:8%}
+  .btr-log i.g{background:var(--green)}
+  .btr-log i.o{background:var(--orange)}
+  .btr-say{min-height:46px;font-size:13.5px;line-height:1.65;color:var(--text-dim);margin:16px 0 12px}
+  .btr-say b{color:var(--orange)}
+  .btr-say i{color:var(--green);font-style:normal}
+  .btr-acts{display:flex;gap:9px;flex-wrap:wrap}
+  .btr-btn{min-height:42px;padding:0 15px;border-radius:11px;border:1px solid var(--btr-line);
+    background:rgba(255,255,255,0.06);color:var(--text);font:600 13px var(--sans);cursor:pointer}
+  .btr-btn:disabled{opacity:0.35;cursor:default}
+  .btr-btn.go{border-color:rgba(140,224,94,0.55);background:rgba(140,224,94,0.14);color:#bdf29c}
   </style>
-  <marker id="mg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8CE05E"/></marker>
-  <marker id="mt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#5ED2DA"/></marker>
-  <marker id="mo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8BA2AE"/></marker>
-  </defs>
-  <text x="15" y="26" class="t hd" fill="#ffffff">With PMF the AP has to prove the old session is dead before it lets the new one in.</text>
 
-  <text x="15" y="58" class="t mono lane" fill="#8BA2AE">CLIENT, BACK FROM THE DEAD</text>
-  <line x1="15" y1="66" x2="885" y2="66" stroke="#ffffff" stroke-opacity="0.14"/>
-  <text x="15" y="196" class="t mono lane" fill="#8BA2AE">ACCESS POINT, STILL HOLDING THE OLD ASSOCIATION</text>
-  <line x1="15" y1="204" x2="885" y2="204" stroke="#ffffff" stroke-opacity="0.14"/>
+  <div class="btr-head">
+    <span class="btr-lv" id="btr-lv">Level 1</span>
+    <h3 id="btr-title">Be the Radio</h3>
+    <span class="btr-score" id="btr-score">0 of 3 passed</span>
+  </div>
+  <p class="btr-goal" id="btr-goal"></p>
 
-  <path d="M40 74 L40 178" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#mt)"/>
-  <text x="50" y="92" class="t fb" fill="#5ED2DA">1  association request</text>
-  <text x="50" y="108" class="t f" fill="#B0C4CF">MFPC set, same MAC as the live session</text>
+  <div class="btr-grid">
+    <div>
+      <div class="btr-snr">
+        <span>SNR at the client, this round <b id="btr-snrv">38 dB</b></span>
+        <div class="btr-meter" aria-hidden="true"><i id="btr-snrfill"></i><em id="btr-snrpick" style="left:0"></em></div>
+      </div>
+      <div class="btr-ladder" id="btr-ladder" role="group" aria-label="MCS ladder, pick a rung to send this round"></div>
+      <div class="btr-fixed" id="btr-fixed"></div>
+    </div>
 
-  <path d="M280 178 L280 74" stroke="#8BA2AE" stroke-width="1.6" fill="none" marker-end="url(#mo)"/>
-  <text x="290" y="150" class="t fb" fill="#B0C4CF">2  status 30, try again later</text>
-  <text x="290" y="166" class="t f" fill="#8BA2AE">with an association comeback time</text>
+    <div class="btr-sheet" aria-live="polite">
+      <div class="btr-row"><i>round</i><b id="btr-r-round">1 of 12</b></div>
+      <div class="btr-row"><i>you sent at</i><b id="btr-r-pick">nothing yet</b></div>
+      <div class="btr-row"><i>that rung wants</i><b id="btr-r-need">&nbsp;</b></div>
+      <div class="btr-row" id="btr-r-retry-row"><i>retries</i><b id="btr-r-retry">&nbsp;</b></div>
+      <div class="btr-rule"></div>
+      <div class="btr-row big" id="btr-r-got-row"><i>delivered this round</i><b id="btr-r-got">&nbsp;</b></div>
+      <div class="btr-row big" id="btr-r-avg-row"><i>average so far</i><b id="btr-r-avg">0 Mb/s</b></div>
+      <div class="btr-row"><i>pass mark</i><b id="btr-r-pass">&nbsp;</b></div>
+      <div class="btr-row"><i>best possible</i><b id="btr-r-best">&nbsp;</b></div>
+      <div class="btr-log" id="btr-log" aria-hidden="true"></div>
+    </div>
+  </div>
 
-  <rect x="470" y="80" width="290" height="26" rx="6" fill="#F5A524" fill-opacity="0.12" stroke="#F5A524" stroke-width="1.2"/>
-  <text x="615" y="98" class="t fb" fill="#FFC168" text-anchor="middle">4  SA Query timeout, default 1000 TU</text>
-  <text x="615" y="122" class="t f" fill="#8BA2AE" text-anchor="middle">up to about a second. Sometimes this is the pause you feel.</text>
+  <p class="btr-say" id="btr-say"></p>
+  <div class="btr-acts">
+    <button class="btr-btn" id="btr-cant" type="button">The client can't do that</button>
+    <button class="btr-btn" id="btr-reset" type="button">Reset level</button>
+    <button class="btr-btn" id="btr-next" type="button" disabled>Next level</button>
+  </div>
 
-  <rect x="470" y="214" width="290" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="#8BA2AE" stroke-dasharray="5 4"/>
-  <text x="615" y="235" class="t f" fill="#B0C4CF" text-anchor="middle">3  SA Query request to the old association</text>
-  <path d="M470 231 L432 231" stroke="#8BA2AE" stroke-width="1.4" fill="none" stroke-dasharray="4 4"/>
-  <text x="392" y="235" class="t f" fill="#8BA2AE" text-anchor="middle">...no answer</text>
+  <script>
+  (function () {
+    var root = document.getElementById("betheradio");
+    if (!root) return;
+    var $ = function (s) { return root.querySelector(s); };
 
-  <path d="M780 74 L780 178" stroke="#8CE05E" stroke-width="1.6" fill="none" marker-end="url(#mg)"/>
-  <text x="790" y="92" class="t fb" fill="#8CE05E">5  assoc again</text>
-  <text x="790" y="108" class="t f" fill="#B0C4CF">old one gone,</text><text x="790" y="124" class="t f" fill="#B0C4CF">success</text>
+    /* Same table and the same arithmetic as theme/sim/phy.js, so the rungs here
+       are the rungs in the lesson. HE: 12.8 us symbol plus 0.8 us guard. */
+    var MCS = [["BPSK 1/2",1,1/2],["QPSK 1/2",2,1/2],["QPSK 3/4",2,3/4],["16-QAM 1/2",4,1/2],
+               ["16-QAM 3/4",4,3/4],["64-QAM 2/3",6,2/3],["64-QAM 3/4",6,3/4],["64-QAM 5/6",6,5/6],
+               ["256-QAM 3/4",8,3/4],["256-QAM 5/6",8,5/6],["1024-QAM 3/4",10,3/4],["1024-QAM 5/6",10,5/6]];
+    var NSD = { 20: 234, 40: 468, 80: 980, 160: 1960 }, TSYM = 13.6;
+    /* Typical SNR floors a vendor quotes, the same array phy.js uses for its readout */
+    var SNRMIN = [3, 6, 9, 12, 16, 20, 22, 25, 29, 31, 34, 37];
+    function rate(m, ss, bw) { return NSD[bw] * MCS[m][1] * MCS[m][2] * ss / TSYM; }
+    function fmt(r) { return r >= 1000 ? r.toFixed(0) : r.toFixed(1); }
+    /* Chance a frame at this rung survives this SNR. Three dB of margin and it
+       always gets through; three dB under and nothing does. A retry costs the
+       same airtime as the try, so goodput is rate times survival. */
+    function surv(m, snr) { var x = (snr - SNRMIN[m] + 3) / 6; return Math.max(0, Math.min(1, x)); }
+    function best(snr, ss, bw) { var b = 0, i; for (i = 0; i < 12; i++) if (rate(i, ss, bw) * surv(i, snr) > rate(b, ss, bw) * surv(b, snr)) b = i; return b; }
 
-  <text x="15" y="264" class="t note" fill="#8BA2AE">Without PMF, step 1 simply replaces the old association. That convenience is exactly the forgery PMF exists to stop.</text>
-</svg><figcaption>The SA Query dance. Without PMF the second association request replaces the first. With PMF the AP has to prove the old session is dead before it lets the new one in, and that can take up to a second.</figcaption></figure>
-<p>Without PMF the AP just accepts the new association request and tears down the old one. With PMF it can't, because that would let anyone with your MAC address kick you off by asking to associate. So the AP answers status 30, association rejected temporarily, with a comeback time, and sends an SA Query to the old association. If nothing answers within the SA Query timeout the old one is dead, and the client's second attempt after the comeback goes through. The default maximum is 1000 TU, call it a second. When you walk out of range, come back, and the phone takes a beat to reconnect, this is sometimes why.</p>
-<h2>What this means for 6 GHz</h2>
-<p>The reason the change request existed in the first place. On 6 GHz the Wi-Fi Alliance rules leave no room: WPA3, Personal with hash-to-element or Enterprise, or Enhanced Open. PMF required on every BSS. No WPA2, no open, and no transition mode of either kind. HPE Aruba's SSID profile reference says it plainly: a Wi-Fi 6E network only supports enhanced-open and the WPA3 opmodes.</p>
-<p>Here is the part I had wrong when I started writing this, and it's good news. On AOS you don't need a second SSID to get there. The Wi-Fi design guide's security modes page says a WPA3-Personal SSID with transition enabled runs transition mode on 2.4 and 5 GHz only, and the transition setting is overridden and disabled on 6 GHz automatically. Its own decoder ring shows the same SSID advertising MFPC 1, MFPR 0 on 2.4 and 5 GHz and MFPC 1, MFPR 1 on 6 GHz. One SSID, two personalities, sorted by band.</p>
-<p>So "transition mode to get ready for 6 GHz" is actually most of a plan. Your WPA3 clients get SAE everywhere and 6 GHz where the AP has it, your WPA2 clients keep working on 2.4 and 5, and the 6 GHz radio never carries anything but WPA3. What it does not do is help the printers, because they live on 2.4 and 5 GHz and that's where the transition element is.</p>
-<h2>The fix the standard grew, and whether you can use it yet</h2>
-<p>The Wi-Fi Alliance saw this coming. WPA3 spec version 3.4, from October 2024, added WPA3-Personal Compatibility Mode. The idea is simple: on 2.4 and 5 GHz the ordinary RSN element goes back to advertising plain WPA2-PSK, the way it did before, and the SAE offer moves into a separate RSN Override element that old clients don't know exists and therefore don't try to parse. Clients that understand the override element read both and pick SAE; a WPA3 client that doesn't know about it connects on WPA2, which the spec says out loud. 6 GHz stays SAE-only. The spec says outright that it's for cases where stations are expected to have trouble with an RSN element that advertises every enabled option. That is this post, in one sentence, written by the people who wrote the standard.</p>
-<p>Whether you can turn it on is a different question. As of September 2026 I could not find compatibility mode or RSN override in the Central or AOS 10 documentation. If it shows up in a release note, that's the switch you want, and until then the answer is design.</p>
-<h2>Where it lives on AOS-10 and Central</h2>
-<p>In Central, on the SSID's Security tab with the security level set to Personal, the Key Management list is where WPA3-Personal is chosen. On the AP side that is the opmode <code>wpa3-sae-aes</code> in the SSID profile, and the part that matters for this post is the <code>opmode-transition</code> parameter, which the Instant CLI reference describes as backward compatibility for <code>wpa3-sae-aes</code> and <code>enhanced-open</code>, on by default. So on 2.4 and 5 GHz, WPA3-Personal is a transition SSID unless you turn that off (that default is documented for the CLI; read the AP config after you pick it in Central rather than trusting me on what the UI writes); <code>opmode-transition-disable</code> is what makes it WPA3-only on every band.</p>
-<p>Management frame protection has its own toggle under the SSID's General tab, Advanced Settings, Miscellaneous, and Central's page on it says it can be enabled only on WPA2-PSK and WPA2-Enterprise SSIDs. The CLI has two knobs behind it, <code>mfp-capable</code> and <code>mfp-required</code>, both off by default; which one the toggle sets isn't documented, so read the AP config after you flip it. The same page notes that 802.11r fast roaming won't take effect when MFP is enabled on a WPA2 SSID, so if you were leaning on 11r for voice, read that twice.</p>
-<p>On a WPA3 or transition SSID the MFP toggle isn't the control. The Wi-Fi Alliance rules set the capable bit for you, and required versus optional is decided by the transition setting: transition on is MFPR 0, transition off is MFPR 1. That's the whole design decision, and it's made in a field that doesn't have "PMF" anywhere in its name.</p>
-<p>When a client is refusing to join, the AP can tell you which outcome it hit, as long as the client transmitted something. <code>show ap debug mgmt-frames &lt;client-mac&gt;</code> on the AP console lists the management frames it traded with that client with the status in the Misc column, so a rejected association on an MFP-required SSID shows up there as the association response with its status. <code>show ap debug auth-trace-buf &lt;client-mac&gt;</code> shows the 4-way handshake messages for a client that did associate, so a client that got through it had the passphrase right and whatever went wrong after that is somewhere else. Nothing on the AP will show you a client that never sent an association request, which is the point: the driver-choked printer is diagnosed by its absence.</p>
-<h2>Who can do what</h2>
-<p>The floors, from vendor documentation. Everything below these lines is where the tickets come from.</p>
-<table>
-<thead>
-<tr>
-<th>Client</th>
-<th>WPA3-Personal (SAE)</th>
-<th>On a transition SSID</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>iPhone, iPad, Mac</td>
-<td>iPhone 7, iPad 5th generation, late-2013 Macs with 802.11ac and later, per Apple's platform security guide; the guide's fall 2019 edition (iOS 13, Catalina) is the first to list WPA3</td>
-<td>Fine</td>
-<td>Apple's router guidance recommends WPA3 Personal, or WPA2/WPA3 Transitional for compatibility</td>
-</tr>
-<tr>
-<td>Android</td>
-<td>Android 10 and later, hardware permitting</td>
-<td>Fine on 10 and up, WPA2 below</td>
-<td>Google documents Android 9 and older using the WPA2 half of a transition SSID</td>
-</tr>
-<tr>
-<td>Windows 10 and 11</td>
-<td>Windows 10 version 1903 and later per Intel, with a WPA3 driver</td>
-<td>Fine with a current driver</td>
-<td><code>netsh wlan show drivers</code> lists WPA3 Personal under authentication if the adapter has it</td>
-</tr>
-<tr>
-<td>Intel adapters</td>
-<td>Wireless-AC 9000 series and newer, driver 21.10 or later</td>
-<td>Same</td>
-<td>Intel's WPA3 list starts at the 9000 series; a 7260 or 8260 isn't on it</td>
-</tr>
-<tr>
-<td>Printers, scanners, IoT modules</td>
-<td>Whatever the module vendor shipped</td>
-<td>This is the row that breaks</td>
-<td>Assume nothing, test one of each before the change</td>
-</tr>
-</tbody>
-</table>
-<p>The last row is the whole post. The laptops and phones were rarely the risk, though an old laptop with a 7260 in it belongs in the test pile too.</p>
-<h2>What good looks like</h2>
-<p>Three SSIDs doing three jobs, not one SSID trying to do all of them.</p>
-<p>A WPA3-only SSID for the fleet that can do it, transition off, 6 GHz enabled. A transition SSID for the middle: known-good WPA2 clients that will move to SAE as they get replaced, and you accept that its 2.4 and 5 GHz element advertises SAE and MFPC to everyone. And a WPA2-only SSID with MFP off as the parking lot for the things that will never see a firmware update, on its own VLAN with a policy that treats it like the exposure it is. If compatibility mode lands on your platform, the middle SSID and the parking lot can become one.</p>
-<p>Before any of that, take one of each device class into a lab SSID that already has the target settings and try it. Not the model number from the asset list, the actual unit, on its actual firmware. A printer that joins a WPA2 SSID and refuses a transition SSID with the same passphrase has told you everything in about thirty seconds, and it told you before the change window instead of after.</p>
-<h2>Checklist before you flip it</h2>
-<table>
-<thead>
-<tr>
-<th>Check</th>
-<th>Why</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Inventory every non-laptop, non-phone client on the SSID, and the oldest laptops</td>
-<td>Those are the ones most likely to be at risk</td>
-</tr>
-<tr>
-<td>Test one real unit of each against a transition SSID in the lab</td>
-<td>The silent failure is no association request at all; also watch for a rejected association and for drops after joining</td>
-</tr>
-<tr>
-<td>Decide transition on or off on purpose</td>
-<td>On is the backward-compatible setting, MFPR 0 on 2.4 and 5 GHz; off is MFPR 1 on every band</td>
-</tr>
-<tr>
-<td>Know that 6 GHz is WPA3-only even on the transition SSID</td>
-<td>AOS overrides transition on 6 GHz; that half only serves clients that do SAE with hash-to-element</td>
-</tr>
-<tr>
-<td>If 11r is doing work for voice, read the MFP note</td>
-<td>Central documents 11r not taking effect with MFP on a WPA2 SSID</td>
-</tr>
-<tr>
-<td>Have the parking-lot SSID and VLAN built before the change</td>
-<td>So the printers have somewhere to land at 8 am</td>
-</tr>
-</tbody>
-</table>
-<h2>Bottom line</h2>
-<p>Transition mode is safe for nearly every client that can read the element it advertises. The ones that can't are the ones you already knew were old, and they fail silently, from their side, with nothing in your association logs. Test the old stuff, give it a home, and make the transition-on-or-off call yourself instead of letting a default make it for you.</p></div>
+    var LEVELS = [
+      { name: "The corridor", ss: 2, bw: 80, target: 0,
+        snr: [38, 36, 33, 31, 28, 26, 23, 20, 17, 14, 11, 8], burst: [],
+        brief: "A laptop, two streams on an 80 MHz channel, walking away from the AP down a corridor. Twelve rounds. Each round you see the SNR and pick a rung. Too high and the frames fail and the retries eat the round. Too low and you leave throughput on the table.",
+        open: "Start high. The SNR is generous. Then watch what a rung costs when the number stops being generous.",
+        won: "<i>Passed.</i> That is the whole ladder: step down before you fall off it. Every rung down costs you a slice of rate and buys you a few dB. The trick is stepping at the right time, and you only know the right time by trying the wrong one.",
+        lost: "<b>Under the mark.</b> Usually that is sending too high for too long. A rung that fails half its frames is delivering half its rate, and a rung one step down that never fails beats it. Reset and step earlier." },
+
+      { name: "The microwave", ss: 2, bw: 80, target: 0,
+        snr: [38, 36, 33, 31, 28, 26, 23, 20, 17, 14, 11, 8], burst: [0, 0, 9, 9, 9, 9, 0, 0, 9, 9, 9, 9],
+        brief: "Same walk, same laptop, but somebody in the break room is heating soup. The SNR you see is measured at the start of the round. When the interference lands it lands during your transmission, takes about 9 dB off, runs for a few rounds at a time, and the readout never shows it.",
+        open: "You cannot see the bursts coming. You can see what happened last round. Decide what to do with that.",
+        won: "<i>Passed.</i> Notice what you actually did: you did not react to the SNR, you reacted to the retries. That is what a real rate adaptation loop does too, and it is why the rate on a client lags a few metres behind the signal.",
+        lost: "<b>Under the mark.</b> The readout was honest and it still lied, because it was measured before the burst. When a round fails, believe the failure, not the number. Step down, then creep back up." },
+
+      { name: "The badge reader", ss: 1, bw: 20, target: 300,
+        snr: [40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40], burst: [],
+        brief: "A badge reader, one stream, 20 MHz only, sitting right next to the AP with 40 dB of SNR. The person who bought it wants 300 Mb/s out of it. You have the ladder.",
+        open: "Try it. Send at the top rung as many rounds as you like, then look at the top of the ladder and read the number on it.",
+        won: "<i>Right call.</i> The top of this ladder is 143 Mb/s, and there is no rung above it. Modulation moves you along the scale; width and streams set the scale, and this client only has one of each. No amount of signal fixes that. Saying so is the job.",
+        lost: "" }
+    ];
+
+    var lv = 0, done = [false, false, false], finished = [false, false, false], round, hist, pick;
+
+    function L() { return LEVELS[lv]; }
+    function oracle() {
+      var l = L(), s = 0, i;
+      for (i = 0; i < l.snr.length; i++) { var eff = l.snr[i] - (l.burst[i] || 0); var b = best(eff, l.ss, l.bw); s += rate(b, l.ss, l.bw) * surv(b, eff); }
+      return s / l.snr.length;
+    }
+    function passMark() { return L().target ? L().target : oracle() * (lv === 1 ? 0.7 : 0.8); }
+    function topRate() { return rate(11, L().ss, L().bw); }
+
+    function buildLadder() {
+      var l = L(), html = "", i;
+      for (i = 11; i >= 0; i--) {
+        html += '<button class="btr-rung" type="button" data-m="' + i + '"><b>MCS ' + i + ' &middot; ' + fmt(rate(i, l.ss, l.bw)) + ' Mb/s' +
+                '</b><i>' + MCS[i][0] + ' &middot; ' + SNRMIN[i] + ' dB</i></button>';
+      }
+      $("#btr-ladder").innerHTML = html;
+      Array.prototype.forEach.call(root.querySelectorAll(".btr-rung"), function (b) {
+        b.addEventListener("click", function () { send(+b.getAttribute("data-m")); });
+      });
+    }
+
+    function paintLadder() {
+      var l = L(), snr = round < l.snr.length ? l.snr[round] : null, over = round >= l.snr.length;
+      Array.prototype.forEach.call(root.querySelectorAll(".btr-rung"), function (b) {
+        var m = +b.getAttribute("data-m");
+        b.disabled = over;
+        b.classList.toggle("hi", pick === m);
+        b.classList.remove("ok"); b.classList.remove("bad");
+      });
+      $("#btr-snrv").textContent = snr === null ? "walk over" : snr + " dB";
+      $("#btr-snrfill").style.width = (snr === null ? 0 : Math.min(100, snr / 45 * 100)) + "%";
+    }
+
+    function avg() { var s = 0, i; for (i = 0; i < hist.length; i++) s += hist[i].got; return hist.length ? s / hist.length : 0; }
+
+    function paintSheet(last) {
+      var l = L(), a = avg(), pm = passMark();
+      $("#btr-r-round").textContent = Math.min(round + 1, l.snr.length) + " of " + l.snr.length;
+      if (last) {
+        $("#btr-r-pick").textContent = "MCS " + last.m + ", " + fmt(rate(last.m, l.ss, l.bw)) + " Mb/s";
+        $("#btr-r-need").textContent = SNRMIN[last.m] + " dB, had " + last.eff + (last.eff !== last.shown ? " (readout said " + last.shown + ")" : "");
+        $("#btr-r-retry").textContent = Math.round((1 - last.p) * 100) + " %";
+        $("#btr-r-got").textContent = last.got.toFixed(1) + " Mb/s";
+        $("#btr-r-retry-row").className = "btr-row" + (last.p < 0.7 ? " btr-warn" : last.p >= 1 ? " btr-good" : "");
+        $("#btr-r-got-row").className = "btr-row big" + (last.p < 0.7 ? " btr-warn" : " btr-good");
+      } else {
+        $("#btr-r-pick").textContent = "nothing yet";
+        $("#btr-r-need").innerHTML = "&nbsp;"; $("#btr-r-retry").innerHTML = "&nbsp;"; $("#btr-r-got").innerHTML = "&nbsp;";
+        $("#btr-r-retry-row").className = "btr-row"; $("#btr-r-got-row").className = "btr-row big";
+      }
+      $("#btr-r-avg").textContent = a.toFixed(1) + " Mb/s";
+      $("#btr-r-avg-row").className = "btr-row big" + (hist.length ? (a >= pm ? " btr-good" : " btr-warn") : "");
+      $("#btr-r-pass").textContent = pm.toFixed(0) + " Mb/s" + (l.target ? ", asked for" : "");
+      $("#btr-r-best").textContent = (l.target ? topRate() : oracle()).toFixed(0) + " Mb/s" + (l.target ? ", top rung" : ", perfect picks");
+      var log = "", i;
+      for (i = 0; i < l.snr.length; i++) {
+        if (i < hist.length) { var h = hist[i], hh = Math.max(8, h.got / topRate() * 100); log += '<i class="' + (h.p < 0.7 ? "o" : "g") + '" style="height:' + hh.toFixed(0) + '%"></i>'; }
+        else log += "<i></i>";
+      }
+      $("#btr-log").innerHTML = log;
+    }
+
+    function say(html) { $("#btr-say").innerHTML = html; }
+    function score() { $("#btr-score").textContent = done.filter(Boolean).length + " of 3 passed"; }
+
+    function send(m) {
+      var l = L();
+      if (round >= l.snr.length) return;
+      var shown = l.snr[round], eff = shown - (l.burst[round] || 0), p = surv(m, eff), got = rate(m, l.ss, l.bw) * p;
+      pick = m;
+      hist.push({ m: m, shown: shown, eff: eff, p: p, got: got });
+      round += 1;
+      paintLadder();
+      paintSheet(hist[hist.length - 1]);
+      if (round >= l.snr.length) endLevel();
+      else if (p < 0.7) say("That one hurt: <b>" + Math.round((1 - p) * 100) + " percent retries</b>. A retry costs the same airtime as the try, so the round delivered " + got.toFixed(0) + " Mb/s at a " + rate(m, l.ss, l.bw).toFixed(0) + " Mb/s rung.");
+      else if (m < best(eff, l.ss, l.bw) - 1) say("Clean, and cautious. There was a rung or two of headroom above that one.");
+      else say("Clean.");
+    }
+
+    function endLevel() {
+      var l = L();
+      finished[lv] = true;
+      if (l.target) {
+        say("Twelve rounds at the top of the ladder and the average is <b>" + avg().toFixed(1) + " Mb/s</b> against a target of " + l.target + ". The ladder does not go any higher. There is a button for that.");
+      } else if (avg() >= passMark()) {
+        done[lv] = true; say(l.won);
+      } else {
+        say(l.lost);
+      }
+      score();
+      $("#btr-next").disabled = lv >= LEVELS.length - 1;
+    }
+
+    function load() {
+      var l = L();
+      round = 0; hist = []; pick = -1;
+      $("#btr-lv").textContent = "Level " + (lv + 1);
+      $("#btr-title").textContent = l.name;
+      $("#btr-goal").textContent = l.brief;
+      $("#btr-fixed").innerHTML = "fixed for this level<br>streams <b>" + l.ss + "</b><br>width <b>" + l.bw +
+        " MHz</b><br>top of the ladder <b>" + fmt(topRate()) + " Mb/s</b>" + (l.target ? "<br>asked for <b>" + l.target + " Mb/s</b>" : "");
+      buildLadder();
+      paintLadder();
+      paintSheet(null);
+      $("#btr-next").disabled = !finished[lv] || lv >= LEVELS.length - 1;
+      say(done[lv] ? l.won : l.open);
+      score();
+    }
+
+    $("#btr-cant").addEventListener("click", function () {
+      var l = L();
+      if (!l.target) {
+        say("Not so fast. This ladder tops out at " + topRate().toFixed(0) + " Mb/s and the pass mark is " + passMark().toFixed(0) + ". The client can do it. Pick a rung.");
+      } else if (l.target <= topRate()) {
+        say("It can, actually. The top rung is " + topRate().toFixed(0) + " Mb/s.");
+      } else {
+        done[lv] = true; finished[lv] = true; score();
+        if (done.filter(Boolean).length === LEVELS.length) say(l.won + " That is all three. The table has three columns and you only ever get to move along one of them.");
+        else say(l.won);
+      }
+    });
+    $("#btr-reset").addEventListener("click", function () { load(); });
+    $("#btr-next").addEventListener("click", function () { if (lv < LEVELS.length - 1) { lv += 1; load(); } });
+
+    load();
+  })();
+  </script>
+</section>
+
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 4. Fundamentals first, then a lab on real gear</div>
+      <div class="prose"><p>Last week was whether the signal gets across the room. This week is what the radio does with it once it has.</p>
+<p>Somebody asks how fast the Wi-Fi is. The datasheet says 2.4 Gbps. The laptop says 1201 Mbps. The speed test says 480. The user says slow. All four are true and none of them describe the same thing. The datasheet is the top of a table. The laptop is the row the radio picked a moment ago. The speed test is what survived airtime, which is next week. This lesson is the table.</p>
+<h2>Speed is a table, not a number</h2>
+<p>A radio doesn't have a speed. It has a list of ways to put bits on a carrier and it picks one for every transmission, and can pick a different one for the retry. That list is the MCS table, and every row is three choices.</p>
+<p><strong>Modulation</strong> is how many states one symbol on one subcarrier can take. BPSK has two, so one bit. QPSK four, two bits. 16-QAM four bits, 64-QAM six, 256-QAM eight, and 1024-QAM, new to the standard in Wi-Fi 6, ten. Wi-Fi 7 adds 4096-QAM at twelve, and it's optional in the certification, so don't assume a Wi-Fi 7 client has it. More states means the points sit closer together and less noise is needed to push one into its neighbour. That's the whole trade. Every rung up buys bits per symbol and costs signal margin. Don't take my word for it. Drag the slider under the four constellations below and watch the clouds grow until the receiver starts guessing.</p>
+<section class="cst" id="constellation" data-rise>
+  <style>
+  .cst{--cst-line:rgba(255,255,255,0.12)}
+  .cst-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .cst-head h3{font-size:19px;letter-spacing:-0.02em}
+  .cst-tag{font:11px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--orange)}
+  .cst-goal{margin:0 0 14px;font-size:14px;line-height:1.65;color:var(--text-dim)}
+  .cst-knob>span{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+    font:10.5px var(--mono);letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase;margin-bottom:7px}
+  .cst-knob>span b{color:var(--teal);font-size:15px;letter-spacing:0;text-transform:none;white-space:nowrap}
+  .cst-knob input[type=range]{display:block;width:100%;margin:0;box-sizing:border-box;accent-color:var(--teal);min-height:38px}
+  .cst-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+  @media (max-width:640px){.cst-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .cst-cell{border:1px solid var(--cst-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:10px;min-width:0}
+  .cst-cell canvas{display:block;width:100%;height:auto;border-radius:6px;background:rgba(0,0,0,0.35)}
+  .cst-cell .n{font:600 12.5px var(--sans);color:var(--text);margin:8px 0 2px;display:flex;justify-content:space-between;gap:6px}
+  .cst-cell .n i{font:10.5px var(--mono);color:var(--text-muted);font-style:normal}
+  .cst-cell .s{font:11px/1.6 var(--mono);color:var(--text-muted)}
+  .cst-cell .s b{font-weight:600;color:var(--green)}
+  .cst-cell.bad .s b{color:var(--orange)}
+  .cst-say{min-height:24px;font-size:13.5px;line-height:1.65;color:var(--text-dim);margin:14px 0 0}
+  .cst-say b{color:var(--orange)}
+  </style>
+
+  <div class="cst-head">
+    <span class="cst-tag">Lesson 4</span>
+    <h3>Where the bits live</h3>
+  </div>
+  <p class="cst-goal">One symbol on one subcarrier. Every dot is a transmitted point, drawn where the receiver actually saw it after the noise got to it. Drag the SNR down and watch the clouds grow until they touch, which is the moment the receiver starts guessing wrong.</p>
+
+  <label class="cst-knob"><span>SNR at the receiver <b id="cst-v">30 dB</b></span>
+    <input id="cst-snr" type="range" min="5" max="45" step="1" value="30"></label>
+
+  <div class="cst-grid" id="cst-grid"></div>
+  <p class="cst-say" id="cst-say"></p>
+
+  <script>
+  (function () {
+    var root = document.getElementById("constellation");
+    if (!root) return;
+    var $ = function (s) { return root.querySelector(s); };
+
+    /* Square M-QAM with unit average symbol energy. Noise is Gaussian per axis
+       with variance 1 / (2 * SNR). The floor quoted under each panel is the
+       lowest coding rate's figure from the same SNR array the site uses
+       (theme/sim/phy.js), so the number here matches the ladder in Be the Radio. */
+    var MODS = [
+      { name: "16-QAM", m: 16, bits: 4, floor: 12 },
+      { name: "64-QAM", m: 64, bits: 6, floor: 20 },
+      { name: "256-QAM", m: 256, bits: 8, floor: 29 },
+      { name: "1024-QAM", m: 1024, bits: 10, floor: 34 }
+    ];
+    var N = 600, seed = 7;
+    function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+    function gauss() { var u = rnd() || 1e-9, v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+
+    var html = "";
+    MODS.forEach(function (md, i) {
+      html += '<div class="cst-cell" id="cst-c' + i + '"><canvas width="220" height="220" aria-label="' + md.name + ' constellation"></canvas>' +
+              '<div class="n">' + md.name + '<i>' + md.bits + ' bits</i></div><div class="s">errors <b>0.0 %</b><br>wants about ' + md.floor + ' dB</div></div>';
+    });
+    $("#cst-grid").innerHTML = html;
+
+    function draw(snr) {
+      var lin = Math.pow(10, snr / 10), sigma = Math.sqrt(1 / (2 * lin)), worst = null;
+      seed = 7;
+      MODS.forEach(function (md, i) {
+        var cell = $("#cst-c" + i), cv = cell.querySelector("canvas"), ctx = cv.getContext("2d");
+        var L = Math.sqrt(md.m), levels = [], k, avg = 0;
+        for (k = 0; k < L; k++) levels.push(2 * k - (L - 1));
+        levels.forEach(function (a) { avg += a * a; }); avg = avg / L * 2;   /* E[x^2]+E[y^2] */
+        var scale = 1 / Math.sqrt(avg), W = cv.width, pad = 10, span = (W - 2 * pad) / (2 * (L - 1) * scale + 2 * scale);
+        ctx.clearRect(0, 0, W, W);
+        ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(W / 2, pad); ctx.lineTo(W / 2, W - pad); ctx.moveTo(pad, W / 2); ctx.lineTo(W - pad, W / 2); ctx.stroke();
+        var errs = 0, n;
+        for (n = 0; n < N; n++) {
+          var ix = Math.floor(rnd() * L), iy = Math.floor(rnd() * L);
+          var x = levels[ix] * scale + gauss() * sigma, y = levels[iy] * scale + gauss() * sigma;
+          var dx = Math.round((x / scale + (L - 1)) / 2), dy = Math.round((y / scale + (L - 1)) / 2);
+          dx = Math.max(0, Math.min(L - 1, dx)); dy = Math.max(0, Math.min(L - 1, dy));
+          var bad = dx !== ix || dy !== iy; if (bad) errs++;
+          ctx.fillStyle = bad ? "#F5A524" : "#5ED2DA";
+          ctx.globalAlpha = bad ? 0.95 : 0.75;
+          ctx.beginPath(); ctx.arc(W / 2 + x * span, W / 2 - y * span, md.m >= 256 ? 1.4 : 2.2, 0, 6.283); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        var pct = errs / N * 100;
+        cell.querySelector(".s b").textContent = pct.toFixed(1) + " %";
+        cell.classList.toggle("bad", pct >= 1);
+        if (pct >= 1 && worst === null) worst = md;
+      });
+      var say;
+      if (worst === null) say = "Every constellation is clean at " + snr + " dB. Even 1024-QAM has room, which is why a client sitting next to the AP shows the top rung.";
+      else if (worst.m === 16) say = "<b>Everything is failing.</b> At " + snr + " dB even 16-QAM is guessing. The radio is down at QPSK or BPSK now, which is the bottom of the ladder.";
+      else say = "<b>" + worst.name + " and above are guessing.</b> At " + snr + " dB the radio steps down to " + (worst.m === 64 ? "16-QAM" : worst.m === 256 ? "64-QAM" : "256-QAM") + ", which is fewer bits per symbol and a lower rung. Nothing broke. The noise just got closer than the neighbours.";
+      $("#cst-say").innerHTML = say;
+    }
+
+    var inp = $("#cst-snr");
+    function upd() { var s = +inp.value; $("#cst-v").textContent = s + " dB"; draw(s); }
+    inp.addEventListener("input", upd); inp.addEventListener("change", upd);
+    upd();
+  })();
+  </script>
+</section>
+
+<p><strong>Coding rate</strong> is how much of what you send is redundancy. 1/2 means one of every two bits on the air is redundancy the receiver uses to repair damage. 5/6 means five bits of payload for every six sent.</p>
+<p><strong>Spatial streams</strong> multiply the lot. Two streams, twice the rate, if both ends have the antennas. Most phones are 2x2. Most printers, thermostats and badge readers are 1x1, and there's nothing the AP can do about that.</p>
+<p>Wi-Fi 6 gives you MCS 0 through 11, BPSK 1/2 at the bottom and 1024-QAM 5/6 at the top. Width and guard interval set the rest. Everything you've been told about "Wi-Fi speed" is somebody pointing at one cell of that table.</p>
+<p><strong>Wi-Fi 7, since you'll be asked.</strong> 802.11be adds two rungs, MCS 12 and 13, 4096-QAM at 3/4 and 5/6, twelve bits per subcarrier. It doubles the widest channel to 320 MHz, and 320 only exists in 6 GHz. Same symbol, same guard intervals, so the arithmetic below still works: 3920 data subcarriers at 320 MHz, and a two-stream client at MCS 13 comes out at 5764.7 Mb/s. Three catches. 4096-QAM wants on the order of 40 dB of SNR, which is a client on the same desk as the AP. It's optional in Wi-Fi CERTIFIED 7 and outside the mandatory MCS set, so plenty of Wi-Fi 7 silicon tops out at MCS 11 and the number on the box never happens. And multi-link operation lets one association use more than one band at the same time, so a Wi-Fi 7 client's rate can be two rows of the table added together. The Mist API reports those clients as proto <code>be</code>. What Central labels them I haven't checked on a box yet, as of September 2026.</p>
+<h2>The number that matters</h2>
+<pre><code>rate = data subcarriers x bits per subcarrier x coding rate x streams
+       ---------------------------------------------------------------
+                       symbol time + guard interval
+</code></pre>
+<p>For Wi-Fi 6 the symbol is 12.8 microseconds and the shortest guard interval it allows is 0.8, so the bottom is 13.6. A 20 MHz channel has 234 data subcarriers, an 80 MHz channel 980. Worked once, for a laptop on 80 MHz, two streams, top of the table:</p>
+<pre><code>980 x 10 x 5/6 x 2 / 13.6 us = 1201 Mbps
+</code></pre>
+<p>That's the number the laptop shows you. Same channel at MCS 7, 64-QAM 5/6:</p>
+<pre><code>980 x 6 x 5/6 x 2 / 13.6 us = 720.6 Mbps
+</code></pre>
+<p>MCS 0 on the same channel is about 72 Mbps. Top to bottom is a factor of seventeen on one channel. Width and streams set the scale; MCS moves you along it.</p>
+<p>The other half of the table is what each rung costs. The 802.11ax standard sets a minimum receiver sensitivity per MCS on 20 MHz: -82 dBm at MCS 0 up to -52 dBm at MCS 11, and each doubling of width relaxes that by 3 dB. Those are conformance floors at 10 percent packet error and real radios beat them by a few dB. The point is the span. Thirty decibels separate the bottom rung from the top. Last week's budget doesn't tell you whether the link works. It tells you which rung you get.</p>
+<p>In SNR terms, the version you'll use on site: BPSK wants a few dB, 16-QAM the low teens, 64-QAM somewhere from the high teens to the high twenties depending on coding rate, 256-QAM mid twenties to mid thirties, 1024-QAM the mid thirties. Wide ranges, and the published charts disagree with each other by 5 dB or more, because the chipset's rate adaptation draws the actual lines. A design that targets 25 dB SNR is really saying "64-QAM everywhere, 256 where I can get it."</p>
+<p>Before you touch real gear, be the radio for twelve rounds. The game below shows you the SNR and nothing else, same as the real thing, and you pick the rung. Level 1 is a walk down a corridor. Level 2 has a microwave in it. Level 3 is a badge reader that somebody wants 300 Mb/s out of, and I'll let you find out what the right button is. The rungs and the SNR floors are the site's own numbers, the same ones the lab section's expectations came from.</p>
+<h2>What the gear shows you</h2>
+<p>Here's what surprised me writing this. Neither platform shows the MCS index. As of September 2026, Central's client page has no MCS field and the Mist client stats API has no MCS field. Both hand you a PHY rate in Mbps and leave you to read the table backwards. So learn the table. Or cheat: <a href="../tools.html#readitbackwards">Read It Backwards</a> on the Tools page takes the number and whatever you know about the link and names the row, or lists every row it could be when you know nothing, which is more rows than you'd think.</p>
+<p>In Aruba Central, open the client from the Clients list. The health bar shows Tx|Rx Rate, and further down there are Retry Frames and Tx/Rx Rate graphs. Add the channel width from the radio and the stream count from the laptop's own adapter details, and you can place it: 1201 on 80 MHz with two streams is MCS 11, 960.8 is MCS 9, 720.6 is MCS 7.</p>
+<p>On the AP, <code>show ap debug client-table</code> gives Tx_Rate and Rx_Rate per client, and the doc is specific that these are the rate of the last packet each way, not an average. That's why Rx_Rate often reads 6 Mbps next to a Tx_Rate in the hundreds. The last thing the client sent was probably a null frame or an ACK, and clients typically send those at the lowest basic rate. Not broken. Literal. The command that actually shows MCS is <code>show ap debug client-stats</code>: counters per MCS, per stream count and per width for that client, so you see the histogram of what rate adaptation has been doing rather than its last pick. The syntax differs by platform. On an AOS 8 controller it's <code>show ap debug client-stats client-mac &lt;mac&gt;</code>; on Instant and AOS 10 it's <code>show ap debug client-stats &lt;mac&gt; &lt;bssid&gt;</code> with no keyword. On AOS 10 it arrived in 10.3.1.0.</p>
+<p>In Mist, open the client from WiFi Clients and follow the Client Insights link. Current Values gives you the RX and TX rates and the protocol. The TX/RX PHY Rates chart over time is there if the org has Marvis for Wireless; without it you get bytes, not rates. From the API, <code>GET /api/v1/sites/{site_id}/stats/clients</code> returns <code>tx_rate</code> and <code>rx_rate</code> in Mbps with <code>proto</code>, <code>band</code> and <code>channel</code>, which is everything a script needs to place the client on the table. The spec's own example has <code>tx_rate 173.3</code> and <code>rx_rate 6</code>. Same last-packet effect. The stats carry no channel width and no stream count, so a script can't name the row either; it can list the candidates. That's what <code>mist-rates.py</code> in the repo does, one request and a table:</p>
+<pre><code class="language-python">url = f&quot;https://{HOST}/api/v1/sites/{SITE}/stats/clients&quot;
+r = requests.get(url, headers={&quot;Authorization&quot;: f&quot;Token {TOKEN}&quot;}, timeout=30)
+for c in r.json():
+    print(c.get(&quot;hostname&quot;), c.get(&quot;proto&quot;), c.get(&quot;band&quot;), c.get(&quot;channel&quot;),
+          c.get(&quot;rssi&quot;), c.get(&quot;snr&quot;), c.get(&quot;tx_rate&quot;), c.get(&quot;rx_rate&quot;),
+          candidates(c.get(&quot;tx_rate&quot;), c.get(&quot;proto&quot;)))
+</code></pre>
+<p><code>candidates()</code> is the same arithmetic as the decoder, capped at four streams because clients stop there. Placeholder host, token and site id; use your region's API host.</p>
+<p>Capping the rate on purpose, which the lab needs, lives in odd places. In Central for AOS 10 the WLAN's Advanced settings have an Enable 11ax toggle. Off, a 5 GHz client has nothing above 802.11ac to associate as, so it should top out at VHT MCS 9, the Wi-Fi 5 ceiling. No doc page says that in so many words; it's the table. The Transmit Rates section on that page is labelled Legacy Only and touches nothing above 54 Mbps. On AOS 8, <code>wlan he-ssid-profile</code> has <code>he-supported-mcs-map</code>, a comma-separated list of the max MCS for each of eight streams, each 7, 9 or 11, which is the one proper 11ax cap I found on the Aruba side. Instant has <code>high-efficiency-disable</code> and <code>vht-supported-mcs-map</code> in the <code>wlan ssid-profile</code>. In Mist, untick Wi-Fi 6 under Wi-Fi Protocols on the WLAN, <code>disable_11ax</code> in the API. Deeper than that is the <code>rateset</code> object with <code>template</code> set to <code>custom</code> and an <code>he</code> bitmask per stream, encoded the same way as the documented <code>ht</code> and <code>vht</code> masks. The schema defines it but none of the spec's worked examples use it, so test it before you lean on it.</p>
+<p>One caution the Mist data rates doc gives for its custom legacy rates, and I'd apply it to every rate knob on every platform: you control what the AP transmits. The client may still send at rates you disabled, and the AP will refuse to talk to it at those. You're capping half the link directly and the other half only by consequence.</p>
+<h2>The lab</h2>
+<p>One AP, one laptop, a wired box for iperf3, under an hour.</p>
+<ol>
+<li>Pin the AP. Fixed channel, 80 MHz, fixed power. Note Central's Channel Changes and Power Changes counters, or Mist's Radio Events, so you can prove nothing moved.</li>
+<li>Sidekick in spectrum view on your channel for a minute. If it's busy, move. A dirty channel changes the answer and that's lesson 7's problem.</li>
+<li>Laptop 3 m from the AP, line of sight. <code>iperf3 -s</code> on the wired host, <code>iperf3 -c &lt;host&gt; -R -t 30</code> on the laptop. Write down the throughput.</li>
+<li>Read the rate. Central: Tx|Rx Rate. Mist: Current Values on Client Insights, or <code>tx_rate</code> from the API. Convert it to an MCS with the table and write that down too.</li>
+<li>Cap it. Turn Wi-Fi 6 off on the SSID on both platforms and reconnect the laptop. It should now top out at 802.11ac MCS 9, which on 80 MHz with two streams is 866.7 Mbps. Rerun iperf3.</li>
+<li>Cap harder if your platform lets you: <code>he-supported-mcs-map</code> on AOS 8, the <code>he</code> bitmask on Mist. Aim for MCS 7. Rerun.</li>
+<li>Put it all back, then walk away until the rate drops on its own. Watch it step, not slide, and watch retries on the same screen.</li>
+</ol>
+<p><strong>What you should see.</strong> Same deal as lesson 2: these are what the model expects, and the measured numbers replace them when I've run it. The rate is always a rung from the table, never a number between rungs. Throughput follows the rate down but the ratio is well under one; the gap is airtime and it's next week. At 3 m the capped runs should cost you roughly in proportion to the rate you took away. On the walk the rate holds, then steps. Rate adaptation loops mostly move on what got acknowledged, not on the RSSI number, which is why the rate lags a few metres behind the signal.</p>
+<p><strong>What means it's broken.</strong> A Tx rate of 6, 12 or 24 Mbps at 3 m can only be a legacy 802.11a rate, no HT, VHT or HE row lands on those numbers at any width: check the client is on 802.11ax and on 5 GHz, not the 2.4 GHz radio you forgot to disable. A rate that won't budge after the cap means the client hasn't reassociated; bounce the laptop's radio. Throughput that collapses while the rate stays high means retries, and the counter is next to the rate on both platforms. Read it.</p>
+<p>Whatever laptop you use, it'll sit on the same rungs and stop at different places from mine, because the rungs are the standard and the stopping points are the chipset.</p>
+<h2>Three questions</h2>
+<ol>
+<li>Central shows a client at 960.8 Mbps on an 80 MHz channel with two streams. Which MCS, and which modulation?</li>
+<li>You turn Wi-Fi 6 off on an SSID. On 80 MHz with two streams, what does the top rate drop from and to?</li>
+<li>A client's SNR is 22 dB. Where on the table is it living, and what would it take to reach 256-QAM?</li>
+</ol>
+<p>Answers: MCS 9, 256-QAM at 5/6. From 1201 Mbps to 866.7. 64-QAM, MCS 5 or 6 territory. 256-QAM wants somewhere in the mid twenties to mid thirties depending on the chart and the chipset, so at least a few more dB and possibly ten, which means closer than half the distance, or a cleaner channel.</p>
+<h2>Next week</h2>
+<p>Airtime is the only resource. Why a 1201 Mbps link delivers 480, and why one slow client hurts everyone on the channel, with the mDNS post as the case study.</p></div>
       
     </div>
-    
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="pmf-broke-the-printers" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 4 of 4</span></h3><div class="ser-steps"><a class="ser-step" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span></a><a class="ser-step" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step here" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span><span class="ser-tag">You are here</span></a></div></section>
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="academy-04-modulation-and-data-rates" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -952,12 +1525,12 @@ html.qam-fs .rig{display:none}
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="a-radius-timeout-means-somebody-dropped-it-not-that-it-never-left.html"><span class="eyebrow">Older</span>A RADIUS Timeout Means Somebody Dropped It, Not That It Never Left</a><a class="pn g-card" href="academy-04-modulation-and-data-rates.html"><span class="eyebrow">Newer</span>Modulation and Data Rates</a></div>
+      <div class="postnav"><a class="pn g-card" href="pmf-broke-the-printers.html"><span class="eyebrow">Older</span>Your WPA3 Transition SSID Didn&#x27;t Break the Printers. PMF Did.</a></div>
     </section>
   </article>
 </div>
 </main>
-<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-signal.svg" alt="" width="104" height="104"></a>
+<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-think.svg" alt="" width="104" height="104"></a>
 <footer><div class="wrap">
   <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
   <span><a href="/rss.xml">RSS</a></span>
