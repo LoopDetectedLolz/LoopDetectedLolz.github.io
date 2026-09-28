@@ -47,7 +47,7 @@ has(s.exec("write memory").out, "Success", "write memory in config context");
 has(s.exec("show startup-config").out, "hostname access-01", "startup config saved");
 eq(s.exec("exit").prompt, "access-01# ", "exit from config");
 has(s.exec("show version").out, "ML.10.18", "show version (6200 image prefix ML, 10.18 train)");
-has(s.exec("show system").out, "Product Name           : JL725A", "show system model");
+has(s.exec("show system").out, "Product Name           : R8Q72A 6200F 12G Class4 PoE 2G/2SFP+ 139W", "show system model (part number from HPE QuickSpecs)");
 eq(s.exec("show checkpoint list").out, "Checkpoint list doesn't exist", "10.18 reads `list` as a checkpoint name");
 has(s.exec("show checkpoint").out, "startup-config                    startup", "show checkpoint lists the startup config");
 eq(s.exec("copy running-config checkpoint before").out, "Copying configuration: [Success]", "checkpoint written");
@@ -104,7 +104,7 @@ ok(rc.indexOf("port-access role EMPLOYEE") < rc.indexOf("aaa authentication port
 has(px.exec("show running-config interface 1/1/5").out, "\n    exit", "per-interface view ends with exit");
 var pz = CX.create(lesson("nac-03-mac-auth"));
 has(pz.exec("show port-access clients").out, "No port-access clients found.", "empty clients wording");
-has(pz.exec("show vlan").out, "1     DEFAULT_VLAN_1                    down    no_member_forwarding    default     1/1/9-1/1/14", "vlan 1 row shape");
+has(pz.exec("show vlan").out, "1     DEFAULT_VLAN_1                    down    no_member_forwarding    default     1/1/9-1/1/16", "vlan 1 row shape");
 pz.connect("printer");
 has(pz.exec("show interface brief").out, "1/1/5          20      access --             yes     up                              1000    --", "brief row shape");
 has(px.exec("show ip ospf neighbors").out, "No OSPF neighbor found on VRF default.", "no ospf wording");
@@ -197,7 +197,10 @@ has(cc.exec("show lldp local-device").out, "not used in this scenario", "real sh
 eq(cc.exec("show lldp foo").out, "Invalid input: foo", "names the first token the box would refuse");
 eq(cc.exec("shw vlan").out, "Invalid input: shw", "a typo in the first word");
 has(cc.exec("show running-config json").out, "not used in this scenario", "real variant of a modelled command");
-has(cc.exec("diag cable-diagnostic test 1/1/1").out, "not used in this scenario", "cable diagnostics exist on 10.18");
+has(cc.exec("diag cable-diagnostic test 1/1/1").out, "will cause a loss of link", "cable diagnostics ask first (hardware-only, from HPE's guide)");
+eq(cc.prompt(), "Continue (y/n)? ", "the question is the prompt until it is answered");
+eq(cc.exec("n").out, "", "no runs nothing");
+has(cc.exec("diag cable-diagnostic show 1/1/1").out, "are not available", "no results until a test ran");
 eq(cc.exec("no page").out, "", "no page is silent, as every script starts with it");
 eq(cc.exec("page 24").out, "", "page with a length");
 cc.exec("conf t");
@@ -206,7 +209,8 @@ eq(cc.exec("ntp bogus").out, "Invalid input: bogus", "wrong keyword under a real
 cc.exec("interface 1/1/1");
 has(cc.exec("lldp med poe").out, "not used in this scenario", "real interface command, not modelled");
 eq(cc.exec("lldp med-tlv-select network-policy").out, "Invalid input: med-tlv-select", "not 10.18 syntax");
-has(cc.exec("speed auto 1g 2.5g").out, "not used in this scenario", "speed is hardware-only (hardware.txt), the simulator hides it");
+eq(cc.exec("speed auto 1g").out, "", "speed is modelled on hardware ports (the simulator hides it)");
+eq(cc.exec("speed auto 1g 2.5g").out, "Invalid input: 2.5g", "a 1GbT port hides speeds it cannot do, as 10.09 and later do");
 eq(cc.exec("speed banana").out, "Invalid input: banana", "speed still checks its words");
 has(cc.help("lldp "), "Real ", "? under a real prefix merges the box's words");
 cc.exec("end");
@@ -377,8 +381,8 @@ ok(l2.check().some(function (x) { return !x.pass && /lag 1 is up/.test(x.desc); 
 run(l2, ["conf t", "interface lag 1", "no shutdown", "end"]);
 has(l2.exec("show running-config interface lag 1").out, "interface lag 1\n    no shutdown", "no shutdown is written into the LAG block");
 l2.connect("desk-switch"); l2.connect("printer"); l2.connect("laptop"); l2.connect("phone");
-has(l2.exec("show interface brief").out, "lag1           1       trunk  --             yes     up      --                      20000   --", "up LAG row: Reason --, speed the sum of its members");
-has(l2.exec("show interface lag 1").out, " Speed                       : 20000 Mb/s ", "LAG speed is the sum of the active members");
+has(l2.exec("show interface brief").out, "lag1           1       trunk  --             yes     up      --                      2000    --", "up LAG row: Reason --, speed the sum of its members (two 1G copper ports on the 12-port 6200F)");
+has(l2.exec("show interface lag 1").out, " Speed                       : 2000 Mb/s ", "LAG speed is the sum of the active members");
 has(l2.exec("show lacp aggregates").out, "Interfaces       : 1/1/13 1/1/14", "both members listed"); has(l2.exec("show lacp interfaces").out, "1/1/14     lag1       14    1     ALFNCD", "both members aggregate");
 has(l2.exec("show lacp interfaces").out, "ALFNCD", "LACP in sync");
 has(l2.exec("show interface 1/1/8").out, "BPDU guard", "desk switch err-disabled");
@@ -426,6 +430,132 @@ has(l3.exec("show ip interface brief").out, "vlan100          203.0.113.2/24    
 run(l3, ["conf t", "interface 1/1/12", "routing", "ip address 203.0.113.129/25", "end"]);
 has(l3.exec("show running-config interface 1/1/12").out, "ip address 203.0.113.129/25", "routed port config");
 has(l3.exec("show interface brief").out, "routed", "routed in brief");
+
+// ── the ten scenarios: each intended solution passes, the wrong turns fail for the reason taught ──
+section = "scenarios";
+function notSolved(sim, what) { ok(sim.check().some(function (x) { return !x.pass; }), what); }
+// 1 LLDP-MED
+var s1 = CX.create(lesson("sc-01-lldp-med"));
+notSolved(s1, "1: not solved at the start");
+has(s1.exec("show lldp neighbor-info 1/1/3").out, "Neighbor Med Policy Unknown    : true", "1: the phone has no VLAN yet, as the lab's emulator advertised");
+var s1b = CX.create(lesson("sc-01-lldp-med")); run(s1b, ["conf t", "interface 1/1/3", "vlan trunk native 10", "vlan trunk allowed 10,30", "end"]);
+has(s1b.exec("show lldp neighbor-info 1/1/3").out, "Neighbor Med Policy Unknown    : true", "1: tagging 30 without marking it voice sends no policy");
+run(s1, ["conf t", "vlan 30", "voice", "interface 1/1/3", "vlan trunk native 10", "vlan trunk allowed 10", "vlan trunk allowed 30", "end"]);
+has(s1.exec("show running-config interface 1/1/3").out, "    vlan trunk allowed 10,30", "1: allowed lists add up");
+var med = s1.exec("show lldp neighbor-info 1/1/3").out;
+has(med, "Neighbor Med Policy VLAN ID    : 30", "1: the phone took VLAN 30"); has(med, "Neighbor Med Policy Priority   : 6", "1: priority 6"); has(med, "Neighbor Med Policy DSCP       : 46", "1: DSCP 46"); has(med, "Neighbor Device class          : CLASS_III", "1: class III");
+ok(/00:00:5e:00:53:03\s+30\s/.test(s1.exec("show mac-address-table").out), "1: the phone is learned in VLAN 30");
+has(s1.exec("show lldp neighbor-info 1/1/9").out, "Neighbor PoE information       : DOT3", "1: the AP asks for power over DOT3");
+has(s1.exec("show vlan voice").out, "30    VOICE", "1: show vlan voice lists it");
+allPass(s1, "1 solved");
+// 2 device profiles
+var s2 = CX.create(lesson("sc-02-device-profiles"));
+notSolved(s2, "2: not solved at the start");
+run(s2, ["conf t", "port-access lldp-group APS", "match sysname lab-ap", "exit", "port-access role AP-TRUNK", "vlan trunk native 99", "vlan trunk allowed 10,20,99", "exit", "port-access device-profile APS", "associate lldp-group APS", "associate role AP-TRUNK", "enable", "end"]);
+eq(s2.exec("show port-access device-profile interface all").out, "No device-profile clients found.", "2: sysname matches whole names only, so lab-ap matches nothing");
+run(s2, ["conf t", "port-access lldp-group APS", "no seq 10", "match sys-desc AP-515", "end"]);
+allPass(s2, "2 solved");
+has(s2.exec("show port-access clients").out, "\n1/1/9    00:00:5e:00:53:09                       AP-TRUNK                            multi           dp|c|-|s", "2: dp row as the lab printed one");
+has(s2.exec("show port-access device-profile interface all").out, "  Port 1/1/9, Neighbor-Mac  00:00:5e:00:53:09\n    Profile Name:           : APS\n    LLDP Group:             : APS", "2: device-profile client block");
+has(s2.exec("show port-access device-profile").out, "\n    Profile Name            : APS\n    LLDP Groups             : APS", "2: profile view");
+has(s2.exec("show running-config").out, "port-access lldp-group APS\n     seq 10 match sys-desc AP-515\nport-access role AP-TRUNK", "2: group before role, rule five spaces in, as the box prints it");
+has(s2.exec("show running-config").out, "port-access device-profile APS\n    enable\n    associate role AP-TRUNK\n    associate lldp-group APS", "2: profile block order");
+var s2c = CX.create(lesson("sc-02-device-profiles")); run(s2c, ["conf t", "port-access lldp-group APS", "match sys-desc AP-515", "exit", "port-access role AP-TRUNK", "vlan trunk native 99", "exit", "port-access device-profile APS", "associate lldp-group APS", "associate role AP-TRUNK", "end"]);
+ok(s2c.check().some(function (x) { return !x.pass && /lab-ap-01/.test(x.desc); }), "2: a profile that is not enabled does nothing");
+// 3 multi-domain, and the trap the lab fell into
+var s3 = CX.create(lesson("sc-03-multi-domain"));
+notSolved(s3, "3: not solved at the start");
+run(s3, ["conf t", "port-access lldp-group LLDP-MED-ENDPOINTS", "match vendor-oui 0012bb type 1", "exit", "port-access role VOICE", "device-traffic-class voice", "vlan trunk native 10", "vlan trunk allowed 30", "exit",
+  "port-access device-profile PHONES", "associate lldp-group LLDP-MED-ENDPOINTS", "associate role VOICE", "enable", "exit", "interface 1/1/6", "aaa authentication port-access auth-mode multi-domain", "end"]);
+has(s3.exec("show port-access clients").out, "1x|m|d|s", "3: the PC gets in beside the phone");
+ok(s3.check().some(function (x) { return !x.pass && /voice device/.test(x.desc); }), "3: the phone is still not profiled: its LLDP is dropped");
+eq(s3.exec("show lldp neighbor-info 1/1/6").out.indexOf("Neighbor Entries               : 0") > 0, true, "3: no LLDP neighbour on 1/1/6 until allow-lldp-bpdu");
+run(s3, ["conf t", "interface 1/1/6", "aaa authentication port-access allow-lldp-bpdu", "end"]);
+allPass(s3, "3 solved");
+var t3 = s3.exec("show port-access clients").out;
+has(t3, "\n1/1/6    00:00:5e:00:53:03                       VOICE                               (u)10,(t)30     dp|m|v|s", "3: phone row, as captured on 2026-09-28");
+has(t3, "\n1/1/6    employee.user                           EMPLOYEE                            (u)10           1x|m|d|s", "3: PC row, as captured");
+var d3 = s3.exec("show port-access clients mac 00:00:5e:00:53:03 detail").out;
+has(d3, "\nDevice-Profile Client Status Details:\n\n  Port 1/1/6, Neighbor-Mac  00:00:5e:00:53:03\n    Profile Name:           : PHONES\n    LLDP Group:             : LLDP-MED-ENDPOINTS", "3: dp detail, as captured");
+has(d3, "    Native VLAN                         : 10\n    Allowed Trunk VLANs                 : 30\n    Device Type                         : voice", "3: role information lines, as captured");
+has(s3.exec("show vlan 30").out, "30    VOICE                             up      ok                      static      1/1/6", "3: the role makes 1/1/6 a VLAN 30 member, as captured");
+has(s3.exec("show running-config interface 1/1/6").out, "    aaa authentication port-access auth-mode multi-domain", "3: multi-domain in the port block");
+// 4 UBT and PBT
+var s4 = CX.create(lesson("sc-04-ubt"));
+notSolved(s4, "4: not solved at the start");
+run(s4, ["conf t", "ubt-client-vlan 666", "ubt zone CAMPUS vrf default", "primary-controller ip 192.0.2.50", "exit", "end"]);
+has(s4.exec("show ubt").out, "Admin State              : Disabled", "4: a zone is off until enabled");
+run(s4, ["conf t", "ubt zone CAMPUS vrf default", "enable", "exit", "port-access role TUNNEL-EMPLOYEE", "gateway-zone zone CAMPUS gateway-role authenticated", "exit", "port-access role PBT-IOT", "gateway-zone zone CAMPUS gateway-role iot", "exit", "interface 1/1/4", "port-access fallback-role PBT-IOT", "end"]);
+allPass(s4, "4 solved");
+has(s4.exec("show ubt").out, "Operational State        : up", "4: zone up with the gateway reachable");
+has(s4.exec("show ubt users count").out, "Total Number of Users using ubt Zone : CAMPUS is 2", "4: two users tunnelled");
+has(s4.exec("show ubt brief").out, "CAMPUS       local-vlan   192.0.2.50                    default      Enabled     up", "4: brief row, captured layout");
+has(s4.exec("show port-access role name TUNNEL-EMPLOYEE").out, "    Gateway Zone                        : CAMPUS\n    UBT Gateway Role                    : authenticated", "4: role lines, as captured");
+has(s4.exec("show running-config").out, "ubt-client-vlan 666\nubt zone CAMPUS vrf default\n    primary-controller ip 192.0.2.50\n    enable", "4: UBT block, as captured");
+run(s4, ["conf t", "interface 1/1/13", "shutdown", "end"]);
+has(s4.exec("show ubt").out, "Operational State        : down", "4: no gateway, zone down, as on the lab switch");
+// 5 multi-gig
+var s5 = CX.create(lesson("sc-05-multigig"));
+notSolved(s5, "5: not solved at the start");
+has(s5.exec("show interface 1/1/1 physical").out, "1/1/1     --             up      up      1G       auto 1g", "5: pinned to 1G");
+run(s5, ["conf t", "interface 1/1/1", "speed auto 2.5g", "end"]);
+ok(s5.check().some(function (x) { return !x.pass && /5000/.test(x.desc); }), "5: offering 2.5G only gives 2.5G");
+run(s5, ["conf t", "interface 1/1/1", "no speed", "interface 1/1/2", "speed auto", "end"]);
+allPass(s5, "5 solved");
+has(s5.exec("show interface brief").out, "1/1/1          99      access --             yes     up                              5000    --", "5: brief shows 5000");
+has(s5.exec("show system").out, "JL660A", "5: the Smart Rate 6300M part number from QuickSpecs");
+// 6 LACP
+var s6 = CX.create(lesson("sc-06-lacp"));
+notSolved(s6, "6: not solved at the start");
+has(s6.exec("show lacp interfaces").out, "PLFOEX", "6: both ends passive, nobody starts");
+run(s6, ["conf t", "interface lag 1", "lacp mode active", "end"]);
+has(s6.exec("show lacp interfaces").out, "PSFNCD", "6: the partner asks for a short timeout");
+run(s6, ["conf t", "interface lag 1", "lacp rate fast", "end"]);
+has(s6.exec("show lacp interfaces").out, "ASFNCD", "6: this end fast too");
+has(s6.exec("show lacp aggregates").out, "Heartbeat rate   : Fast", "6: aggregates says Fast");
+allPass(s6, "6 solved");
+// 7 debug
+var s7 = CX.create(lesson("sc-07-debug"));
+notSolved(s7, "7: not solved at the start");
+eq(s7.exec("show debug").out, "Not configured", "7: nothing on, as the box says it");
+run(s7, ["debug lldp event", "debug portaccess all"]);
+has(s7.exec("show debug").out, "lldp               lldp_event                      debug", "7: show debug, captured layout");
+s7.disconnect("phone"); s7.connect("phone");
+has(s7.exec("show debug buffer module lldp").out, "|lldpd|LOG_DEBUG|AMM|-|LLDP|LLDP_EVENT|lldp_receive_neighbor_clear: intf 1/1/6", "7: the buffer shows the LLDP being dropped, in the lab's line format");
+run(s7, ["conf t", "interface 1/1/6", "aaa authentication port-access allow-lldp-bpdu", "end"]);
+has(s7.exec("show debug buffer module portaccess | include DEVICEPROFILE").out, "Neighbor SM State transition [NULL] -> [NEIGHBOR MATCHED] for MAC 00:00:5e:00:53:03 on port 1/1/6.", "7: the profile matches, as the lab logged");
+has(s7.exec("show debug buffer module portaccess").out, "identity '00:00:5e:00:53:03' onboarded via device-profile successfully.", "7: onboarded line, as the lab logged");
+allPass(s7, "7 solved");
+eq(s7.exec("no debug destination buffer").out, "Given destination buffer severity level cannot be un-configured. It is the default configuration.", "7: the buffer is the default, as the box answers");
+// 8 pipes
+var s8 = CX.create(lesson("sc-08-pipes"));
+var p8 = s8.exec("show mac-address-table | include 53:4c").out;
+eq(p8.split("\n").length, 1, "8: one line"); has(p8, "1/1/38", "8: on 1/1/38");
+has(s8.exec("show lldp neighbor-info | include CAM").out, "1/1/31", "8: the camera by its LLDP name");
+run(s8, ["conf t", "interface 1/1/38", "shutdown", "interface 1/1/31", "description CAM-DOCK-1", "end"]);
+allPass(s8, "8 solved");
+// 9 REST
+var s9 = CX.create(lesson("sc-09-rest"));
+has(s9.exec("sim rest get /rest/v10.18/system/vlans").out, "### HTTP 401", "9: no session, 401");
+has(s9.exec("sim rest post /rest/v10.18/login").out, "### HTTP 200", "9: login");
+has(s9.exec("sim rest post /rest/v10.18/system/vlans {\"id\":40,\"name\":\"CAMERAS\"}").out, "### HTTP 201", "9: POST 201, as captured");
+has(s9.exec("sim rest get /rest/v10.18/system/vlans/40?attributes=id,name,oper_state").out, "{\"id\":40,\"name\":\"CAMERAS\",\"oper_state\":\"down\"}", "9: one VLAN, captured shape");
+has(s9.exec("sim rest patch /rest/v10.18/system/interfaces/1%2F1%2F4 {\"description\":\"camera 4\"}").out, "### HTTP 204", "9: PATCH 204");
+has(s9.exec("sim rest post /rest/v10.18/cli {\"cmd\":\"show vlan 40\"}").out, "Command 'show vlan 40' not allowed\n### HTTP 403", "9: AnyCLI refuses what is not on its list, as captured");
+has(s9.exec("sim rest post /rest/v10.18/cli {\"cmd\":\"show vlan\"}").out, "40    CAMERAS", "9: AnyCLI runs show vlan");
+has(s9.exec("sim rest get /rest/v10.18/cli/commands").out, "\"show port-access clients onboarding-method device-profile\"", "9: the command list");
+has(s9.exec("sim rest get /rest/v10.18/system/interfaces/1%2F1%2F4?attributes=name,vlan_mode,vlan_tag").out, "{\"name\":\"1/1/4\",\"vlan_mode\":\"access\",\"vlan_tag\":{\"10\":\"/rest/v10.18/system/vlans/10\"}}", "9: interface with URIs, captured shape");
+allPass(s9, "9 solved");
+// 10 cable diagnostics
+var s10 = CX.create(lesson("sc-10-cable"));
+has(s10.exec("show interface 1/1/7").out, "Waiting for link", "10: the port waits for a link");
+has(s10.exec("diag cable-diagnostic test 1/1/7").out, "This command will cause a loss of link", "10: asks first");
+eq(s10.exec("y").out, "", "10: runs on y");
+var tdr = s10.exec("diag cable-diagnostic show 1/1/7").out;
+has(tdr, "(1GbT)         3-6     open         >115        23 +/- 10", "10: pair 3-6 open at 23 m"); has(tdr, "faked hardware", "10: says the result is the sandbox's");
+has(s10.exec("diag cable-diagnostic test 1/1/15").out, "Cable diagnostic is not supported on interface 1/1/15.", "10: not on an SFP+ port, the guide's wording");
+run(s10, ["conf t", "interface 1/1/7", "shutdown", "description pair 3-6 open at 23 m", "end"]);
+allPass(s10, "10 solved");
 
 // ── every lesson loads and its start config applies cleanly ──────────────
 section = "lessons";
