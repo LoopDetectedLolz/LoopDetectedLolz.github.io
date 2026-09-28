@@ -197,7 +197,10 @@
     }
 
     function say(html) { $("#btr-say").innerHTML = html; }
-    function score() { $("#btr-score").textContent = done.filter(Boolean).length + " of 3 passed"; }
+    function score() {
+      $("#btr-score").textContent = done.filter(Boolean).length + " of 3 passed";
+      if (done.filter(Boolean).length === LEVELS.length && window.NFNProgress) window.NFNProgress.mark("game");   // Academy progress
+    }
 
     function send(m) {
       var l = L();

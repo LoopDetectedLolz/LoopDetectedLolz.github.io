@@ -71,6 +71,17 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
   release notes, drafts sandbox changes on a `sandbox-drafts/<date>` branch in a worktree, and never
   pushes, merges or touches the lab.
 
+## Built, not deployed: Academy questions, progress and save codes (2026-09-28)
+
+On branch `academy-qa`. Lessons get "Ask about this lesson" (questions held for Dustin, answers threaded), a progress
+card, and the self-check; `academy.html` gets progress pips, a new-answer badge and "Continue on another device";
+`sandbox.html` marks passed labs. No accounts, no email: a four-word save code carries progress and questions between
+devices. Worker, schema and widgets are tested (`progresstest.js`, `comments/qatest.mjs`, and a browser run against a local
+`wrangler dev`). To ship, in order: `schema-academy.sql` on the remote D1, `wrangler secret put CODE_SALT`,
+`wrangler deploy`, then build and push. Still to do after that: approve the self-check answers in
+`academy/drafts/answers-01-12.md` and run `academy/apply-answers.py`, then a live check by hand (Turnstile will not pass a
+headless browser). The daily `academy-qa-monitor` in Cowork already runs, in comment mode until the migration lands.
+
 ## What is in the lab, not on the site
 
 - `theme/sim/` is the second-generation core: `core`, `rf`, `phy`, `mac`, `channels`,

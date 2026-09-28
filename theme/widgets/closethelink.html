@@ -170,6 +170,7 @@
 
     function score() {
       var n = done.filter(Boolean).length;
+      if (n === LEVELS.length && window.NFNProgress) window.NFNProgress.mark("game");   // Academy progress
       $("#ctl-score").textContent = n + " of 3 called right";
     }
 

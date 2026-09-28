@@ -34,3 +34,6 @@ node_modules/
 # editor backups
 .*.bak-*
 *.bak-*
+
+# local wrangler dev secrets for comments/qatest.mjs, test values only
+comments/.dev.vars

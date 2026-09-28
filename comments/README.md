@@ -86,6 +86,42 @@ per page.
 - Comments post but do not appear: check the slug. The widget sends the post's slug and the reader sees only `visible = 1` rows.
 - Spam gets through Turnstile: lower `LIMITS.perHour` in `worker.js`, or set the widget to Interactive in the Turnstile dashboard.
 
+## Academy questions and save codes
+
+Added 2026-09-28. On an Academy lesson the comment box becomes "Ask about this lesson": questions are held until you
+approve them, answers thread under them, and a reader carries their progress and their questions between devices with a
+four-word save code instead of an account. What is stored for a code is an HMAC of it and the progress record; no email.
+
+One time, in this order:
+
+```bash
+wrangler d1 execute nfn-comments --remote --command "PRAGMA table_info(comments)"   # kind, state, parent_id, code_hash missing?
+wrangler d1 execute nfn-comments --remote --file=schema-academy.sql                   # then add them, once
+wrangler secret put CODE_SALT          # any long random string; never change it once codes exist
+wrangler deploy                        # also installs the daily cron in wrangler.toml
+```
+
+New endpoints: `POST /v1/progress/new` `{token, data}`, `/v1/progress/pull` `{code}`, `/v1/progress/push` `{code, data}`.
+Admin gains `approve`, and `reply` with a `parent_id` threads the answer and approves a held question in one go. The
+cron (09:17 UTC) prunes the rate-limit rows and deletes codes nobody has used for a year.
+
+```bash
+python3 comments.py list --held                       # what is waiting
+python3 comments.py reply --to 42 --body "..."        # answer it; that also puts the question up
+python3 comments.py approve 42                        # or put it up without an answer yet
+```
+
+The daily Cowork monitor does the same with SQL; CLAUDE.md, "Comments", has the statements it relies on.
+
+Testing locally, never against the live Worker:
+
+```bash
+printf 'ADMIN_TOKEN=test-admin\nIP_SALT=test-salt\nCODE_SALT=test-code-salt\n' > .dev.vars   # git ignores it
+wrangler d1 execute nfn-comments --local --file=schema.sql          # and schema-sandbox.sql, schema-academy.sql
+wrangler dev --local --port 8799 --test-scheduled
+node qatest.mjs
+```
+
 ## CX Sandbox usage events
 
 The same Worker also collects anonymous usage from the CX Sandbox embeds (`POST /v1/sandbox/events`):

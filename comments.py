@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read and moderate the comments on networkfieldnotes.com.
+"""Read and moderate the comments and Academy questions on networkfieldnotes.com.
 
 The token never goes in this file. Export it first:
 
@@ -9,11 +9,17 @@ Usage:
     python3 comments.py list                  # newest 300, every post, hidden ones included
     python3 comments.py list --slug vsx-upgrade-hitless
     python3 comments.py list --new            # only what arrived in the last 7 days
+    python3 comments.py list --held           # Academy questions waiting for you
+    python3 comments.py approve 42            # a held question goes public (reply --to does this too)
+    python3 comments.py reply --to 42 --body "Because distance doubles."   # threaded under 42, approves it if held
+    python3 comments.py reply --slug vsx-upgrade-hitless --body "Good catch, fixed."
     python3 comments.py hide 42
     python3 comments.py show 42
     python3 comments.py delete 42
-    python3 comments.py reply --slug vsx-upgrade-hitless --body "Good catch, fixed."
     python3 comments.py export comments.json
+
+The daily Cowork monitor does the same things with plain SQL through the Cloudflare connector; this is the
+way to do them by hand.
 """
 import os, sys, json, ssl, argparse, datetime, urllib.request, urllib.error
 
@@ -39,7 +45,7 @@ def call(path, payload=None):
         data=json.dumps(payload).encode() if payload is not None else None,
         headers={"authorization": "Bearer " + TOKEN, "content-type": "application/json",
                  # Cloudflare's browser integrity check 403s the default Python-urllib signature
-                 "user-agent": "nfn-comments/1.0 (+https://networkfieldnotes.com)"},
+                 "user-agent": "nfn-comments/1.1 (+https://networkfieldnotes.com)"},
         method="POST" if payload is not None else "GET",
     )
     try:
@@ -61,8 +67,11 @@ def call(path, payload=None):
         sys.exit("Could not reach %s: %s" % (API, e.reason))
 
 
-def fetch(slug=None):
-    return call("/v1/admin/comments" + ("?slug=" + slug if slug else ""))["comments"]
+def fetch(slug=None, state=None):
+    q = []
+    if slug: q.append("slug=" + slug)
+    if state: q.append("state=" + state)
+    return call("/v1/admin/comments" + ("?" + "&".join(q) if q else ""))["comments"]
 
 
 def show_rows(rows, days=None):
@@ -74,46 +83,60 @@ def show_rows(rows, days=None):
         return
     for c in rows:
         flags = []
-        if not c["visible"]:
-            flags.append("HIDDEN")
+        kind, state = c.get("kind", "comment"), c.get("state", "live" if c["visible"] else "hidden")
+        if kind != "comment":
+            flags.append(kind + (" to #%s" % c["parent_id"] if c.get("parent_id") else ""))
+        elif c.get("parent_id"):
+            flags.append("reply to #%s" % c["parent_id"])
+        if state != "live":
+            flags.append(state.upper())
         if c["is_author"]:
             flags.append("author")
         head = "#%-5s %s  %s" % (c["id"], c["created_at"][:16].replace("T", " "), c["slug"])
-        who = c["name"] or "Anonymous"
-        if c["email"]:
+        who = c["name"] or ("Dustin" if c["is_author"] else "Anonymous")
+        if c.get("email"):
             who += " <%s>" % c["email"]
         if flags:
             who += "  [%s]" % ", ".join(flags)
         print("\n" + head + "\n" + who)
         for line in c["body"].splitlines():
             print("    " + line)
-    print("\n%d comment%s." % (len(rows), "" if len(rows) == 1 else "s"))
+    print("\n%d row%s." % (len(rows), "" if len(rows) == 1 else "s"))
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    p = sub.add_parser("list"); p.add_argument("--slug"); p.add_argument("--new", action="store_true")
-    for name in ("hide", "show", "delete"):
+    p = sub.add_parser("list"); p.add_argument("--slug"); p.add_argument("--new", action="store_true"); p.add_argument("--held", action="store_true")
+    for name in ("hide", "show", "delete", "approve"):
         q = sub.add_parser(name); q.add_argument("id", type=int)
-    r = sub.add_parser("reply"); r.add_argument("--slug", required=True); r.add_argument("--body", required=True); r.add_argument("--name", default="Dustin")
+    r = sub.add_parser("reply")
+    to = r.add_mutually_exclusive_group(required=True)
+    to.add_argument("--to", type=int, help="the id of the question or comment this answers (threaded)")
+    to.add_argument("--slug", help="a post's slug, for an unthreaded reply on a field note")
+    r.add_argument("--body", required=True); r.add_argument("--name", default="Dustin")
     e = sub.add_parser("export"); e.add_argument("path")
 
     a = ap.parse_args()
     if a.cmd == "list":
-        show_rows(fetch(a.slug), days=7 if a.new else None)
-    elif a.cmd in ("hide", "show", "delete"):
+        show_rows(fetch(a.slug, "held" if a.held else None), days=7 if a.new else None)
+    elif a.cmd in ("hide", "show", "delete", "approve"):
         call("/v1/admin/comments", {"action": a.cmd, "id": a.id})
-        print("%s: comment %d" % (a.cmd, a.id))
+        print("%s: #%d" % (a.cmd, a.id))
     elif a.cmd == "reply":
-        out = call("/v1/admin/comments", {"action": "reply", "slug": a.slug, "body": a.body, "name": a.name})
-        print("posted as author, id %s" % out.get("id"))
+        body = {"action": "reply", "body": a.body, "name": a.name}
+        if a.to:
+            body["parent_id"] = a.to
+        else:
+            body["slug"] = a.slug
+        out = call("/v1/admin/comments", body)
+        print("posted as author, id %s%s" % (out.get("id"), " under #%d" % a.to if a.to else ""))
     elif a.cmd == "export":
         rows = fetch()
         with open(a.path, "w", encoding="utf-8") as fh:
             json.dump(rows, fh, indent=2)
-        print("wrote %d comments to %s" % (len(rows), a.path))
+        print("wrote %d rows to %s" % (len(rows), a.path))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,213 @@
+<section class="q-wrap g-card" id="qa" data-rise data-slug="__SLUG__" data-api="__API__" data-sitekey="__SITEKEY__">
+  <style>
+  .q-wrap{padding:var(--s5);margin-top:var(--s5)}
+  .q-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
+  .q-head h3{font-size:19px;letter-spacing:-0.02em}
+  .q-head .meta{font-family:var(--mono);font-size:12px;color:var(--text-muted)}
+  .q-list{list-style:none;margin:0 0 var(--s5);padding:0;display:flex;flex-direction:column;gap:var(--s3)}
+  .q-item{padding:var(--s4);border:1px solid var(--line);border-radius:var(--r-inner);background:var(--solid)}
+  .q-item.q-wait{border-color:rgba(245,165,36,0.45)}
+  .q-who{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .q-who b{font-size:14.5px}
+  .q-tag{font:600 10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.22);color:var(--text-dim)}
+  .q-tag.q-author{border-color:rgba(140,224,94,0.45);color:var(--green)}
+  .q-tag.q-waiting{border-color:rgba(245,165,36,0.55);color:#ffd28a}
+  .q-when{font-family:var(--mono);font-size:11.5px;color:var(--text-muted)}
+  .q-body p{font-size:15px;line-height:1.7;color:var(--text-dim);margin:0 0 10px;overflow-wrap:anywhere}
+  .q-body p:last-child{margin-bottom:0}
+  .q-ans{list-style:none;margin:var(--s3) 0 0;padding:0 0 0 var(--s4);border-left:2px solid rgba(140,224,94,0.35);display:flex;flex-direction:column;gap:var(--s3)}
+  .q-ans .q-body p{color:var(--text)}
+  .q-empty,.q-off{font-size:14.5px;color:var(--text-muted);margin:0 0 var(--s5)}
+  .q-form{display:flex;flex-direction:column;gap:var(--s3)}
+  .q-form[hidden],.q-list[hidden]{display:none}
+  .q-f{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .q-f span{font:10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+  .q-wrap input[type=text],.q-wrap textarea{width:100%;min-height:46px;font:15px var(--sans);color:var(--text);background:rgba(3,10,16,0.8);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .q-wrap textarea{min-height:120px;line-height:1.6;resize:vertical}
+  .q-wrap input:focus-visible,.q-wrap textarea:focus-visible,.q-wrap button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .q-name{max-width:320px}
+  .q-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+  .q-actions{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+  .q-note{font-size:12.5px;line-height:1.6;color:var(--text-muted);margin:0}
+  .q-say{font-size:13.5px;line-height:1.6}
+  .q-say.q-ok{color:var(--green)}
+  .q-say.q-bad{color:#ffd28a}
+  .q-done{margin-top:var(--s3);padding:var(--s4);border:1px solid rgba(140,224,94,0.35);border-radius:var(--r-inner);background:rgba(140,224,94,0.06)}
+  .q-done p{margin:0 0 var(--s3);font-size:14.5px;line-height:1.65;color:var(--text)}
+  .q-done[hidden]{display:none}
+  </style>
+
+  <div class="q-head"><h3>Ask about this lesson</h3><span class="meta" id="q-count"></span></div>
+  <ul class="q-list" id="q-list"></ul>
+  <p class="q-empty" id="q-empty" hidden>No questions on this lesson yet.</p>
+
+  <form class="q-form" id="q-form" novalidate>
+    <label class="q-f"><span>Your question</span><textarea id="q-body" maxlength="2000" required placeholder="What didn't add up, and what gear you're on."></textarea></label>
+    <label class="q-f q-name"><span>Name</span><input type="text" id="q-name" maxlength="60" autocomplete="nickname" placeholder="Optional, shown with the question"></label>
+    <input class="q-hp" type="text" id="q-website" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="Leave this empty">
+    <div id="q-cap"></div>
+    <div class="q-actions">
+      <button class="btn cta" type="submit" id="q-send">Send</button>
+      <span class="q-say" id="q-say" role="status"></span>
+    </div>
+    <p class="q-note">Questions show up here once I've answered them. Add a name if you want it shown. No account and no email; your code is how you find the answer again.</p>
+  </form>
+  <div class="q-done" id="q-done" hidden></div>
+  <p class="q-off" id="q-offline" hidden>Questions are offline at the moment.</p>
+
+  <script>
+  (function () {
+  // waits for the page to finish parsing, so the progress script is always there when this runs
+  function start() {
+    var root = document.getElementById("qa");
+    if (!root) return;
+    var API = root.dataset.api, SLUG = root.dataset.slug, KEY = root.dataset.sitekey;
+    var list = document.getElementById("q-list"), count = document.getElementById("q-count"),
+        empty = document.getElementById("q-empty"), form = document.getElementById("q-form"),
+        say = document.getElementById("q-say"), send = document.getElementById("q-send"),
+        cap = document.getElementById("q-cap"), offline = document.getElementById("q-offline"),
+        done = document.getElementById("q-done");
+    var P = window.NFNProgress || null;
+    var publicRows = [];
+
+    function when(iso) {
+      var then = Date.parse(iso), mins = Math.round((Date.now() - then) / 60000);
+      if (isNaN(then)) return "";
+      if (mins < 1) return "just now";
+      if (mins < 60) return mins + (mins === 1 ? " minute ago" : " minutes ago");
+      var hrs = Math.round(mins / 60);
+      if (hrs < 24) return hrs + (hrs === 1 ? " hour ago" : " hours ago");
+      var days = Math.round(hrs / 24);
+      if (days < 8) return days + (days === 1 ? " day ago" : " days ago");
+      return new Date(then).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    }
+    function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    function body(text) {
+      var d = el("div", "q-body");
+      String(text || "").split(/\n{2,}/).forEach(function (para) { d.appendChild(el("p", "", para)); });   // textContent, never innerHTML
+      return d;
+    }
+    function who(name, tags, at) {
+      var w = el("div", "q-who");
+      w.appendChild(el("b", "", name));
+      tags.forEach(function (t) { w.appendChild(el("span", "q-tag " + t[0], t[1])); });
+      w.appendChild(el("span", "q-when", when(at)));
+      return w;
+    }
+
+    function render() {
+      var mine = P ? P.questions().filter(function (q) { return q.slug === SLUG; }) : [];
+      var mineIds = {}; mine.forEach(function (q) { mineIds[q.id] = q; });
+      var roots = publicRows.filter(function (r) { return !r.parent_id; });
+      var kids = {}; publicRows.forEach(function (r) { if (r.parent_id) (kids[r.parent_id] = kids[r.parent_id] || []).push(r); });
+      var waiting = mine.filter(function (q) { return q.state === "held"; });
+      var seenIds = [];
+      list.textContent = "";
+
+      waiting.forEach(function (q) {
+        var li = el("li", "q-item q-wait");
+        li.appendChild(who(q.name || "You", [["q-waiting", "Waiting for an answer"]], q.created_at));
+        li.appendChild(body(q.body));
+        list.appendChild(li);
+      });
+      roots.forEach(function (r) {
+        var li = el("li", "q-item");
+        var tags = [];
+        if (r.is_author) tags.push(["q-author", "Author"]);
+        if (mineIds[r.id]) tags.push(["", "Yours"]);
+        li.appendChild(who(r.name || (r.is_author ? "Dustin" : "A reader"), tags, r.created_at));
+        li.appendChild(body(r.body));
+        var ans = kids[r.id] || [];
+        if (ans.length) {
+          var ul = el("ul", "q-ans");
+          ans.forEach(function (a) {
+            var ai = el("li", "");
+            ai.appendChild(who(a.name || "Dustin", a.is_author ? [["q-author", "Author"]] : [], a.created_at));
+            ai.appendChild(body(a.body));
+            ul.appendChild(ai);
+          });
+          li.appendChild(ul);
+          if (mineIds[r.id]) seenIds.push(r.id);
+        }
+        list.appendChild(li);
+      });
+      var n = roots.length;
+      count.textContent = n ? n + (n === 1 ? " question" : " questions") : "";
+      empty.hidden = n > 0 || waiting.length > 0;
+      if (P && seenIds.length) P.seen(seenIds);     // clears the "New answer" badge on the Academy page
+    }
+
+    function load() {
+      return fetch(API + "/v1/comments?slug=" + encodeURIComponent(SLUG), { cache: "no-store" })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { publicRows = d.comments || []; render(); })
+        .catch(function () { form.hidden = true; empty.hidden = true; list.hidden = true; count.textContent = ""; offline.hidden = false; });
+    }
+
+    if (KEY) {
+      var box = document.createElement("div");
+      box.className = "cf-turnstile";
+      box.setAttribute("data-sitekey", KEY);
+      box.setAttribute("data-theme", "dark");
+      box.setAttribute("data-appearance", "interaction-only");    // most readers never see it
+      cap.appendChild(box);
+      var s = document.createElement("script");
+      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+      s.async = true; s.defer = true;
+      document.head.appendChild(s);
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var text = document.getElementById("q-body").value.trim();
+      if (text.length < 2) { say.className = "q-say q-bad"; say.textContent = "Write the question first."; return; }
+      var token = (form.querySelector('[name="cf-turnstile-response"]') || {}).value || "";
+      if (KEY && !token) { say.className = "q-say q-bad"; say.textContent = "Give the spam check a second, then send."; return; }
+      var had = P ? P.code() : "";
+      send.disabled = true; say.className = "q-say"; say.textContent = "Sending.";
+      fetch(API + "/v1/comments", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          slug: SLUG,
+          name: document.getElementById("q-name").value,
+          body: text,
+          website: document.getElementById("q-website").value,
+          token: token,
+          code: had
+        })
+      }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          send.disabled = false;
+          if (window.turnstile) { try { window.turnstile.reset(); } catch (err) {} }
+          if (!res.ok) { say.className = "q-say q-bad"; say.textContent = res.d.error || "That didn't go through."; return; }
+          document.getElementById("q-body").value = "";
+          say.className = "q-say"; say.textContent = "";
+          if (P && res.d.code) P.adopt(res.d.code);
+          if (P && res.d.question) P.addMine(res.d.question);
+          var c = P ? P.code() : "";
+          done.textContent = "";
+          if (res.d.code && c) {
+            done.appendChild(el("p", "", "Got it. I usually answer within a day. This is your code. It brings your answer and your progress back on any device."));
+            var holder = el("div"); done.appendChild(holder); P.renderCode(holder, c);
+          } else if (c) {
+            done.appendChild(el("p", "", "Got it. I usually answer within a day. It's saved under your code, so the answer shows up on any device you use it on."));
+          } else {
+            done.appendChild(el("p", "", "Got it. I usually answer within a day, and it shows up here once I have."));
+          }
+          done.hidden = false;
+          render();
+        })
+        .catch(function () {
+          send.disabled = false; say.className = "q-say q-bad";
+          say.textContent = "Couldn't reach the question box. Try again in a minute.";
+        });
+    });
+
+    if (P) P.onChange(render);
+    load();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+  })();
+  </script>
+</section>
