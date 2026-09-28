@@ -41,7 +41,8 @@ def phy_mbps(std, mcs, ss, bw):
     if std == "a": return None
     b, r = MCS[mcs]; return ss * NSD[std][bw] * b * r / TSYM[std]
 def mos_g107(loss_frac, delay_ms=0):
-    ie = 10 + (95 - 10) * loss_frac / (loss_frac + 0.20)
+    # the call is G.711 with concealment: G.113 Appendix I gives Ie 0 and Bpl 25.1
+    ie = 0 + (95 - 0) * loss_frac / (loss_frac + 0.251)
     idd = 0 if delay_ms < 177.3 else 0.024 * delay_ms + 0.11 * (delay_ms - 177.3)
     R = 93.2 - ie - idd
     return 1 if R < 0 else 4.5 if R > 100 else 1 + 0.035 * R + R * (R - 60) * (100 - R) * 7e-6
@@ -397,7 +398,7 @@ def qa_qam(b, base, page_url):
     mm = re.search(r"MOS\s*([0-9.]+)", app)
     if mm:
         mos = float(mm.group(1)); clean = mos_g107(0)
-        check("math", f"a clean call's MOS is the E-model ceiling for Ie 10 ({clean:.2f})", abs(mos - clean) <= 0.15 or mos >= 4.0, mos, f"about {clean:.2f}")
+        check("math", f"a clean G.711 call's MOS is the E-model ceiling for Ie 0 ({clean:.2f})", abs(mos - clean) <= 0.15, mos, f"about {clean:.2f}")
     # live feed: a reading parks the sliders and sets the PHY from the top rate
     out = pg.evaluate("""document.getElementById('qam')._mon({source:'qa',ts:Date.now()/1000,client:{name:'QA phone'},ap:{name:'QA-AP',model:'AP-735'},radio:{band:'5',channel:149,bw:80,noise_dbm:-93,util_pct:5},link:{rssi_dbm:-60,snr_db:33,speed_mbps:1201,max_mbps:1201,retry_pct:0}})""")
     check("math", "1201 Mb/s tops out as 802.11ax, 2 streams, 80 MHz", (out["std"], out["ss"], out["bw"]) == ("ax", 2, 80), (out["std"], out["ss"], out["bw"]), ("ax", 2, 80))

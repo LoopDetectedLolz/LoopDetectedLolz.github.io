@@ -5,20 +5,30 @@ Three flows, each written as a radiotap pcap (link type 127) and mirrored into t
 which build-blog.py injects into the banner:
 
   nfn-ping.pcap         one ICMP echo request in cleartext, plus its ACK
-  nfn-teams-voice.pcap  15,000 SRTP voice packets (20 ms each, five minutes of a call), plus ACKs
+  nfn-teams-voice.pcap  15,000 SRTP voice packets (20 ms of G.711 each, five minutes of a call), plus ACKs
   nfn-teams-chat.pcap   36 TLS 1.2 application-data records, five minutes of chat, plus ACKs
 
 The banner regenerates the two Teams flows in the browser with WebCrypto from the same keys
 and the same recipe (frame n is a pure function of n), so traffic.json carries only the recipe
 and a few sample frames; make-pcap.py is the reference the browser output is checked against.
+The banner also decrypts every frame that lands, with the keys printed in traffic.json, and
+draws what comes out: the audio samples and the chat text are the decrypted bytes.
 
-The 802.11 link itself is left open (no CCMP) so the headers stay readable; the Teams flows
-are encrypted the way the app encrypts them: SRTP (AES-128-CTR + HMAC-SHA1-80) for voice and
-TLS_AES_128_GCM for chat, with demo keys that are printed in traffic.json so the decrypted
-view in the banner is honest. Addresses are locally administered MACs and RFC 5737 IPs.
+The 802.11 link itself is left open (no CCMP) so the headers stay readable. The voice flow is
+a Teams call to a phone number through a session border controller with media bypass, so the
+media runs straight from the client to the SBC (Microsoft Learn, "Plan for media bypass with
+Direct Routing"): client source port in Teams' audio range 50000 to 50019, G.711 mu-law
+(payload type 0, which the SBC offers), and SRTP AES_CM_128_HMAC_SHA1_80 keyed by an SDES
+master key and salt ("Direct Routing - media protocols"). Session keys come from the RFC 3711
+key derivation, the counter block is RFC 3711 4.1.1, the tag is HMAC-SHA1 over the header,
+the ciphertext and the rollover counter. The audio is a synthetic, speech-shaped tone, but the
+G.711 encoding is real: decrypt a packet and you get 160 samples you can play. The chat flow is
+TLS 1.2 with TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 record protection: separate client and
+server write keys and salts, and a sequence number per direction (RFC 5246 6.1 and 6.3,
+RFC 5288). Addresses are locally administered MACs and RFC 5737 IPs.
 
 Needs the 'cryptography' package for AES. Run from anywhere; writes next to itself."""
-import struct, zlib, json, os, hashlib, hmac
+import struct, zlib, json, os, hashlib, hmac, base64
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
@@ -33,7 +43,7 @@ def csum(b):
 AP  = bytes.fromhex("020000000001")   # BSSID
 STA = bytes.fromhex("020000000002")   # the client (you)
 GW  = bytes.fromhex("020000000003")   # the wired side
-IP_STA = bytes([192, 0, 2, 10]); IP_GW = bytes([192, 0, 2, 1]); IP_TEAMS = bytes([203, 0, 113, 40])
+IP_STA = bytes([192, 0, 2, 10]); IP_GW = bytes([192, 0, 2, 1]); IP_TEAMS = bytes([203, 0, 113, 40]); IP_SBC = bytes([198, 51, 100, 20])
 LLC = bytes.fromhex("aaaa030000000800")
 RADIOTAP = struct.pack("<BBHI", 0, 0, 12, 0x2 | 0x4) + bytes([0x10, 0x6c, 0, 0])   # FCS present, 54 Mb/s
 
@@ -64,7 +74,7 @@ def hdr_fields(to_ds, seqno, proto_name, proto_num, src, dst):
     a1, a2, a3 = (AP, STA, GW) if to_ds else (STA, AP, GW)
     return [
         [0, 2, "Frame Control", "0x08%02x: type Data, %s" % (1 if to_ds else 2, "To DS = 1 (client to AP)" if to_ds else "From DS = 1 (AP to client)")],
-        [2, 2, "Duration", "44 microseconds reserved for the ACK"],
+        [2, 2, "Duration", "44 microseconds: one SIFS (16) plus the ACK at 24 Mb/s (28), held on every listener's NAV"],
         [4, 6, "Address 1", "receiver, %s %s" % ("the AP's BSSID" if to_ds else "the client", mac(a1))],
         [10, 6, "Address 2", "transmitter, %s %s" % ("the client" if to_ds else "the AP's BSSID", mac(a2))],
         [16, 6, "Address 3", "%s %s, the wired side" % ("final destination" if to_ds else "original source", mac(a3))],
@@ -92,58 +102,86 @@ traffic["ping"] = {"name": "Ping (ICMP, cleartext)", "pcap": "demo/nfn-ping.pcap
                    "frames": [frame.hex()], "fields": [fields], "app": [{"seq": 1, "to": "192.0.2.1"}],
                    "note": "one echo request; the reply would come back the same way"}
 
-# ── 2. Teams voice: RTP over UDP, SRTP-encrypted payload ─────────────────────
-# keys are demo keys, printed here so the decrypted view in the banner is honest
-SRTP_KEY = hashlib.sha256(b"network field notes demo srtp key").digest()[:16]
-SRTP_SALT = hashlib.sha256(b"network field notes demo srtp salt").digest()[:14]
-SRTP_AUTH = hashlib.sha256(b"network field notes demo srtp auth").digest()[:20]
-SSRC = 0x4e464e31
-def audio20ms(n):
-    """20 ms of 'speech': a deterministic waveform so the decrypted view has something to draw.
-    Returns 60 encoded bytes (SILK wideband at 24 kb/s) and 32 samples for the picture."""
+# ── 2. Teams voice: a call to a phone number, SRTP straight from the client to the SBC ──
+# Demo keys, printed in traffic.json: anyone can decrypt the capture with them, and the banner does.
+SRTP_MASTER_KEY = hashlib.sha256(b"network field notes demo srtp master key").digest()[:16]
+SRTP_MASTER_SALT = hashlib.sha256(b"network field notes demo srtp master salt").digest()[:14]
+SDES = "inline:" + base64.b64encode(SRTP_MASTER_KEY + SRTP_MASTER_SALT).decode() + "|2^31"
+def srtp_kdf(label, n):
+    """RFC 3711 4.3.1 and 4.3.3, key derivation rate 0: x = (label || r) XOR master salt,
+    right-aligned, with r = 0; the key is the AES-CM keystream under the master key from IV x * 2^16."""
+    x = int.from_bytes(SRTP_MASTER_SALT, "big") ^ (label << 48)
+    return Cipher(algorithms.AES(SRTP_MASTER_KEY), modes.CTR((x << 16).to_bytes(16, "big"))).encryptor().update(b"\0" * n)
+SRTP_KE, SRTP_KA, SRTP_KS = srtp_kdf(0x00, 16), srtp_kdf(0x01, 20), srtp_kdf(0x02, 14)   # encryption, auth, salt
+def srtp_iv(ssrc, index):
+    """RFC 3711 4.1.1: IV = (k_s * 2^16) XOR (SSRC * 2^64) XOR (i * 2^16), i = ROC || SEQ"""
+    return ((int.from_bytes(SRTP_KS, "big") << 16) ^ (ssrc << 64) ^ (index << 16)).to_bytes(16, "big")
+def ulaw(sample):
+    """ITU-T G.711 mu-law, the Sun reference encoder that audioop and sox use: the 16-bit
+    sample drops to 14 bits, then segment, 4 quantisation bits, sign, all bits inverted"""
+    pcm = sample >> 2
+    if pcm < 0: pcm, mask = -pcm, 0x7F
+    else: mask = 0xFF
+    pcm = min(pcm, 8159) + 33
+    seg = next((i for i, top in enumerate((0x3F, 0x7F, 0xFF, 0x1FF, 0x3FF, 0x7FF, 0xFFF, 0x1FFF)) if pcm <= top), 8)
+    return (0x7F ^ mask) if seg >= 8 else (((seg << 4) | ((pcm >> (seg + 1)) & 0xF)) ^ mask)
+def speech(n):
+    """20 ms at 8 kHz of a synthetic, speech-shaped tone: a 180 Hz voice with a 1210 Hz formant
+    under a syllable-like envelope. 160 linear samples."""
     import math
-    samples = []
-    for i in range(32):
-        t = n * 0.020 + i * 0.020 / 32
+    out = []
+    for i in range(160):
+        t = n * 0.020 + i / 8000
         env = 0.35 + 0.65 * abs(math.sin(t * 2.1)) * (0.6 + 0.4 * math.sin(t * 13.0))
-        v = env * (0.7 * math.sin(2 * math.pi * 180 * t) + 0.3 * math.sin(2 * math.pi * 1210 * t + 0.4))
-        samples.append(round(v, 3))
-    enc = hashlib.sha256(b"silk-frame-%d" % n).digest() + hashlib.sha256(b"silk-frame-%d-b" % n).digest()
-    return enc[:60], samples
+        out.append(math.floor(12000 * env * (0.7 * math.sin(2 * math.pi * 180 * t) + 0.3 * math.sin(2 * math.pi * 1210 * t + 0.4)) + 0.5))
+    return out
+# One second of audio (50 packets) encoded once and played on a loop, so the page can rebuild any
+# packet from traffic.json alone and get the same bytes in every browser.
+AUDIO_LOOP = 50
+AUDIO = b"".join(bytes(ulaw(s) for s in speech(k)) for k in range(AUDIO_LOOP))
+SSRC = 0x4e464e31
+VOICE_SPORT, VOICE_DPORT = 50010, 54056     # Teams audio source range; the SBC's media port (Microsoft's SDP example)
 VOICE_N = 15000
-voice_frames, voice_app = [], []
+voice_frames = []
 for n in range(VOICE_N):
-    seq, ts = 3100 + n, 0x0a2f7c40 + n * 960            # Opus/SILK clock is 48 kHz: 960 per 20 ms
-    rtp_hdr = struct.pack("!BBHII", 0x80, 111, seq, ts, SSRC)   # V=2, PT 111 (dynamic, SILK/Opus)
-    enc, samples = audio20ms(n)
-    # SRTP: AES-128-CTR keystream from the packet index, then HMAC-SHA1 over header + ciphertext, 80-bit tag
-    iv = bytes(a ^ b for a, b in zip(SRTP_SALT + b"\0\0", struct.pack("!QQ", SSRC, (0 << 16) | seq)[0:16]))
-    ct = Cipher(algorithms.AES(SRTP_KEY), modes.CTR(iv)).encryptor().update(enc)
-    tag = hmac.new(SRTP_AUTH, rtp_hdr + ct + b"\0\0\0\0", hashlib.sha1).digest()[:10]
-    udp_len = 8 + len(rtp_hdr) + len(ct) + len(tag)
-    udp = struct.pack("!HHHH", 50024, 3478, udp_len, 0) + rtp_hdr + ct + tag
-    fr = dot11(True, 200 + n, ipv4(IP_STA, IP_TEAMS, 17, udp, 0x3000 + n))
+    seq, ts = 3100 + n, 0x0a2f7c40 + n * 160            # PCMU: 8 kHz clock, 160 samples per 20 ms
+    rtp_hdr = struct.pack("!BBHII", 0x80, 0, seq, ts, SSRC)   # V=2, PT 0 = PCMU (RFC 3551)
+    payload = AUDIO[(n % AUDIO_LOOP) * 160:(n % AUDIO_LOOP) * 160 + 160]
+    ct = Cipher(algorithms.AES(SRTP_KE), modes.CTR(srtp_iv(SSRC, seq))).encryptor().update(payload)   # ROC 0: seq never wraps
+    tag = hmac.new(SRTP_KA, rtp_hdr + ct + b"\0\0\0\0", hashlib.sha1).digest()[:10]              # RFC 3711 4.2: header, ciphertext, ROC
+    body = rtp_hdr + ct + tag
+    udp = struct.pack("!HHHH", VOICE_SPORT, VOICE_DPORT, 8 + len(body), 0) + body
+    ck = csum(IP_STA + IP_SBC + struct.pack("!BBH", 0, 17, len(udp)) + udp) or 0xFFFF
+    udp = udp[:6] + struct.pack("!H", ck) + udp[8:]
+    fr = dot11(True, 200 + n, ipv4(IP_STA, IP_SBC, 17, udp, 0x3000 + n))
     voice_frames.append(fr.hex())
-    if n < 8: voice_app.append({"seq": seq, "ts": ts, "wave": samples})
-vf = hdr_fields(True, 200, "UDP", 17, IP_STA, IP_TEAMS) + [
-    [52, 8, "UDP header", "port 50024 to 3478, the media relay"],
-    [60, 12, "RTP header", "version 2, payload type 111 (SILK/Opus), sequence, timestamp (48 kHz clock, +960 per 20 ms), SSRC 0x4e464e31"],
-    [72, 60, "SRTP payload", "20 ms of encoded speech under AES-128-CTR; without the key it is noise"],
-    [132, 10, "SRTP auth tag", "HMAC-SHA1-80 over the RTP header and ciphertext; a flipped bit fails this too"],
-    [142, 4, "FCS", "CRC-32 over everything before it"],
+vf = hdr_fields(True, 200, "UDP", 17, IP_STA, IP_SBC) + [
+    [52, 8, "UDP header", "port 50010 (Teams' audio source range) to 54056, the SBC's media port"],
+    [60, 12, "RTP header", "version 2, payload type 0 (PCMU, G.711 mu-law), sequence, timestamp (8 kHz clock, +160 per 20 ms), SSRC 0x4e464e31"],
+    [72, 160, "SRTP payload", "20 ms of G.711 audio, 160 samples, under AES-128-CTR; without the key it is noise"],
+    [232, 10, "SRTP auth tag", "HMAC-SHA1-80 over the RTP header, the ciphertext and the rollover counter; a flipped bit fails it"],
+    [242, 4, "FCS", "CRC-32 over everything before it"],
 ]
+vf[4][3] = vf[4][3].replace("the wired side", "the router toward the SBC")
 vf[5][3] = "sequence number 200 and up, one per packet"
 write_pcap("nfn-teams-voice.pcap", [bytes.fromhex(h) for h in voice_frames])
-traffic["voice"] = {"name": "Teams voice (SRTP over UDP)", "pcap": "demo/nfn-teams-voice.pcap", "kind": "voice",
-                    "count": VOICE_N, "sample": voice_frames[:8], "fields": [vf], "app": voice_app,
-                    "seq0": 3100, "ts0": 0x0a2f7c40, "ssrc": SSRC,
-                    "keys": {"srtp_key": SRTP_KEY.hex(), "srtp_salt": SRTP_SALT.hex(), "srtp_auth": SRTP_AUTH.hex()},
-                    "check": {str(n): hashlib.sha256(bytes.fromhex(voice_frames[n])).hexdigest()[:16] for n in (0, 1, 7, 100, 1000, 14999)},
+traffic["voice"] = {"name": "Teams call to a phone (SRTP, G.711)", "pcap": "demo/nfn-teams-voice.pcap", "kind": "voice",
+                    "count": VOICE_N, "sample": voice_frames[:8], "fields": [vf],
+                    "seq0": 3100, "ts0": 0x0a2f7c40, "ssrc": SSRC, "pt": 0, "clock": 8000, "step": 160,
+                    "sport": VOICE_SPORT, "dport": VOICE_DPORT, "dst": ".".join(map(str, IP_SBC)),
+                    "audio": base64.b64encode(AUDIO).decode(), "loop": AUDIO_LOOP,
+                    "keys": {"sdes": SDES, "master_key": SRTP_MASTER_KEY.hex(), "master_salt": SRTP_MASTER_SALT.hex()},
+                    "check": {str(n): hashlib.sha256(bytes.fromhex(voice_frames[n])).hexdigest()[:16] for n in (0, 1, 7, 49, 50, 100, 1000, 14999)},
+                    "pcap_bytes": os.path.getsize(os.path.join(here, "nfn-teams-voice.pcap")),
                     "note": "15,000 packets, 20 ms apart, five minutes of a call; UDP, so a lost packet is a gap"}
 
 # ── 3. Teams chat: TLS 1.2 application data over TCP ─────────────────────────
-TLS_KEY = hashlib.sha256(b"network field notes demo tls key").digest()[:16]
-TLS_IV = hashlib.sha256(b"network field notes demo tls iv").digest()[:4]
+# TLS 1.2 keeps a write key and a 4-byte salt per direction and a sequence number per direction
+# (RFC 5246 6.1 and 6.3, RFC 5288); record 0 each way was that side's Finished, so data starts at 1.
+TLS_CLIENT_KEY = hashlib.sha256(b"network field notes demo tls client write key").digest()      # AES-256
+TLS_SERVER_KEY = hashlib.sha256(b"network field notes demo tls server write key").digest()
+TLS_CLIENT_IV = hashlib.sha256(b"network field notes demo tls client write iv").digest()[:4]
+TLS_SERVER_IV = hashlib.sha256(b"network field notes demo tls server write iv").digest()[:4]
 CHAT = [   # (who, time, text): five minutes on a warehouse floor
     ("you",  "10:21:04", "Can you hear me? You keep cutting out."),
     ("tech", "10:21:11", "Barely. Is that the warehouse AP again?"),
@@ -184,13 +222,17 @@ CHAT = [   # (who, time, text): five minutes on a warehouse floor
 ]
 chat_frames, chat_fields, chat_app = [], [], []
 seq_c, seq_s = 0x1a2b3c00, 0x5e6f7a00
+rec_seq = {"you": 1, "tech": 1}
 for n, (who, when, text) in enumerate(CHAT):
     to_ds = who == "you"
     plain = json.dumps({"t": "msg", "from": who, "text": text}, separators=(",", ":")).encode()
-    # TLS 1.2 AES-GCM record: 8-byte explicit nonce, ciphertext, 16-byte tag; the record header is the AAD's tail
-    explicit = struct.pack("!Q", n + 1)
-    aad = struct.pack("!Q", n + 1) + bytes([0x17, 0x03, 0x03]) + struct.pack("!H", len(plain))
-    ct_tag = AESGCM(TLS_KEY).encrypt(TLS_IV + explicit, plain, aad)
+    # TLS 1.2 AES-GCM record: 8-byte explicit nonce, ciphertext, 16-byte tag. The AAD is this
+    # direction's sequence number and the record header; the explicit nonce carries the same number.
+    key, salt = (TLS_CLIENT_KEY, TLS_CLIENT_IV) if to_ds else (TLS_SERVER_KEY, TLS_SERVER_IV)
+    rs = rec_seq[who]; rec_seq[who] += 1
+    explicit = struct.pack("!Q", rs)
+    aad = struct.pack("!Q", rs) + bytes([0x17, 0x03, 0x03]) + struct.pack("!H", len(plain))
+    ct_tag = AESGCM(key).encrypt(salt + explicit, plain, aad)
     body = explicit + ct_tag
     rec = bytes([0x17, 0x03, 0x03]) + struct.pack("!H", len(body)) + body
     if to_ds:
@@ -206,8 +248,8 @@ for n, (who, when, text) in enumerate(CHAT):
     f = hdr_fields(to_ds, 400 + n, "TCP", 6, src, dst) + [
         [52, 20, "TCP header", "port %s, PSH+ACK, the chat session to the Teams service" % ("51234 to 443" if to_ds else "443 to 51234")],
         [72, 5, "TLS record header", "0x17 application data, version 3.3, %d bytes" % len(body)],
-        [77, 8, "TLS nonce", "explicit nonce for AES-GCM, counts up per record"],
-        [85, len(plain), "TLS ciphertext", "the JSON message under AES-128-GCM; %d bytes of noise without the key" % len(plain)],
+        [77, 8, "TLS nonce", "explicit nonce for AES-GCM: record %d in this direction" % rs],
+        [85, len(plain), "TLS ciphertext", "the JSON message under AES-256-GCM with the %s write key; %d bytes of noise without it" % ("client" if to_ds else "server", len(plain))],
         [85 + len(plain), 16, "TLS auth tag", "GCM tag; a flipped bit fails this before the app ever sees the message"],
         [101 + len(plain), 4, "FCS", "CRC-32 over everything before it"],
     ]
@@ -216,7 +258,9 @@ for n, (who, when, text) in enumerate(CHAT):
 write_pcap("nfn-teams-chat.pcap", [bytes.fromhex(h) for h in chat_frames])
 traffic["chat"] = {"name": "Teams chat (TLS over TCP)", "pcap": "demo/nfn-teams-chat.pcap", "kind": "chat",
                    "script": chat_app, "sample": chat_frames[:4], "fields": chat_fields[:4],
-                   "keys": {"tls_key": TLS_KEY.hex(), "tls_iv": TLS_IV.hex()},
+                   "suite": "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+                   "keys": {"client_write_key": TLS_CLIENT_KEY.hex(), "client_write_iv": TLS_CLIENT_IV.hex(),
+                            "server_write_key": TLS_SERVER_KEY.hex(), "server_write_iv": TLS_SERVER_IV.hex()},
                    "check": {str(n): hashlib.sha256(bytes.fromhex(chat_frames[n])).hexdigest()[:16] for n in range(len(chat_frames))},
                    "note": "%d messages over five minutes, one TLS record each; TCP, so a lost frame is retransmitted and the message arrives late" % len(CHAT)}
 
