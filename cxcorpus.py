@@ -21,7 +21,9 @@ paths per release collapse to a few thousand nodes), and it is written compactly
 oldest first, bit 0 being the first; `t` is the keyword table (space separated); `n` the nodes separated by "|",
 each the bitmask of releases in which it ends a command, then ",<token>.<child>[.<releases>]" per edge in base 36,
 the release mask left off when the edge exists in all of them. A negative token is a placeholder class: -1 number
-or range list, -2 IPv4, -3 IPv4 prefix, -4 IPv6, -5 interface, -6 MAC, -7 any word, -8 rest of line. `r` maps each
+or range list, -2 IPv4, -3 IPv4 prefix, -4 IPv6, -5 interface, -6 MAC, -7 any word, -8 rest of line, and -100-i
+the i-th `{ }` set, whose options live in the trie at `s[i]` (take any of them, each ending back at the set, then
+leave by the edge's child). `r` maps each
 context to its root node and `h` to the releases it was harvested in. Choice groups with more than 40
 single-word alternatives (time zones and the like) become "any word".
 """
@@ -61,7 +63,11 @@ def tokenize(line):
 
 
 def parse(tokens):
-    """-> sequence: list of items; item = ("lit", t) | ("ph", cls) | ("grp", optional, [seq, ...])"""
+    """-> sequence: list of items; item = ("lit", t) | ("ph", cls) | ("grp", optional, [seq, ...]) | ("set", key, [seq, ...])
+
+    `( a | b )` is one of, `[ a | b ]` at most one of, and `{ a | b }` is a set: any of its options, each at most once,
+    which the box takes in any order (ntp server X minpoll 4 maxpoll 4 iburst). A set is not expanded into every
+    ordering; it becomes one edge to a shared little trie of its options that the walker may enter again."""
     pos = 0
 
     def seq(stop):
@@ -74,13 +80,18 @@ def parse(tokens):
             pos += 1
             if t in "({[":
                 close = {"(": ")", "{": "}", "[": "]"}[t]
+                start = pos
                 alts = [seq({close})]
                 while pos < len(tokens) and tokens[pos] == "|":
                     pos += 1
                     alts.append(seq({close}))
                 if pos < len(tokens) and tokens[pos] == close:
                     pos += 1
+                key = " ".join(tokens[start:pos - 1]) if tokens[pos - 1:pos] == [close] else " ".join(tokens[start:pos])
                 alts = [a for a in alts if a] or [[]]
+                if t == "{" and alts != [[]]:
+                    items.append(("set", key, alts))
+                    continue
                 optional = t != "("
                 if not optional and len(alts) > 40 and all(len(a) == 1 and a[0][0] == "lit" for a in alts):
                     items.append(("ph", "W"))
@@ -103,11 +114,24 @@ def parse(tokens):
     return top
 
 
+SETS = {}          # set key -> trie of its options, shared by every template and release that has the same set
+
+
 def expand(items):
     outs = [[]]
     for it in items:
         if it[0] in ("lit", "ph"):
             outs = [o + [it] for o in outs]
+            continue
+        if it[0] == "set":
+            _, key, alts = it
+            if key not in SETS:
+                SETS[key] = {}
+                for a in alts:
+                    for path in expand(a):
+                        if path:
+                            insert(SETS[key], path)
+            outs = [o + [("set", key)] for o in outs]
             continue
         _, optional, alts = it
         choices = ([[]] if optional else []) + [e for a in alts for e in expand(a)]
@@ -126,7 +150,7 @@ def expand(items):
 def insert(root, path):
     node = root
     for kind, val in path:
-        key = "k" if kind == "lit" else "w"
+        key = {"lit": "k", "ph": "w", "set": "s"}[kind]
         node = node.setdefault(key, {}).setdefault(val, {})
     node["e"] = 1
 
@@ -192,10 +216,16 @@ def b36(x):
 def pack(tries):
     """tries: [(bit, {ctx: trie})] -> one merged trie. Every edge carries the set of releases it exists in
     (a bitmask, left off when it is all of them) and every node the set it ends a command in."""
-    toks, nodes, memo = {}, [], {}
+    toks, nodes, memo, sets = {}, [], {}, {}
     allmask = 0
     for bit, _ in tries:
         allmask |= bit
+
+    def sid(key):                          # a set's index; its option trie is encoded like any other subtree
+        if key not in sets:
+            sets[key] = None
+            sets[key] = enc([(allmask, SETS[key])])
+        return -(100 + list(sets).index(key))
 
     def tid(t):
         if t not in toks:
@@ -208,7 +238,7 @@ def pack(tries):
             if n.get("e"):
                 emask |= bit
         kids = []
-        for kind, code in (("k", tid), ("w", lambda c: PH_CODE[c])):
+        for kind, code in (("k", tid), ("w", lambda c: PH_CODE[c]), ("s", sid)):
             names = sorted({t for _, n in group for t in n.get(kind, {})})
             for t in names:
                 sub = [(bit, n[kind][t]) for bit, n in group if t in n.get(kind, {})]
@@ -232,7 +262,7 @@ def pack(tries):
     def one(e, kids):
         return b36(e) + "".join("," + b36(t) + "." + b36(c) + ("" if m == allmask else "." + b36(m)) for t, c, m in kids)
     flat = "|".join(one(e, kids) for e, kids in nodes)
-    return {"t": " ".join(sorted(toks, key=toks.get)), "n": flat, "r": roots, "h": harvested}, len(nodes)
+    return {"t": " ".join(sorted(toks, key=toks.get)), "n": flat, "r": roots, "h": harvested, "s": [sets[k] for k in sets]}, len(nodes)
 
 
 USAGE = """usage: cxcorpus.py <build>=<corpus-dir> [<build>=<corpus-dir> ...]
