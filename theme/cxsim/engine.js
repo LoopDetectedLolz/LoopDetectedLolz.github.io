@@ -20,19 +20,25 @@
 
   // ── models ──────────────────────────────────────────────────────────────
   // img is the platform prefix AOS-CX prints in front of the release: ML for the 6200, FL for the 6300.
+  // Part numbers and port groups from HPE's QuickSpecs (6200 a00059762enw, 6300 a00073540enw, read 2026-09-28):
+  // [count, port type, PoE]. The 12-port 6200F has two non-PoE copper ports before its two SFP+ uplinks.
   var MODELS = {
-    "6200F-12": { name: "6200F 12G CL4 2SFP+ 139W", pn: "JL725A", copper: 12, sfp: 2, sfpType: "SFP+", poe: true, img: "ML" },
-    "6200F-24": { name: "6200F 24G CL4 4SFP+ 370W", pn: "JL726A", copper: 24, sfp: 4, sfpType: "SFP+", poe: true, img: "ML" },
-    "6200F-48": { name: "6200F 48G CL4 4SFP+ 370W", pn: "JL727A", copper: 48, sfp: 4, sfpType: "SFP+", poe: true, img: "ML" },
-    "6300M-48": { name: "6300M 48G CL4 PoE 4SFP56", pn: "JL662A", copper: 48, sfp: 4, sfpType: "SFP56", poe: true, img: "FL" }
+    "6200F-12": { name: "6200F 12G Class4 PoE 2G/2SFP+ 139W", pn: "R8Q72A", ports: [[12, "1GbT", true], [2, "1GbT", false], [2, "SFP+"]], img: "ML" },
+    "6200F-24": { name: "6200F 24G Class4 PoE 4SFP+ 370W", pn: "JL725A", ports: [[24, "1GbT", true], [4, "SFP+"]], img: "ML" },
+    "6200F-48": { name: "6200F 48G Class4 PoE 4SFP+ 370W", pn: "JL727A", ports: [[48, "1GbT", true], [4, "SFP+"]], img: "ML" },
+    "6300M-48": { name: "6300M 48-port 1GbE Class 4 PoE and 4-port SFP56", pn: "JL661A", ports: [[48, "1GbT", true], [4, "SFP56"]], img: "FL" },
+    "6300M-24SR5": { name: "6300M 24-port HPE Smart Rate 1/2.5/5GbE Class 6 PoE and 4-port SFP56", pn: "JL660A", ports: [[24, "SmartRate", true], [4, "SFP56"]], img: "FL" }
   };
+  // what each port type can run at, slowest first; a link settles on the fastest speed both ends and the
+  // port's own `speed` setting allow
+  var PORT_SPEEDS = { "1GbT": ["10m", "100m", "1g"], "SmartRate": ["100m", "1g", "2.5g", "5g"], "SFP+": ["1g", "10g"], "SFP56": ["1g", "10g", "25g", "50g"] };
+  var SPEED_MB = { "10m": 10, "100m": 100, "1g": 1000, "2.5g": 2500, "5g": 5000, "10g": 10000, "25g": 25000, "50g": 50000 };
   // The release the shapes were checked against: the AOS-CX Switch Simulator, Virtual.10.18.1002.
   var VERSION = "10.18.1002";
 
   function portsFor(model, member) {
-    var m = MODELS[model] || MODELS["6200F-12"], out = [], i;
-    for (i = 1; i <= m.copper; i++) out.push({ name: member + "/1/" + i, type: "1GbT", copper: true });
-    for (i = 1; i <= m.sfp; i++) out.push({ name: member + "/1/" + (m.copper + i), type: m.sfpType, copper: false });
+    var m = MODELS[model] || MODELS["6200F-12"], out = [], n = 0;
+    m.ports.forEach(function (g) { for (var i = 0; i < g[0]; i++) { n++; out.push({ name: member + "/1/" + n, type: g[1], copper: !/^SFP/.test(g[1]), poe: !!g[2] }); } });
     return out;
   }
 
@@ -101,7 +107,7 @@
       lldpGroups: {},                       // name -> {rules: [{seq, act, sysDesc, sysName, oui, type, value, chassis}]}
       profiles: {} };                       // name -> {groups: [], role: "", enable: false}
     this.ubt = { clientVlan: 0, zones: {} }; // zone name -> {vrf, primary, backup, enable}
-    this.dbg = { dest: "", on: {}, buf: [], id: 1600 };   // debug destination, modules on, the buffer
+    this.dbg = { dest: "buffer", on: {}, buf: [], id: 1600 };   // debug destination, modules on, the buffer
     this.diag = {};                         // port -> cable test result
     this.pending = null;                    // a (y/n) question waiting for its answer
     this.restLog = [];
@@ -121,7 +127,7 @@
   function newRole() { return { vlan: 0, desc: "", native: 0, trunk: null, voice: false, gwZone: "", gwRole: "", authMode: "" }; }
 
   Switch.prototype.newIface = function (p) {
-    return { name: p.name, type: p.type, copper: p.copper, shutdown: false, routing: false, mode: "access", access: 1,
+    return { name: p.name, type: p.type, copper: p.copper, poe: p.poe, shutdown: false, routing: false, mode: "access", access: 1,
       trunk: null, native: 1, nativeTag: false, lag: 0, desc: "", clientLimit: 0, precedence: null,
       macAuth: false, dot1x: false, critRole: "", rejectRole: "", adminEdge: false, bpduGuard: false, loopProtect: false,
       ip: null, ospf: null, mtu: 1500,
@@ -140,8 +146,26 @@
   Switch.prototype.linkUp = function (name) {
     var i = this.ifaces[name]; if (!i || i.shutdown || this.errdisabled[name]) return false;
     if (this.vsfPortOf(name)) return true;
-    return this.devsOn(name).length > 0;
+    return this.devsOn(name).length > 0 && !!this.speedOf(name);
   };
+  // The speed a link settles on: the fastest the port type, the port's `speed` setting and the device all allow.
+  // A device lists its speeds (an AP with a Smart Rate uplink: 100m to 5g); anything else is a 10/100/1000
+  // endpoint, and a switch on the other end matches the port. A cable with a broken pair never links: 1000BASE-T
+  // and NBASE-T need all four pairs, and the sandbox does not model downshift.
+  var FIXED = { "10-full": "10m", "10-half": "10m", "100-full": "100m", "100-half": "100m", "1000-full": "1g", "10g": "10g", "25g": "25g", "50g": "50g" };
+  Switch.prototype.speedOf = function (name) {
+    var i = this.ifaces[name]; if (!i) return "";
+    if (this.vsfPortOf(name)) return (PORT_SPEEDS[i.type] || ["1g"]).slice(-1)[0];
+    var d = this.devsOn(name)[0]; if (!d) return "";
+    if (d.cable && d.cable.fault && i.copper) return "";
+    var mine = PORT_SPEEDS[i.type] || ["1g"];
+    if (i.speed && i.speed.fixed) mine = mine.indexOf(FIXED[i.speed.fixed]) >= 0 ? [FIXED[i.speed.fixed]] : [];
+    else if (i.speed && i.speed.auto && i.speed.auto.length) mine = mine.filter(function (x) { return i.speed.auto.indexOf(x) >= 0; });
+    var theirs = d.speeds || (d.kind === "switch" || d.kind === "router" || d.kind === "gateway" ? PORT_SPEEDS[i.type] || ["1g"] : ["10m", "100m", "1g"]);
+    var common = mine.filter(function (x) { return theirs.indexOf(x) >= 0; });
+    return common.length ? common[common.length - 1] : "";
+  };
+  Switch.prototype.portMb = function (name) { return SPEED_MB[this.speedOf(name)] || 0; };
   Switch.prototype.vsfPortOf = function (name) {
     var m = this.vsf.members, k;
     for (k in m) { var links = m[k].links || {}; for (var l in links) if (links[l].indexOf(name) >= 0) return { member: k, link: l }; }
@@ -154,6 +178,8 @@
       if (!self.linkUp(p)) return false;
       var d = self.devsOn(p)[0]; if (!d || d.kind !== "switch" || !d.lacp) return lag.lacp === "off";
       if (lag.lacp === "off") return true;
+      // two passive ends each wait for the other to start: no LACPDUs, no aggregation
+      if (lag.lacp === "passive" && d.lacp.mode === "passive") return false;
       return d.lacp.lag === "any" || (d.lacp.ports || []).indexOf(p) >= 0;
     });
     return { up: active.length > 0, active: active };
@@ -248,6 +274,7 @@
       o.push("    no routing");
       self.l2Lines(l, o, true);
       if (l.lacp !== "off") o.push("    lacp mode " + l.lacp);
+      if (l.rate === "fast") o.push("    lacp rate fast");
     });
     this.portNames().forEach(function (n) {
       var i = self.ifaces[n];
@@ -357,6 +384,7 @@
   var HELP = {
     "show": "Show running system information", "configure": "Enter configuration context", "terminal": "From the terminal",
     "exit": "Leave the current context", "end": "Return to the exec context", "write": "Save the configuration", "memory": "Copy the running config to the startup config",
+    "speed": "Port speed, duplex and auto-negotiation", "diag": "Diagnostics", "cable-diagnostic": "TDR test of a copper cable",
     "copy": "Copy a configuration", "running-config": "The running configuration", "startup-config": "The startup configuration", "checkpoint": "Configuration checkpoints",
     "ping": "Send ICMP echo requests", "clear": "Clear learned state", "sim": "Sandbox devices (not a switch command)",
     "hostname": "Set the system hostname", "vlan": "VLAN configuration", "interface": "Select an interface", "lag": "Link aggregation group",
@@ -399,6 +427,8 @@
     "<1-255>": ["Subtype 1 to 255", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 255; }],
     "<1-4294967295>": ["Sequence number", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 4294967295; }],
     "<1-5>": ["1 to 5", function (t) { return /^[1-5]$/.test(t); }],
+    "<SPEED>": ["A speed to offer: 10m, 100m, 1g, 2.5g, 5g, 10g, 25g or 50g", function (t) { return ["10m", "100m", "1g", "2.5g", "5g", "10g", "25g", "50g"].indexOf(t.toLowerCase()) >= 0; }],
+    "<FIXED>": ["A fixed speed: 10-full, 10-half, 100-full, 100-half, 1000-full, 10g, 25g", function (t) { return ["10-full", "10-half", "100-full", "100-half", "1000-full", "10g", "25g", "50g"].indexOf(t.toLowerCase()) >= 0; }],
     "<DEV>": ["Device id from the Devices panel", function (t) { return /^\S+$/.test(t); }]
   };
 
@@ -438,6 +468,7 @@
   Switch.prototype.pop = function () { if (this.stack.length > 1) this.stack.pop(); };
 
   Switch.prototype.prompt = function () {
+    if (this.pending) return this.pending.q;
     var c = this.ctx(), h = this.hostname;
     switch (c.ctx) {
       case "exec": return h + "# ";
@@ -475,6 +506,12 @@
   // A line may carry output filters after a pipe, the way the box takes them: `show running-config | include vlan`.
   // Filters run on what a show printed; a line whose command failed keeps its own error.
   Switch.prototype.run = function (line, quiet) {
+    if (this.pending) {
+      var q = this.pending, ans = String(line || "").trim().toLowerCase(); this.pending = null; this.tick++;
+      return { out: (/^y/.test(ans) ? q.yes() : q.no()) || "", prompt: this.prompt() };
+    }
+    var rm = /^\s*sim\s+rest\s+(\S+)\s+(\S+)\s*([\s\S]*)$/i.exec(line);
+    if (rm) { this.tick++; if (!quiet) this.history.push(line); return { out: this.rest(rm[1], rm[2], rm[3].trim()), prompt: this.prompt() }; }
     var pipe = splitPipe(line);
     if (!pipe.piped) return this.runOne(line, quiet);
     var head = tokens(pipe.cmd)[0] || "";
@@ -856,7 +893,7 @@
       return l && l[0] !== "!" && !/^Current configuration|^user admin|^https-server|^ssh server|^interface mgmt|^    ip dhcp/.test(l);
     }).map(function (l) { return l.trim(); });
     // a rollback replaces the configuration, not the checkpoint store or what is plugged in
-    var devs = this.devices, cps = this.checkpoints; this.reset(); this.devices = devs; this.checkpoints = cps; this.apply(lines); this.reauthAll();
+    var devs = this.devices, cps = this.checkpoints, dbg = this.dbg, diag = this.diag; this.reset(); this.devices = devs; this.checkpoints = cps; this.dbg = dbg; this.diag = diag; this.apply(lines); this.reauthAll();
     this.stack = [{ ctx: "exec" }];
     return "Copying configuration: [Success]";
   });
@@ -1031,6 +1068,9 @@
   cmd("lag", "no routing", function () { this.lags[this.ctx().id].routing = false; });
   cmd("lag", "lacp mode active", function () { this.lags[this.ctx().id].lacp = "active"; this.recheckL2(); });
   cmd("lag", "lacp mode passive", function () { this.lags[this.ctx().id].lacp = "passive"; this.recheckL2(); });
+  cmd("lag", "lacp rate fast", function () { this.lags[this.ctx().id].rate = "fast"; });
+  cmd("lag", "lacp rate slow", function () { this.lags[this.ctx().id].rate = ""; });
+  cmd("lag", "no lacp rate", function () { this.lags[this.ctx().id].rate = ""; });
   cmd("lag", "no lacp mode", function () { this.lags[this.ctx().id].lacp = "off"; this.recheckL2(); });
 
   // ── svi context ─────────────────────────────────────────────────────────
@@ -1300,6 +1340,12 @@
         var dpo = !iface.routing && !iface.lag && d.kind !== "loop" && self.lldpHeard(d, port, true) ? self.profileFor(d) : null;
         if (dpo) { after[d.id] = self.dpRecord(d, port, dpo, mode, [], {}, []); return; }
         if (infra) return;
+        // a port's fallback role with no authentication configured puts everything on it in that role: with a
+        // gateway zone on the role, that is port-based tunnelling (the lab's PBT-IOT port, 2026-09-28)
+        if (iface.fallbackRole && self.pa.roles[iface.fallbackRole] && !iface.routing) {
+          var fr = { dev: d.id, port: port, mac: macCx(d.mac), method: "fallback", status: "Success", role: "", vlan: 0, reason: "the port's fallback role", outcome: "accept", fallback: "fallback", at: self.now(), user: "", mode: mode };
+          self.setRecRole(fr, iface.fallbackRole, iface); after[d.id] = fr; return;
+        }
         after[d.id] = { dev: d.id, port: port, mac: macCx(d.mac), method: "none", status: "Open", role: "", vlan: iface.mode === "access" ? iface.access : iface.native, reason: iface.routing ? "Routed port, no VLAN" : "No port-access on this port, the client is just on VLAN " + iface.access, at: self.now(), user: "" };
         return;
       }
@@ -1338,10 +1384,11 @@
       var role = rec.role && self.pa.roles[rec.role];
       rec.voice = mode === "m" && !!(role && role.voice);
       // limits: one client per port by default; multi-domain takes one voice device and client-limit
-      // multi-domain data devices (1 unless set) beside it
+      // multi-domain data devices (1 unless set) beside it. Only a client that got in takes a place: on the lab
+      // switch the PC authenticated beside a phone that was still failing (--|m|d|p and 1x|m|d|s).
       var lim = mode === "m" ? (rec.voice ? 1 : (iface.mdLimit || iface.clientLimit || 1)) : (iface.clientLimit || 1), key = port + (mode === "m" && rec.voice ? "|v" : "|d");
-      count[key] = (count[key] || 0) + 1;
-      if (count[key] > lim) rec = { dev: d.id, port: port, mac: macCx(d.mac), method: "none", status: "Failed", role: "", vlan: 0, reason: "Client limit " + lim + " reached on " + port, at: self.now(), user: "", mode: mode };
+      if (rec.status === "Success") count[key] = (count[key] || 0) + 1;
+      if (count[key] > lim) rec ={ dev: d.id, port: port, mac: macCx(d.mac), method: "none", status: "Failed", role: "", vlan: 0, reason: "Client limit " + lim + " reached on " + port, at: self.now(), user: "", mode: mode };
       after[d.id] = rec;
     });
     this.clients = after;
@@ -1370,7 +1417,7 @@
     var ports = d.ports || [d.port], missing = ports.filter(function (p) { return !self.ifaces[p]; });
     if (missing.length) return d.name + " is cabled to " + missing[0] + ", which does not exist on this switch.";
     this.devices[id].connected = true; this.tick++;
-    this.recheckL2(); this.reauthAll();
+    this.recheckL2(); this.reauthAll(); this.lldpEvents();
     var where = ports.join(" and ");
     if (ports.every(function (p) { return self.ifaces[p].shutdown; })) return d.name + " plugged into " + where + ". The port is shut down, so nothing happens.";
     if (ports.every(function (p) { return self.errdisabled[p]; })) return d.name + " plugged into " + where + ". The port is error-disabled (" + this.errdisabled[ports[0]] + ").";
@@ -1558,9 +1605,9 @@
     Object.keys(this.vlans).map(Number).sort(function (a, b) { return a - b; }).forEach(function (v) {
       if (only && v !== only) return;
       var ports = self.vlanPorts(v), up = ports.some(function (p) { return /^lag/.test(p) ? self.lagUp(p.slice(3)).up : self.linkUp(p); });
-      rows.push(pad(v, 6) + pad(self.vlans[v].name, 34) + pad(up ? "up" : "down", 8) + pad(up ? "ok" : "no_member_forwarding", 24) + pad(v === 1 ? "default" : "static", 12) + collapsePorts(ports));
+      rows.push(pad(v, 6) + pad(self.vlans[v].name, 34) + pad(up ? "up" : "down", 8) + pad(up ? "ok" : (ports.length ? "no_member_forwarding" : "no_member_port"), 24) + pad(v === 1 ? "default" : "static", 12) + collapsePorts(ports));
     });
-    return ["", VLAN_RULE, pad("VLAN", 6) + pad("Name", 34) + pad("Status", 8) + pad("Reason", 24) + pad("Type", 12) + "Interfaces", VLAN_RULE].concat(rows).join("\n");
+    return ["", VLAN_RULE, pad("VLAN", 6) + pad("Name", 34) + pad("Status", 8) + pad("Reason", 24) + pad("Type", 12) + pad("Interfaces", 30), VLAN_RULE].concat(rows).join("\n");
   };
   var BRIEF_RULE = pad("", 104).replace(/ /g, "-");
   function briefRow(port, native, mode, type, enabled, status, reason, speed, desc) {
@@ -1568,14 +1615,13 @@
   }
   // The Switch Simulator reports every virtual port at 1000; the sandbox models the hardware, so the SFP+
   // uplinks run at 10000 and a LAG is the sum of its active members, as on the box.
-  function portSpeed(i) { return i.copper ? 1000 : 10000; }
-  Switch.prototype.lagSpeed = function (id) { var self = this; return this.lagUp(id).active.reduce(function (t, n) { return t + portSpeed(self.ifaces[n]); }, 0); };
+  Switch.prototype.lagSpeed = function (id) { var self = this; return this.lagUp(id).active.reduce(function (t, n) { return t + self.portMb(n); }, 0); };
   cmd("*", "show interface brief", function () {
     var self = this, rows = [];
     this.portNames().forEach(function (n) {
       var i = self.ifaces[n], up = self.linkUp(n);
       var reason = self.errdisabled[n] ? "Error-disabled" : (i.shutdown ? "Administratively down" : (up ? "" : (i.copper ? "Waiting for link" : "No XCVR installed")));
-      rows.push(briefRow(n, i.routing || i.lag ? (i.lag ? self.lags[i.lag].native : "--") : (i.mode === "trunk" ? String(i.native) : String(i.access)), i.routing ? "routed" : (i.lag ? (self.lags[i.lag].mode) : i.mode), "--", i.shutdown ? "no" : "yes", up ? "up" : "down", reason, up ? String(portSpeed(i)) : "--", i.desc || "--"));
+      rows.push(briefRow(n, i.routing || i.lag ? (i.lag ? self.lags[i.lag].native : "--") : (i.mode === "trunk" ? String(i.native) : String(i.access)), i.routing ? "routed" : (i.lag ? (self.lags[i.lag].mode) : i.mode), "--", i.shutdown ? "no" : "yes", up ? "up" : "down", reason, up ? String(self.portMb(n)) : "--", i.desc || "--"));
     });
     Object.keys(this.svis).forEach(function (v) { rows.push(briefRow("vlan" + v, "--", "--", "--", self.svis[v].shutdown ? "no" : "yes", self.sviUp(+v) && !self.svis[v].shutdown ? "up" : "down", "", "--", "--")); });
     // a LAG row always reads "--" for Reason, and "auto" for Speed while it is down (both as captured)
@@ -1613,7 +1659,7 @@
       ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][since.getUTCMonth()] + " " + pad(since.getUTCDate(), 2, true) + " " + tsClock(since.getTime()) + " UTC " + since.getUTCFullYear() + ")" : (up ? "up" : "down");
     o.push(" Link state: " + linkLine, " Link transitions: 0", " Description: " + (i.desc || ""), " Persona: ", " Hardware: Ethernet, MAC Address: 00:00:5e:00:53:" + pad((portKey(n) % 256).toString(16), 2, true).replace(/ /g, "0") + " ");
     if (this.atLeast("10.17")) o.push(" Hardware port: " + n.split("/")[2] + " ");
-    o.push(" MTU " + i.mtu + " ", " Type --", " Full-duplex ", " qos trust none", " Speed " + (up ? portSpeed(i) : 0) + " Mb/s ", " Auto-negotiation is off", " Flow-control: off ", " Error-control: off ", " MDI mode: none ");
+    o.push(" MTU " + i.mtu + " ", " Type --", " Full-duplex ", " qos trust none", " Speed " + (up ? this.portMb(n) : 0) + " Mb/s ", " Auto-negotiation is off", " Flow-control: off ", " Error-control: off ", " MDI mode: none ");
     if (i.lag) { var lg = this.lags[i.lag]; o = o.concat(vlanLines(lg)); } else if (!i.routing) o = o.concat(vlanLines(i));
     o.push(" Rate collection interval: 300 seconds");
     o = o.concat(statTables(up, this.tick));
@@ -1641,8 +1687,8 @@
     var n = a[3], i = this.ifaces[n]; if (!i) return "Interface " + n + " does not exist on this switch.";
     if (!i.lag) return "Interface " + n + " is not part of any LAG.";
     var id = i.lag, l = this.lags[id], lu = this.lagUp(id), active = lu.active.indexOf(n) >= 0, up = this.linkUp(n), d = this.devsOn(n)[0];
-    var st = l.lacp === "off" ? "" : (l.lacp === "active" ? "A" : "P") + "LF" + (active ? "NCD" : "OE");
-    var pst = active ? ((d && d.lacp && d.lacp.mode === "passive") ? "P" : "A") + "LFNCD" : (up ? "PLFOEX" : "");
+    var st = l.lacp === "off" ? "" : (l.lacp === "active" ? "A" : "P") + (l.rate === "fast" ? "S" : "L") + "F" + (active ? "NCD" : "OE");
+    var pst = active ? ((d && d.lacp && d.lacp.mode === "passive") ? "P" : "A") + (d && d.lacp && d.lacp.rate === "fast" ? "S" : "L") + "FNCD" : (up ? "PLFOEX" : "");
     var row = function (label, x, y) { return pad(label, 19) + "| " + pad(x, 19) + "| " + pad(y, 19); };
     return this.lacpLegend().concat(["", "Aggregate-name : lag" + id, "-------------------------------------------------",
       "                       Actor             Partner", "-------------------------------------------------", row("Port-id", up ? portKey(n) % 1000 : "", active ? portKey(n) % 1000 : 0),
@@ -1738,7 +1784,7 @@
     var self = this, o = [];
     Object.keys(this.lags).forEach(function (id) {
       var l = self.lags[id], mem = self.lagMembers(id);
-      o.push("", "Aggregate name   : lag" + id, "Interfaces       : " + mem.join(" "), "Heartbeat rate   : Slow", "Hash             : l3-src-dst", "Aggregate mode   : " + (l.lacp === "off" ? "Off" : l.lacp.charAt(0).toUpperCase() + l.lacp.slice(1)));
+      o.push("", "Aggregate name   : lag" + id, "Interfaces       : " + mem.join(" "), "Heartbeat rate   : " + (l.rate === "fast" ? "Fast" : "Slow"), "Hash             : l3-src-dst", "Aggregate mode   : " + (l.lacp === "off" ? "Off" : l.lacp.charAt(0).toUpperCase() + l.lacp.slice(1)));
     });
     return o.length ? o.join("\n") : "No LAGs configured.";
   });
@@ -1748,9 +1794,11 @@
       var l = self.lags[id], lu = self.lagUp(id);
       self.lagMembers(id).forEach(function (p, k) {
         var active = lu.active.indexOf(p) >= 0, d = self.devsOn(p)[0], up = self.linkUp(p);
-        var st = l.lacp === "off" ? "" : ((l.lacp === "active" ? "A" : "P") + "LF" + (active ? "NCD" : "OEX"));
+        // the second letter is the timeout each end asked for: S with lacp rate fast, L otherwise
+        var st = l.lacp === "off" ? "" : ((l.lacp === "active" ? "A" : "P") + (l.rate === "fast" ? "S" : "L") + "F" + (active ? "NCD" : "OEX"));
+        var pst = active && l.lacp !== "off" && d && d.lacp ? (d.lacp.mode === "passive" ? "P" : "A") + (d.lacp.rate === "fast" ? "S" : "L") + "FNCD" : "";
         actor.push(pad(p, 11) + pad("lag" + id, 11) + pad(up ? String(portKey(p) % 1000) : "", 6) + pad(up ? "1" : "", 6) + pad(st, 8) + pad(up ? "00:00:5e:00:53:00" : "", 18) + pad(up ? "65534" : "", 7) + pad(up ? id : "", 5) + (active ? "up" : "down"));
-        partner.push(pad(p, 11) + pad("lag" + id, 11) + pad(active ? String(k + 1) : "", 6) + pad(active ? "1" : "", 6) + pad(active ? st : "", 8) + pad(active && d && d.lacp ? (d.lacp.sysid || "") : "", 18) + pad(active ? "65534" : "", 7) + (active ? String(id) : ""));
+        partner.push(pad(p, 11) + pad("lag" + id, 11) + pad(active ? String(k + 1) : "", 6) + pad(active ? "1" : "", 6) + pad(pst, 8) + pad(active && d && d.lacp ? (d.lacp.sysid || "") : "", 18) + pad(active ? "65534" : "", 7) + (active ? String(id) : ""));
       });
     });
     var rule = pad("", 82).replace(/ /g, "-");
@@ -1915,7 +1963,7 @@
     return {
       name: name, flags: meth + "|" + mode + "|" + dtype + "|" + (ok ? "s" : "f"), vlan: vcol,
       role: ok ? (c.role ? c.role + (fb ? ", " + fb : "") : "") : "", roleDetail: ok && c.role ? c.role + (fb ? ", " + fb + " role" : "") : "",
-      status: authed ? c.method + " Authenticated" : "Authentication Failed, " + why,
+      status: c.method === "fallback" ? "Unauthenticated" : (authed ? c.method + " Authenticated" : "Authentication Failed, " + why),
       authz: c.outcome === "authz" ? "Invalid" : (ok ? "Applied" : ""), devType: mode === "m" ? (c.voice ? "voice" : "data") : ""
     };
   };
@@ -2019,10 +2067,329 @@
     return all.slice(0, 4).concat(all.slice(4).filter(function (l) { return voice.indexOf(parseInt(l, 10)) >= 0; })).join("\n");
   });
 
+  // ── port speed, the physical view, cable diagnostics ────────────────────
+  // `speed` from HPE's 10.13 fundamentals guide (the simulator's ports are virtual and its CLI hides the
+  // speeds, as the guide says 10.09 started doing for speeds the hardware lacks). The sandbox models the
+  // hardware: a Smart Rate port offers 100m to 5g, a 1GbT port up to 1g, and a speed the port cannot do is
+  // refused the way the hidden keyword would be.
+  Switch.prototype.setSpeed = function (spec, toks) {
+    var bad = "", self = this;
+    this.eachIf(function (i) {
+      var can = PORT_SPEEDS[i.type] || [];
+      if (spec.fixed && !(FIXED[spec.fixed] && can.indexOf(FIXED[spec.fixed]) >= 0 && (i.copper || !/-/.test(spec.fixed)))) bad = "Invalid input: " + spec.fixed;
+      (spec.auto || []).forEach(function (x) { if (can.indexOf(x) < 0 && !bad) bad = "Invalid input: " + x; });
+    });
+    if (bad) return bad;
+    this.eachIf(function (i) { i.speed = spec.fixed || (spec.auto && spec.auto.length) ? spec : null; });
+    this.recheckL2(); this.reauthAll();
+  };
+  var SPEED_WORDS = ["10m", "100m", "1g", "2.5g", "5g", "10g", "25g", "50g"];
+  cmd("if", "speed auto", function () { return this.setSpeed({}); });
+  cmd("if", "speed auto <SPEED>", function (a) { return this.setSpeed({ auto: [a[2]] }); });
+  cmd("if", "speed auto <SPEED> <SPEED>", function (a) { return this.setSpeed({ auto: [a[2], a[3]] }); });
+  cmd("if", "speed auto <SPEED> <SPEED> <SPEED>", function (a) { return this.setSpeed({ auto: [a[2], a[3], a[4]] }); });
+  cmd("if", "speed <FIXED>", function (a) { return this.setSpeed({ fixed: a[1] }); });
+  cmd("if", "no speed", function () { return this.setSpeed({}); });
+  // `show interface physical` in 10.18.1002's layout (lab, 2026-09-28): link, admin, speed status and config,
+  // flow control, PoE, state. The PoE column is the sandbox's: the lab's virtual ports draw nothing.
+  Switch.prototype.physRow = function (n) {
+    var i = this.ifaces[n], up = this.linkUp(n), sp = up ? this.speedOf(n) : "", cfg = !i.speed ? "auto" : (i.speed.fixed || "auto " + i.speed.auto.join(","));
+    var d = this.devsOn(n)[0], w = up && i.poe && d && d.poeW ? d.poeW : 0;
+    var state = this.errdisabled[n] ? "Error-disabled" : (i.shutdown ? "Administratively down" : (up ? sp.toUpperCase() : (d && d.cable && d.cable.fault ? "Waiting for link" : (i.copper ? "Waiting for link" : "No XCVR installed"))));
+    return pad(n, 10) + pad("--", 15) + pad(up ? "up" : "down", 8) + pad(i.shutdown ? "down" : "up", 8) + pad(up ? sp.toUpperCase() : "--", 9) + pad(cfg, 10) + pad("--", 9) + pad("off", 8) + pad(w.toFixed(2), 10) + pad(state, 39) + (i.desc || "--");
+  };
+  Switch.prototype.showPhys = function (names) {
+    var self = this, rule = pad("", 137).replace(/ /g, "-");
+    return [rule, "                         Link    Admin        Speed           Flow-Control   PoE Power                                        Port       ",
+      "Port      Type           Status  Config  Status | Config    Status | Config  (Watts)   State Information                      Description", rule].concat(names.map(function (n) { return self.physRow(n); })).join("\n") + "\n";
+  };
+  cmd("*", "show interface physical", function () { return this.showPhys(this.portNames()); });
+  cmd("*", "show interface <PORT> physical", function (a) { if (!this.ifaces[a[2]]) return "Interface " + a[2] + " does not exist on this switch."; return this.showPhys([a[2]]); });
+
+  // Cable diagnostics: `diag cable-diagnostic test|show|clear <IF>`, 10.11 and later, Manager context, from
+  // HPE's diagnostics guide (10.13 for 4100i/6000/6100, 10.15 for 5420/6200). The switch runs a TDR on the
+  // copper pairs; the Switch Simulator has no PHY and refuses the command, so every result here is the
+  // sandbox faking the hardware from the bench device's cable. Layout and status words follow the guide.
+  Switch.prototype.confirm = function (msg, yes, no) { this.pending = { q: "Continue (y/n)? ", yes: yes, no: no }; return msg; };
+  cmd("exec", "diag cable-diagnostic test <PORT>", function (a) {
+    var n = a[3], i = this.ifaces[n], self = this; if (!i) return "Interface " + n + " does not exist on this switch.";
+    if (!i.copper) return "Cable diagnostic is not supported on interface " + n + ".";
+    return this.confirm("This command will cause a loss of link on the port under test and will take\nseveral seconds to complete.", function () { self.diag[n] = self.tdr(n); self.tick += 5; return ""; }, function () { return ""; });
+  });
+  cmd("exec", "diag cable-diagnostic show <PORT>", function (a) {
+    var n = a[3], i = this.ifaces[n]; if (!i) return "Interface " + n + " does not exist on this switch.";
+    if (!i.copper) return "Cable diagnostic is not supported on interface " + n + ".";
+    var r = this.diag[n]; if (!r) return "Cable diagnostic test results for interface " + n + " are not available.";
+    var sr = i.type === "SmartRate", tol = sr ? " +/- 5" : " +/- 10", o = [pad("", 23) + "Cable        Impedance   Distance*     MDI", "Interface      Pinout  Status       (Ohms)      (Meters)      Mode", pad("", 73).replace(/ /g, "-")];
+    r.forEach(function (p, k) {
+      var dist = p.status === "good" ? (sr ? "--" : p.dist + tol) : p.dist + tol;
+      o.push(pad(k === 0 ? n : (k === 1 ? "(" + (sr ? "5G-SmartRate" : "1GbT") + ")" : ""), 15) + pad(p.pair, 8) + pad(p.status, 13) + pad(p.imp, 12) + pad(dist, 14) + "mdi");
+    });
+    o.push("", "* Full cable length for good cables or distance to fault for faulty cables.", "", "(sandbox: faked hardware. The TDR result comes from the lab's description of the cable, not a PHY.)");
+    return o.join("\n");
+  });
+  cmd("exec", "diag cable-diagnostic clear <PORT>", function (a) { var n = a[3]; if (!this.ifaces[n]) return "Interface " + n + " does not exist on this switch."; delete this.diag[n]; });
+  // per pair: good at the cable's length, or the fault the lab describes at its distance; nothing plugged in
+  // reads open at the far end of the patch lead
+  Switch.prototype.tdr = function (n) {
+    var i = this.ifaces[n], d = this.devsOn(n)[0], c = (d && d.cable) || { len: d ? 3 : 2 }, sr = i.type === "SmartRate";
+    var imp = { good: "85-115", open: sr ? ">300" : ">115", "intra-short": sr ? "<30" : "<85", "inter-short": sr ? "<30" : "<85", "high-imp": ">115", "low-imp": "<85", unknown: "--" };
+    return ["1-2", "3-6", "4-5", "7-8"].map(function (pair) {
+      var f = c.fault && c.fault.pairs && c.fault.pairs.indexOf(pair) >= 0 ? c.fault : null, st = f ? f.status : (d ? "good" : "open");
+      return { pair: pair, status: st, imp: imp[st] || "--", dist: f ? f.at : c.len };
+    });
+  };
+
+  // ── user-based and port-based tunnelling ────────────────────────────────
+  // Config and the zone views as the lab took and printed them on 2026-09-28 (a zone with no gateway behind
+  // it: Operational State down). With a gateway device on the bench the sandbox brings the zone up and lists the
+  // tunnelled clients in the layout HPE documents for `show ubt users all` (10.07 guide), which the lab could
+  // not produce without a gateway. A role with gateway-zone tunnels whoever holds it: by 802.1X or MAC auth that
+  // is user-based tunnelling, by a port's fallback role or a device profile it is port-based.
+  cmd("config", "ubt-client-vlan <1-4094>", function (a) { this.ubt.clientVlan = +a[1]; });
+  cmd("config", "no ubt-client-vlan", function () { this.ubt.clientVlan = 0; });
+  cmd("config", "no ubt-client-vlan <1-4094>", function () { this.ubt.clientVlan = 0; });
+  cmd("config", "ubt zone <WORD> vrf <WORD>", function (a) { if (!this.ubt.zones[a[2]]) this.ubt.zones[a[2]] = { vrf: a[4], primary: "", backup: "", enable: false }; this.push({ ctx: "ubtz", id: a[2] }); });
+  cmd("config", "no ubt zone <WORD> vrf <WORD>", function (a) { delete this.ubt.zones[a[3]]; this.reauthAll(); });
+  Switch.prototype.curZone = function () { return this.ubt.zones[this.ctx().id]; };
+  cmd("ubtz", "primary-controller ip <A.B.C.D>", function (a) { this.curZone().primary = a[2]; });
+  cmd("ubtz", "no primary-controller ip <A.B.C.D>", function () { this.curZone().primary = ""; });
+  cmd("ubtz", "backup-controller ip <A.B.C.D>", function (a) { this.curZone().backup = a[2]; });
+  cmd("ubtz", "no backup-controller ip <A.B.C.D>", function () { this.curZone().backup = ""; });
+  cmd("ubtz", "enable", function () { this.curZone().enable = true; });
+  cmd("ubtz", "no enable", function () { this.curZone().enable = false; });
+  cmd("role", "gateway-zone zone <WORD> gateway-role <WORD>", function (a) { var r = this.curRole(); r.gwZone = a[2]; r.gwRole = a[4]; this.reauthAll(); });
+  cmd("role", "gateway-zone zone <WORD>", function (a) { var r = this.curRole(); r.gwZone = a[2]; r.gwRole = ""; this.reauthAll(); });
+  cmd("role", "no gateway-zone zone <WORD>", function () { var r = this.curRole(); r.gwZone = ""; r.gwRole = ""; this.reauthAll(); });
+  cmd("role", "no gateway-zone zone <WORD> gateway-role <WORD>", function () { var r = this.curRole(); r.gwZone = ""; r.gwRole = ""; this.reauthAll(); });
+  // Up when enabled, the UBT client VLAN exists, and the switch can reach a gateway at the primary or backup
+  // address (a `gateway` device on the bench, reached over the switch's own routing).
+  Switch.prototype.zoneState = function (name) {
+    var z = this.ubt.zones[name], self = this; if (!z) return { up: false, why: "no such zone" };
+    if (!z.enable) return { up: false, why: "the zone is not enabled" };
+    if (!this.ubt.clientVlan || !this.vlans[this.ubt.clientVlan]) return { up: false, why: "ubt-client-vlan is not set to a VLAN that exists" };
+    var gw = [z.primary, z.backup].filter(Boolean).map(function (ip) { var r = self.reachable(ip); return { ip: ip, ok: r.ok && (self.lesson.devices || []).some(function (d) { return d.kind === "gateway" && d.ip === ip && self.devices[d.id] && self.devices[d.id].connected; }), why: r.why }; });
+    var live = gw.filter(function (g) { return g.ok; })[0];
+    if (!gw.length) return { up: false, why: "no controller address" };
+    return live ? { up: true, active: live.ip } : { up: false, why: "no gateway answers at " + gw.map(function (g) { return g.ip; }).join(" or ") };
+  };
+  Switch.prototype.ubtUsers = function (zone) {
+    var self = this;
+    return Object.keys(this.clients).map(function (k) { return self.clients[k]; }).filter(function (c) {
+      var r = c.status === "Success" && c.role && self.pa.roles[c.role]; return r && r.gwZone && (!zone || r.gwZone === zone);
+    }).sort(function (a, b) { return portKey(a.port) - portKey(b.port); });
+  };
+  cmd("*", "show ubt", function () {
+    var self = this, names = Object.keys(this.ubt.zones).sort(); if (!names.length) return "UBT zone is not configured.";
+    return ["", "Controller Virtual IP addresses are suffixed with *"].concat(names.map(function (n) {
+      var z = self.ubt.zones[n], st = self.zoneState(n);
+      return ["Zone Name                : " + n, "UBT Mode                 : local-vlan", "Primary Controller       : " + z.primary, "Backup Controller        : " + z.backup, "SAC HeartBeat Interval   : 1",
+        "UAC KeepAlive Interval   : 60", "VLAN Identifier          : " + (self.ubt.clientVlan || ""), "VRF Name                 : " + z.vrf, "Wake-on-LAN Enabled-VLANs: -NA-", "Admin State              : " + (z.enable ? "Enabled" : "Disabled"),
+        "PAPI Security Key        : Disabled", "Operational State        : " + (st.up ? "up" : "down"), ""].join("\n");
+    })).join("\n") + (names.some(function (n) { return !self.zoneState(n).up; }) ? "\n(sandbox: " + names.filter(function (n) { return !self.zoneState(n).up; }).map(function (n) { return n + " is down: " + self.zoneState(n).why; }).join("; ") + ")" : "");
+  });
+  cmd("*", "show ubt brief", function () {
+    var self = this, rule = pad("", 97).replace(/ /g, "-");
+    return ["Controller Virtual IP addresses are suffixed with *", rule, "Zone Name    UBT Mode     Primary Controller Address    VRF Name     Status     Operational State", rule].concat(Object.keys(this.ubt.zones).sort().map(function (n) {
+      var z = self.ubt.zones[n]; return pad(n, 13) + pad("local-vlan", 13) + pad(z.primary, 30) + pad(z.vrf, 13) + pad(z.enable ? "Enabled" : "Disabled", 12) + (self.zoneState(n).up ? "up" : "down");
+    })).join("\n");
+  });
+  cmd("*", "show ubt state", function () {
+    var self = this, rule = pad("", 69).replace(/ /g, "=");
+    return ["", "Controller Virtual IP addresses are suffixed with *"].concat(Object.keys(this.ubt.zones).sort().map(function (n) {
+      var z = self.ubt.zones[n], st = self.zoneState(n);
+      return [rule, "Zone " + n + ":", rule, "", "Local Conductor Server (LCS) State:", "", "LCS Type      IP Address    State               Role ", pad("", 69).replace(/ /g, "-"),
+        "Primary     : " + pad(z.primary, 14) + (st.up && st.active === z.primary ? pad("ready_for_bootstrap", 20) + "operational_primary" : ""),
+        "Secondary   : " + pad(z.backup, 14) + (st.up && st.active === z.backup ? pad("ready_for_bootstrap", 20) + "operational_primary" : ""), "",
+        "Switch Anchor Controller (SAC) State:", "", "              IP Address      MAC Address          State         ", pad("", 65).replace(/ /g, "-"),
+        "Active      : " + (st.up ? pad(st.active, 16) + pad("00:00:5e:00:53:c0", 21) + "registered" : ""), ""].join("\n");
+    })).join("\n");
+  });
+  cmd("*", "show ubt users all", function () { return this.showUbtUsers(null); });
+  cmd("*", "show ubt users all zone <WORD>", function (a) { return this.showUbtUsers(a[5]); });
+  Switch.prototype.showUbtUsers = function (only) {
+    var self = this, names = Object.keys(this.ubt.zones).sort().filter(function (n) { return !only || n === only; }), rule = pad("", 69).replace(/ /g, "=");
+    var blocks = names.map(function (n) {
+      var users = self.zoneState(n).up ? self.ubtUsers(n) : [];
+      if (!users.length) return "";
+      return [rule, "Displaying All UBT Users for Zone: " + n, rule, "Downloaded user roles are preceded by *", "Port       Mac Address         Tunnel Status   Secondary UserRole        Failure Reason", pad("", 90).replace(/ /g, "-")].concat(users.map(function (c) {
+        var r = self.pa.roles[c.role]; return pad(c.port, 11) + pad(c.mac, 20) + pad("activated", 16) + pad(r.gwRole || "", 24) + "---/---";
+      })).join("\n");
+    }).filter(Boolean);
+    return blocks.join("\n") + (blocks.length ? "\n(sandbox: this layout follows HPE's documented example; the lab had no gateway to fill it)" : "");
+  };
+  cmd("*", "show ubt users count", function () {
+    var self = this, total = 0, o = [""];
+    Object.keys(this.ubt.zones).sort().forEach(function (n) { var k = self.zoneState(n).up ? self.ubtUsers(n).length : 0; total += k; o.push("Total Number of Users using ubt Zone : " + n + " is " + k, "==================================================="); });
+    o.push("Total Number of Users in all the zones : " + total, "===================================================");
+    return o.join("\n");
+  });
+
+  // ── REST, beside the CLI ────────────────────────────────────────────────
+  // `sim rest <method> <path> [json]` is a laptop calling the switch's REST API, so the same change can be made
+  // both ways and each answer says what the CLI twin is. Shapes from the lab on 2026-09-28 (REST v10.18 on
+  // 10.18.1002): the /rest version list, login and logout, the vlans collection at depth 1 and 2, one VLAN,
+  // POST 201, DELETE 204, an interface with vlan_tag and vlan_trunks as URIs, and AnyCLI, which runs only the
+  // exact show commands GET /rest/v10.18/cli/commands lists (143 on the lab switch) and answers 403 otherwise.
+  // PATCH answers 204 as HPE's REST guide describes; the lab did not try it.
+  var ANYCLI = ["show aaa accounting", "show aaa authentication port-access interface all client-status", "show aaa authentication", "show aaa authorization", "show aaa server-groups", "show active-gateway", "show arp all-vrfs", "show arp", "show bgp all", "show bgp all community", "show bgp all extcommunity", "show bgp all flap-statistics", "show bgp all neighbors", "show bgp all paths", "show bgp all summary", "show bgp all-vrf all", "show bgp all-vrf all neighbors", "show bgp all-vrf all paths", "show bgp all-vrf all summary", "show bgp ipv4 unicast", "show bgp ipv4 unicast community", "show bgp ipv4 unicast extcommunity", "show bgp ipv4 unicast flap-statistics", "show bgp ipv4 unicast neighbors", "show bgp ipv4 unicast paths", "show bgp ipv4 unicast summary", "show bgp l2vpn evpn", "show bgp l2vpn evpn extcommunity", "show bgp l2vpn evpn neighbors", "show bgp l2vpn evpn paths", "show bgp l2vpn evpn summary", "show boot-history", "show capacities", "show capacities-status", "show class ip", "show class ipv6", "show clock", "show copp-policy statistics", "show dhcp-relay", "show dhcp-server", "show dhcpv4-snooping binding", "show dhcpv4-snooping", "show dhcpv6-relay", "show dhcpv6-server", "show dhcpv6-snooping binding", "show dhcpv6-snooping", "show environment", "show evpn evi detail", "show evpn evi", "show evpn mac-ip", "show evpn vtep-neighbor all-vrfs", "show gbp role-mapping", "show interface brief", "show interface error-statistics", "show interface lag", "show interface physical", "show interface qos", "show interface queues", "show interface statistics", "show interface tunnel", "show interface utilization", "show interface vxlan vni vteps", "show interface vxlan vni", "show interface vxlan vteps detail", "show interface vxlan vteps", "show interface vxlan", "show interface", "show ip dns", "show ip helper-address", "show ip igmp", "show ip mroute", "show ip multicast summary", "show ip ospf all-vrfs", "show ip ospf border-routers all-vrfs", "show ip ospf interface all-vrfs", "show ip pim", "show ip route all-vrfs", "show ipv6 helper-address", "show ipv6 mld", "show ipv6 mroute", "show ipv6 neighbors all-vrfs", "show ipv6 neighbors", "show ipv6 ospfv3 all-vrfs", "show ipv6 ospfv3 border-routers all-vrfs", "show ipv6 ospfv3 interface all-vrfs", "show ipv6 pim6", "show lacp aggregates", "show lacp interfaces", "show lldp local", "show lldp neighbor", "show loop-protect", "show mac-address-table", "show module", "show nd-snooping binding", "show nd-snooping prefix-list", "show nd-snooping statistics", "show nd-snooping", "show ntp associations", "show ntp servers", "show ntp status", "show port-access clients onboarding-method device-profile", "show port-access clients onboarding-method dot1x", "show port-access clients onboarding-method mac-auth", "show port-access clients onboarding-method port-security", "show port-access clients", "show port-access gbp", "show port-access policy", "show port-access port-security interface all client-status", "show port-access port-security interface all port-statistics", "show port-access role local", "show port-access role radius", "show port-access port-security violation client-limit-exceeded interface all", "show power-over-ethernet", "show qos dscp-map", "show qos queue-profile", "show qos schedule-profile", "show qos trust", "show radius dyn-authorization", "show radius-server", "show resources", "show spanning-tree detail", "show spanning-tree mst detail", "show system inventory", "show system resource-utilization", "show tacacs-server", "show ubt brief", "show ubt information", "show uptime", "show version", "show vlan", "show vlan translation", "show vrf", "show vsf detail", "show vsf link detail", "show vsf link error-detail", "show vsf topology", "show vsf", "show vsx ip igmp", "show vsx ip route", "show vsx ipv6 route", "show vsx mac-address-table", "show vsx status", "show ztp information"];
+  var REST_VERSIONS = ["v10.04", "v10.08", "v10.09", "v10.10", "v10.11", "v10.12", "v10.13", "v10.14", "v10.15", "v10.16", "v10.17", "v10.18"];
+  function jsonStr(o) { return JSON.stringify(o); }
+  function pick(o, attrs) { if (!attrs) return o; var r = {}; attrs.forEach(function (k) { if (o.hasOwnProperty(k)) r[k] = o[k]; }); return r; }
+  Switch.prototype.restVlan = function (v) {
+    var up = this.vlanPorts(v).some(function (p) { return /^lag/.test(p) ? this.lagUp(p.slice(3)).up : this.linkUp(p); }, this);
+    return { id: v, name: this.vlans[v].name, oper_state: up ? "up" : "down", oper_state_reason: up ? "ok" : (this.vlanPorts(v).length ? "no_member_forwarding" : "no_member_port"), type: v === 1 ? "default" : "static", voice: !!this.vlans[v].voice, description: this.vlans[v].desc || null };
+  };
+  Switch.prototype.restIface = function (n, pre) {
+    var i = this.ifaces[n], up = this.linkUp(n), trunk = i.mode === "trunk", o = { name: n, admin_state: i.shutdown ? "down" : "up", link_state: up ? "up" : "down", link_speed: up ? this.portMb(n) * 1000000 : 0, duplex: "full", mtu: i.mtu, description: i.desc || null, routing: !!i.routing,
+      vlan_mode: i.routing ? null : (trunk ? "native-untagged" : "access") };
+    if (!i.routing) { o.vlan_tag = {}; o.vlan_tag[trunk ? i.native : i.access] = pre + "/system/vlans/" + (trunk ? i.native : i.access); }
+    if (trunk) { o.vlan_trunks = {}; (i.trunk || Object.keys(this.vlans).map(Number)).forEach(function (v) { o.vlan_trunks[v] = pre + "/system/vlans/" + v; }); }
+    return o;
+  };
+  Switch.prototype.rest = function (method, url, body) {
+    var self = this, m = method.toUpperCase(), q = url.split("?"), path = q[0].replace(/\/+$/, ""), params = {}, head = "### " + m + " " + url + (body ? "\n### body: " + body : "");
+    (q[1] || "").split("&").forEach(function (kv) { if (!kv) return; var p = kv.split("="); params[decodeURIComponent(p[0])] = decodeURIComponent(p[1] || ""); });
+    var attrs = params.attributes ? params.attributes.split(",") : null, depth = +(params.depth || 1);
+    function res(code, out, cli) { self.restLog.push({ m: m, path: path, code: code }); return head + "\n" + (out === undefined ? "" : (typeof out === "string" ? out : jsonStr(out))) + "\n### HTTP " + code + (cli ? "\n(sandbox: the CLI twin is `" + cli + "`)" : ""); }
+    if (m === "GET" && path === "/rest") { var vv = { latest: { version: "v10.18", prefix: "/rest/v10.18", doc: "/api/" } }; REST_VERSIONS.forEach(function (v) { vv[v] = { version: v, prefix: "/rest/" + v }; if (v === "v10.18") vv[v].doc = "/api/"; }); return res(200, vv); }
+    var mm = path.match(/^\/rest\/(v10\.\d\d)(\/.*)?$/); if (!mm) return res(404, "", "");
+    var ver = mm[1], sub = mm[2] || "", pre = "/rest/" + ver;
+    if (REST_VERSIONS.indexOf(ver) < 0) return res(404);
+    if (sub === "/login" && m === "POST") { this.restSession = true; return res(200); }
+    if (sub === "/logout" && m === "POST") { this.restSession = false; return res(200); }
+    if (!this.restSession) return res(401, "", "") + "\n(sandbox: log in first: sim rest post /rest/v10.18/login)";
+    var data = null; if (body) { try { data = JSON.parse(body); } catch (e) { return res(400, "Malformed JSON: " + e.message); } }
+    if (sub === "/system" && m === "GET") return res(200, pick({ hostname: this.hostname, platform_name: this.model.pn, software_version: this.version, mgmt_intf_status: { hostname: this.hostname, link_state: "up" } }, attrs), "show system");
+    if (sub === "/system/vlans" && m === "GET") { var all = {}; Object.keys(this.vlans).map(Number).sort(function (a, b) { return a - b; }).forEach(function (v) { all[v] = depth > 1 ? pick(self.restVlan(v), attrs) : pre + "/system/vlans/" + v; }); return res(200, all, "show vlan"); }
+    if (sub === "/system/vlans" && m === "POST") {
+      if (!data || !data.id) return res(400, "id is required");
+      if (this.vlans[data.id]) return res(400, "VLAN " + data.id + " already exists");
+      this.vlans[data.id] = { name: data.name || ("VLAN" + data.id), desc: data.description || "" }; if (data.voice) this.vlans[data.id].voice = true;
+      this.reauthAll(); return res(201, undefined, "vlan " + data.id + (data.name ? " / name " + data.name : ""));
+    }
+    var vm = sub.match(/^\/system\/vlans\/(\d+)$/);
+    if (vm) {
+      var v = +vm[1]; if (!this.vlans[v]) return res(404);
+      if (m === "GET") return res(200, pick(this.restVlan(v), attrs), "show vlan " + v);
+      if (m === "DELETE") { if (v === 1) return res(400, "The default VLAN cannot be deleted"); this.execQuiet("no vlan " + v); return res(204, undefined, "no vlan " + v); }
+      if (m === "PATCH" || m === "PUT") { if (data && data.name) this.vlans[v].name = data.name; if (data && data.hasOwnProperty("description")) this.vlans[v].desc = data.description || ""; if (data && data.hasOwnProperty("voice")) this.vlans[v].voice = !!data.voice; this.reauthAll(); return res(204, undefined, "vlan " + v + (data && data.name ? " / name " + data.name : "")); }
+    }
+    var im = sub.match(/^\/system\/interfaces\/([^/]+)(\/lldp_neighbors)?$/);
+    if (im) {
+      var n = decodeURIComponent(im[1]); if (!this.ifaces[n]) return res(404);
+      if (im[2] && m === "GET") { var nb = {}; this.lldpRows(n).forEach(function (r) { nb[r.chassis + "," + r.pid] = { chassis_id: r.chassis, neighbor_info: { chassis_name: r.sys, chassis_description: r.dev.lldp.desc || "", chassis_capability_available: capList(r.dev.lldp.caps), port_description: r.dev.lldp.portDesc || r.pid }, port_id: r.pid }; }); return res(200, nb, "show lldp neighbor-info " + n); }
+      if (m === "GET") return res(200, pick(this.restIface(n, pre), attrs), "show interface " + n);
+      if (m === "PATCH" || m === "PUT") {
+        var i = this.ifaces[n], twin = ["interface " + n];
+        if (data && data.hasOwnProperty("description")) { i.desc = data.description || ""; twin.push(data.description ? "description " + data.description : "no description"); }
+        if (data && data.user_config && data.user_config.admin) { i.shutdown = data.user_config.admin !== "up"; twin.push(i.shutdown ? "shutdown" : "no shutdown"); this.recheckL2(); this.reauthAll(); }
+        return res(204, undefined, twin.join(" / "));
+      }
+    }
+    if (sub === "/cli/commands" && m === "GET") return res(200, { commands: ANYCLI });
+    if (sub === "/cli" && m === "POST") {
+      var c = data && data.cmd ? String(data.cmd).trim() : "";
+      if (ANYCLI.indexOf(c) < 0) return res(403, "Command '" + c + "' not allowed");
+      var saved = this.stack; this.stack = [{ ctx: "exec" }]; var out = this.runOne(c, true).out; this.stack = saved;
+      return res(200, "\n" + out + "\n");
+    }
+    if (sub === "/fullconfigs/running-config" && m === "GET") return res(200, "(sandbox: the box answers with the whole configuration as JSON; the sandbox does not build that document. Use show running-config json on the box, or the CLI view here.)");
+    return res(404);
+  };
+  Switch.prototype.execQuiet = function (line) { var saved = this.stack; this.stack = [{ ctx: "exec" }, { ctx: "config" }]; this.applying = true; try { this.runOne(line, true); } finally { this.applying = false; this.stack = saved; this.validateStack(); } };
+
   // ── debug ───────────────────────────────────────────────────────────────
-  // Filled in below; the port-access and LLDP code calls these whether or not anything is being logged.
-  Switch.prototype.dbgClients = function () {};
-  Switch.prototype.lldpEvents = function () {};
+  // `debug <module> <sub>` logs into a buffer (the default destination: `no debug destination buffer` answers
+  // that it cannot be un-configured). Line format, daemon and sub-module names are the lab's own from
+  // 2026-09-28 (portaccess all, radius all, lldp event on 10.18.1002). What the sandbox logs is a thin slice of
+  // what the box logs: the lines that tell the story of a client, not every state-machine hop.
+  var DBG_MODULES = { portaccess: ["all", "deviceprofile", "radius", "role", "services"], radius: ["all", "tracking"], lldp: ["all", "config", "event", "state"] };
+  Switch.prototype.dbgOn = function (mod, sub) { var on = this.dbg.on[mod]; return !!on && (on.indexOf("all") >= 0 || on.indexOf(sub) >= 0); };
+  function dbgTs(t) {
+    var d = new Date(t), z = function (n, w) { n = String(n); while (n.length < w) n = "0" + n; return n; };
+    return d.getUTCFullYear() + "-" + z(d.getUTCMonth() + 1, 2) + "-" + z(d.getUTCDate(), 2) + ":" + z(d.getUTCHours(), 2) + ":" + z(d.getUTCMinutes(), 2) + ":" + z(d.getUTCSeconds(), 2) + "." + z((t % 1000) * 1000 + 704, 6);
+  }
+  // daemon, level, module, sub-module, text; logID-numbered lines share an id per event, like the box's
+  Switch.prototype.dlog = function (daemon, level, mod, sub, text, noId) {
+    this.dbg.buf.push({ mod: mod, line: dbgTs(this.now()) + "|" + daemon + "|LOG_" + level + "|AMM|-|" + mod.toUpperCase() + "|" + sub + "|" + (noId ? "" : "logID=" + this.dbg.id + " ") + text });
+    if (this.dbg.buf.length > 2000) this.dbg.buf.shift();
+  };
+  Switch.prototype.dbgClients = function (before, after) {
+    var self = this;
+    if (!this.dbg.on.portaccess && !this.dbg.on.radius) return;
+    Object.keys(after).forEach(function (k) {
+      var a = after[k], b = before[k];
+      if (a.method === "none") return;
+      if (b && b.status === a.status && b.method === a.method && b.role === a.role && b.outcome === a.outcome) return;
+      self.dbg.id += 1;
+      var key = "'" + a.port + ", " + a.mac + "'", P = function (sub, text, lvl, noId) { if (self.dbgOn("portaccess", sub === "PORTACCESS_DEVICEPROFILE" ? "deviceprofile" : (sub === "PORTACCESS_DOT1X_RADIUS" ? "radius" : "services"))) self.dlog("port-accessd", lvl || "DEBUG", "portaccess", sub, text, noId); };
+      P("PORTACCESS_SERVICES", "Client " + a.mac + " is created in port " + a.port + ".", "INFO");
+      (a.hist || []).slice().reverse().forEach(function (h) {
+        if (h.m === "dot1x" && h.why === "Supplicant-Timeout") P("PORTACCESS_DOT1X_PROTOCOL", "dot1xpae SM State transition [AUTHENTICATING] -> [UNAUTHENTICATED] for user 'unknown' with key " + key);
+        else if (h.m === "dot1x") {
+          var grp = self.pa.dot1xGroup || "radius";
+          P("PORTACCESS_DOT1X_RADIUS", "Received authentication request Access-Request(New) from 802.1x to send to group " + grp, "INFO", true);
+          if (h.why === "Server-Timeout") { P("PORTACCESS_DOT1X_RADIUS", "RADIUS request for context 0x7fa1886016c0 client request id 1 radius id 0 timedout.", "DEBUG", true); P("PORTACCESS_DOT1X_RADIUS", "Retrying RADIUS request for context 0x7fa1886016c0 client request id 1 radius id 0 .", "INFO", true); }
+          else P("PORTACCESS_DOT1X_RADIUS", "Received Access-" + (h.ok ? "Accept" : "Reject") + " response for the request context 0x7fa1886016c0 client request id 9 radius id 8 sent by 802.1x", "INFO", true);
+        } else if (h.m === "mac-auth") {
+          P("PORTACCESS_MACAUTH_PROTOCOL", "macauthpae SM State transition [INITIALIZED] -> [AUTHENTICATING] for object with key " + key);
+          P("PORTACCESS_MACAUTH_PROTOCOL", "macauthpae SM State transition [AUTHENTICATING] -> [" + (h.ok ? "AUTHENTICATED" : (h.why === "Server-Reject" ? "HELD" : "UNAUTHENTICATED")) + "] for object with key " + key);
+        }
+      });
+      if (a.method === "device-profile") {
+        P("PORTACCESS_DEVICEPROFILE", "Handling event Neighbor Detected for MAC " + a.mac + " on port " + a.port + " in state NULL.");
+        P("PORTACCESS_DEVICEPROFILE", "Neighbor created with MAC " + a.mac + " on port " + a.port + " for neighbor type LLDP.");
+        P("PORTACCESS_DEVICEPROFILE", "Neighbor SM State transition [NULL] -> [NEIGHBOR MATCHED] for MAC " + a.mac + " on port " + a.port + ".");
+        if (a.status === "Success") P("PORTACCESS_SERVICES", "Bypass role is set in port " + a.port + " for client " + a.mac + " to role " + a.role + ".", "INFO");
+      }
+      if (a.status === "Success" && !a.fallback) P("PORTACCESS_SERVICES", "Client '" + a.port + " " + a.mac + "' identity '" + (a.method === "dot1x" ? (a.user || a.mac) : a.mac) + "' onboarded via " + a.method + " successfully.", "NOTICE");
+      if (self.dbgOn("radius", "tracking") && (a.hist || []).some(function (h) { return h.m !== "dot1x" || h.why !== "Supplicant-Timeout"; })) {
+        (a.tried || []).forEach(function (t) { self.dlog("radius-srv-trkd", "DEBUG", "radius", "RADIUS_TRACKING", "Handling event 'Radius Server Authentication Response " + (t.result === "ok" ? "Stats" : "Timeout") + " Update' in state 'INITIALIZE' for Server with address '" + t.host + "', VRF Id '0', udp_authport '1812' and port_type 'udp'"); });
+      }
+    });
+  };
+  // LLDP on a port-access port that drops it (no allow-lldp-bpdu): the box logged the neighbour being cleared
+  Switch.prototype.lldpEvents = function () {
+    var self = this; if (!this.dbgOn("lldp", "event")) return;
+    (this.lesson.devices || []).forEach(function (d) {
+      var st = self.devices[d.id]; if (!st || !st.connected || !d.lldp) return;
+      (d.ports || [d.port]).forEach(function (p) {
+        if (!self.linkUp(p)) return;
+        self.dlog("lldpd", self.lldpHeard(d, p) ? "INFO" : "DEBUG", "lldp", "LLDP_EVENT", self.lldpHeard(d, p) ? "i/f " + p + " UPD/MOD" : "lldp_receive_neighbor_clear: intf " + p, true);
+      });
+    });
+  };
+  function dbgCmd(mod, sub) {
+    cmd("*", "debug " + mod + " " + sub, function () { var on = this.dbg.on[mod] = this.dbg.on[mod] || []; if (on.indexOf(sub) < 0) on.push(sub); this.lldpEvents(); });
+    cmd("*", "no debug " + mod + " " + sub, function () { var on = this.dbg.on[mod] || []; this.dbg.on[mod] = on.filter(function (x) { return x !== sub; }); if (!this.dbg.on[mod].length) delete this.dbg.on[mod]; });
+  }
+  Object.keys(DBG_MODULES).forEach(function (m) { DBG_MODULES[m].forEach(function (s) { dbgCmd(m, s); }); });
+  cmd("*", "debug portaccess dot1x all", function () { var on = this.dbg.on.portaccess = this.dbg.on.portaccess || []; if (on.indexOf("services") < 0) on.push("services"); if (on.indexOf("radius") < 0) on.push("radius"); });
+  cmd("*", "debug portaccess macauth all", function () { var on = this.dbg.on.portaccess = this.dbg.on.portaccess || []; if (on.indexOf("services") < 0) on.push("services"); });
+  cmd("*", "no debug all", function () { this.dbg.on = {}; });
+  ["syslog", "file", "console", "buffer"].forEach(function (d) {
+    cmd("*", "debug destination " + d, function () { this.dbg.dest = d; });
+    cmd("*", "no debug destination " + d, function () { if (d === "buffer") return "Given destination buffer severity level cannot be un-configured. It is the default configuration."; this.dbg.dest = "buffer"; });
+  });
+  cmd("*", "clear debug buffer", function () { this.dbg.buf = []; });
+  var DBG_RULE = pad("", 184).replace(/ /g, "-");
+  cmd("*", "show debug", function () {
+    var self = this, mods = Object.keys(this.dbg.on);
+    if (!mods.length) return "Not configured";
+    var rows = [];
+    mods.forEach(function (m) { self.dbg.on[m].forEach(function (s) {
+      var d = "-----";
+      rows.push(pad(m, 19) + pad(m === "lldp" ? "lldp_" + s : s, 32) + pad("debug", 11) + pad(d, 6) + pad(d, 11) + pad(d, 46) + pad(d, 18) + pad(d, 18) + pad(d, 33) + pad(d, 33) + pad(d, 33) + pad(d, 33) + pad(d, 32));
+    }); });
+    return [DBG_RULE, pad("module", 19) + pad("sub_module", 32) + pad("severity", 11) + pad("vlan", 6) + pad("port", 11) + pad("ip", 46) + pad("mac", 18) + pad("instance", 18) + pad("vrf", 33) + pad("table", 33) + pad("column", 33) + pad("client", 33) + pad("ubt_zone", 32), DBG_RULE].concat(rows).join("\n");
+  });
+  Switch.prototype.showDbgBuf = function (mod) {
+    var lines = this.dbg.buf.filter(function (e) { return !mod || e.mod === mod; }).map(function (e) { return e.line; });
+    return [DBG_RULE, "show debug buffer", DBG_RULE].concat(lines).join("\n") + (this.dbg.dest !== "buffer" ? "\n(sandbox: debug output is going to " + this.dbg.dest + ", not the buffer)" : "");
+  };
+  cmd("*", "show debug buffer", function () { return this.showDbgBuf(null); });
+  cmd("*", "show debug buffer module <WORD>", function (a) { return this.showDbgBuf(a[4]); });
   Switch.prototype.clientStatus = function (port) {
     var self = this, rows = this.clientRows(port ? { port: port } : null);
     if (!rows.length) return "No aaa clients found.";
@@ -2075,7 +2442,7 @@
     this.setRelease(want);
     return "Now running " + this.release + " (" + this.version + ").\nThe configuration stays as it is; new lines are checked against " + this.release + "'s syntax.";
   });
-  cmd("*", "sim help", function () { return "sim commands are the sandbox talking, not the switch:\n  sim connect <id>       plug a device from the Devices panel into its port\n  sim disconnect <id>    unplug it\n  sim coa <id> role <r>  have the fake ClearPass send a change of authorization\n  sim status             what is plugged in and how it authenticated\n  sim release [<x>]      which AOS-CX release the syntax follows, or switch it\n  sim reset              put the lab back to its starting state\nEverything else you type goes to the modelled switch."; });
+  cmd("*", "sim help", function () { return "sim commands are the sandbox talking, not the switch:\n  sim connect <id>       plug a device from the Devices panel into its port\n  sim disconnect <id>    unplug it\n  sim coa <id> role <r>  have the fake ClearPass send a change of authorization\n  sim status             what is plugged in and how it authenticated\n  sim release [<x>]      which AOS-CX release the syntax follows, or switch it\n  sim rest <m> <path> [json]  call the switch's REST API from a laptop (post .../login first)\n  sim reset              put the lab back to its starting state\nEverything else you type goes to the modelled switch."; });
 
   // ── lesson checks ───────────────────────────────────────────────────────
   Switch.prototype.check = function () {
@@ -2090,7 +2457,7 @@
         } else if (c.client) {
           var rec = self.clients[c.client.dev] || (c.client.port ? self.clientRows(c.client.port)[0] : null);
           if (!rec) why = "no client record; is the device plugged in?";
-          else { pass = (!c.client.status || rec.status === c.client.status) && (!c.client.role || rec.role === c.client.role) && (!c.client.vlan || rec.vlan === c.client.vlan) && (!c.client.method || rec.method === c.client.method); if (!pass) why = rec.status + (rec.role ? " in role " + rec.role : "") + (rec.status === "Success" ? " on VLAN " + rec.vlan : ": " + rec.reason); }
+          else { pass = (!c.client.status || rec.status === c.client.status) && (!c.client.role || rec.role === c.client.role) && (!c.client.vlan || rec.vlan === c.client.vlan) && (!c.client.method || rec.method === c.client.method) && (!c.client.mode || rec.mode === c.client.mode) && (c.client.voice === undefined || !!rec.voice === c.client.voice); if (!pass) why = rec.status + (rec.role ? " in role " + rec.role : "") + (rec.status === "Success" ? " on VLAN " + rec.vlan : ": " + rec.reason); }
         } else if (c.vlan) { var v = self.vlans[c.vlan.id]; pass = !!v && (!c.vlan.name || v.name === c.vlan.name); if (!pass) why = v ? "named " + v.name : "VLAN " + c.vlan.id + " does not exist"; }
         else if (c.lag) { var lu = self.lagUp(c.lag.id); pass = lu.up && (!c.lag.members || c.lag.members.every(function (m) { return lu.active.indexOf(m) >= 0; })); if (!pass) why = self.lags[c.lag.id] ? "lag" + c.lag.id + " has " + lu.active.length + " active member(s)" : "lag" + c.lag.id + " does not exist"; }
         else if (c.errdisabled) { pass = !!self.errdisabled[c.errdisabled.port] === (c.errdisabled.is !== false); if (!pass) why = self.errdisabled[c.errdisabled.port] ? "port is error-disabled" : "port is not error-disabled"; }
@@ -2100,6 +2467,18 @@
         else if (c.hostname) { pass = self.hostname === c.hostname; if (!pass) why = "hostname is " + self.hostname; }
         else if (c.saved) { pass = self.startup === self.runningConfig(); if (!pass) why = "running config differs from startup"; }
         else if (c.stp) { var st = self.stpState(c.stp.port); pass = st.state === c.stp.state; if (!pass) why = "port is " + st.state; }
+        else if (c.lldp) {
+          var ld = self.dev(c.lldp.dev), lp = c.lldp.port || (ld && ld.port), heard = !!ld && self.lldpHeard(ld, lp), med = ld ? self.medAdvertised(lp, ld) : null;
+          pass = heard === (c.lldp.heard !== false) && (!c.lldp.policyVlan || !!(med && med.policy.vlan === c.lldp.policyVlan));
+          if (!pass) why = !heard ? "the switch does not hear " + (ld ? ld.name : c.lldp.dev) + " on LLDP" : (c.lldp.heard === false ? "still heard" : "its network policy says VLAN " + (med ? (med.policy.vlan || "unknown") : "none"));
+        }
+        else if (c.profile) { var pc = self.clients[c.profile.dev]; pass = !!pc && pc.method === "device-profile" && pc.status === "Success" && (!c.profile.role || pc.role === c.profile.role); if (!pass) why = pc ? (pc.method === "device-profile" ? "profile " + pc.profile + " failed: " + pc.reason : "onboarded by " + pc.method + ", not a device profile") : "no client record"; }
+        else if (c.speed) { var mb = self.linkUp(c.speed.port) ? self.portMb(c.speed.port) : 0; pass = mb === c.speed.mb; if (!pass) why = mb ? "the link runs at " + mb + " Mb/s" : "the link is down"; }
+        else if (c.diag) { pass = !!self.diag[c.diag.port]; if (!pass) why = "no cable test has run on " + c.diag.port; }
+        else if (c.ubt) { var zs = self.zoneState(c.ubt.zone); pass = zs.up === (c.ubt.up !== false) && (!c.ubt.dev || self.ubtUsers(c.ubt.zone).some(function (u) { return u.dev === c.ubt.dev; })); if (!pass) why = zs.up ? "the client is not tunnelled" : zs.why; }
+        else if (c.debug) { pass = self.dbgOn(c.debug.module, c.debug.sub || "all"); if (!pass) why = "debug " + c.debug.module + " " + (c.debug.sub || "all") + " is not on"; }
+        else if (c.rest) { pass = self.restLog.some(function (r) { return r.m === c.rest.method.toUpperCase() && new RegExp(c.rest.path).test(r.path) && r.code >= 200 && r.code < 300; }); if (!pass) why = "no successful " + c.rest.method.toUpperCase() + " to that path yet"; }
+        else if (c.shut) { var si = self.ifaces[c.shut.port]; pass = !!si && si.shutdown === (c.shut.is !== false); if (!pass) why = si ? (si.shutdown ? "shut down" : "still enabled") : "no such port"; }
       } catch (e) { why = "check error: " + e.message; }
       return { desc: c.desc, pass: pass, why: why };
     });

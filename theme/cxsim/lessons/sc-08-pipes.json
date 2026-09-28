@@ -1,0 +1,166 @@
+{
+ "id": "sc-08-pipes",
+ "title": "Scenario 8: find it with a pipe",
+ "track": "Scenarios",
+ "number": 8,
+ "model": "6200F-48",
+ "hostname": "access-03",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-03",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "interface 1/1/1-1/1/48",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "interface 1/1/5",
+  "vlan access 20",
+  "interface 1/1/17",
+  "vlan access 20",
+  "interface 1/1/46",
+  "vlan access 20"
+ ],
+ "task": "A 48-port switch, ten things plugged in, and two jobs. Security wants the device with MAC 00:00:5e:00:53:4c off the network: find its port and shut it. Facilities wants the port the loading-dock camera is on described as `CAM-DOCK-1`. Use pipes so you read three lines, not three screens.",
+ "hints": [
+  "`show mac-address-table | include 53:4c` prints only the line with that MAC in it, port included.",
+  "`show lldp neighbor-info | include CAM` finds the camera by the name it gives on LLDP.",
+  "Pipes on 10.18: include, exclude, begin and count, with a regex (quote it if it has spaces). `section` and `-i` are not there."
+ ],
+ "devices": [
+  {
+   "id": "d0",
+   "name": "Laptop, desk 2",
+   "kind": "laptop",
+   "port": "1/1/2",
+   "mac": "00:00:5e:00:53:12",
+   "connected": true
+  },
+  {
+   "id": "d1",
+   "name": "Printer, copy room",
+   "kind": "printer",
+   "port": "1/1/5",
+   "mac": "00:00:5e:00:53:15",
+   "connected": true,
+   "lldp": {
+    "sys": "lab-printer-copy",
+    "desc": "Printer, copy room",
+    "port": "eth0",
+    "caps": "S"
+   }
+  },
+  {
+   "id": "d2",
+   "name": "Laptop, desk 9",
+   "kind": "laptop",
+   "port": "1/1/9",
+   "mac": "00:00:5e:00:53:19",
+   "connected": true
+  },
+  {
+   "id": "d3",
+   "name": "Laptop, desk 14",
+   "kind": "laptop",
+   "port": "1/1/14",
+   "mac": "00:00:5e:00:53:24",
+   "connected": true
+  },
+  {
+   "id": "d4",
+   "name": "Printer, second floor",
+   "kind": "printer",
+   "port": "1/1/17",
+   "mac": "00:00:5e:00:53:27",
+   "connected": true,
+   "lldp": {
+    "sys": "lab-printer-2f",
+    "desc": "Printer, second floor",
+    "port": "eth0",
+    "caps": "S"
+   }
+  },
+  {
+   "id": "d5",
+   "name": "Laptop, desk 22",
+   "kind": "laptop",
+   "port": "1/1/22",
+   "mac": "00:00:5e:00:53:32",
+   "connected": true
+  },
+  {
+   "id": "d6",
+   "name": "Camera, loading dock",
+   "kind": "printer",
+   "port": "1/1/31",
+   "mac": "00:00:5e:00:53:41",
+   "connected": true,
+   "lldp": {
+    "sys": "CAM-DOCK-1",
+    "desc": "Camera, loading dock",
+    "port": "eth0",
+    "caps": "S"
+   }
+  },
+  {
+   "id": "d7",
+   "name": "Unknown device",
+   "kind": "printer",
+   "port": "1/1/38",
+   "mac": "00:00:5e:00:53:4c",
+   "connected": true
+  },
+  {
+   "id": "d8",
+   "name": "Laptop, desk 41",
+   "kind": "laptop",
+   "port": "1/1/41",
+   "mac": "00:00:5e:00:53:51",
+   "connected": true
+  },
+  {
+   "id": "d9",
+   "name": "Printer, lobby",
+   "kind": "printer",
+   "port": "1/1/46",
+   "mac": "00:00:5e:00:53:56",
+   "connected": true,
+   "lldp": {
+    "sys": "lab-printer-lobby",
+    "desc": "Printer, lobby",
+    "port": "eth0",
+    "caps": "S"
+   }
+  }
+ ],
+ "checks": [
+  {
+   "desc": "The unknown device's port is shut",
+   "shut": {
+    "port": "1/1/38"
+   }
+  },
+  {
+   "desc": "The camera port is described",
+   "config": {
+    "context": "interface 1/1/31",
+    "has": "^description CAM-DOCK-1$"
+   }
+  },
+  {
+   "desc": "Nothing else was shut",
+   "shut": {
+    "port": "1/1/31",
+    "is": false
+   }
+  }
+ ]
+}

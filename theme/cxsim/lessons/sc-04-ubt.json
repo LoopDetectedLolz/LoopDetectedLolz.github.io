@@ -1,0 +1,126 @@
+{
+ "id": "sc-04-ubt",
+ "title": "Scenario 4: tunnel users and a port to the gateway",
+ "track": "Scenarios",
+ "number": 4,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "vlan 666",
+  "name UBT-TRANSPORT",
+  "radius-server host 192.0.2.10 key plaintext cppm-lab-key",
+  "aaa group server radius CLEARPASS",
+  "server 192.0.2.10",
+  "exit",
+  "aaa authentication port-access dot1x authenticator",
+  "radius server-group CLEARPASS",
+  "enable",
+  "exit",
+  "aaa authentication port-access mac-auth",
+  "radius server-group CLEARPASS",
+  "enable",
+  "exit",
+  "interface 1/1/13",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "interface vlan 10",
+  "ip address 192.0.2.2/24",
+  "exit",
+  "interface 1/1/1",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "aaa authentication port-access dot1x authenticator",
+  "enable",
+  "exit",
+  "exit",
+  "interface 1/1/4",
+  "no shutdown",
+  "no routing",
+  "vlan access 10"
+ ],
+ "task": "The gateway cluster at 192.0.2.50 (on 1/1/13) should get employee traffic and the camera on 1/1/4 through tunnels. ClearPass already answers the laptop with role TUNNEL-EMPLOYEE. Build the UBT zone CAMPUS (primary controller 192.0.2.50, client VLAN 666), make TUNNEL-EMPLOYEE tunnel with gateway role authenticated (user-based), and tunnel everything on 1/1/4 with a fallback role PBT-IOT, gateway role iot (port-based).",
+ "hints": [
+  "`ubt-client-vlan 666`, then `ubt zone CAMPUS vrf default` with `primary-controller ip 192.0.2.50` and `enable`. `show ubt` says whether the zone is up.",
+  "`port-access role TUNNEL-EMPLOYEE`, `gateway-zone zone CAMPUS gateway-role authenticated`. The switch has to know the role ClearPass sends, or the laptop fails authorization.",
+  "Port-based: `port-access role PBT-IOT` with `gateway-zone zone CAMPUS gateway-role iot`, then `port-access fallback-role PBT-IOT` on 1/1/4.",
+  "`show ubt users all` lists who is tunnelled. The zone needs the gateway reachable: the switch already has 192.0.2.2 on VLAN 10."
+ ],
+ "devices": [
+  {
+   "id": "gateway",
+   "name": "Gateway cluster node 192.0.2.50",
+   "kind": "gateway",
+   "port": "1/1/13",
+   "mac": "00:00:5e:00:53:50",
+   "ip": "192.0.2.50",
+   "vlan": 10,
+   "connected": true
+  },
+  {
+   "id": "laptop",
+   "name": "Laptop (employee.user)",
+   "kind": "laptop",
+   "port": "1/1/1",
+   "mac": "00:00:5e:00:53:01",
+   "user": "employee.user",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "TUNNEL-EMPLOYEE"
+    }
+   },
+   "connected": true
+  },
+  {
+   "id": "camera",
+   "name": "IP camera (no supplicant)",
+   "kind": "printer",
+   "port": "1/1/4",
+   "mac": "00:00:5e:00:53:44",
+   "connected": true
+  }
+ ],
+ "checks": [
+  {
+   "desc": "Zone CAMPUS is up",
+   "ubt": {
+    "zone": "CAMPUS"
+   }
+  },
+  {
+   "desc": "The laptop is tunnelled (user-based)",
+   "ubt": {
+    "zone": "CAMPUS",
+    "dev": "laptop"
+   }
+  },
+  {
+   "desc": "The camera is tunnelled (port-based)",
+   "ubt": {
+    "zone": "CAMPUS",
+    "dev": "camera"
+   }
+  },
+  {
+   "desc": "1/1/4 falls back to PBT-IOT",
+   "config": {
+    "context": "interface 1/1/4",
+    "has": "^port-access fallback-role PBT-IOT$"
+   }
+  }
+ ]
+}

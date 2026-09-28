@@ -1,0 +1,119 @@
+{
+ "id": "sc-01-lldp-med",
+ "title": "Scenario 1: a phone learns its voice VLAN",
+ "track": "Scenarios",
+ "number": 1,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "vlan 30",
+  "name VOICE",
+  "interface 1/1/3",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "interface 1/1/9",
+  "no shutdown",
+  "no routing",
+  "vlan access 10"
+ ],
+ "task": "The desk phone on 1/1/3 works, but its voice goes out untagged in the data VLAN with everything else. Mark VLAN 30 as the voice VLAN, keep the PC behind the phone untagged in VLAN 10, tag VLAN 30 on 1/1/3, and check what the phone says back over LLDP-MED. While you are there, look at what the access point on 1/1/9 asks for.",
+ "hints": [
+  "`vlan 30` then `voice` marks it. LLDP-MED advertises a network policy only for a VLAN marked voice, and only on a port that tags it.",
+  "On 1/1/3: `vlan trunk native 10` and `vlan trunk allowed 10,30`. Allowed lists add up: a second `vlan trunk allowed 30` adds 30 to what is there.",
+  "`show lldp neighbor-info 1/1/3` shows the phone's Med Network Policy. Once it has VLAN 30 it says so: tagged, priority 6, DSCP 46.",
+  "`show lldp neighbor-info 1/1/9` shows the AP's DOT3 power request. The sandbox fakes the power: there is no PSE behind it."
+ ],
+ "devices": [
+  {
+   "id": "phone",
+   "name": "Desk phone (LLDP-MED)",
+   "kind": "phone",
+   "port": "1/1/3",
+   "mac": "00:00:5e:00:53:03",
+   "lldp": {
+    "sys": "LAB-PHONE-0303",
+    "desc": "Lab SIP desk phone (LLDP-MED class III), fw 1.0",
+    "port": "00:00:5e:00:53:03",
+    "portDesc": "PC port bridge",
+    "caps": "B,T",
+    "med": {
+     "class": "III",
+     "poe": {
+      "w": 6.0,
+      "prio": "Low"
+     }
+    }
+   },
+   "connected": true
+  },
+  {
+   "id": "ap1",
+   "name": "Access point lab-ap-01",
+   "kind": "ap",
+   "port": "1/1/9",
+   "mac": "00:00:5e:00:53:09",
+   "lldp": {
+    "sys": "lab-ap-01",
+    "desc": "Lab AP-515 Wi-Fi 6, fw 10.7",
+    "port": "eth0",
+    "portDesc": "eth0",
+    "caps": "B,W",
+    "mgmt": "192.0.2.109",
+    "dot3poe": {
+     "w": 25.5,
+     "cls": 4
+    }
+   },
+   "connected": true
+  }
+ ],
+ "checks": [
+  {
+   "desc": "VLAN 30 is the voice VLAN",
+   "config": {
+    "context": "vlan 30",
+    "has": "^voice$"
+   }
+  },
+  {
+   "desc": "1/1/3 keeps VLAN 10 untagged",
+   "config": {
+    "context": "interface 1/1/3",
+    "has": "^vlan trunk native 10$"
+   }
+  },
+  {
+   "desc": "1/1/3 tags VLAN 30",
+   "config": {
+    "context": "interface 1/1/3",
+    "has": "^vlan trunk allowed (.*,)?30(,.*)?$"
+   }
+  },
+  {
+   "desc": "The phone advertises VLAN 30 back",
+   "lldp": {
+    "dev": "phone",
+    "policyVlan": 30
+   }
+  },
+  {
+   "desc": "The switch hears the AP on LLDP",
+   "lldp": {
+    "dev": "ap1"
+   }
+  }
+ ]
+}

@@ -479,7 +479,7 @@ acad += f'''
 <section class="band g-card" data-rise>
   <div>
     <h3>Type on a switch first</h3>
-    <p>The CX Sandbox is a modelled AOS-CX switch in the page: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, a LAG, spanning tree, an SVI and OSPF. Eight labs with checks, or a blank switch to poke at.</p>
+    <p>The CX Sandbox is a modelled AOS-CX switch in the page: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, device profiles, voice VLANs, tunnelling, a LAG, spanning tree, an SVI and OSPF. Eighteen labs with checks, or a blank switch to poke at.</p>
   </div>
   <a class="btn" href="sandbox.html" data-origin="zoom">Open the sandbox</a>
 </section>
@@ -487,18 +487,27 @@ acad += f'''
 open(os.path.join(ROOT, "academy.html"), "w", encoding="utf-8").write(acad)
 
 # ── CX Sandbox page: every lab, one picker ──────────────────────────────────
-SANDBOX_LABS = ["sandbox", "nac-01-bench", "nac-02-discovery", "nac-03-mac-auth", "nac-04-dot1x", "nac-05-roles", "nac-06-precedence", "l2-01-uplink", "l3-01-routing"]
+SANDBOX_LABS = ["sandbox", "nac-01-bench", "nac-02-discovery", "nac-03-mac-auth", "nac-04-dot1x", "nac-05-roles", "nac-06-precedence", "l2-01-uplink", "l3-01-routing",
+                "sc-01-lldp-med", "sc-02-device-profiles", "sc-03-multi-domain", "sc-04-ubt", "sc-05-multigig", "sc-06-lacp", "sc-07-debug", "sc-08-pipes", "sc-09-rest", "sc-10-cable"]
+# the picker, in groups: the blank switch, the Zero to NAC track, switching and routing, the ten scenarios
+SANDBOX_GROUPS = [("Free play", ["sandbox"]), ("Zero to NAC", [l for l in SANDBOX_LABS if l.startswith("nac-")]),
+                  ("Switching and routing", ["l2-01-uplink", "l3-01-routing"]), ("Scenarios", [l for l in SANDBOX_LABS if l.startswith("sc-")])]
 def _lab_meta(lid):
     return json.load(open(os.path.join(ROOT, "theme", "cxsim", "lessons", lid + ".json"), encoding="utf-8"))
-sb_pills = "".join('<button class="pill sb-pill%s" type="button" data-lab="%s">%s</button>' % (" on" if i == 0 else "", E(lid), E(_lab_meta(lid)["title"].replace("Lab ", "").replace("Switching lab: ", "L2: ").replace("Routing lab: ", "L3: ").replace("CX Sandbox", "Free play")))
-                   for i, lid in enumerate(SANDBOX_LABS))
+def _pill_label(lid):
+    t = _lab_meta(lid)["title"]
+    t = re.sub(r"^Scenario (\d+): ", r"\1: ", t)
+    return t.replace("Lab ", "").replace("Switching lab: ", "L2: ").replace("Routing lab: ", "L3: ").replace("CX Sandbox", "Free play")
+sb_pills = "".join('<div class="sb-group"><span class="eyebrow">%s</span><div class="sb-row">%s</div></div>' % (E(g), "".join(
+    '<button class="pill sb-pill%s" type="button" data-lab="%s">%s</button>' % (" on" if lid == "sandbox" else "", E(lid), E(_pill_label(lid))) for lid in labs))
+    for g, labs in SANDBOX_GROUPS)
 sb_labs = "".join('<div class="sb-lab" data-lab="%s"%s>%s</div>' % (E(lid), "" if i == 0 else ' hidden', cxsim('<p>{{cxsim: %s}}</p>' % lid)) for i, lid in enumerate(SANDBOX_LABS))
-sb = head("CX Sandbox · " + SITE["name"], "A modelled HPE Aruba Networking CX switch you can type on: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, a LAG, spanning tree, an SVI and OSPF. Eight labs with checks and a blank switch.", BASE_URL + "/sandbox.html", BASE_URL + "/og/sandbox.png", active="academy")
+sb = head("CX Sandbox · " + SITE["name"], "A modelled HPE Aruba Networking CX switch you can type on: VLANs, MAC auth, 802.1X, roles and device profiles against a fake ClearPass, voice VLANs, tunnelling, LACP, REST and cable tests. Eighteen labs with checks and a blank switch.", BASE_URL + "/sandbox.html", BASE_URL + "/og/sandbox.png", active="academy")
 sb += f'''
 <section class="sim-intro">
   <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
   <h1 class="h-hero">A switch you can type on</h1>
-  <p class="lede">A modelled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes were checked line by line against AOS-CX 10.18.1002 running on my own bench, last on September 28, 2026, and the wording where it differs is mine. The 10.18 command list sits behind it, so a real command it doesn't model says so, and a line the box would refuse gets the box's own error. Pipes work too: <code>include</code>, <code>exclude</code>, <code>begin</code> and <code>count</code>.</p>
+  <p class="lede">A modelled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes were checked line by line against AOS-CX 10.18.1002 running on my own bench, last on September 28, 2026, and the wording where it differs is mine. The command lists of 10.15 through 10.18 sit behind it, so a real command it doesn't model says so, a line the box would refuse gets the box's own error, and the picker in the corner of the terminal switches which release's syntax you get. Pipes work too: <code>include</code>, <code>exclude</code>, <code>begin</code> and <code>count</code>. Where it fakes hardware (link speed, PoE, the cable tester, a gateway to tunnel to) it says so on the screen.</p>
 </section>
 <nav class="sb-picker" aria-label="Labs">{sb_pills}</nav>
 {sb_labs}

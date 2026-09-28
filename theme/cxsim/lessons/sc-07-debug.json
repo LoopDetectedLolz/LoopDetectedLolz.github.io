@@ -1,0 +1,145 @@
+{
+ "id": "sc-07-debug",
+ "title": "Scenario 7: debug why the phone gets no role",
+ "track": "Scenarios",
+ "number": 7,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "vlan 30",
+  "name VOICE",
+  "voice",
+  "radius-server host 192.0.2.10 key plaintext cppm-lab-key",
+  "aaa group server radius CLEARPASS",
+  "server 192.0.2.10",
+  "exit",
+  "aaa authentication port-access dot1x authenticator",
+  "radius server-group CLEARPASS",
+  "enable",
+  "exit",
+  "aaa authentication port-access mac-auth",
+  "radius server-group CLEARPASS",
+  "enable",
+  "exit",
+  "port-access role EMPLOYEE",
+  "vlan access 10",
+  "exit",
+  "interface 1/1/6",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "aaa authentication port-access dot1x authenticator",
+  "enable",
+  "exit",
+  "aaa authentication port-access mac-auth",
+  "enable",
+  "exit",
+  "exit",
+  "port-access lldp-group LLDP-MED-ENDPOINTS",
+  "match vendor-oui 0012bb type 1",
+  "exit",
+  "port-access role VOICE",
+  "device-traffic-class voice",
+  "vlan trunk native 10",
+  "vlan trunk allowed 30",
+  "exit",
+  "port-access device-profile PHONES",
+  "associate lldp-group LLDP-MED-ENDPOINTS",
+  "associate role VOICE",
+  "enable",
+  "exit",
+  "interface 1/1/6",
+  "aaa authentication port-access auth-mode multi-domain"
+ ],
+ "task": "Everything for the phone on 1/1/6 looks right: a multi-domain port, an LLDP group for LLDP-MED endpoints, a VOICE role and a device profile. The PC works, the phone never gets VOICE. Turn on debugging for LLDP and port-access, unplug and replug the phone, read the buffer, and fix what it tells you.",
+ "hints": [
+  "`debug lldp event` and `debug portaccess all`. The buffer is the default destination; `show debug` lists what is on.",
+  "Unplug and plug the phone from the Devices panel (or `sim disconnect phone`, `sim connect phone`), then `show debug buffer module lldp`.",
+  "`lldp_receive_neighbor_clear: intf 1/1/6` is the switch throwing the phone's LLDP away. The lab switch did exactly this on 2026-09-28.",
+  "`aaa authentication port-access allow-lldp-bpdu` on 1/1/6. Then `show debug buffer module portaccess | include DEVICEPROFILE`."
+ ],
+ "devices": [
+  {
+   "id": "phone",
+   "name": "Desk phone (LLDP-MED)",
+   "kind": "phone",
+   "port": "1/1/6",
+   "mac": "00:00:5e:00:53:03",
+   "lldp": {
+    "sys": "LAB-PHONE-0303",
+    "desc": "Lab SIP desk phone (LLDP-MED class III), fw 1.0",
+    "port": "00:00:5e:00:53:03",
+    "portDesc": "PC port bridge",
+    "caps": "B,T",
+    "med": {
+     "class": "III",
+     "poe": {
+      "w": 6.0,
+      "prio": "Low"
+     }
+    }
+   },
+   "connected": true,
+   "auth": {
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   }
+  },
+  {
+   "id": "pc",
+   "name": "PC behind the phone (employee.user)",
+   "kind": "laptop",
+   "port": "1/1/6",
+   "mac": "00:00:5e:00:53:66",
+   "user": "employee.user",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   },
+   "connected": true
+  }
+ ],
+ "checks": [
+  {
+   "desc": "LLDP event debugging is on",
+   "debug": {
+    "module": "lldp",
+    "sub": "event"
+   }
+  },
+  {
+   "desc": "1/1/6 lets LLDP through before authentication",
+   "config": {
+    "context": "interface 1/1/6",
+    "has": "^aaa authentication port-access allow-lldp-bpdu$"
+   }
+  },
+  {
+   "desc": "The phone got VOICE from the profile",
+   "profile": {
+    "dev": "phone",
+    "role": "VOICE"
+   }
+  }
+ ]
+}
