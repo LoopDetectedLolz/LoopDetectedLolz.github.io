@@ -3670,6 +3670,9 @@ https-server vrf mgmt
   var fi=document.getElementById('cxc-file');document.getElementById('cxc-file-btn').addEventListener('click',function(){fi.click();});
   fi.addEventListener('change',function(){var f=fi.files&&fi.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){ta.value=String(rd.result||'');run();};rd.readAsText(f);fi.value='';});
   ta.addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();run();}});
+  // a config handed over by the script builder: read once, deleted at once
+  if(/#import/.test(location.hash)){try{var im=JSON.parse(localStorage.getItem('cxcheck:import')||'null');localStorage.removeItem('cxcheck:import');
+    if(im&&im.config&&Date.now()-(im.at||0)<600000){ta.value=im.config;if(im.release)rel.value=im.release;run();}history.replaceState(null,'',location.pathname);}catch(e){}}
   window.__cxc={run:run};
 })();
 </script>
