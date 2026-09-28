@@ -643,5 +643,54 @@ has(cd.exec("checkpoint diff running-config checkpoint before").out, "-vlan 44",
 has(cd.exec("checkpoint diff before running-config").out, "+vlan 44", "a bare checkpoint name works too");
 eq(cd.exec("checkpoint diff").out, "% Command incomplete.", "incomplete");
 
+// ── the config checker ────────────────────────────────────────────────────
+section = "checker";
+var CK = require("./theme/cxsim/checker.js");
+var sampleCfg = fs.readFileSync(path.join(__dirname, "theme", "cxsim", "samples", "check-sample.cfg"), "utf8");
+var cr = CK.check(sampleCfg, {});
+function titles(r) { return r.findings.map(function (f) { return f.title; }); }
+function hasF(r, re, what) { ok(r.findings.some(function (f) { return re.test(f.title); }), what + ": " + titles(r).join(" | ")); }
+eq(cr.detected, "10.18", "the !Version line picks the release");
+eq(cr.release, "10.18", "checked against it");
+hasF(cr, /^Server 192\.0\.2\.11 is in a group but not defined$/, "a server in a group with no radius-server host");
+hasF(cr, /^RADIUS group CPPM is never defined$/, "a group that does not exist");
+hasF(cr, /^VLAN 20 is never created$/, "a VLAN that does not exist");
+hasF(cr, /^Role QUARANTINE is named but not defined$/, "a critical role that does not exist");
+hasF(cr, /^The switch would refuse this line$/, "a typo inside a real command");
+hasF(cr, /^LAG 1 is static$/, "a static LAG");
+hasF(cr, /^LAG 1 is administratively down$/, "a LAG never no-shut");
+hasF(cr, /^CoA is on but no server may send it$/, "CoA without a client line");
+hasF(cr, /^MAC auth is on the ports but not switched on globally$/, "mac-auth half on");
+ok(cr.findings.some(function (f) { return f.cis === "1.1.9"; }) && cr.findings.some(function (f) { return f.cis === "1.4.1.1"; }) && cr.findings.some(function (f) { return f.cis === "1.14"; }), "telnet, public community and default hostname map to CIS 1.1.9, 1.4.1.1 and 1.14");
+eq(cr.findings.filter(function (f) { return f.kind === "syntax"; }).length, 1, "the only syntax finding is the typo");
+var cr16 = CK.check(sampleCfg, { release: "10.16" });
+ok(cr16.findings.some(function (f) { return f.kind === "syntax" && f.line === 36 && /10\.18/.test(f.why); }), "picked 10.16: the role's client-limit device-mode is 10.18 syntax, and the finding says so");
+// a hardened config: nothing above a note
+var clean = ["!Version AOS-CX ML.10.18.1002", "hostname idf2-sw1", "user-group secops", "password complexity", "    minimum-length 14", "    enable", "cli-session", "    timeout 15",
+  "ssh server vrf mgmt", "ssh server allow-list", "    ip 192.0.2.0/24", "    enable", "ssh ciphers aes256-gcm@openssh.com aes128-gcm@openssh.com aes256-ctr aes128-ctr", "ssh macs hmac-sha2-512 hmac-sha2-256",
+  "ntp authentication", "ntp authentication-key 1 sha1 ntp-lab-key", "ntp server 192.0.2.30 key-id 1 iburst", "ntp server 192.0.2.31 key-id 1 iburst", "ntp enable", "logging 192.0.2.40 vrf mgmt",
+  "aaa authorization commands ssh group local", "aaa accounting all-mgmt default start-stop local", "system serviceos password-prompt", "banner motd ^", "Authorized use only.", "^",
+  "job backup-config", "    1 cli copy running-config sftp://backup@192.0.2.60/idf2-sw1.cfg vrf mgmt", "schedule backup-config", "    1 job backup-config", "    enable",
+  "https-server session-timeout 5", "radius-server host 192.0.2.10 key plaintext lab-k", "radius-server host 192.0.2.11 key plaintext lab-k",
+  "aaa group server radius CLEARPASS", "    server 192.0.2.10", "    server 192.0.2.11", "radius dyn-authorization enable", "radius dyn-authorization client 192.0.2.10 secret-key plaintext lab-k",
+  "vlan 10", "    name STAFF", "vlan 99", "    name QUARANTINE", "spanning-tree", "port-access role EMPLOYEE", "    vlan access 10", "port-access role QUARANTINE", "    vlan access 99",
+  "aaa authentication port-access dot1x authenticator", "    radius server-group CLEARPASS", "    enable",
+  "interface lag 1", "    no shutdown", "    description uplink to core", "    no routing", "    vlan trunk native 99", "    vlan trunk allowed 10,99", "    lacp mode active",
+  "interface 1/1/1", "    no shutdown", "    no routing", "    vlan access 10", "    spanning-tree bpdu-guard", "    spanning-tree root-guard", "    spanning-tree port-type admin-edge", "    loop-protect",
+  "    aaa authentication port-access dot1x authenticator", "        enable", "    aaa authentication port-access critical-role QUARANTINE", "interface 1/1/15", "    no shutdown", "    lag 1"].join("\n");
+var cc = CK.check(clean, {});
+var loud = cc.findings.filter(function (f) { return f.sev !== "info"; });
+ok(loud.length === 0, "a hardened config raises nothing above a note: " + loud.map(function (f) { return f.title + (f.line ? " (line " + f.line + ": " + f.text + ")" : ""); }).join(" | "));
+ok(!cc.findings.some(function (f) { return f.kind === "syntax"; }), "banner text is not read as commands");
+// every fix the checker suggests is syntax the switch takes (placeholders filled in)
+function fill(l) { return l.replace(/<VLAN>/g, "10").replace(/<ROLE>/g, "QUARANTINE").replace(/<GROUP>/g, "CLEARPASS").replace(/<[A-Z-]+>/g, "x"); }
+var fixes = {};
+[cr, cr16, cc, CK.check("interface 1/1/1\n    vlan trunk allowed all", {})].forEach(function (r) { r.findings.forEach(function (f) { if (f.fix) fixes[f.fix.join("\n")] = f.title; }); });
+Object.keys(fixes).forEach(function (fx) {
+  var pz = CK.parse(fill(fx));
+  pz.lines.forEach(function (ln) { if (!ln.ctx) return; var sx = CX.syntax(ln.ctx, ln.text, "10.18"); ok(!sx || sx.state === "full", "fix for \"" + fixes[fx] + "\" is valid 10.18 syntax: " + ln.text + (sx && sx.error ? " -> " + sx.error : "")); });
+});
+ok(CK.check("", {}).findings.every(function (f) { return f.kind === "hardening" || f.kind === "practice"; }), "an empty paste only gets the missing-things findings");
+
 console.log((fail ? "FAILED " + fail + " of " : "passed ") + (pass + fail) + " checks");
 process.exit(fail ? 1 : 0);

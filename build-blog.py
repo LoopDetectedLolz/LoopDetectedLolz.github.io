@@ -661,6 +661,146 @@ cxn += f'''
 ''' + foot("nfn-bot-switchwork.svg")
 open(os.path.join(ROOT, "cx-notes.html"), "w", encoding="utf-8").write(cxn)
 
+# ── CX config checker: paste a config, findings back, nothing leaves the page ─
+# theme/cxsim/checker.js does the work with the engine's copy of the real command sets. The page carries a
+# Content-Security-Policy with connect-src 'none', so the browser itself refuses any request the page might try
+# after it has loaded; the promise on the page is enforced, not just written down.
+def _js(path):
+    return open(os.path.join(ROOT, *path.split("/")), encoding="utf-8").read().replace("</", "<\\/")
+CX_CSP = ('<meta http-equiv="Content-Security-Policy" content="default-src \'self\'; script-src \'self\' \'unsafe-inline\'; '
+          'style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com; font-src \'self\' https://fonts.gstatic.com; img-src \'self\' data:; '
+          'connect-src \'none\'; form-action \'none\'; frame-src \'none\'; object-src \'none\'; base-uri \'none\'; worker-src \'none\'">')
+CX_ENGINE_BUNDLE = "<script>%s</script><script>%s</script>" % (_js("theme/cxsim/corpus/aoscx.js"), _js("theme/cxsim/engine.js"))
+cxc_sample = open(os.path.join(ROOT, "theme", "cxsim", "samples", "check-sample.cfg"), encoding="utf-8").read().replace("</", "<\\/")
+cxc_rel_opts = "".join('<option value="%s">%s</option>' % (r, r) for r in reversed(CX_RELS))
+CXC_DESC = "Paste an AOS-CX running config and get findings back: syntax each release would refuse, names that are never defined, CIS benchmark controls by number, and campus habits. It runs in your browser; the config never leaves the page."
+cxc = head("CX config checker · " + SITE["name"], CXC_DESC, BASE_URL + "/cx-check.html", BASE_URL + "/og/cx-check.png", active="academy", extra=CX_CSP)
+cxc += f'''
+{CX_TOOLS_CSS}
+<style>
+.cxc-safe{{display:flex;gap:14px;align-items:flex-start;padding:var(--s4) var(--s5);margin:0 0 var(--s4)}}
+.cxc-safe svg{{flex:none;width:28px;height:28px;margin-top:2px}}
+.cxc-safe h2{{font-size:18px;margin:0 0 6px}}
+.cxc-safe p{{margin:0 0 6px;color:var(--text-dim);font-size:15px;line-height:1.6}}
+.cxc-safe p:last-child{{margin:0}}
+.cxc-in{{padding:var(--s4) var(--s5);margin:0 0 var(--s4)}}
+.cxc-in textarea{{display:block;width:100%;min-height:300px;resize:vertical;font:13.5px/1.5 var(--mono);color:var(--text);background:rgba(3,10,16,0.72);border:1px solid var(--line);border-radius:var(--r-inner);padding:var(--s3) var(--s4);outline:none;white-space:pre;overflow:auto}}
+.cxc-in textarea:focus{{border-color:var(--blue-light)}}
+.cxc-row{{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:var(--s3)}}
+.cxc-row label{{display:inline-flex;align-items:center;gap:8px;font:12px var(--mono);color:var(--text-muted)}}
+.cxc-row select{{font:13px var(--mono);color:var(--text);background:rgba(255,255,255,0.06);border:1px solid var(--line);border-radius:var(--r-pill);min-height:44px;padding:0 12px}}
+.cxc-row .btn{{border:0;cursor:pointer;font:600 15px var(--sans)}}
+.cxc-row .pill{{cursor:pointer;font:600 13.5px var(--sans)}}
+.cxc-row input[type=file]{{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}}
+.cxc-sum{{padding:var(--s4) var(--s5);margin:0 0 var(--s4);display:none}}
+.cxc-sum.on{{display:block}}
+.cxc-sum h2{{font-size:20px;margin:0 0 8px}}
+.cxc-sum p{{margin:0;color:var(--text-dim);font-size:15px;line-height:1.6}}
+.cxc-counts{{display:flex;flex-wrap:wrap;gap:8px;margin:var(--s3) 0 0}}
+.cxc-counts button{{font:600 13px var(--sans);min-height:40px;padding:0 14px;border-radius:var(--r-pill);border:1px solid var(--line);background:rgba(255,255,255,0.05);color:var(--text-dim);cursor:pointer}}
+.cxc-counts button.on{{background:rgba(255,255,255,0.12);color:var(--text);border-color:rgba(255,255,255,0.3)}}
+.cxc-list{{display:grid;gap:var(--s3)}}
+.cxc-f{{padding:var(--s3) var(--s4)}}
+.cxc-f header{{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 6px}}
+.cxc-f h3{{font-size:16px;margin:0;letter-spacing:-0.01em}}
+.cxc-sev{{font:700 10.5px var(--mono);letter-spacing:0.12em;text-transform:uppercase;border-radius:var(--r-pill);padding:4px 9px}}
+.cxc-sev.error{{background:var(--orange);color:var(--ink)}}
+.cxc-sev.warn{{border:1px solid rgba(245,165,36,0.7);color:#ffd28a}}
+.cxc-sev.info{{border:1px solid var(--line);color:var(--text-muted)}}
+.cxc-tag{{font:11px var(--mono);color:var(--blue-light);border:1px solid rgba(79,189,234,0.45);border-radius:var(--r-pill);padding:3px 8px}}
+.cxc-f .ln{{font:12.5px/1.5 var(--mono);color:var(--text);background:rgba(3,10,16,0.55);border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px 0;overflow-x:auto;white-space:pre}}
+.cxc-f .ln b{{color:var(--text-muted);font-weight:400;margin-right:10px}}
+.cxc-f p{{margin:0 0 6px;color:var(--text-dim);font-size:14.5px;line-height:1.6}}
+.cxc-fix{{position:relative;margin:8px 0 0}}
+.cxc-fix pre{{margin:0;font:12.5px/1.5 var(--mono);color:var(--text);background:rgba(140,224,94,0.06);border:1px solid rgba(140,224,94,0.35);border-radius:8px;padding:8px 12px;overflow-x:auto}}
+.cxc-fix button{{position:absolute;top:4px;right:4px;font:600 11.5px var(--sans);color:var(--text-dim);background:rgba(3,10,16,0.8);border:1px solid var(--line);border-radius:var(--r-pill);min-height:38px;padding:0 12px;cursor:pointer}}
+.cxc-man{{padding:var(--s4) var(--s5);margin:var(--s4) 0 0;display:none}}
+.cxc-man.on{{display:block}}
+.cxc-man h2{{font-size:18px;margin:0 0 8px}}
+.cxc-man li{{color:var(--text-dim);font-size:14.5px;line-height:1.6;margin:0 0 6px}}
+.cxc-man b{{color:var(--text)}}
+@media (max-width:700px){{.cxc-in,.cxc-safe,.cxc-sum,.cxc-man{{padding:var(--s3) var(--s4)}}.cxc-in textarea{{font-size:16px}}}}
+</style>
+<section class="sim-intro">
+  <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
+  <h1 class="h-hero">Paste a config, get findings back</h1>
+  <p class="lede">Drop in an AOS-CX running config. Every line is checked against the real command set of the release you pick, from {CX_RELS[0]} to {CX_RELS[-1]}, every name it uses is checked against what it defines, and the rest is held up to the CIS benchmark for CX switches, by control number, and to the habits that keep a campus access switch out of trouble. Each finding says why, and most come with the lines that fix them.</p>
+</section>
+{cx_tools("check")}
+<section class="cxc-safe g-card" aria-labelledby="cxc-safe-h">
+  <svg viewBox="0 0 28 28" aria-hidden="true"><path d="M14 2 4 6v7c0 6.2 4.2 11.2 10 13 5.8-1.8 10-6.8 10-13V6z" fill="none" stroke="#8CE05E" stroke-width="2"/><path d="m9.5 14 3 3 6-6.5" fill="none" stroke="#8CE05E" stroke-width="2"/></svg>
+  <div>
+    <h2 id="cxc-safe-h">Your config never leaves this page</h2>
+    <p>The checker is code that came down with the page. It reads the box below and nothing else, and it runs in this tab. Nothing is uploaded, stored or logged, and there is no analytics on this page.</p>
+    <p>That is enforced, not just promised: the page carries a Content-Security-Policy with <code>connect-src 'none'</code>, so your browser refuses any network request it might try once it has loaded. Open the network tab in your browser's developer tools, paste, check, and watch it stay empty. Close the tab and the config is gone.</p>
+    <p>What that cannot cover: browser extensions can read any page you open. Secrets in a running config are already ciphertext, but hostnames and addresses still say a lot about a network, so follow your own policy on where configs go.</p>
+  </div>
+</section>
+<section class="cxc-in g-card">
+  <label for="cxc-text" class="eyebrow">Running config</label>
+  <textarea id="cxc-text" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Paste the output of show running-config here"></textarea>
+  <div class="cxc-row">
+    <button class="btn cta" type="button" id="cxc-go">Check it</button>
+    <label>Release <select id="cxc-rel" aria-label="AOS-CX release to check against"><option value="">From the config</option>{cxc_rel_opts}</select></label>
+    <button class="pill outline" type="button" id="cxc-file-btn">Open a file</button><input type="file" id="cxc-file" accept=".txt,.cfg,.conf,.log,text/plain" aria-label="Open a config file">
+    <button class="pill outline" type="button" id="cxc-sample-btn">Try a sample</button>
+    <button class="pill outline" type="button" id="cxc-clear">Clear</button>
+  </div>
+</section>
+<section class="cxc-sum g-card" id="cxc-sum" aria-live="polite"></section>
+<div class="cxc-list" id="cxc-list"></div>
+<section class="cxc-man g-card" id="cxc-man"></section>
+<script type="text/plain" id="cxc-sample">{cxc_sample}</script>
+{CX_ENGINE_BUNDLE}
+<script>{_js("theme/cxsim/checker.js")}</script>
+<script>
+(function(){{
+  var ta=document.getElementById('cxc-text'),rel=document.getElementById('cxc-rel'),sum=document.getElementById('cxc-sum'),list=document.getElementById('cxc-list'),man=document.getElementById('cxc-man'),filter='all',last=null;
+  function el(t,c,x){{var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}}
+  var KIND={{syntax:'Syntax',reference:'References',hardening:'CIS benchmark',practice:'Practice',unused:'Unused'}};
+  function render(){{
+    list.innerHTML='';var r=last;if(!r)return;
+    r.findings.forEach(function(f){{
+      if(filter!=='all'&&f.kind!==filter&&f.sev!==filter)return;
+      var c=el('article','cxc-f g-card'),h=el('header');
+      h.appendChild(el('span','cxc-sev '+f.sev,f.sev==='warn'?'warning':f.sev));
+      if(f.cis)h.appendChild(el('span','cxc-tag','CIS '+f.cis));else h.appendChild(el('span','cxc-tag',KIND[f.kind]||f.kind));
+      h.appendChild(el('h3','',f.title));c.appendChild(h);
+      if(f.line){{var ln=el('div','ln');ln.appendChild(el('b','','line '+f.line));ln.appendChild(document.createTextNode(f.text||''));c.appendChild(ln);}}
+      c.appendChild(el('p','',f.why+(f.also&&f.also.length?' Also on line'+(f.also.length>1?'s ':' ')+f.also.join(', ')+'.':'')));
+      if(f.fix&&f.fix.length){{var fx=el('div','cxc-fix'),pre=el('pre','',f.fix.join('\\n')),b=el('button','','Copy');b.type='button';
+        b.addEventListener('click',function(){{try{{navigator.clipboard.writeText(f.fix.join('\\n')).then(function(){{b.textContent='Copied';setTimeout(function(){{b.textContent='Copy';}},1400);}});}}catch(e){{}}}});
+        fx.appendChild(pre);fx.appendChild(b);c.appendChild(fx);}}
+      list.appendChild(c);
+    }});
+    if(!list.childNodes.length)list.appendChild(el('p','meta','Nothing in this group.'));
+  }}
+  function run(){{
+    var t=ta.value;if(!t.trim()){{sum.className='cxc-sum g-card on';sum.innerHTML='';sum.appendChild(el('p','','Paste a running config first, or try the sample.'));list.innerHTML='';man.className='cxc-man g-card';return;}}
+    var r=CXCheck.check(t,{{release:rel.value}});last=r;filter='all';
+    sum.className='cxc-sum g-card on';sum.innerHTML='';
+    var s=r.summary;sum.appendChild(el('h2','',(r.hostname?r.hostname+': ':'')+s.error+' error'+(s.error===1?'':'s')+', '+s.warn+' warning'+(s.warn===1?'':'s')+', '+s.info+' note'+(s.info===1?'':'s')));
+    var un=r.unchecked.reduce(function(a,u){{return a+u.lines;}},0);
+    sum.appendChild(el('p','','Checked '+r.checked+' of '+r.lines+' lines against the '+r.release+' command set'+(r.detected?(rel.value&&rel.value!==r.detected?' (the config says '+r.detected+')':' (the release the config names)'):'')+'.'+(un?' '+un+' line'+(un===1?'':'s')+' under '+r.unchecked.map(function(u){{return u.where;}}).join(', ')+' sit in contexts the command lists do not cover, so their syntax was not checked.':'')));
+    var counts=el('div','cxc-counts'),kinds={{}};r.findings.forEach(function(f){{kinds[f.kind]=(kinds[f.kind]||0)+1;}});
+    [['all','All '+r.findings.length],['error','Errors '+s.error]].concat(Object.keys(KIND).filter(function(k){{return kinds[k];}}).map(function(k){{return [k,KIND[k]+' '+kinds[k]];}})).forEach(function(x){{
+      var b=el('button',x[0]===filter?'on':'',x[1]);b.type='button';b.addEventListener('click',function(){{filter=x[0];counts.querySelectorAll('button').forEach(function(y){{y.className=y===b?'on':'';}});render();}});counts.appendChild(b);}});
+    sum.appendChild(counts);render();
+    man.className='cxc-man g-card on';man.innerHTML='';man.appendChild(el('h2','','Checks a config cannot show'));
+    var ul=el('ul');r.manual.forEach(function(m){{var li=el('li');li.appendChild(el('b','','CIS '+m.cis+': '+m.title+'. '));li.appendChild(document.createTextNode(m.how));ul.appendChild(li);}});man.appendChild(ul);
+  }}
+  document.getElementById('cxc-go').addEventListener('click',run);
+  document.getElementById('cxc-sample-btn').addEventListener('click',function(){{ta.value=document.getElementById('cxc-sample').textContent.replace(/^\\n/,'');run();}});
+  document.getElementById('cxc-clear').addEventListener('click',function(){{ta.value='';last=null;sum.className='cxc-sum g-card';list.innerHTML='';man.className='cxc-man g-card';ta.focus();}});
+  var fi=document.getElementById('cxc-file');document.getElementById('cxc-file-btn').addEventListener('click',function(){{fi.click();}});
+  fi.addEventListener('change',function(){{var f=fi.files&&fi.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){{ta.value=String(rd.result||'');run();}};rd.readAsText(f);fi.value='';}});
+  ta.addEventListener('keydown',function(e){{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){{e.preventDefault();run();}}}});
+  window.__cxc={{run:run}};
+}})();
+</script>
+''' + foot("nfn-bot-switchwork.svg")
+open(os.path.join(ROOT, "cx-check.html"), "w", encoding="utf-8").write(cxc)
+
 # ── simulator page: the banner on its own ───────────────────────────────────
 sim = head("Simulator · " + SITE["name"], "A Wi-Fi link you can break: a real frame sent symbol by symbol through a link budget, a reflection, spatial streams and a Teams call, with interference you add yourself.", BASE_URL + "/simulator.html", BASE_URL + "/og/simulator.png", active="tools")
 sim += f'''
@@ -859,6 +999,7 @@ og_card("Wireless Academy: the theory, and the lab that proves it", "Wireless Ac
 og_card("The simulator: a Wi-Fi link you can break, one symbol at a time", "Simulator", os.path.join(ROOT, "og", "simulator.png"))
 og_card("The CX Sandbox: a modelled AOS-CX switch you can type on, with a fake ClearPass behind it", "CX Sandbox", os.path.join(ROOT, "og", "sandbox.png"))
 og_card("AOS-CX command notes: what each command does, examples, release changes and where the sandbox pretends", "CX Sandbox", os.path.join(ROOT, "og", "cx-notes.png"))
+og_card("Paste an AOS-CX config, get findings back. It never leaves your browser.", "CX Sandbox", os.path.join(ROOT, "og", "cx-check.png"))
 og_card("Planning tools that show their working: capacity, aiming, mesh, and what happened", "Tools", os.path.join(ROOT, "og", "tools.png"))
 rasterize(os.path.join(ROOT, "logo", "nfn-favicon.svg"), os.path.join(ROOT, "apple-touch-icon.png"), 180, 180)
 
@@ -869,6 +1010,7 @@ urls = ['<url><loc>%s/</loc><changefreq>weekly</changefreq><priority>1.0</priori
         '<url><loc>%s/simulator.html</loc><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/sandbox.html</loc><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/cx-notes.html</loc><priority>0.6</priority></url>' % BASE_URL,
+        '<url><loc>%s/cx-check.html</loc><priority>0.6</priority></url>' % BASE_URL,
         '<url><loc>%s/tools.html</loc><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/socials.html</loc><priority>0.3</priority></url>' % BASE_URL]
 urls += ['<url><loc>%s/p/%s.html</loc><lastmod>%s</lastmod><priority>0.8</priority></url>'

@@ -624,15 +624,15 @@
     if (!src || !src.v) return null;
     var words = src.t.split(" "), all = (1 << src.v.length) - 1;
     var nodes = src.n.split("|").map(function (s) {
-      var parts = s.split(","), n = { e: parseInt(parts[0], 36), k: {}, w: [] };
+      var parts = s.split(","), n = { e: parseInt(parts[0], 36), k: {}, w: [], s: [] };
       for (var i = 1; i < parts.length; i++) {
         var p = parts[i].split("."), t = parseInt(p[0], 36), c = parseInt(p[1], 36), m = p.length > 2 ? parseInt(p[2], 36) : all;
-        if (t < 0) n.w.push([t, c, m]); else n.k[words[t]] = [c, m];
+        if (t <= -100) n.s.push([-t - 100, c, m]); else if (t < 0) n.w.push([t, c, m]); else n.k[words[t]] = [c, m];
       }
       n.keys = Object.keys(n.k);
       return n;
     });
-    CORPUS = { releases: src.v.map(function (x) { return x[0]; }), builds: src.v.map(function (x) { return x[1]; }), nodes: nodes, roots: src.r, harvested: src.h || {}, all: all };
+    CORPUS = { releases: src.v.map(function (x) { return x[0]; }), builds: src.v.map(function (x) { return x[1]; }), nodes: nodes, roots: src.r, harvested: src.h || {}, sets: src.s || [], all: all };
     return CORPUS;
   }
   // The bit a release has in a context. A context `list` was not captured in for that release borrows the nearest
@@ -666,27 +666,53 @@
     if (n.k.hasOwnProperty(t) && (n.k[t][1] & bit)) return [t];
     return n.keys.filter(function (k) { return k.indexOf(t) === 0 && (n.k[k][1] & bit); });
   }
-  // walk the trie the way the box's parser does: exact keyword, else a unique prefix, else a placeholder
-  function walkReal(ni, toks, i, bit) {
-    var n = CORPUS.nodes[ni];
-    if (i === toks.length) return { state: (n.e & bit) ? "full" : "partial", at: i };
-    var t = toks[i].toLowerCase(), best = { state: "invalid", at: i }, lits = litsAt(n, t, bit);
-    if (lits.length > 1) best = { state: "ambiguous", at: i };
-    else if (lits.length === 1) { var r = walkReal(n.k[lits[0]][0], toks, i + 1, bit); if (r.state === "full") return r; if (better(r, best)) best = r; }
+  // Walk the trie the way the box's parser does: exact keyword, else a unique prefix, else a placeholder. A `{ }`
+  // set is an edge into a small trie of its options: take one, come back to the set, take another or leave by the
+  // edge's child. `after` is where an option's end hands back to its set (null outside a set).
+  function walkReal(ni, toks, i, bit, after) {
+    var n = CORPUS.nodes[ni], best = { state: "invalid", at: i }, r;
+    function keep(x) { if (x && better(x, best)) best = x; return x && x.state === "full"; }
+    if (n.e & bit) { if (keep(after ? after(i) : (i === toks.length ? { state: "full", at: i } : null))) return best; }
+    for (var s = 0; s < n.s.length; s++) if ((n.s[s][2] & bit) && keep(viaSet(CORPUS.sets[n.s[s][0]], n.s[s][1], toks, i, bit, after, 0))) return best;
+    if (i === toks.length) { keep({ state: "partial", at: i }); return best; }
+    var t = toks[i].toLowerCase(), lits = litsAt(n, t, bit);
+    if (lits.length > 1) keep({ state: "ambiguous", at: i });
+    else if (lits.length === 1 && keep(walkReal(n.k[lits[0]][0], toks, i + 1, bit, after))) return best;
     for (var w = 0; w < n.w.length; w++) {
       if (!(n.w[w][2] & bit)) continue;
       var cls = n.w[w][0];
-      if (cls === -8) return { state: "full", at: toks.length };
+      if (cls === -8) { if (keep(after ? after(toks.length) : { state: "full", at: toks.length })) return best; continue; }
       if (!phOk(cls, toks[i])) continue;
-      var r2 = walkReal(n.w[w][1], toks, i + 1, bit); if (r2.state === "full") return r2; if (better(r2, best)) best = r2;
+      if (keep(walkReal(n.w[w][1], toks, i + 1, bit, after))) return best;
     }
     return best;
   }
-  function reachReal(ni, toks, i, acc, bit) {
+  function viaSet(sRoot, cont, toks, i, bit, after, depth) {
+    var best = walkReal(cont, toks, i, bit, after);
+    if (best.state === "full" || i >= toks.length || depth > 16) return best;
+    var r = walkReal(sRoot, toks, i, bit, function (j) { return j > i ? viaSet(sRoot, cont, toks, j, bit, after, depth + 1) : null; });
+    return better(r, best) ? r : best;
+  }
+  // every node the tokens can leave the walker at, for ? and Tab: inside a set that is the set's options and
+  // whatever follows it
+  function reachReal(ni, toks, i, acc, bit, after, seen) {
+    seen = seen || {};
+    var key = ni + ":" + i; if (seen[key] && !after) return acc; seen[key] = 1;
+    var n = CORPUS.nodes[ni];
+    if ((n.e & bit) && after) after(i);
+    n.s.forEach(function (sx) {
+      if (!(sx[2] & bit)) return;
+      var sRoot = CORPUS.sets[sx[0]], cont = sx[1];
+      (function enter(at, depth) {
+        reachReal(cont, toks, at, acc, bit, after, seen);
+        if (depth > 16) return;
+        reachReal(sRoot, toks, at, acc, bit, function (j) { if (j > at) enter(j, depth + 1); }, seen);
+      })(i, 0);
+    });
     if (i === toks.length) { if (acc.indexOf(ni) < 0) acc.push(ni); return acc; }
-    var n = CORPUS.nodes[ni], lits = litsAt(n, toks[i].toLowerCase(), bit);
-    if (lits.length === 1) reachReal(n.k[lits[0]][0], toks, i + 1, acc, bit);
-    n.w.forEach(function (w) { if ((w[2] & bit) && w[0] !== -8 && phOk(w[0], toks[i])) reachReal(w[1], toks, i + 1, acc, bit); });
+    var lits = litsAt(n, toks[i].toLowerCase(), bit);
+    if (lits.length === 1) reachReal(n.k[lits[0]][0], toks, i + 1, acc, bit, after, seen);
+    n.w.forEach(function (w) { if ((w[2] & bit) && w[0] !== -8 && phOk(w[0], toks[i])) reachReal(w[1], toks, i + 1, acc, bit, after, seen); });
     return acc;
   }
   var CORPUS_CTX = { exec: "exec", config: "config", "if": "if", lag: "lag", vlan: "vlan", svi: "svi", role: "pa-role", dot1x: "dot1x", macauth: "macauth",
@@ -2596,6 +2622,17 @@
     MODELS: MODELS, VERSION: VERSION,
     releases: function () { return releases(); },
     notes: function () { return notes(); },
+    // What a release's command set makes of one line in one harvested context (the corpus names: config, if, lag,
+    // vlan, svi, sg, pa-role, lldp-group, device-profile, ubt-zone, ospf, dot1x, macauth, if-dot1x, if-macauth,
+    // exec). null when the corpus has no such context. The config checker page uses this line by line.
+    syntax: function (ctx, line, release) {
+      var C = corpus(); if (!C || C.roots[ctx] === undefined) return null;
+      var toks = tokens(String(line || "")), bit = relBit(C, release || C.releases[C.releases.length - 1], ctx);
+      if (!toks.length || !bit) return null;
+      var r = walkReal(C.roots[ctx], toks, 0, bit);
+      return { state: r.state, at: r.at, error: r.state === "full" ? "" : realError(r, toks) };
+    },
+    contexts: function () { var C = corpus(); return C ? Object.keys(C.roots) : []; },
     noteFor: function (line) { return noteFor(notes(), tokens(String(line || "").split("|")[0])); },
     create: function (lesson, saved) {
       var sw = new Switch(lesson, saved);
