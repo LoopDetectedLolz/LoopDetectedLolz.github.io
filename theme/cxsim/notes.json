@@ -1,0 +1,1982 @@
+{
+ "version": 1,
+ "groups": [
+  "Basics",
+  "VLANs",
+  "Interfaces",
+  "LAGs and LACP",
+  "Spanning tree",
+  "LLDP",
+  "RADIUS",
+  "Port access",
+  "Tunnelling",
+  "Device profiles",
+  "Routing",
+  "Stacking",
+  "Diagnostics",
+  "REST",
+  "Sandbox"
+ ],
+ "notes": [
+  {
+   "k": "configure terminal",
+   "c": "exec",
+   "g": "Basics",
+   "t": "Get into configuration mode",
+   "w": "Everything that changes the switch starts here. The prompt grows (config) and stays until you type end. Unique abbreviations work: conf t is the same thing.",
+   "ex": [
+    [
+     "configure terminal",
+     "hostname access-01",
+     "end"
+    ],
+    [
+     "conf t",
+     "vlan 10",
+     "end"
+    ]
+   ],
+   "tip": "Take a checkpoint before a change you might want to undo: copy running-config checkpoint before-change.",
+   "see": [
+    "end",
+    "copy running-config checkpoint <WORD>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "end",
+   "c": "*",
+   "g": "Basics",
+   "t": "Back to the # prompt",
+   "w": "Leaves whatever context you are in and drops you at the exec prompt. exit goes up one level; end goes all the way.",
+   "ex": [
+    [
+     "configure terminal",
+     "interface 1/1/1",
+     "end"
+    ],
+    [
+     "configure terminal",
+     "vlan 10",
+     "exit",
+     "end"
+    ]
+   ],
+   "see": [
+    "configure terminal"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "hostname <WORD>",
+   "c": "config",
+   "g": "Basics",
+   "t": "Name the switch",
+   "w": "Sets the name in the prompt, in LLDP and in logs. Letters, digits, dots and dashes, no spaces.",
+   "ex": [
+    [
+     "hostname access-01"
+    ],
+    [
+     "hostname idf2-sw1"
+    ]
+   ],
+   "tip": "Put the location in the name. You will read it in an LLDP table at 2 a.m. someday.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "write memory",
+   "c": "*",
+   "g": "Basics",
+   "t": "Save the running config",
+   "w": "Copies the running configuration to the startup configuration so it survives a reboot. copy running-config startup-config does the same.",
+   "ex": [
+    [
+     "write memory"
+    ],
+    [
+     "copy running-config startup-config"
+    ]
+   ],
+   "tip": "Save after the change is proven, not before. Until then a reboot is your rollback.",
+   "see": [
+    "show startup-config"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show running-config",
+   "c": "*",
+   "g": "Basics",
+   "t": "What the switch is running",
+   "w": "The whole active configuration. Add interface 1/1/5 to see one port's block. Pipe it to cut it down: | begin, | include.",
+   "ex": [
+    [
+     "show running-config"
+    ],
+    [
+     "show running-config interface 1/1/5"
+    ],
+    [
+     "show running-config | begin \"port-access role\""
+    ]
+   ],
+   "v": [
+    "10.16 added server priority lines and the built-in radius group to the output; 10.15 printed neither."
+   ],
+   "see": [
+    "show startup-config",
+    "show checkpoint"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show startup-config",
+   "c": "*",
+   "g": "Basics",
+   "t": "What it will boot with",
+   "w": "The saved configuration, the one a reboot loads. If it differs from the running config, something has not been saved yet, on purpose or not.",
+   "ex": [
+    [
+     "show startup-config"
+    ],
+    [
+     "checkpoint diff startup-config running-config"
+    ]
+   ],
+   "see": [
+    "write memory",
+    "show running-config"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show version",
+   "c": "*",
+   "g": "Basics",
+   "t": "Which release it runs",
+   "w": "The AOS-CX release and build. The first two letters say the platform: ML for the 6200, FL for the 6300. The release picker in the sandbox changes what this says.",
+   "ex": [
+    [
+     "show version"
+    ],
+    [
+     "show version | include Version"
+    ]
+   ],
+   "see": [
+    "show system"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show system",
+   "c": "*",
+   "g": "Basics",
+   "t": "Model, serial, uptime",
+   "w": "Product name and part number, serial, base MAC, uptime and CPU. The part number is how you tell a 6200F 12-port from a 24-port when nobody wrote it down.",
+   "ex": [
+    [
+     "show system"
+    ],
+    [
+     "show system | include Product"
+    ]
+   ],
+   "v": [
+    "10.18 added CPU idle, user and system lines; 10.17 printed CPU utilisation only."
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "no page",
+   "c": "*",
+   "g": "Basics",
+   "t": "Stop the more prompt",
+   "w": "Turns off paging for this session, so long output scrolls instead of stopping every screen. Every script and screen capture should start with it.",
+   "ex": [
+    [
+     "no page"
+    ],
+    [
+     "page 40"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "copy running-config checkpoint <WORD>",
+   "c": "*",
+   "g": "Basics",
+   "t": "A named restore point",
+   "w": "Saves the running config under a name. If the running config is identical to a checkpoint that exists, 10.18 refuses with An identical checkpoint already exists.",
+   "ex": [
+    [
+     "copy running-config checkpoint before-change"
+    ],
+    [
+     "show checkpoint"
+    ]
+   ],
+   "tip": "The box also makes system checkpoints (CPC...) after changes on its own. Name yours so you can find them.",
+   "see": [
+    "checkpoint rollback <WORD>",
+    "show checkpoint"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "checkpoint rollback <WORD>",
+   "c": "*",
+   "g": "Basics",
+   "t": "Go back to a checkpoint",
+   "w": "Replaces the running config with the checkpoint. It does not ask. checkpoint diff checkpoint <name> running-config shows the difference first, and that is worth doing.",
+   "ex": [
+    [
+     "copy running-config checkpoint before-change",
+     "checkpoint rollback before-change"
+    ],
+    [
+     "checkpoint rollback startup-config"
+    ]
+   ],
+   "see": [
+    "copy running-config checkpoint <WORD>",
+    "show checkpoint"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show checkpoint",
+   "c": "*",
+   "g": "Basics",
+   "t": "List the checkpoints",
+   "w": "Every checkpoint, newest first, with the startup config among them by date. show checkpoint <name> prints one. There is no show checkpoint list on 10.18: the box reads list as a checkpoint name.",
+   "ex": [
+    [
+     "show checkpoint"
+    ],
+    [
+     "show checkpoint before-change"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "checkpoint diff <from> <to>",
+   "c": "*",
+   "g": "Basics",
+   "t": "What changed between two configs",
+   "w": "Compares any two of running-config, startup-config and checkpoint <name> as a unified diff: a line starting with a plus is only in the second, one starting with a minus only in the first. No difference in configs. means they match. Worth running before every rollback.",
+   "ex": [
+    [
+     "copy running-config checkpoint before-change",
+     "checkpoint diff checkpoint before-change running-config"
+    ],
+    [
+     "checkpoint diff startup-config running-config"
+    ]
+   ],
+   "tip": "checkpoint diff startup-config running-config before you walk away tells you whether anything is unsaved.",
+   "see": [
+    "checkpoint rollback <WORD>",
+    "show checkpoint"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "vlan <1-4094>",
+   "c": "config",
+   "g": "VLANs",
+   "t": "Create a VLAN",
+   "w": "Creates the VLAN and enters its context. Name it there. A port cannot use a VLAN that does not exist.",
+   "ex": [
+    [
+     "vlan 10",
+     "name STAFF"
+    ],
+    [
+     "vlan 30",
+     "name VOICE",
+     "voice"
+    ]
+   ],
+   "see": [
+    "show vlan",
+    "name <WORD>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "name <WORD>",
+   "c": "vlan",
+   "g": "VLANs",
+   "t": "Name the VLAN",
+   "w": "Shows in show vlan and in LLDP. One word here; the box takes a longer line too.",
+   "ex": [
+    [
+     "vlan 20",
+     "name PRINTERS"
+    ],
+    [
+     "vlan 99",
+     "name AP-MGMT"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "voice",
+   "c": "vlan",
+   "g": "VLANs",
+   "t": "Mark the voice VLAN",
+   "w": "Tells LLDP-MED this VLAN carries voice. Phones that speak LLDP-MED learn it from the network policy the switch sends on ports that tag it: VLAN, priority 6, DSCP 46 with nothing else configured.",
+   "ex": [
+    [
+     "vlan 30",
+     "voice"
+    ],
+    [
+     "show vlan voice"
+    ]
+   ],
+   "fig": "fig-cx-lldp-med",
+   "tip": "Tag the voice VLAN on the phone port and leave the data VLAN native, so the PC behind the phone needs nothing.",
+   "see": [
+    "lldp med network-policy",
+    "show lldp neighbor-info"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show vlan",
+   "c": "*",
+   "g": "VLANs",
+   "t": "VLANs and their ports",
+   "w": "Every VLAN, up or down, and which ports carry it. Down with no_member_port means no port is in it; no_member_forwarding means ports are in it but none is up. A role a client holds adds its VLANs to that port here.",
+   "ex": [
+    [
+     "show vlan"
+    ],
+    [
+     "show vlan 30"
+    ],
+    [
+     "show vlan | include VOICE"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "interface <IFNAME>",
+   "c": "config",
+   "g": "Interfaces",
+   "t": "Configure a port or a range",
+   "w": "Enters one port (1/1/5) or a range (1/1/1-1/1/8). Member/slot/port: 1/1/5 is member 1, slot 1, port 5.",
+   "ex": [
+    [
+     "interface 1/1/5",
+     "description printer"
+    ],
+    [
+     "interface 1/1/1-1/1/8",
+     "no shutdown"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "shutdown",
+   "c": "if",
+   "g": "Interfaces",
+   "t": "Turn a port off",
+   "w": "Admin down. no shutdown turns it back on and also clears an error-disabled port. A port nobody configured may be shut: show interface brief says Administratively down.",
+   "ex": [
+    [
+     "interface 1/1/11",
+     "shutdown"
+    ],
+    [
+     "interface 1/1/8",
+     "no shutdown"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "description <LINE>",
+   "c": "if",
+   "g": "Interfaces",
+   "t": "Say what is on the port",
+   "w": "Free text on the port, shown in show interface brief and LLDP.",
+   "ex": [
+    [
+     "interface 1/1/7",
+     "description desk 7, pair 3-6 open at 23 m"
+    ],
+    [
+     "interface lag 1",
+     "description uplink to core"
+    ]
+   ],
+   "tip": "Describe uplinks and anything odd. The next person reads the brief, not your ticket.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "no routing",
+   "c": "if",
+   "g": "Interfaces",
+   "t": "Make it a switch port",
+   "w": "A routed port takes an ip address; a switched port takes VLANs. no routing makes it switched. Some platforms (and the Switch Simulator) start every port routed, so check before you assign a VLAN.",
+   "ex": [
+    [
+     "interface 1/1/1",
+     "no routing",
+     "vlan access 10"
+    ],
+    [
+     "interface 1/1/12",
+     "routing",
+     "ip address 203.0.113.129/25"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "vlan access <1-4094>",
+   "c": "if",
+   "g": "Interfaces",
+   "t": "One untagged VLAN",
+   "w": "Makes the port an access port in that VLAN. The VLAN has to exist.",
+   "ex": [
+    [
+     "interface 1/1/5",
+     "vlan access 20"
+    ],
+    [
+     "interface 1/1/1-1/1/4",
+     "vlan access 10"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "vlan trunk allowed <VLIST>",
+   "c": "if",
+   "g": "Interfaces",
+   "t": "Tag VLANs on a port",
+   "w": "Makes the port a trunk and adds VLANs to its allowed list. It adds: vlan trunk allowed 10 then vlan trunk allowed 20 leaves 10,20, as the lab switch did. no vlan trunk allowed 10 takes one out.",
+   "ex": [
+    [
+     "interface 1/1/3",
+     "vlan trunk native 10",
+     "vlan trunk allowed 10,30"
+    ],
+    [
+     "interface lag 1",
+     "vlan trunk allowed 10,20,30"
+    ]
+   ],
+   "tip": "A trunk prints vlan trunk native 1 even when you never set it. Set the native VLAN on purpose.",
+   "see": [
+    "vlan trunk native <1-4094>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "vlan trunk native <1-4094>",
+   "c": "if",
+   "g": "Interfaces",
+   "t": "The untagged VLAN on a trunk",
+   "w": "The VLAN whose frames cross the trunk untagged. On a phone port it is the PC's data VLAN; the phone tags voice.",
+   "ex": [
+    [
+     "interface 1/1/3",
+     "vlan trunk native 10",
+     "vlan trunk allowed 30"
+    ],
+    [
+     "interface 1/1/13",
+     "vlan trunk native 99",
+     "vlan trunk allowed 10,20,99"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "speed auto",
+   "c": "if",
+   "g": "Interfaces",
+   "t": "Port speed and auto-negotiation",
+   "w": "speed auto offers every speed the port can do; speed auto 1g 2.5g offers only those; speed 1000-full fixes it and turns auto-negotiation off. Since 10.09 the CLI hides speeds the hardware lacks.",
+   "ex": [
+    [
+     "interface 1/1/1",
+     "speed auto"
+    ],
+    [
+     "interface 1/1/1",
+     "speed auto 1g 2.5g 5g"
+    ],
+    [
+     "interface 1/1/2",
+     "no speed"
+    ]
+   ],
+   "m": "6300M-24SR5",
+   "fake": "The sandbox models the hardware. The Switch Simulator has virtual ports and hides speed entirely; the syntax is from HPE's fundamentals guide.",
+   "tip": "Leave Smart Rate ports on speed auto. Pinning an AP to 1G to fix a flap hides the real problem, usually the cable.",
+   "see": [
+    "show interface <PORT> physical",
+    "diag cable-diagnostic test <PORT>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show interface brief",
+   "c": "*",
+   "g": "Interfaces",
+   "t": "Every port on one screen",
+   "w": "Native VLAN, mode, enabled, up or down, why it is down, speed and description. Read the Reason column first.",
+   "ex": [
+    [
+     "show interface brief"
+    ],
+    [
+     "show interface brief | include down"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show interface <PORT>",
+   "c": "*",
+   "g": "Interfaces",
+   "t": "One port in detail",
+   "w": "State, why it is down (State information), VLANs and counters. Blocked by Port Access Security means the link is up but no client has authenticated.",
+   "ex": [
+    [
+     "show interface 1/1/5"
+    ],
+    [
+     "show interface 1/1/5 | include State"
+    ]
+   ],
+   "v": [
+    "10.15 says how long the link has been up; 10.16 says up; 10.17 added the Hardware port line."
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show interface <PORT> physical",
+   "c": "*",
+   "g": "Interfaces",
+   "t": "Speed, PoE and state",
+   "w": "Link and admin state, the speed it runs at next to what it is configured to allow, flow control, PoE draw.",
+   "ex": [
+    [
+     "show interface 1/1/1 physical"
+    ],
+    [
+     "show interface physical"
+    ]
+   ],
+   "fake": "The PoE column is the sandbox's: the lab's virtual ports draw nothing.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show mac-address-table",
+   "c": "*",
+   "g": "Interfaces",
+   "t": "Who is behind which port",
+   "w": "Learned MACs by VLAN and port. port-access-security means the MAC was learned through port-access. Filter by vlan or interface, or pipe it.",
+   "ex": [
+    [
+     "show mac-address-table"
+    ],
+    [
+     "show mac-address-table interface 1/1/6"
+    ],
+    [
+     "show mac-address-table | include 53:4c"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "interface lag <1-256>",
+   "c": "config",
+   "g": "LAGs and LACP",
+   "t": "Create a link aggregation",
+   "w": "Creates lagN and enters it. On 10.18 a new LAG is administratively down: nothing forms until no shutdown.",
+   "ex": [
+    [
+     "interface lag 1",
+     "no shutdown",
+     "no routing",
+     "vlan trunk allowed 10,20",
+     "lacp mode active"
+    ]
+   ],
+   "tip": "Configure the LAG first, then put ports in it. Settings live on the LAG, not the members.",
+   "fig": "fig-cx-lacp",
+   "see": [
+    "lag <1-256>",
+    "lacp mode <active|passive>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "lag <1-256>",
+   "c": "if",
+   "g": "LAGs and LACP",
+   "t": "Put a port in a LAG",
+   "w": "Makes the port a member. Its VLAN settings come from the LAG from then on.",
+   "ex": [
+    [
+     "interface 1/1/13-1/1/14",
+     "lag 1"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "lacp mode <active|passive>",
+   "c": "lag",
+   "g": "LAGs and LACP",
+   "t": "Run LACP",
+   "w": "active sends LACPDUs; passive only answers. Two passive ends never form a LAG. Without lacp mode the LAG is static: no LACP at all.",
+   "ex": [
+    [
+     "interface lag 1",
+     "lacp mode active"
+    ],
+    [
+     "interface lag 1",
+     "lacp mode passive"
+    ]
+   ],
+   "fig": "fig-cx-lacp",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "lacp rate <fast|slow>",
+   "c": "lag",
+   "g": "LAGs and LACP",
+   "t": "LACPDUs every second",
+   "w": "Asks the partner for a short timeout: a dead link is noticed in about three seconds instead of ninety. The S in PSFNCD is the partner asking for the same.",
+   "ex": [
+    [
+     "interface lag 1",
+     "lacp rate fast"
+    ],
+    [
+     "interface lag 1",
+     "no lacp rate"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show lacp interfaces",
+   "c": "*",
+   "g": "LAGs and LACP",
+   "t": "Did the partner agree",
+   "w": "Actor and partner state per member. ALFNCD is what you want: Active, Long timeout, aggregable, in sync, collecting, distributing. An empty partner line means nothing is talking back.",
+   "ex": [
+    [
+     "show lacp interfaces"
+    ],
+    [
+     "show lacp interfaces 1/1/13"
+    ]
+   ],
+   "v": [
+    "10.18 added IE (LACP fallback active) to the legend; 10.17 has no such line."
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show lacp aggregates",
+   "c": "*",
+   "g": "LAGs and LACP",
+   "t": "Each LAG, its members and mode",
+   "w": "Members, heartbeat rate, hash and mode per LAG.",
+   "ex": [
+    [
+     "show lacp aggregates"
+    ],
+    [
+     "show interface lag 1"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "spanning-tree",
+   "c": "config",
+   "g": "Spanning tree",
+   "t": "Turn on spanning tree",
+   "w": "MSTP by default. Without it an accidental loop takes the VLAN down. mode rpvst switches to Rapid PVST+.",
+   "ex": [
+    [
+     "spanning-tree"
+    ],
+    [
+     "spanning-tree",
+     "spanning-tree priority 4"
+    ]
+   ],
+   "tip": "Decide who is root and set their priority low. Leave it to chance and the oldest switch wins.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "spanning-tree port-type admin-edge",
+   "c": "if",
+   "g": "Spanning tree",
+   "t": "An edge port",
+   "w": "A port where only end devices live: it forwards at once instead of waiting through listening and learning.",
+   "ex": [
+    [
+     "interface 1/1/1-1/1/12",
+     "spanning-tree port-type admin-edge"
+    ]
+   ],
+   "see": [
+    "spanning-tree bpdu-guard"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "spanning-tree bpdu-guard",
+   "c": "if",
+   "g": "Spanning tree",
+   "t": "Shut the port if a switch appears",
+   "w": "A BPDU arriving on the port error-disables it. Pair it with admin-edge on every access port. no shutdown brings it back once the switch is gone.",
+   "ex": [
+    [
+     "interface 1/1/1-1/1/12",
+     "spanning-tree bpdu-guard"
+    ]
+   ],
+   "tip": "Access ports: admin-edge plus bpdu-guard. Uplinks: neither.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "loop-protect",
+   "c": "if",
+   "g": "Spanning tree",
+   "t": "Catch loops spanning tree cannot see",
+   "w": "Sends probes and error-disables the port if one comes back, which catches a loop through an unmanaged switch that drops BPDUs.",
+   "ex": [
+    [
+     "interface 1/1/1-1/1/12",
+     "loop-protect"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show spanning-tree",
+   "c": "*",
+   "g": "Spanning tree",
+   "t": "Root, role and state per port",
+   "w": "Who is root, which port leads there, and each port's role and state.",
+   "ex": [
+    [
+     "show spanning-tree"
+    ],
+    [
+     "show spanning-tree | include Root"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "lldp med network-policy",
+   "c": "if",
+   "g": "LLDP",
+   "t": "Send voice VLAN policy to phones",
+   "w": "On by default. On a port that tags a voice VLAN the switch sends LLDP-MED network policy, but only after it has heard the endpoint's own LLDP-MED TLVs. no lldp med network-policy stops it.",
+   "ex": [
+    [
+     "interface 1/1/3",
+     "lldp med network-policy"
+    ],
+    [
+     "interface 1/1/3",
+     "no lldp med network-policy"
+    ]
+   ],
+   "v": [
+    "New in 10.18: lldp med force-send. By default MED TLVs go out only after the endpoint's own arrive (HPE's guide and the lab agree); the sandbox does not model force-send."
+   ],
+   "fig": "fig-cx-lldp-med",
+   "see": [
+    "voice"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "lldp <transmit|receive>",
+   "c": "if",
+   "g": "LLDP",
+   "t": "LLDP on a port",
+   "w": "LLDP sends and listens on every port by default. no lldp transmit and no lldp receive turn each half off.",
+   "ex": [
+    [
+     "interface 1/1/9",
+     "no lldp transmit"
+    ],
+    [
+     "interface 1/1/9",
+     "lldp transmit",
+     "lldp receive"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show lldp neighbor-info",
+   "c": "*",
+   "g": "LLDP",
+   "t": "Who is plugged in where",
+   "w": "The LLDP table: port, chassis, remote port, name. Give a port for the full record: capabilities, power it asks for, LLDP-MED class and network policy.",
+   "ex": [
+    [
+     "show lldp neighbor-info"
+    ],
+    [
+     "show lldp neighbor-info 1/1/3"
+    ],
+    [
+     "show lldp neighbor-info | include CAM"
+    ]
+   ],
+   "tip": "On a port-access port the switch drops LLDP from a client that has not authenticated, unless the port has allow-lldp-bpdu. An empty neighbour on a phone port is often that.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "radius-server host <A.B.C.D> key plaintext <WORD>",
+   "c": "config",
+   "g": "RADIUS",
+   "t": "Point the switch at ClearPass",
+   "w": "Defines a RADIUS server and the shared secret. The running config shows the key as ciphertext. A wrong key looks like a dead server: the server drops the request and the switch times out.",
+   "ex": [
+    [
+     "radius-server host 192.0.2.10 key plaintext cppm-lab-key"
+    ],
+    [
+     "radius-server host 192.0.2.11 key plaintext cppm-lab-key vrf mgmt"
+    ]
+   ],
+   "tip": "Use a group (aaa group server radius) even with one server, so adding the second is one line.",
+   "fig": "fig-cx-radius",
+   "see": [
+    "aaa group server radius <WORD>",
+    "show radius-server"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa group server radius <WORD>",
+   "c": "config",
+   "g": "RADIUS",
+   "t": "A group of RADIUS servers",
+   "w": "Port-access points at a group, not a server. Servers are tried in priority order; entered without a priority they number themselves in the order you add them.",
+   "ex": [
+    [
+     "aaa group server radius CLEARPASS",
+     "server 192.0.2.10",
+     "server 192.0.2.11"
+    ],
+    [
+     "aaa group server radius CLEARPASS",
+     "server 192.0.2.11 priority 1"
+    ]
+   ],
+   "v": [
+    "10.16 added server <ip> priority <n>; 10.15 has no priority in a group.",
+    "10.18 added load-balancing-mode (round-robin or priority-based) in the group."
+   ],
+   "see": [
+    "radius-server host <A.B.C.D> key plaintext <WORD>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show radius-server",
+   "c": "*",
+   "g": "RADIUS",
+   "t": "Servers and whether they answer",
+   "w": "Each server with its ports and VRF. A star in front means the switch has marked it unreachable.",
+   "ex": [
+    [
+     "show radius-server"
+    ],
+    [
+     "show radius-server detail"
+    ]
+   ],
+   "see": [
+    "show radius-server statistics authentication"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show radius-server statistics authentication",
+   "c": "*",
+   "g": "RADIUS",
+   "t": "Requests, accepts, rejects, timeouts",
+   "w": "Counters per server. Timeouts climbing with no accepts usually means the shared secret. show radius-server statistics on its own is incomplete on 10.18.",
+   "ex": [
+    [
+     "show radius-server statistics authentication"
+    ],
+    [
+     "show radius-server statistics authentication | include Timeouts"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "radius dyn-authorization enable",
+   "c": "config",
+   "g": "RADIUS",
+   "t": "Listen for CoA",
+   "w": "Lets ClearPass change or end a session after the fact (RFC 5176). On 10.18 that is two pieces: enable it, and name each server allowed to send with radius dyn-authorization client. Without the client line requests are dropped and counted as invalid client addresses.",
+   "ex": [
+    [
+     "radius dyn-authorization enable",
+     "radius dyn-authorization client 192.0.2.10 secret-key plaintext cppm-lab-key"
+    ]
+   ],
+   "fig": "fig-cx-radius",
+   "see": [
+    "show radius dyn-authorization"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show radius dyn-authorization",
+   "c": "*",
+   "g": "RADIUS",
+   "t": "CoA counters and clients",
+   "w": "Whether dynamic authorization is on, the port (3799), the invalid-address counters, and per client the CoA and disconnect requests, ACKs and NAKs.",
+   "ex": [
+    [
+     "show radius dyn-authorization"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa authentication port-access dot1x authenticator",
+   "c": "config",
+   "g": "Port access",
+   "t": "802.1X, switch-wide",
+   "w": "Global switch for 802.1X plus the RADIUS group it uses. It needs enable here and on each port: either one off and nothing authenticates.",
+   "ex": [
+    [
+     "aaa authentication port-access dot1x authenticator",
+     "radius server-group CLEARPASS",
+     "enable"
+    ],
+    [
+     "interface 1/1/1-1/1/8",
+     "aaa authentication port-access dot1x authenticator",
+     "enable"
+    ]
+   ],
+   "fig": "fig-cx-radius",
+   "see": [
+    "aaa authentication port-access mac-auth",
+    "show port-access clients"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa authentication port-access mac-auth",
+   "c": "config",
+   "g": "Port access",
+   "t": "MAC authentication, switch-wide",
+   "w": "The same pattern as 802.1X: a global block with the group and enable, and enable per port. The switch sends the MAC as username and password, 00005e005305 style by default.",
+   "ex": [
+    [
+     "aaa authentication port-access mac-auth",
+     "radius server-group CLEARPASS",
+     "enable"
+    ],
+    [
+     "interface 1/1/5",
+     "aaa authentication port-access mac-auth",
+     "enable"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa authentication port-access client-limit <1-256>",
+   "c": "if",
+   "g": "Port access",
+   "t": "How many clients a port takes",
+   "w": "One by default. A PC behind a phone needs two, or a multi-domain port. Only clients that got in take a place.",
+   "ex": [
+    [
+     "interface 1/1/3",
+     "aaa authentication port-access client-limit 2"
+    ]
+   ],
+   "v": [
+    "10.18 added client-limit device-mode <n> on the port and in a role."
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa authentication port-access auth-precedence <order>",
+   "c": "if",
+   "g": "Port access",
+   "t": "Which method goes first",
+   "w": "dot1x then mac-auth is the default. A device with no supplicant waits out the 802.1X timeout before MAC auth starts; mac-auth first is faster for printers and slower for laptops.",
+   "ex": [
+    [
+     "interface 1/1/5",
+     "aaa authentication port-access auth-precedence mac-auth dot1x"
+    ],
+    [
+     "interface 1/1/1",
+     "aaa authentication port-access auth-precedence dot1x mac-auth"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa authentication port-access critical-role <WORD>",
+   "c": "if",
+   "g": "Port access",
+   "t": "A role when RADIUS is down",
+   "w": "If every RADIUS server times out, clients get this role instead of nothing. reject-role is the same for a reject.",
+   "ex": [
+    [
+     "interface 1/1/1",
+     "aaa authentication port-access critical-role QUARANTINE"
+    ],
+    [
+     "interface 1/1/1",
+     "aaa authentication port-access reject-role GUEST"
+    ]
+   ],
+   "tip": "Decide what a building does when ClearPass is unreachable before it happens. Critical role is that decision written down.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa authentication port-access auth-mode multi-domain",
+   "c": "if",
+   "g": "Port access",
+   "t": "A phone and a PC on one port",
+   "w": "One voice device and one data device (client-limit multi-domain raises the data count). The voice device is whoever holds a role with device-traffic-class voice.",
+   "ex": [
+    [
+     "interface 1/1/6",
+     "aaa authentication port-access auth-mode multi-domain"
+    ],
+    [
+     "interface 1/1/6",
+     "aaa authentication port-access client-limit multi-domain 2"
+    ]
+   ],
+   "fig": "fig-cx-mda",
+   "see": [
+    "device-traffic-class voice",
+    "aaa authentication port-access allow-lldp-bpdu"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa authentication port-access allow-lldp-bpdu",
+   "c": "if",
+   "g": "Port access",
+   "t": "Hear LLDP before authentication",
+   "w": "A port-access port drops LLDP from a client that has not authenticated. A phone that never authenticates is then invisible to LLDP, its device profile never matches, and it gets no voice VLAN. This lets LLDP through. Found the hard way on the lab switch on 2026-09-28.",
+   "ex": [
+    [
+     "interface 1/1/6",
+     "aaa authentication port-access allow-lldp-bpdu"
+    ]
+   ],
+   "v": [
+    "10.17 added aaa authentication port-access lldp-loop-guard enable beside it."
+   ],
+   "fig": "fig-cx-mda",
+   "see": [
+    "debug <portaccess|radius|lldp> <what>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "port-access role <WORD>",
+   "c": "config",
+   "g": "Port access",
+   "t": "A local user role",
+   "w": "What a client gets once it is in: an access VLAN, or a native VLAN and a tagged list, and more on 10.18. RADIUS names the role; the switch must have it or the client fails authorization.",
+   "ex": [
+    [
+     "port-access role EMPLOYEE",
+     "vlan access 10"
+    ],
+    [
+     "port-access role AP-TRUNK",
+     "vlan trunk native 99",
+     "vlan trunk allowed 10,20,99"
+    ]
+   ],
+   "v": [
+    "10.18 added speed, voice-vlan, stp-bpdu-guard, rate-limits, toggle-link and client-limit device-mode to a role."
+   ],
+   "see": [
+    "show port-access role"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "device-traffic-class voice",
+   "c": "role",
+   "g": "Port access",
+   "t": "This role is the voice device",
+   "w": "On a multi-domain port the client holding this role is the voice device. Pair it with a native data VLAN and the voice VLAN tagged.",
+   "ex": [
+    [
+     "port-access role VOICE",
+     "device-traffic-class voice",
+     "vlan trunk native 10",
+     "vlan trunk allowed 30"
+    ]
+   ],
+   "fig": "fig-cx-mda",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "gateway-zone zone <WORD> gateway-role <WORD>",
+   "c": "role",
+   "g": "Tunnelling",
+   "t": "Tunnel this role's traffic",
+   "w": "Clients in this role are tunnelled to the gateway cluster of the zone, where the gateway role applies. That is user-based tunnelling when RADIUS assigns the role, port-based when a port's fallback role does.",
+   "ex": [
+    [
+     "port-access role TUNNEL-EMPLOYEE",
+     "gateway-zone zone CAMPUS gateway-role authenticated"
+    ],
+    [
+     "port-access role PBT-IOT",
+     "gateway-zone zone CAMPUS gateway-role iot"
+    ]
+   ],
+   "see": [
+    "ubt zone <WORD> vrf <WORD>",
+    "port-access fallback-role <WORD>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show port-access clients",
+   "c": "*",
+   "g": "Port access",
+   "t": "Who is on and how",
+   "w": "One line per client: port, name, role, VLAN, and four flags: how it got in (1x, ma, dp), mode (c, d, m), device type (d, v) and status (s, f, p). --|c|-|f is a failure. Add detail for the history, interface, mac or role to filter.",
+   "ex": [
+    [
+     "show port-access clients"
+    ],
+    [
+     "show port-access clients interface 1/1/6 detail"
+    ],
+    [
+     "show port-access clients onboarding-method device-profile"
+    ]
+   ],
+   "tip": "Read Auth History in the detail view bottom to top: it is the order things happened.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show aaa authentication port-access interface all client-status",
+   "c": "*",
+   "g": "Port access",
+   "t": "Client status, compact",
+   "w": "The authentication and authorization blocks for every client, without VLAN and MACsec detail.",
+   "ex": [
+    [
+     "show aaa authentication port-access interface all client-status"
+    ],
+    [
+     "show aaa authentication port-access interface 1/1/1 client-status"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show port-access role",
+   "c": "*",
+   "g": "Port access",
+   "t": "The roles and what they carry",
+   "w": "Each local role: VLANs, device type, gateway zone. show port-access role name X for one.",
+   "ex": [
+    [
+     "show port-access role"
+    ],
+    [
+     "show port-access role name VOICE"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "port-access reauthenticate interface <IFNAME>",
+   "c": "*",
+   "g": "Port access",
+   "t": "Make clients authenticate again",
+   "w": "10.18 has no clear port-access clients. To start clients over: reauthenticate a port, or log one off by MAC, port or role.",
+   "ex": [
+    [
+     "port-access reauthenticate interface 1/1/1"
+    ],
+    [
+     "port-access log-off client mac 00:00:5e:00:53:01"
+    ],
+    [
+     "port-access log-off client role GUEST"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "port-access lldp-group <WORD>",
+   "c": "config",
+   "g": "Device profiles",
+   "t": "Recognise a device by its LLDP",
+   "w": "Ordered match and ignore rules; the first rule a neighbour hits decides. sysname is exact, sys-desc matches if the description contains the word (proved on the lab switch), vendor-oui plus type matches a TLV. Rules without seq number themselves 10, 20, 30.",
+   "ex": [
+    [
+     "port-access lldp-group APS",
+     "match sys-desc AP-515"
+    ],
+    [
+     "port-access lldp-group LLDP-MED-ENDPOINTS",
+     "seq 10 match vendor-oui 0012bb type 1"
+    ],
+    [
+     "port-access lldp-group CORE",
+     "match sysname core1"
+    ]
+   ],
+   "v": [
+    "10.18 added match chassis-id. sys-desc, sysname and vendor-oui are there from 10.15."
+   ],
+   "see": [
+    "port-access device-profile <WORD>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "port-access device-profile <WORD>",
+   "c": "config",
+   "g": "Device profiles",
+   "t": "Give a recognised device a role",
+   "w": "Ties an LLDP group to a role, then enable. Works on a port with no port-access at all; on a port-access port it applies when 802.1X and MAC auth do not get the device in. The client shows as dp.",
+   "ex": [
+    [
+     "port-access device-profile APS",
+     "associate lldp-group APS",
+     "associate role AP-TRUNK",
+     "enable"
+    ]
+   ],
+   "fig": "fig-cx-mda",
+   "see": [
+    "show port-access device-profile"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show port-access device-profile",
+   "c": "*",
+   "g": "Device profiles",
+   "t": "Profiles and who matched",
+   "w": "The profiles and their state. interface all lists each matched neighbour with its profile, group, role and whether it applied.",
+   "ex": [
+    [
+     "show port-access device-profile"
+    ],
+    [
+     "show port-access device-profile interface all"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "port-access fallback-role <WORD>",
+   "c": "if",
+   "g": "Port access",
+   "t": "A role for whatever is on the port",
+   "w": "The role a client gets when nothing else gives it one. With no authentication on the port that is everything plugged in: with a gateway zone in the role, that is port-based tunnelling.",
+   "ex": [
+    [
+     "interface 1/1/4",
+     "port-access fallback-role PBT-IOT"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "ubt-client-vlan <1-4094>",
+   "c": "config",
+   "g": "Tunnelling",
+   "t": "The VLAN tunnelled clients use",
+   "w": "In local-vlan mode (what show ubt reports) this is the reserved VLAN all tunnelled client traffic uses to reach the gateway. Create it first and use it for nothing else, as HPE's guide says.",
+   "ex": [
+    [
+     "vlan 666",
+     "name UBT-TRANSPORT",
+     "exit",
+     "ubt-client-vlan 666"
+    ]
+   ],
+   "see": [
+    "ubt zone <WORD> vrf <WORD>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "ubt zone <WORD> vrf <WORD>",
+   "c": "config",
+   "g": "Tunnelling",
+   "t": "Where the tunnels go",
+   "w": "A zone names the gateway cluster: primary and backup controller addresses, reached in a VRF, and enable. show ubt says whether it is up.",
+   "ex": [
+    [
+     "ubt zone CAMPUS vrf default",
+     "primary-controller ip 192.0.2.50",
+     "backup-controller ip 192.0.2.51",
+     "enable"
+    ]
+   ],
+   "v": [
+    "10.16 took IPv6 controller addresses."
+   ],
+   "fake": "The gateway is a bench device in the sandbox; a zone is up when the switch can reach it.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show ubt",
+   "c": "*",
+   "g": "Tunnelling",
+   "t": "Zone state",
+   "w": "Each zone's controllers, VLAN, admin and operational state. brief is one line per zone; users all lists who is tunnelled.",
+   "ex": [
+    [
+     "show ubt"
+    ],
+    [
+     "show ubt brief"
+    ],
+    [
+     "show ubt users all"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "interface vlan <1-4094>",
+   "c": "config",
+   "g": "Routing",
+   "t": "An address on a VLAN",
+   "w": "A switch virtual interface: the switch's own address in that VLAN, up only when a port in the VLAN is up.",
+   "ex": [
+    [
+     "interface vlan 10",
+     "ip address 192.0.2.1/24"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "ip route <A.B.C.D/M> <A.B.C.D>",
+   "c": "config",
+   "g": "Routing",
+   "t": "A static route",
+   "w": "Prefix and next hop. The default route is 0.0.0.0/0.",
+   "ex": [
+    [
+     "ip route 0.0.0.0/0 203.0.113.1"
+    ],
+    [
+     "ip route 198.51.100.0/24 203.0.113.1"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "router ospf <1-63>",
+   "c": "config",
+   "g": "Routing",
+   "t": "Start OSPF",
+   "w": "The process, its router-id and areas. Interfaces join with ip ospf <process> area <area>. Both ends of a link must agree on the area.",
+   "ex": [
+    [
+     "router ospf 1",
+     "router-id 203.0.113.2",
+     "area 0.0.0.0",
+     "exit",
+     "interface vlan 100",
+     "ip ospf 1 area 0.0.0.0"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show ip route",
+   "c": "*",
+   "g": "Routing",
+   "t": "The routing table",
+   "w": "Connected (C), local (L), static (S) and OSPF (O) routes with next hop and interface.",
+   "ex": [
+    [
+     "show ip route"
+    ],
+    [
+     "show ip ospf neighbors"
+    ],
+    [
+     "ping 198.51.100.10"
+    ]
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "vsf member <1-8>",
+   "c": "config",
+   "g": "Stacking",
+   "t": "Stack another switch",
+   "w": "Virtual Switching Framework: pre-provision a member by part number and name the ports that form its stack links. A member's links are its own ports, 2/1/x for member 2. Member 1 is the switch you are on. vsf secondary-member picks the standby; without it there is none.",
+   "ex": [
+    [
+     "vsf member 2",
+     "type jl725a",
+     "link 1 2/1/27",
+     "exit",
+     "vsf secondary-member 2"
+    ],
+    [
+     "vsf member 1",
+     "link 1 1/1/16"
+    ]
+   ],
+   "fake": "The Switch Simulator has no VSF, so nothing here was checked against a capture. The syntax is from HPE's VSF guide; the sandbox never cables a second switch.",
+   "see": [
+    "show vsf"
+   ],
+   "rel": []
+  },
+  {
+   "k": "show vsf",
+   "c": "*",
+   "g": "Stacking",
+   "t": "The stack and its members",
+   "w": "Each member with its role (conductor, standby, member), status and part number. show vsf link lists the stack links and whether they are up.",
+   "ex": [
+    [
+     "show vsf"
+    ],
+    [
+     "show vsf link"
+    ]
+   ],
+   "fake": "The layout is the sandbox's own: the Switch Simulator has no VSF to capture. A provisioned member shows Not Present because no second switch is ever cabled.",
+   "rel": []
+  },
+  {
+   "k": "debug <portaccess|radius|lldp> <what>",
+   "c": "*",
+   "g": "Diagnostics",
+   "t": "Log what port-access does",
+   "w": "Writes port-access events to the debug buffer, the default destination. debug radius all and debug lldp event add those modules. show debug lists what is on; no debug all turns it off.",
+   "ex": [
+    [
+     "debug portaccess all",
+     "debug lldp event",
+     "show debug buffer module portaccess"
+    ],
+    [
+     "show debug buffer module lldp | include 1/1/6"
+    ]
+   ],
+   "tip": "Clear the buffer, turn debug on, reproduce once, read, turn it off. A busy switch fills the buffer in seconds.",
+   "see": [
+    "show debug buffer"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show debug buffer",
+   "c": "*",
+   "g": "Diagnostics",
+   "t": "Read the debug log",
+   "w": "Everything logged, oldest first. module portaccess, radius or lldp narrows it; a pipe narrows it further.",
+   "ex": [
+    [
+     "show debug buffer"
+    ],
+    [
+     "show debug buffer module portaccess | include DEVICEPROFILE"
+    ],
+    [
+     "clear debug buffer"
+    ]
+   ],
+   "fake": "The sandbox logs the lines that tell a client's story, in the lab's format; the box logs far more.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "diag cable-diagnostic test <PORT>",
+   "c": "exec",
+   "g": "Diagnostics",
+   "t": "Test the cable from the switch",
+   "w": "A TDR test on a copper port: per pair good, open or short, the cable length or the distance to the fault. It drops the link while it runs and asks first. show prints the result; clear forgets it.",
+   "ex": [
+    [
+     "diag cable-diagnostic test 1/1/7",
+     "diag cable-diagnostic show 1/1/7"
+    ],
+    [
+     "diag cable-diagnostic clear 1/1/7"
+    ]
+   ],
+   "v": [
+    "Introduced in 10.11 (HPE's diagnostics guide)."
+   ],
+   "fake": "Faked hardware. The Switch Simulator has no PHY and refuses the command; the sandbox builds the result from the lab's description of the cable, in the guide's layout.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "sim rest post /rest/v10.18/login",
+   "c": "*",
+   "g": "REST",
+   "t": "The same switch through REST",
+   "w": "sim rest is a laptop calling the REST API: log in, then GET, POST, PATCH or DELETE under /rest/v10.18, and POST /rest/v10.18/cli for AnyCLI, which runs only the exact commands GET /rest/v10.18/cli/commands lists. Each answer names its CLI twin.",
+   "ex": [
+    [
+     "sim rest post /rest/v10.18/login",
+     "sim rest get /rest/v10.18/system/vlans?depth=2&attributes=id,name"
+    ],
+    [
+     "sim rest post /rest/v10.18/cli {\"cmd\":\"show vlan\"}"
+    ]
+   ],
+   "fake": "A sandbox command, not a switch command: the shapes are the lab switch's REST answers from 2026-09-28.",
+   "rel": "sandbox"
+  },
+  {
+   "k": "sim connect <DEV>",
+   "c": "*",
+   "g": "Sandbox",
+   "t": "Plug a device in",
+   "w": "The sandbox talking, not the switch. sim connect and sim disconnect plug bench devices in and out, sim coa has the fake ClearPass send a change of authorization, sim release picks the AOS-CX release, sim status shows what is plugged in.",
+   "ex": [
+    [
+     "sim status"
+    ],
+    [
+     "sim connect phone"
+    ],
+    [
+     "sim release 10.16"
+    ]
+   ],
+   "rel": "sandbox"
+  }
+ ]
+}

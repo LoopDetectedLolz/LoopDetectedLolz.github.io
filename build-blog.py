@@ -132,7 +132,10 @@ def cxsim_block():
     # the real 10.18 command set (cxcorpus.py), loaded before the engine so an unmodelled command gets the box's answer
     cpath = os.path.join(ROOT, "theme", "cxsim", "corpus", "aoscx.js")
     corpus = "<script>%s</script>" % open(cpath, encoding="utf-8").read().replace("</", "<\\/") if os.path.exists(cpath) else ""
-    return "%s<script>%s</script>%s" % (corpus, engine, widget("cxsim").replace("__SBAPI__", E(SANDBOX_API.rstrip("/"))))
+    # the command notes (theme/cxsim/notes.json, checked by cxnotes.js) feed the widget's About this command panel
+    npath = os.path.join(ROOT, "theme", "cxsim", "notes.json")
+    notes = "<script>self.CXNotes=%s;</script>" % json.dumps(json.load(open(npath, encoding="utf-8")), separators=(",", ":"), ensure_ascii=False).replace("</", "<\\/") if os.path.exists(npath) else ""
+    return "%s%s<script>%s</script>%s" % (corpus, notes, engine, widget("cxsim").replace("__SBAPI__", E(SANDBOX_API.rstrip("/"))))
 
 def parse_post(path):
     raw = open(path, encoding="utf-8").read()
@@ -486,6 +489,18 @@ acad += f'''
 ''' + foot("nfn-bot-think.svg")
 open(os.path.join(ROOT, "academy.html"), "w", encoding="utf-8").write(acad)
 
+# ── CX Sandbox pages ─────────────────────────────────────────────────────────
+# sandbox.html is the switch; cx-notes.html, cx-check.html, cx-build.html and cx-guide.html are the pages around
+# it. A strip of outline pills ties the five together (the orange ring stays the nav's alone).
+CX_PAGES = [("sandbox", "sandbox.html", "Sandbox"), ("notes", "cx-notes.html", "Command notes"), ("check", "cx-check.html", "Config checker"),
+            ("build", "cx-build.html", "Script builder"), ("guide", "cx-guide.html", "Releases and hardening")]
+def cx_tools(active):
+    return ('<nav class="cx-tools" aria-label="CX Sandbox pages">%s</nav>' % "".join(
+        '<a class="pill %s" href="%s"%s>%s</a>' % ("soft" if k == active else "outline", href, ' aria-current="page"' if k == active else "", E(name))
+        for k, href, name in CX_PAGES))
+CX_TOOLS_CSS = ('<style>.cx-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s4)}.cx-tools .pill{font-weight:600}'
+                '.cx-tools .pill.soft{box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18)}</style>')
+
 # ── CX Sandbox page: every lab, one picker ──────────────────────────────────
 SANDBOX_LABS = ["sandbox", "nac-01-bench", "nac-02-discovery", "nac-03-mac-auth", "nac-04-dot1x", "nac-05-roles", "nac-06-precedence", "l2-01-uplink", "l3-01-routing",
                 "sc-01-lldp-med", "sc-02-device-profiles", "sc-03-multi-domain", "sc-04-ubt", "sc-05-multigig", "sc-06-lacp", "sc-07-debug", "sc-08-pipes", "sc-09-rest", "sc-10-cable"]
@@ -509,6 +524,7 @@ sb += f'''
   <h1 class="h-hero">A switch you can type on</h1>
   <p class="lede">A modelled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes were checked line by line against AOS-CX 10.18.1002 running on my own bench, last on September 28, 2026, and the wording where it differs is mine. The command lists of 10.15 through 10.18 sit behind it, so a real command it doesn't model says so, a line the box would refuse gets the box's own error, and the picker in the corner of the terminal switches which release's syntax you get. Pipes work too: <code>include</code>, <code>exclude</code>, <code>begin</code> and <code>count</code>. Where it fakes hardware (link speed, PoE, the cable tester, a gateway to tunnel to) it says so on the screen.</p>
 </section>
+{CX_TOOLS_CSS}{cx_tools("sandbox")}
 <nav class="sb-picker" aria-label="Labs">{sb_pills}</nav>
 {sb_labs}
 {cxsim_block()}
@@ -530,6 +546,120 @@ sb += f'''
 </section>
 ''' + foot("nfn-bot-switchwork.svg")
 open(os.path.join(ROOT, "sandbox.html"), "w", encoding="utf-8").write(sb)
+
+# ── CX command notes: every note the sandbox shows, on one page ──────────────
+# theme/cxsim/notes.json is the source (cxnotes.js checks every example against the engine and every release
+# claim against the corpus). The four diagrams sit in the group they explain, with the habits that go with them.
+CX_NOTES = json.load(open(os.path.join(ROOT, "theme", "cxsim", "notes.json"), encoding="utf-8"))
+CX_RELS = [v[0] for v in json.loads(re.search(r'"v":(\[\[.*?\]\])', open(os.path.join(ROOT, "theme", "cxsim", "corpus", "aoscx.js"), encoding="utf-8").read()).group(1))]
+CX_FIGS = {
+    "fig-cx-radius": ("RADIUS", "802.1X against ClearPass, from link up to a change of authorization.", [
+        "Two RADIUS servers in the group before go-live. One server is a single point of failure for every port.",
+        "A critical role on every port-access port, so a ClearPass outage ends somewhere you chose.",
+        "radius dyn-authorization client for each ClearPass node, or CoA and Disconnect fail without a sound.",
+        "Auth failing? Look in Access Tracker first. No entry at all means the request never arrived: secret, address or VRF."]),
+    "fig-cx-lldp-med": ("LLDP", "LLDP-MED on a phone port: the phone speaks first, the switch answers with the voice VLAN.", [
+        "Make the voice VLAN a real VLAN with voice set, tag it on the phone port, and leave the data VLAN native.",
+        "No network policy on the phone? Check the phone sends LLDP-MED before touching the switch.",
+        "On a NAC port add allow-lldp-bpdu, or LLDP from the phone is dropped before anything reads it."]),
+    "fig-cx-lacp": ("LAGs and LACP", "LACP bringing up a two-member LAG, and the flags that prove it.", [
+        "Build the LAG first, then add members, then no shutdown the LAG. Settings live on the LAG.",
+        "lacp mode active on both ends. A static LAG only where the far end cannot speak LACP.",
+        "lacp rate fast on both ends notices a dead member in about three seconds instead of ninety.",
+        "Done means ALFNCD for actor and partner on every member in show lacp interfaces."]),
+    "fig-cx-mda": ("Port access", "Multi-domain authentication: a phone and the PC behind it, each with its own role.", [
+        "Multi-domain is one voice device plus one data device. More PCs behind a phone: raise client-limit multi-domain.",
+        "The phone's role carries device-traffic-class voice, a native data VLAN and the voice VLAN tagged.",
+        "Test the failure path before users do: take ClearPass away and read what the phone and the PC get."]),
+}
+def cx_slug(k):
+    return "n-" + re.sub(r"[^a-z0-9]+", "-", re.sub(r"<[^>]*>", "x", k.lower())).strip("-")
+_slugs = [cx_slug(n["k"]) for n in CX_NOTES["notes"]]
+assert len(_slugs) == len(set(_slugs)), "two notes share an anchor"
+def cx_syntax(k):
+    return " ".join('<i>%s</i>' % E(w) if w.startswith("<") else E(w) for w in k.split(" "))
+def cx_rel(n):
+    r = n.get("rel")
+    if r == "sandbox": return "A sandbox command, not a switch command."
+    if not r: return "Not in the Switch Simulator's command set for %s to %s. Syntax from HPE's guides." % (CX_RELS[0], CX_RELS[-1])
+    if len(r) == len(CX_RELS): return "In every release here, %s to %s." % (CX_RELS[0], CX_RELS[-1])
+    return "In %s. Not in %s." % (", ".join(r), ", ".join(x for x in CX_RELS if x not in r))
+def cx_note_html(n):
+    calls = "".join('<div class="cxn-call ver"><b>Changed:</b> %s</div>' % E(v) for v in n.get("v", []))
+    if n.get("fake"): calls += '<div class="cxn-call fake"><b>Where the sandbox pretends:</b> %s</div>' % E(n["fake"])
+    if n.get("tip"): calls += '<div class="cxn-call tip"><b>Habit:</b> %s</div>' % E(n["tip"])
+    ex = "".join('<span class="ln">%s</span>' % E(l) for i, e in enumerate(n["ex"]) for l in ([""] if i else []) + e)
+    see = "".join('<a href="#%s">%s</a>' % (cx_slug(k), E(k)) for k in n.get("see", []))
+    words = " ".join([n["k"], n["t"], n["w"], n["g"]] + [l for e in n["ex"] for l in e]).lower()
+    return ('<article class="cxn g-card" id="%s" data-q="%s"><div class="cxn-syn"><code>%s</code></div><h3>%s</h3><p>%s</p>'
+            '<p class="cxn-rel">%s</p>%s<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code>%s</code></pre></div>%s</article>'
+            % (cx_slug(n["k"]), E(words), cx_syntax(n["k"]), E(n["t"]), E(n["w"]), E(cx_rel(n)), calls, ex,
+               '<p class="cxn-see"><span>Goes with</span>%s</p>' % see if see else ""))
+def cx_fig_html(fid):
+    grp, cap, tips = CX_FIGS[fid]
+    return ('<figure class="figure panel cxn-fig" id="%s">%s<figcaption>%s</figcaption><ul class="cxn-tips">%s</ul></figure>'
+            % (fid, svg(fid + ".svg"), E(cap), "".join("<li>%s</li>" % E(t) for t in tips)))
+_groups = CX_NOTES["groups"]
+def _gid(g): return "g-" + re.sub(r"[^a-z0-9]+", "-", g.lower()).strip("-")
+cxn_body = "".join('<section class="cxn-group" id="%s"><h2>%s</h2>%s<div class="cxn-list">%s</div></section>' % (
+    _gid(g), E(g), "".join(cx_fig_html(f) for f, v in CX_FIGS.items() if v[0] == g),
+    "".join(cx_note_html(n) for n in CX_NOTES["notes"] if n["g"] == g)) for g in _groups)
+cxn_nav = "".join('<a class="pill outline" href="#%s">%s</a>' % (_gid(g), E(g)) for g in _groups)
+CXN_DESC = "Every command the CX Sandbox has a note for: what it does, examples to type, what changed from AOS-CX 10.15 to 10.18, where the sandbox fakes hardware, and diagrams of 802.1X, LLDP-MED, LACP and a phone with a PC behind it."
+cxn = head("CX command notes · " + SITE["name"], CXN_DESC, BASE_URL + "/cx-notes.html", BASE_URL + "/og/cx-notes.png", active="academy")
+cxn += f'''
+{CX_TOOLS_CSS}
+<style>
+.cxn-bar{{margin:0 0 var(--s3)}}
+.cxn-bar input{{width:100%;max-width:520px;min-height:44px;font:16px var(--sans);color:var(--text);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-pill);padding:0 var(--s4);outline:none}}
+.cxn-bar input:focus{{border-color:var(--blue-light)}}
+.cxn-groups{{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s5)}}
+.cxn-groups .pill{{min-height:40px}}
+.cxn-group{{margin:0 0 var(--s7)}}
+.cxn-group h2{{font-size:24px;letter-spacing:-0.02em;margin:0 0 var(--s4)}}
+.cxn-list{{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:var(--s4)}}
+.cxn{{padding:var(--s4) var(--s5);min-width:0}}
+.cxn-syn code{{font:13px/1.5 var(--mono);color:var(--text);overflow-wrap:anywhere}}
+.cxn-syn i{{font-style:normal;color:var(--text-muted)}}
+.cxn h3{{font-size:17px;margin:6px 0 6px;letter-spacing:-0.01em}}
+.cxn p{{color:var(--text-dim);font-size:15px;line-height:1.6;margin:0 0 10px}}
+.cxn .cxn-rel{{font:12px/1.5 var(--mono);color:var(--text-muted)}}
+.cxn-call{{font-size:14px;line-height:1.55;color:var(--text-dim);padding:8px 12px;margin:0 0 8px;border-left:3px solid var(--blue-light);background:rgba(79,189,234,0.08);border-radius:0 10px 10px 0}}
+.cxn-call b{{color:var(--text)}}
+.cxn-call.fake{{border-left-color:var(--teal);background:rgba(94,210,218,0.08)}}
+.cxn-call.tip{{border-left-color:var(--green);background:rgba(140,224,94,0.07)}}
+.cxn .term{{margin:var(--s3) 0 var(--s2)}}
+.cxn .term pre{{margin:0;border:0;border-radius:0;background:none;padding:var(--s3) var(--s4);overflow:auto;font:13px/1.55 var(--mono)}}
+.cxn-see{{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px}}
+.cxn-see span{{font:600 11px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}}
+.cxn-see a{{font:12.5px var(--mono);color:var(--blue-light);display:inline-flex;align-items:center;min-height:38px}}
+.cxn-fig{{margin:0 0 var(--s5)}}
+.cxn-tips{{margin:var(--s3) 0 0;padding-left:1.2em;color:var(--text-dim);font-size:14.5px;line-height:1.6}}
+.cxn-tips li{{margin:0 0 4px}}
+.cxn-none{{color:var(--text-muted);display:none}}
+@media (max-width:700px){{.cxn{{padding:var(--s3) var(--s4)}}}}
+</style>
+<section class="sim-intro">
+  <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
+  <h1 class="h-hero">The commands, one note each</h1>
+  <p class="lede">What each command does, two or three examples you can type into the <a href="sandbox.html">sandbox</a>, what changed between AOS-CX {CX_RELS[0]} and {CX_RELS[-1]}, and where the sandbox fakes hardware instead of reproducing it. Every example is run through the sandbox before this page is built, and every release line comes from the command lists I pulled off the Switch Simulator for each release. The same notes show up beside the terminal as you type.</p>
+</section>
+{cx_tools("notes")}
+<div class="cxn-bar"><input type="search" id="cxn-q" placeholder="Filter: lacp, radius, voice, 1/1/1" aria-label="Filter the command notes" autocomplete="off"></div>
+<nav class="cxn-groups" aria-label="Groups">{cxn_nav}</nav>
+{cxn_body}
+<p class="cxn-none" id="cxn-none">Nothing matches that. Try a shorter word.</p>
+<script>
+(function(){{
+  var q=document.getElementById('cxn-q'),cards=document.querySelectorAll('.cxn'),groups=document.querySelectorAll('.cxn-group'),none=document.getElementById('cxn-none');
+  function run(){{var v=q.value.trim().toLowerCase(),shown=0;cards.forEach(function(c){{var on=!v||c.getAttribute('data-q').indexOf(v)>=0;c.hidden=!on;if(on)shown++;}});
+    groups.forEach(function(g){{var any=g.querySelector('.cxn:not([hidden])');g.hidden=!!v&&!any;var f=g.querySelectorAll('.cxn-fig');f.forEach(function(x){{x.hidden=!!v;}});}});
+    none.style.display=shown?'none':'block';}}
+  q.addEventListener('input',run);
+}})();
+</script>
+''' + foot("nfn-bot-switchwork.svg")
+open(os.path.join(ROOT, "cx-notes.html"), "w", encoding="utf-8").write(cxn)
 
 # ── simulator page: the banner on its own ───────────────────────────────────
 sim = head("Simulator · " + SITE["name"], "A Wi-Fi link you can break: a real frame sent symbol by symbol through a link budget, a reflection, spatial streams and a Teams call, with interference you add yourself.", BASE_URL + "/simulator.html", BASE_URL + "/og/simulator.png", active="tools")
@@ -728,6 +858,7 @@ og_card(SITE["tagline"][:110], "Field notes", os.path.join(ROOT, "og", "home.png
 og_card("Wireless Academy: the theory, and the lab that proves it", "Wireless Academy", os.path.join(ROOT, "og", "academy.png"))
 og_card("The simulator: a Wi-Fi link you can break, one symbol at a time", "Simulator", os.path.join(ROOT, "og", "simulator.png"))
 og_card("The CX Sandbox: a modelled AOS-CX switch you can type on, with a fake ClearPass behind it", "CX Sandbox", os.path.join(ROOT, "og", "sandbox.png"))
+og_card("AOS-CX command notes: what each command does, examples, release changes and where the sandbox pretends", "CX Sandbox", os.path.join(ROOT, "og", "cx-notes.png"))
 og_card("Planning tools that show their working: capacity, aiming, mesh, and what happened", "Tools", os.path.join(ROOT, "og", "tools.png"))
 rasterize(os.path.join(ROOT, "logo", "nfn-favicon.svg"), os.path.join(ROOT, "apple-touch-icon.png"), 180, 180)
 
@@ -737,6 +868,7 @@ urls = ['<url><loc>%s/</loc><changefreq>weekly</changefreq><priority>1.0</priori
         '<url><loc>%s/academy.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/simulator.html</loc><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/sandbox.html</loc><priority>0.8</priority></url>' % BASE_URL,
+        '<url><loc>%s/cx-notes.html</loc><priority>0.6</priority></url>' % BASE_URL,
         '<url><loc>%s/tools.html</loc><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/socials.html</loc><priority>0.3</priority></url>' % BASE_URL]
 urls += ['<url><loc>%s/p/%s.html</loc><lastmod>%s</lastmod><priority>0.8</priority></url>'
