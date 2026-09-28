@@ -795,11 +795,165 @@ cxc += f'''
   var fi=document.getElementById('cxc-file');document.getElementById('cxc-file-btn').addEventListener('click',function(){{fi.click();}});
   fi.addEventListener('change',function(){{var f=fi.files&&fi.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){{ta.value=String(rd.result||'');run();}};rd.readAsText(f);fi.value='';}});
   ta.addEventListener('keydown',function(e){{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){{e.preventDefault();run();}}}});
+  // a config handed over by the script builder: read once, deleted at once
+  if(/#import/.test(location.hash)){{try{{var im=JSON.parse(localStorage.getItem('cxcheck:import')||'null');localStorage.removeItem('cxcheck:import');
+    if(im&&im.config&&Date.now()-(im.at||0)<600000){{ta.value=im.config;if(im.release)rel.value=im.release;run();}}history.replaceState(null,'',location.pathname);}}catch(e){{}}}}
   window.__cxc={{run:run}};
 }})();
 </script>
 ''' + foot("nfn-bot-switchwork.svg")
 open(os.path.join(ROOT, "cx-check.html"), "w", encoding="utf-8").write(cxc)
+
+# ── CX script builder: pick, answer, paste ───────────────────────────────────
+# theme/cxsim/builder.js builds the config; the page checks every build against the release's command set and
+# pastes it into a hidden sandbox switch before showing it. Same CSP as the checker: a shared secret typed here
+# stays here.
+cxb_models = "".join('<option value="%s"%s>%s</option>' % (k, " selected" if k == "6200F-24" else "", E(k)) for k in ["6200F-12", "6200F-24", "6200F-48", "6300M-48", "6300M-24SR5"])
+CXB_DESC = "Pick what an AOS-CX access switch needs, answer a few questions, and get a paste-ready config with every block explained, checked against the release's real command set and pasted into a sandbox switch first."
+cxb = head("CX script builder · " + SITE["name"], CXB_DESC, BASE_URL + "/cx-build.html", BASE_URL + "/og/cx-build.png", active="academy", extra=CX_CSP)
+def _f(fid, label, value, hint="", kind="text", wide=False):
+    return ('<label class="cxb-f%s"><span>%s</span><input type="%s" id="%s" value="%s" spellcheck="false" autocomplete="off" autocapitalize="off">%s</label>'
+            % (" wide" if wide else "", E(label), kind, fid, E(value), '<small>%s</small>' % E(hint) if hint else ""))
+def _feat(fid, label, on, body, sub=""):
+    return ('<fieldset class="cxb-feat g-card" data-feat="%s"><legend><label class="cxb-tog"><input type="checkbox" id="f-%s"%s> <b>%s</b></label>%s</legend><div class="cxb-body">%s</div></fieldset>'
+            % (fid, fid, " checked" if on else "", E(label), '<small>%s</small>' % E(sub) if sub else "", body))
+cxb_form = "".join([
+    '<fieldset class="cxb-feat g-card cxb-base"><legend><b>The switch</b></legend><div class="cxb-body">'
+    '<label class="cxb-f"><span>Model</span><select id="b-model">%s</select></label>'
+    '<label class="cxb-f"><span>AOS-CX release</span><select id="b-release">%s</select></label>%s%s%s</div></fieldset>'
+    % (cxb_models, cxc_rel_opts, _f("b-hostname", "Hostname", "idf2-sw1", "Put the location in it"), _f("b-ntp", "NTP servers", "192.0.2.30, 192.0.2.31", "Two, comma separated"), _f("b-syslog", "Syslog server", "192.0.2.40")),
+    _feat("access", "Desk ports", True, _f("b-acc-ports", "Ports", "1/1/1-1/1/20", "A range like 1/1/1-1/1/20") + _f("b-acc-vlan", "Data VLAN", "10", kind="number") + _f("b-acc-name", "Its name", "STAFF")),
+    _feat("nac", "802.1X and MAC auth with ClearPass", True, _f("b-nac-servers", "ClearPass addresses", "192.0.2.10, 192.0.2.11", "Every node, comma separated", wide=True)
+          + _f("b-nac-secret", "Shared secret", "", "Left empty, the config says CHANGE-ME") + _f("b-nac-group", "Server group", "CLEARPASS") + _f("b-nac-role", "Staff role", "EMPLOYEE", "The name ClearPass sends")
+          + _f("b-nac-crit", "Critical role", "CRITICAL", "When ClearPass is unreachable") + _f("b-nac-critvlan", "Its VLAN", "10", kind="number")
+          + '<label class="cxb-c"><input type="checkbox" id="b-nac-coa" checked> Change of authorization (CoA)</label><label class="cxb-c"><input type="checkbox" id="b-nac-mac" checked> MAC auth for what has no supplicant</label>'),
+    _feat("phones", "IP phones with a PC behind them", True, _f("b-ph-vlan", "Voice VLAN", "30", kind="number") + _f("b-ph-name", "Its name", "VOICE"), "LLDP-MED, multi-domain"),
+    _feat("aps", "Access points", True, _f("b-ap-ports", "Ports", "1/1/21-1/1/24") + _f("b-ap-vlan", "AP management VLAN", "99", kind="number") + _f("b-ap-name", "Its name", "AP-MGMT")
+          + _f("b-ap-tagged", "SSID VLANs to tag", "10,30") + _f("b-ap-match", "Word in the AP's LLDP description", "AP-515", "Check with show lldp neighbor-info"), "recognised by LLDP"),
+    _feat("uplink", "Uplink LAG", True, _f("b-up-lag", "LAG number", "1", kind="number") + _f("b-up-ports", "Member ports", "1/1/27-1/1/28") + _f("b-up-native", "Native VLAN", "99", kind="number")
+          + _f("b-up-desc", "Description", "uplink to core") + '<label class="cxb-c"><input type="checkbox" id="b-up-fast" checked> lacp rate fast</label>'),
+    _feat("ubt", "Tunnel staff traffic to gateways (UBT)", False, _f("b-ubt-zone", "Zone", "CAMPUS") + _f("b-ubt-primary", "Primary gateway", "192.0.2.50") + _f("b-ubt-backup", "Backup gateway", "")
+          + _f("b-ubt-vlan", "Tunnel client VLAN", "666", kind="number") + _f("b-ubt-role", "Gateway role", "authenticated")),
+    _feat("mgmt", "An address to manage it by", True, _f("b-mg-vlan", "Management VLAN", "99", kind="number") + _f("b-mg-ip", "Switch address", "192.0.2.21/24") + _f("b-mg-gw", "Default gateway", "192.0.2.1")),
+    _feat("harden", "Harden it (CIS by control number)", True, _f("b-h-allow", "SSH allowed from", "192.0.2.0/24", "Your management subnet") + _f("b-h-banner", "Login banner", "Authorized use only. Activity on this switch is logged.", wide=True)),
+])
+cxb += f'''
+{CX_TOOLS_CSS}
+<style>
+.cxb{{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:var(--s5);align-items:stretch;height:calc(100vh - 150px);min-height:560px}}
+.cxb-form{{display:grid;gap:var(--s3);align-content:start;overflow:auto;padding:2px 6px 2px 2px;overscroll-behavior:contain}}
+.cxb-jump{{display:none}}
+.cxb-feat{{margin:0;padding:var(--s3) var(--s4) var(--s4);border:1px solid var(--line);min-width:0}}
+.cxb-feat legend{{padding:0 4px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}}
+.cxb-feat legend small{{color:var(--text-muted);font:12px var(--mono)}}
+.cxb-feat.off .cxb-body{{display:none}}
+.cxb-tog{{display:inline-flex;align-items:center;gap:10px;min-height:40px;cursor:pointer}}
+.cxb-tog input,.cxb-c input{{width:20px;height:20px;accent-color:#8CE05E}}
+.cxb-body{{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin-top:6px}}
+.cxb-f{{display:flex;flex-direction:column;gap:4px;min-width:0}}
+.cxb-f.wide{{grid-column:1/-1}}
+.cxb-f span{{font:12px var(--mono);color:var(--text-muted)}}
+.cxb-f input,.cxb-f select{{min-height:42px;font:14px var(--mono);color:var(--text);background:rgba(3,10,16,0.6);border:1px solid var(--line);border-radius:10px;padding:0 10px;width:100%;min-width:0}}
+.cxb-f input:focus,.cxb-f select:focus{{outline:none;border-color:var(--blue-light)}}
+.cxb-f small{{font-size:12px;color:var(--text-muted)}}
+.cxb-c{{grid-column:1/-1;display:flex;align-items:center;gap:10px;min-height:38px;font-size:14px;color:var(--text-dim);cursor:pointer}}
+.cxb-out{{overflow:auto;padding:var(--s4) var(--s5);min-width:0;overscroll-behavior:contain}}
+.cxb-stat{{font-size:14.5px;line-height:1.6;color:var(--text-dim);margin:0 0 var(--s3)}}
+.cxb-stat b{{color:var(--text)}}
+.cxb-stat.bad{{color:#ffd28a}}
+.cxb-stat ul{{margin:6px 0 0;padding-left:1.2em}}
+.cxb-acts{{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s4)}}
+.cxb-acts .btn{{border:0;cursor:pointer;font:600 15px var(--sans)}}
+.cxb-acts .pill{{cursor:pointer;font:600 13.5px var(--sans)}}
+.cxb-blk{{margin:0 0 var(--s4);padding:0 0 var(--s4);border-bottom:1px solid var(--line)}}
+.cxb-blk:last-child{{border-bottom:0}}
+.cxb-blk h3{{font-size:16px;margin:0 0 4px}}
+.cxb-blk p{{margin:0 0 8px;color:var(--text-dim);font-size:14.5px;line-height:1.6}}
+.cxb-blk pre{{margin:0;font:12.5px/1.55 var(--mono);color:var(--text);background:rgba(3,10,16,0.6);border:1px solid var(--line);border-radius:10px;padding:10px 12px;overflow-x:auto}}
+.cxb-blk .proof{{margin-top:6px;font:12px var(--mono);color:var(--text-muted)}}
+.cxb-note{{font-size:13px;color:var(--text-muted);line-height:1.55;margin:var(--s3) 0 0}}
+@media (max-width:960px){{.cxb{{grid-template-columns:minmax(0,1fr);height:auto;min-height:0}}.cxb-form{{overflow:visible;padding:0}}.cxb-out{{overflow:visible}}.cxb-jump{{display:inline-flex}}}}
+@media (max-width:520px){{.cxb-body{{grid-template-columns:minmax(0,1fr)}}.cxb-out{{padding:var(--s3) var(--s4)}}.cxb-f input,.cxb-f select{{font-size:16px}}}}
+</style>
+<section class="sim-intro">
+  <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
+  <h1 class="h-hero">Build the config, block by block</h1>
+  <p class="lede">Tick what the switch needs, answer the questions, and the config on the right follows as you type: paste-ready, in the order the switch wants it, each block with why it is there and the show commands that prove it worked. Every build is checked against the command set of the release you pick and pasted into a sandbox switch before you see it. What you type stays in this page, same as the <a href="cx-check.html">checker</a>.</p>
+</section>
+{cx_tools("build")}
+<p><a class="pill outline cxb-jump" href="#cxb-out">Jump to the config</a></p>
+<div class="cxb">
+  <form class="cxb-form" id="cxb-form" onsubmit="return false">{cxb_form}</form>
+  <section class="cxb-out g-card" id="cxb-out" aria-live="polite">
+    <p class="cxb-stat" id="cxb-stat">Building...</p>
+    <div class="cxb-acts">
+      <button class="btn cta" type="button" id="cxb-copy">Copy the config</button>
+      <button class="pill outline" type="button" id="cxb-dl">Download .txt</button>
+      <button class="pill outline" type="button" id="cxb-sb">Open in the sandbox</button>
+      <button class="pill outline" type="button" id="cxb-ck">Run the checker on it</button>
+    </div>
+    <div id="cxb-blocks"></div>
+    <p class="cxb-note">Open in the sandbox hands the config over in this browser's storage and swaps the shared secret for the bench ClearPass's own (192.0.2.10, cppm-lab-key), so the devices on the bench can authenticate. The checker deletes what it is handed as soon as it reads it.</p>
+  </section>
+</div>
+{CX_ENGINE_BUNDLE}
+<script>{_js("theme/cxsim/checker.js")}</script>
+<script>{_js("theme/cxsim/builder.js")}</script>
+<script>
+(function(){{
+  function $(id){{return document.getElementById(id);}}
+  function v(id){{var e=$(id);return e?e.value.trim():'';}}
+  function el(t,c,x){{var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}}
+  var FEATS=['access','nac','phones','aps','uplink','ubt','mgmt','harden'],KEY='cxbuild:answers',last=null,timer=null;
+  function answers(){{
+    var f={{}};FEATS.forEach(function(k){{f[k]=$('f-'+k).checked;}});
+    return {{model:v('b-model'),release:v('b-release'),hostname:v('b-hostname'),features:f,
+      access:{{ports:v('b-acc-ports'),vlan:+v('b-acc-vlan'),vlanName:v('b-acc-name')}},
+      nac:{{servers:v('b-nac-servers'),secret:v('b-nac-secret'),group:v('b-nac-group'),role:v('b-nac-role'),critRole:v('b-nac-crit'),critVlan:+v('b-nac-critvlan'),coa:$('b-nac-coa').checked,macauth:$('b-nac-mac').checked}},
+      phones:{{vlan:+v('b-ph-vlan'),vlanName:v('b-ph-name')}},
+      aps:{{ports:v('b-ap-ports'),mgmtVlan:+v('b-ap-vlan'),mgmtName:v('b-ap-name'),tagged:v('b-ap-tagged'),match:v('b-ap-match')}},
+      uplink:{{lag:+v('b-up-lag'),ports:v('b-up-ports'),native:+v('b-up-native'),rateFast:$('b-up-fast').checked,desc:v('b-up-desc')}},
+      ubt:{{zone:v('b-ubt-zone'),primary:v('b-ubt-primary'),backup:v('b-ubt-backup'),clientVlan:+v('b-ubt-vlan'),gwRole:v('b-ubt-role')}},
+      mgmt:{{vlan:+v('b-mg-vlan'),ip:v('b-mg-ip'),gw:v('b-mg-gw')}},
+      time:{{ntp:v('b-ntp'),syslog:v('b-syslog')}},
+      harden:{{allow:v('b-h-allow'),banner:v('b-h-banner')}}}};
+  }}
+  function render(){{
+    var a=answers();FEATS.forEach(function(k){{document.querySelector('[data-feat="'+k+'"]').classList.toggle('off',!a.features[k]);}});
+    // remember the answers, not the secret
+    try{{var keep=JSON.parse(JSON.stringify(a));keep.nac.secret='';localStorage.setItem(KEY,JSON.stringify(keep));}}catch(e){{}}
+    var b=CXBuild.build(a),st=$('cxb-stat'),bl=$('cxb-blocks');last=b;bl.innerHTML='';st.innerHTML='';
+    if(b.problems.length){{st.className='cxb-stat bad';st.appendChild(el('b','','Fix these first:'));var ul=el('ul');b.problems.forEach(function(p){{ul.appendChild(el('li','',p));}});st.appendChild(ul);return;}}
+    var r=CXBuild.verify(b),ok=!r.syntaxBad.length&&!r.engineBad.length;
+    st.className='cxb-stat'+(ok?'':' bad');
+    st.appendChild(el('b','',b.lines.length+' lines for a '+b.model+' on '+b.release+'. '));
+    st.appendChild(document.createTextNode(ok?('The '+b.release+' command set takes every line it covers ('+r.syntaxOk+'; '+r.notChecked+' sit in blocks the command lists do not cover), and a sandbox switch took the whole paste.'):'Something does not check out:'));
+    if(!ok){{var u2=el('ul');r.syntaxBad.concat(r.engineBad).forEach(function(p){{u2.appendChild(el('li','',p));}});st.appendChild(u2);}}
+    b.blocks.forEach(function(k){{var d=el('div','cxb-blk');d.appendChild(el('h3','',k.title));d.appendChild(el('p','',k.why));d.appendChild(el('pre','',k.lines.join('\\n')));
+      if(k.proof.length)d.appendChild(el('div','proof','Proves it: '+k.proof.join(' · ')));bl.appendChild(d);}});
+  }}
+  function soon(){{clearTimeout(timer);timer=setTimeout(render,160);}}
+  try{{var s=JSON.parse(localStorage.getItem(KEY)||'null');if(s){{
+    var map={{'b-model':s.model,'b-release':s.release,'b-hostname':s.hostname,'b-ntp':s.time&&s.time.ntp,'b-syslog':s.time&&s.time.syslog,'b-acc-ports':s.access&&s.access.ports,'b-acc-vlan':s.access&&s.access.vlan,'b-acc-name':s.access&&s.access.vlanName,
+      'b-nac-servers':s.nac&&s.nac.servers,'b-nac-group':s.nac&&s.nac.group,'b-nac-role':s.nac&&s.nac.role,'b-nac-crit':s.nac&&s.nac.critRole,'b-nac-critvlan':s.nac&&s.nac.critVlan,'b-ph-vlan':s.phones&&s.phones.vlan,'b-ph-name':s.phones&&s.phones.vlanName,
+      'b-ap-ports':s.aps&&s.aps.ports,'b-ap-vlan':s.aps&&s.aps.mgmtVlan,'b-ap-name':s.aps&&s.aps.mgmtName,'b-ap-tagged':s.aps&&s.aps.tagged,'b-ap-match':s.aps&&s.aps.match,'b-up-lag':s.uplink&&s.uplink.lag,'b-up-ports':s.uplink&&s.uplink.ports,
+      'b-up-native':s.uplink&&s.uplink.native,'b-up-desc':s.uplink&&s.uplink.desc,'b-ubt-zone':s.ubt&&s.ubt.zone,'b-ubt-primary':s.ubt&&s.ubt.primary,'b-ubt-backup':s.ubt&&s.ubt.backup,'b-ubt-vlan':s.ubt&&s.ubt.clientVlan,'b-ubt-role':s.ubt&&s.ubt.gwRole,
+      'b-mg-vlan':s.mgmt&&s.mgmt.vlan,'b-mg-ip':s.mgmt&&s.mgmt.ip,'b-mg-gw':s.mgmt&&s.mgmt.gw,'b-h-allow':s.harden&&s.harden.allow,'b-h-banner':s.harden&&s.harden.banner}};
+    Object.keys(map).forEach(function(id){{if(map[id]!=null&&$(id))$(id).value=map[id];}});
+    FEATS.forEach(function(k){{if(s.features&&k in s.features)$('f-'+k).checked=!!s.features[k];}});
+    [['b-nac-coa',s.nac&&s.nac.coa],['b-nac-mac',s.nac&&s.nac.macauth],['b-up-fast',s.uplink&&s.uplink.rateFast]].forEach(function(x){{if(x[1]!=null)$(x[0]).checked=!!x[1];}});
+  }}}}catch(e){{}}
+  $('cxb-form').addEventListener('input',soon);$('cxb-form').addEventListener('change',soon);
+  $('cxb-copy').addEventListener('click',function(){{if(!last||last.problems.length)return;var b=$('cxb-copy');try{{navigator.clipboard.writeText(last.config).then(function(){{b.textContent='Copied';setTimeout(function(){{b.textContent='Copy the config';}},1400);}});}}catch(e){{}}}});
+  $('cxb-dl').addEventListener('click',function(){{if(!last||last.problems.length)return;var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([last.config],{{type:'text/plain'}}));a.download=(last.answers.hostname||'switch')+'.txt';document.body.appendChild(a);a.click();setTimeout(function(){{URL.revokeObjectURL(a.href);a.remove();}},500);}});
+  function sandboxCopy(){{var s=last.answers.nac.secret||'CHANGE-ME';return last.config.split(s).join('cppm-lab-key');}}
+  $('cxb-sb').addEventListener('click',function(){{if(!last||last.problems.length)return;try{{localStorage.setItem('cxsim:import',JSON.stringify({{model:last.model,release:last.release,config:sandboxCopy(),at:Date.now()}}));}}catch(e){{}}location.href='sandbox.html#lab=sandbox&import=1';}});
+  $('cxb-ck').addEventListener('click',function(){{if(!last||last.problems.length)return;try{{localStorage.setItem('cxcheck:import',JSON.stringify({{release:last.release,config:last.config,at:Date.now()}}));}}catch(e){{}}location.href='cx-check.html#import';}});
+  render();window.__cxb={{render:render}};
+}})();
+</script>
+''' + foot("nfn-bot-switchwork.svg")
+open(os.path.join(ROOT, "cx-build.html"), "w", encoding="utf-8").write(cxb)
 
 # ── simulator page: the banner on its own ───────────────────────────────────
 sim = head("Simulator · " + SITE["name"], "A Wi-Fi link you can break: a real frame sent symbol by symbol through a link budget, a reflection, spatial streams and a Teams call, with interference you add yourself.", BASE_URL + "/simulator.html", BASE_URL + "/og/simulator.png", active="tools")
@@ -1000,6 +1154,7 @@ og_card("The simulator: a Wi-Fi link you can break, one symbol at a time", "Simu
 og_card("The CX Sandbox: a modelled AOS-CX switch you can type on, with a fake ClearPass behind it", "CX Sandbox", os.path.join(ROOT, "og", "sandbox.png"))
 og_card("AOS-CX command notes: what each command does, examples, release changes and where the sandbox pretends", "CX Sandbox", os.path.join(ROOT, "og", "cx-notes.png"))
 og_card("Paste an AOS-CX config, get findings back. It never leaves your browser.", "CX Sandbox", os.path.join(ROOT, "og", "cx-check.png"))
+og_card("Build an AOS-CX access switch config block by block, every block explained and checked", "CX Sandbox", os.path.join(ROOT, "og", "cx-build.png"))
 og_card("Planning tools that show their working: capacity, aiming, mesh, and what happened", "Tools", os.path.join(ROOT, "og", "tools.png"))
 rasterize(os.path.join(ROOT, "logo", "nfn-favicon.svg"), os.path.join(ROOT, "apple-touch-icon.png"), 180, 180)
 
@@ -1011,6 +1166,7 @@ urls = ['<url><loc>%s/</loc><changefreq>weekly</changefreq><priority>1.0</priori
         '<url><loc>%s/sandbox.html</loc><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/cx-notes.html</loc><priority>0.6</priority></url>' % BASE_URL,
         '<url><loc>%s/cx-check.html</loc><priority>0.6</priority></url>' % BASE_URL,
+        '<url><loc>%s/cx-build.html</loc><priority>0.6</priority></url>' % BASE_URL,
         '<url><loc>%s/tools.html</loc><priority>0.8</priority></url>' % BASE_URL,
         '<url><loc>%s/socials.html</loc><priority>0.3</priority></url>' % BASE_URL]
 urls += ['<url><loc>%s/p/%s.html</loc><lastmod>%s</lastmod><priority>0.8</priority></url>'

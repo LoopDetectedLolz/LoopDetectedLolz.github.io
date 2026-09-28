@@ -161,7 +161,14 @@ body.acad .cx-line .pr{color:#ffd28a}
     var lesson = {}; try { lesson = JSON.parse(json ? json.textContent : "{}"); } catch (e) { lesson = {}; }
     if (!lesson.id) lesson.id = root.getAttribute("data-lesson") || ("sandbox-" + idx);
     var skey = "cxsim:" + location.pathname + ":" + lesson.id;
-    var saved = load(skey), sim, history = [], hi = 0, hintN = 0;
+    var saved = load(skey), sim, history = [], hi = 0, hintN = 0, muted = false, imp = null;
+    // a config handed over by the script builder (sandbox.html#lab=sandbox&import=1): the free-play switch
+    // becomes that model on that release, and the config is pasted in once the terminal is up
+    if (lesson.id === "sandbox" && /[#&]import=1/.test(location.hash)) {
+      imp = load("cxsim:import"); store("cxsim:import", null);
+      if (!imp || !imp.config || Date.now() - (imp.at || 0) > 600000) imp = null;
+      if (imp) { lesson = JSON.parse(JSON.stringify(lesson)); if (imp.model && CXSim.MODELS[imp.model]) lesson.model = imp.model; if (imp.release) lesson.release = imp.release; saved = null; store(skey, null); }
+    }
     function boot(fromSaved) { sim = CXSim.create(lesson, fromSaved && saved && saved.sim ? saved.sim : null); }
     boot(true);
 
@@ -312,7 +319,7 @@ body.acad .cx-line .pr{color:#ffd28a}
       try { r = sim.exec(cmd); } catch (e) { r = { out: "Error: " + (e.message || e), prompt: sim.prompt() }; }
       if (r.out === "__RESET__") { reset(); return; }
       var kind = errKind(r.out);
-      if (kind) track(lesson.id, "err", { cmd: cmd.trim().slice(0, 150), err: kind });
+      if (kind && !muted) track(lesson.id, "err", { cmd: cmd.trim().slice(0, 150), err: kind });
       if (/^sim connect /.test(cmd.trim())) track(lesson.id, "connect", { cmd: cmd.trim().split(/\s+/)[2] || "" });
       write(r.out, /^sim /.test(cmd.trim()) ? "sys" : classify(r.out));
       if (relSel) relSel.value = sim.sw.release;
@@ -397,6 +404,23 @@ body.acad .cx-line .pr{color:#ffd28a}
     if (saved && saved.lines) { saved.lines.forEach(function (l) { var s = el("span", l.c, l.t); out.appendChild(s); }); history = saved.history || []; hi = history.length; hintN = saved.hintN || 0; if (hintN && hintBtn && lesson.hints.length) { var d = el("div", "cx-hint"); d.appendChild(inlineCode(lesson.hints[(hintN - 1) % lesson.hints.length])); hintBox.appendChild(d); } out.scrollTop = out.scrollHeight; write("(picked up where you left off)", "sys"); }
     else { write((lesson.hostname || "switch") + " (modelled " + (CXSim.MODELS[lesson.model || "6200F-12"] || {}).name + ", " + (sim.sw && sim.sw.version || CXSim.VERSION) + ")", "sys"); write("Type ? for what is available here. sim help explains the sandbox commands.", "sys"); }
     refreshPrompt(); renderDevices();
+    if (imp) {
+      var cfgLines = String(imp.config).split("\n").filter(function (l) { return l.trim(); }), inBanner = "", skipDeeper = -1;
+      write("Pasting the script builder's config: " + cfgLines.length + " lines on a " + (CXSim.MODELS[lesson.model] || {}).name + ", " + sim.sw.version + ". The shared secret was swapped for the bench ClearPass's own.", "sys");
+      muted = true; exec("configure terminal");
+      cfgLines.forEach(function (l) {
+        var t = l.trim(), ind = l.length - l.replace(/^ +/, "").length;
+        if (inBanner) { if (t.indexOf(inBanner) >= 0) inBanner = ""; return; }
+        if (skipDeeper >= 0) { if (ind > skipDeeper) return; skipDeeper = -1; }
+        var bm = /^banner (motd|exec) (\S)$/.exec(t); if (bm) inBanner = bm[2];
+        var before = out.childNodes.length; exec(t);
+        var last = out.childNodes[out.childNodes.length - 1];
+        if (out.childNodes.length > before + 1 && last && /^This command is not used in this scenario/.test(last.textContent)) skipDeeper = ind;
+      });
+      exec("end"); muted = false;
+      write("Done. show running-config shows what took; lines the sandbox does not model said so above, and their blocks were skipped.", "sys");
+      try { window.history.replaceState(null, "", location.pathname + "#lab=sandbox"); } catch (e) {}   // `history` here is the command history
+    }
     track(lesson.id, "start", { n: saved ? 1 : 0 });
     root._cxsim = { sim: sim, exec: exec, reset: reset };
   });

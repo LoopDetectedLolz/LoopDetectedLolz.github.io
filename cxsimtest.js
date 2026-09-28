@@ -692,5 +692,43 @@ Object.keys(fixes).forEach(function (fx) {
 });
 ok(CK.check("", {}).findings.every(function (f) { return f.kind === "hardening" || f.kind === "practice"; }), "an empty paste only gets the missing-things findings");
 
+// ── the script builder ────────────────────────────────────────────────────
+section = "builder";
+var BLD = require("./theme/cxsim/builder.js");
+var FEATS = ["access", "nac", "phones", "aps", "uplink", "ubt", "mgmt", "harden"];
+var combos = [{}, { ubt: true }, { nac: false, phones: false, ubt: false }, { aps: false, uplink: false }, { harden: false, mgmt: false }, { phones: false }];
+var PORTS = { "6200F-12": { access: "1/1/1-1/1/8", aps: "1/1/9-1/1/10", uplink: "1/1/15-1/1/16" }, "6200F-24": {}, "6200F-48": { access: "1/1/1-1/1/40", aps: "1/1/41-1/1/48", uplink: "1/1/51-1/1/52" },
+  "6300M-48": { access: "1/1/1-1/1/40", aps: "1/1/41-1/1/48", uplink: "1/1/49-1/1/50" }, "6300M-24SR5": { access: "1/1/1-1/1/16", aps: "1/1/17-1/1/24", uplink: "1/1/25-1/1/26" } };
+Object.keys(PORTS).forEach(function (model) {
+  CX.releases().forEach(function (rel) {
+    combos.forEach(function (c) {
+      var f = {}; FEATS.forEach(function (k) { f[k] = c.hasOwnProperty(k) ? c[k] : BLD.DEFAULTS.features[k]; });
+      var inp = { model: model, release: rel, features: f }, pp = PORTS[model];
+      if (pp.access) { inp.access = { ports: pp.access }; inp.aps = { ports: pp.aps }; inp.uplink = { ports: pp.uplink }; }
+      var b = BLD.build(inp), tag = model + " " + rel + " " + JSON.stringify(c);
+      ok(!b.problems.length, tag + " builds without problems: " + b.problems.join(" | "));
+      if (b.problems.length) return;
+      var v = BLD.verify(b);
+      ok(!v.syntaxBad.length, tag + ": every line is " + rel + " syntax: " + v.syntaxBad.join(" | "));
+      ok(!v.engineBad.length, tag + ": the sandbox takes the pasted config: " + v.engineBad.join(" | "));
+      ok(v.syntaxOk > 10, tag + ": most lines were actually checked (" + v.syntaxOk + ")");
+    });
+  });
+});
+var bd = BLD.build({}), bv = BLD.verify(bd);
+has(bv.sim.exec("show running-config").out, "port-access device-profile APS", "the built config lands in the sandbox's running config");
+has(bv.sim.exec("show lacp aggregates").out, "lag1", "the LAG exists after the paste");
+ok(bd.blocks.every(function (bk) { return bk.why && bk.lines.length && !/[—–]| - /.test(bk.why + bk.title); }), "every block says why, without dashes");
+ok(/Replace CHANGE-ME/.test(bd.blocks.filter(function (bk) { return bk.id === "radius"; })[0].why), "no secret typed: the RADIUS block says to replace the placeholder");
+var bbad = BLD.build({ model: "6200F-12", access: { ports: "1/1/1-1/1/30" } });
+ok(bbad.problems.some(function (p) { return /is not a port on a 6200F-12/.test(p); }), "a port the model lacks is a problem: " + bbad.problems.join(" | "));
+var bover = BLD.build({ aps: { ports: "1/1/20-1/1/24" } });
+ok(bover.problems.some(function (p) { return /both a desk port and an AP port/.test(p); }), "overlapping port sets are a problem: " + bover.problems.join(" | "));
+var bnoacc = BLD.build({ features: { access: false } });
+ok(bnoacc.problems.some(function (p) { return /turn on desk ports/.test(p); }), "phones and 802.1X need desk ports: " + bnoacc.problems.join(" | "));
+var cfb = CK.check(bd.config, {});
+ok(!cfb.findings.some(function (f) { return f.sev === "error"; }), "the checker finds no errors in the builder's own output: " + cfb.findings.filter(function (f) { return f.sev === "error"; }).map(function (f) { return f.title; }).join(" | "));
+ok(!cfb.findings.some(function (f) { return f.kind === "hardening" && f.sev === "warn" && !/^(1\.1\.4|1\.3\.1)$/.test(f.cis); }), "hardening warnings left are only the ones the builder says to do by hand: " + cfb.findings.filter(function (f) { return f.kind === "hardening" && f.sev === "warn"; }).map(function (f) { return f.cis + " " + f.title; }).join(" | "));
+
 console.log((fail ? "FAILED " + fail + " of " : "passed ") + (pass + fail) + " checks");
 process.exit(fail ? 1 : 0);
