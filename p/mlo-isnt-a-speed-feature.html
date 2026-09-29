@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>When the Docs Disagree With Themselves, Somebody Has to Decide</title>
-<meta name="description" content="Three official minimum versions, a withdrawn release note, and a command renamed without a memo. How to get to a decision you can put in a change record.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/when-the-docs-disagree.html">
+<title>Wi-Fi 7 MLO Isn&#x27;t a Speed Feature. Walk Around and You&#x27;ll See Why.</title>
+<meta name="description" content="Same phone, same AP-735, same walk through the house. With MLO on the download averaged 430 Mbit/s and with it off 403. What actually changed was reconnections: none in 16 minutes with MLO on (one in a later run), 13 in 16 minutes with it off.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/mlo-isnt-a-speed-feature.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="When the Docs Disagree With Themselves, Somebody Has to Decide">
-<meta property="og:description" content="Three official minimum versions, a withdrawn release note, and a command renamed without a memo. How to get to a decision you can put in a change record.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/when-the-docs-disagree.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/when-the-docs-disagree.png">
+<meta property="og:title" content="Wi-Fi 7 MLO Isn&#x27;t a Speed Feature. Walk Around and You&#x27;ll See Why.">
+<meta property="og:description" content="Same phone, same AP-735, same walk through the house. With MLO on the download averaged 430 Mbit/s and with it off 403. What actually changed was reconnections: none in 16 minutes with MLO on (one in a later run), 13 in 16 minutes with it off.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/mlo-isnt-a-speed-feature.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/mlo-isnt-a-speed-feature.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="When the Docs Disagree With Themselves, Somebody Has to Decide">
-<meta name="twitter:description" content="Three official minimum versions, a withdrawn release note, and a command renamed without a memo. How to get to a decision you can put in a change record.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/when-the-docs-disagree.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-04"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "When the Docs Disagree With Themselves, Somebody Has to Decide", "description": "Three official minimum versions, a withdrawn release note, and a command renamed without a memo. How to get to a decision you can put in a change record.", "datePublished": "2026-09-04", "image": "https://networkfieldnotes.com/og/when-the-docs-disagree.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/when-the-docs-disagree.html", "keywords": "Process, Documentation, AOS-CX"}</script>
+<meta name="twitter:title" content="Wi-Fi 7 MLO Isn&#x27;t a Speed Feature. Walk Around and You&#x27;ll See Why.">
+<meta name="twitter:description" content="Same phone, same AP-735, same walk through the house. With MLO on the download averaged 430 Mbit/s and with it off 403. What actually changed was reconnections: none in 16 minutes with MLO on (one in a later run), 13 in 16 minutes with it off.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/mlo-isnt-a-speed-feature.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-29"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Wi-Fi 7 MLO Isn't a Speed Feature. Walk Around and You'll See Why.", "description": "Same phone, same AP-735, same walk through the house. With MLO on the download averaged 430 Mbit/s and with it off 403. What actually changed was reconnections: none in 16 minutes with MLO on (one in a later run), 13 in 16 minutes with it off.", "datePublished": "2026-09-29", "image": "https://networkfieldnotes.com/og/mlo-isnt-a-speed-feature.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/mlo-isnt-a-speed-feature.html", "keywords": "Wireless, Wi-Fi 7, AOS-10, MLO"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -552,126 +552,339 @@ html.qam-fs .rig{display:none}
 <div class="narrow">
   <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
-    <header class="post-head g-hero cat-Docs" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag " href="../index.html#cat=Docs" title="All Docs posts">Docs</a><span class="meta">Sep 4, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">When the Docs Disagree With Themselves, Somebody Has to Decide</h1>
+    <header class="post-head g-hero cat-Lab" data-view="zoom">
+      <div class="row" style="margin:0"><a class="tag c-red" href="../index.html#cat=Lab" title="All Lab posts">Lab</a><span class="meta">Sep 29, 2026 &#183; 13 min</span></div>
+      <h1 class="h-hero">Wi-Fi 7 MLO Isn&#x27;t a Speed Feature. Walk Around and You&#x27;ll See Why.</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Order of trust when vendor documentation contradicts itself">
-  <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
-  </style></defs>
-  <text x="30" y="36" class="t eyebrow">THREE OFFICIAL ANSWERS, NONE OF THEM DATED</text>
-  <text x="30" y="66" class="t big">Trust the artifact whose job is to answer your exact question.</text>
-  <g class="t" font-size="13">
-    <g transform="translate(30,92)">
-      <rect width="840" height="30" rx="6" fill="#8CE05E"/><text x="14" y="20" fill="#06202A" font-weight="700">The box itself</text><text x="826" y="20" text-anchor="end" fill="#06202A">tab completion beats every web page, including this one</text>
-    </g>
-    <g transform="translate(30,127)">
-      <rect width="760" height="30" rx="6" fill="#5ED2DA"/><text x="14" y="20" fill="#06202A" font-weight="700">Release notes: Products Supported, Upgrade information</text><text x="746" y="20" text-anchor="end" fill="#06202A">built to answer version questions</text>
-    </g>
-    <g transform="translate(30,162)">
-      <rect width="680" height="30" rx="6" fill="#4FBDEA"/><text x="14" y="20" fill="#06202A" font-weight="700">Command History table on a CLI page</text><text x="666" y="20" text-anchor="end" fill="#06202A">the only CLI changelog there is</text>
-    </g>
-    <g transform="translate(30,197)">
-      <rect width="580" height="30" rx="6" fill="#5ED2DA"/><text x="14" y="20" fill="#06202A" font-weight="700">Command page prose</text><text x="566" y="20" text-anchor="end" fill="#06202A">demonstrably lags renames</text>
-    </g>
-    <g transform="translate(30,232)">
-      <rect width="480" height="30" rx="6" fill="#8BA2AE"/><text x="14" y="20" fill="#06202A" font-weight="700">Feature and config guides</text><text x="466" y="20" text-anchor="end" fill="#06202A">good on concepts, slow on specifics</text>
-    </g>
-    <g transform="translate(30,267)">
-      <rect width="380" height="30" rx="6" fill="#8BA2AE"/><text x="14" y="20" fill="#06202A" font-weight="700">Datasheets and marketing</text><text x="366" y="20" text-anchor="end" fill="#06202A">written to sell</text>
-    </g>
-    <g transform="translate(30,302)">
-      <rect width="280" height="30" rx="6" fill="#8BA2AE"/><text x="14" y="20" fill="#EAF2F6" font-weight="700">A forum post. Mine included.</text>
-    </g>
-  </g>
-  <text x="440" y="322" class="t lbl">allow-unsafe-updates became allow-non-failsafe-updates at 10.15.1010.</text>
-  <text x="440" y="336" class="t lbl">Nobody sent a memo. The URL still has the old name.</text>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Two 16-minute timelines for the same phone on the same AP-735. With MLO off the phone switches between the 6 GHz and 5 GHz radios 13 times, each switch a full reassociation, including 8 seconds with no data early in the run. With MLO on it holds one association with links on 6 and 5 GHz for the whole 16 minutes.">
+<text x="24" y="36" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="700" letter-spacing="1.6" fill="#8CE05E">WI-FI 7 BENCH · SAME PHONE · SAME AP-735 · AOS-10 10.8.1.0</text>
+<text x="24" y="66" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="22" font-weight="600" fill="#fff">MLO off: 13 reconnections in 16 minutes. MLO on: none.</text>
+<rect x="20" y="92" width="862" height="106" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<rect x="20" y="206" width="862" height="62" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<rect x="200.0" y="100" width="201.6" height="90" rx="6" fill="rgba(79,189,234,0.08)"/>
+<text x="206.0" y="112" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" fill="#8BA2AE">walk, download running</text>
+<text x="411.8" y="112" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" fill="#8BA2AE">back at the desk, sitting still</text>
+<text x="34" y="138" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="15" font-weight="700" fill="#EAF2F6">MLO off</text>
+<text x="34" y="150" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" fill="#B0C4CF">13 reconnections</text>
+<text x="34" y="242" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="15" font-weight="700" fill="#EAF2F6">MLO on</text>
+<text x="34" y="258" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" fill="#B0C4CF">0 reconnections</text>
+<text x="192" y="132" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" fill="#8BA2AE">6 GHz</text>
+<text x="192" y="168" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" fill="#8BA2AE">5 GHz</text>
+<line x1="200" y1="128" x2="872" y2="128" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+<line x1="200" y1="164" x2="872" y2="164" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+<line x1="200.0" y1="128" x2="213.9" y2="128" stroke="#5ED2DA" stroke-width="2.5"/>
+<line x1="213.9" y1="128" x2="219.3" y2="128" stroke="#8BA2AE" stroke-width="2" stroke-dasharray="2 3"/>
+<path d="M219.3,128 H247.2 V164 H402.8 V128 H466.8 V164 H527.9 V128 H554.3 V164 H576.3 V128 H605.2 V164 H626.0 V128 H705.8 V164 H751.0 V128 H841.5 V164 H862.2 V128 H872.0" fill="none" stroke="#5ED2DA" stroke-width="2.5" stroke-linejoin="round"/>
+<circle cx="216.7" cy="128" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<circle cx="247.2" cy="164" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<circle cx="402.8" cy="128" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<circle cx="466.8" cy="164" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<circle cx="527.9" cy="128" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<circle cx="554.3" cy="164" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<circle cx="576.3" cy="128" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<circle cx="605.2" cy="164" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<circle cx="626.0" cy="128" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<circle cx="705.8" cy="164" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<circle cx="751.0" cy="128" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<circle cx="841.5" cy="164" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<circle cx="862.2" cy="128" r="4.5" fill="#4FBDEA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="206.0" y="185" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" fill="#B0C4CF">8 s with no data around the first rejoin</text>
+<rect x="610.1" y="214" width="203.6" height="46" rx="6" fill="rgba(79,189,234,0.08)"/>
+<text x="616.1" y="226" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" fill="#8BA2AE">walk, download running</text>
+<rect x="200.0" y="233" width="649.6" height="10" rx="5" fill="#8CE05E"/>
+<text x="206.0" y="226" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" fill="#8BA2AE">one association the whole time, links on 6 and 5 GHz</text>
+<line x1="200" y1="282" x2="872" y2="282" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+<line x1="200.0" y1="278" x2="200.0" y2="286" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<text x="200.0" y="299" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" fill="#8BA2AE">0</text>
+<line x1="362.9" y1="278" x2="362.9" y2="286" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<text x="362.9" y="299" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" fill="#8BA2AE">4</text>
+<line x1="525.8" y1="278" x2="525.8" y2="286" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<text x="525.8" y="299" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" fill="#8BA2AE">8</text>
+<line x1="688.7" y1="278" x2="688.7" y2="286" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<text x="688.7" y="299" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" fill="#8BA2AE">12</text>
+<line x1="851.6" y1="278" x2="851.6" y2="286" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<text x="851.6" y="299" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" fill="#8BA2AE">16 min</text>
+<text x="24" y="324" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" fill="#8BA2AE">Every dot is a full reassociation from the AP's own auth trace. Two 16-minute windows, iPhone 18 Pro Max on one AP-735.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>Chasing a CX 8100 minimum version and finding three answers</div>
-      <div class="prose"><p>Most of the time I lose to documentation, I don't lose because the answer is hard. I lose because there are three answers, they're all official, and none of them is dated.</p>
-<p>This post isn't about a product. It's about what to do when the vendor's own material contradicts itself, which happens more than anybody admits, and how to get to a decision you can actually put in a change record.</p>
-<h2>Three sources, three minimum versions</h2>
-<p>Chasing the minimum software version for a CX 8100 taught me this one properly. Depending on where you looked, you got a different floor. Product documentation, a datasheet and the release notes did not agree, and every one of them was published by the same vendor.</p>
-<p>The answer that held up was 10.12.0001, and the reason it held up is where it came from: the Products Supported table inside the release notes, listing the actual SKUs. R9W94A, R9W95A, R9W96A, R9W97A. Not a datasheet, not a "what's new" page. The table that exists specifically to say which hardware this build runs on.</p>
-<p><strong>That's the general rule, and it's the whole method: trust the artifact whose job is to answer your exact question.</strong> A release note's Products Supported table exists to tell you what's supported. A datasheet exists to sell you a switch. When they disagree, it isn't a coin flip.</p>
-<p>Same trip taught me a second thing, and I'll own that I had it backwards the first time I wrote it up. The 10.13 release notes for the 8100 and 8360 do set a floor on where you can come from: to upgrade to 10.13 your switch has to be on 10.10.0002 or later, and there's a separate line saying don't do it through the REST API or the web UI unless you're on 10.09.1060 or 10.10.1020 or later. 10.12.0006 clears both, so going straight to 10.13 is inside the documented envelope. That's the actual point: read the real constraint instead of inventing a four-step ladder out of superstition. And note where it lives. It's under Important information, not under the section titled Upgrade information.</p>
-<h2>The restriction that only applies to how you are doing it</h2>
-<p>A newer one, from the 8360 notes. Going to 10.16.1060 looks like it has a floor on where you can come from: 10.09.1060 or 10.10.1020 and later. Read the sentence properly and that floor only applies when the upgrade is kicked off from the REST API or the WebUI. The page puts no source-version restriction on the CLI path at all.</p>
-<p>Two engineers read the same Upgrade information section. One plans a staging hop that costs an extra window. Both of them think they read it carefully. The version floor was not the answer on its own. The version floor plus the method was.</p>
-<p>So I read upgrade sections looking for the qualifier before I read the numbers. Which platforms, which method, which direction. Most version advice that turns out to be wrong was correct for a case that was not yours.</p>
-<h2>Sometimes the source just leaves</h2>
-<p>While I was working that same question I went looking for the 10.12.0006 release notes and hit a wall, and the shape of that wall is worth describing precisely because I got it slightly wrong the first time I wrote it up. The support portal's own software entry for 10.12.0006 on the 8100 and 8360 links to a release notes PDF on the public doc site. That link is a real 404 in a real browser. The notes for that specific build are gone. But the 10.12 train isn't: the later 10.12.1000 through 10.12.1050 notes for the same platforms are sitting on the support portal as downloads, behind a login, and they never were on the public site as far as I can tell.</p>
-<p>This is worth knowing because the natural reaction is to assume you're searching wrong and spend another twenty minutes proving you're not. You're not. Individual release notes get withdrawn, the download page keeps pointing at where they used to be, and the newer ones live somewhere that a search engine can't see. There's no notice for any of that.</p>
-<p>When your source has been withdrawn, you don't get to cite it. Say so plainly in the change record: the release notes for this version are no longer published, here's the adjacent version's guidance and here's why I think it applies. That's a defensible position. Pretending you read a document that isn't there is not. And check the support portal before you conclude a document doesn't exist at all; the login-gated copy is often the only copy.</p>
-<h2>A command got renamed and nobody sent a memo</h2>
-<p>Here's my favorite one, because it's small and it's perfect.</p>
-<p><code>allow-unsafe-updates</code> became <code>allow-non-failsafe-updates</code> at 10.15.1010. You find that out from the Command History table on the command page, which is the only place it's recorded. There's no deprecation note, no warning, nothing in the upgrade guidance telling you a command in your scripts changed spelling.</p>
-<p>It gets better. The doc page for the new name still lives at a URL ending in the old name. And two releases later, the 10.16 and 10.17 pages for <code>show front-panel-security status</code> on the 6300 and 6400 are still written using the old command name. That's a confirmed documentation bug, and if you'd only read that page you'd have walked away with the wrong command and no idea.</p>
-<p>So: <strong>when a command doesn't behave the way a doc page says, check the Command History table before you check your own sanity.</strong> That table is the closest thing AOS-CX has to a changelog for CLI syntax, and it's the first place I go now.</p>
-<p>Whether the old spelling still parses on a current build is undocumented in both directions, which means the only honest answer is the one you get from the box. Tab completion and <code>?</code> on the actual switch beat every page on the internet including this one. (The command takes a timeout in minutes, and its 120 minute ceiling is documented right on the command page. That one you can just cite.)</p>
-<h2>When the doc site itself is the obstacle</h2>
-<p>A practical one that costs real time. Deep links into the AOS-8 consolidated release notes now redirect to the support.hpe.com WebHelp shell and quietly drop the anchor, so you land on the index instead of the page you wanted. Automated fetching doesn't work either: the techdocs host 403s anything that isn't a browser, and the support.hpe.com WebHelp answers a scripted request with a 200 and an empty JavaScript shell.</p>
-<p>There's no clever way around it. You walk the table of contents by hand: version, then maintenance release, then Resolved Issues. It's slow and it works, and knowing it's slow ahead of time is better than concluding the page is gone.</p>
-<p>The payoff for walking it manually is real, though. That's how the actual cause of the AOS-8 to AOS-10 pre-validate failure turned up: AOS-253282, AOS-253299 and AOS-252424, resolved in 8.10.0.11, an image conversion failure that hits when Central is using an IPv6 address. Everyone chasing that symptom blames DNS. It isn't DNS. It was sitting in a Resolved Issues list that a search engine can't reach.</p>
-<h2>How I decide now</h2>
-<p>Nothing fancy. Rough order of trust, top to bottom:</p>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Three days on the home lab bench with an AP-735, an iPhone 18 Pro Max and iperf3</div>
+      <div class="prose"><h2>Why I'm writing this</h2>
+<p>Every Wi-Fi 7 deck has the same slide. A phone, two bands, both lit up, and a number with "Gbps" after it. MLO is the feature doing the heavy lifting on that slide.</p>
+<p>So I put the newest phone I could get on the Wi-Fi 7 AP on my bench and ran it the boring way: one setting at a time, iperf3 instead of a speed test, then a walk around the house with a download running, MLO on and MLO off.</p>
+<p>Same route, same stops, five minutes each. MLO on averaged 430 Mbit/s. MLO off averaged 403. That's a tie. The number that did move was reconnections. In 16 minutes with MLO on, the phone never reconnected (a later run wasn't quite that clean, more on that below). In 16 minutes with it off, it reconnected 13 times, ten of them in one stretch at my desk that I couldn't make happen again the next night.</p>
+<h2>The bench</h2>
+<p>An AP-735 on AOS-10 10.8.1.0, managed from Central, with a test SSID on all three bands: 6 GHz at 160 MHz, 5 GHz at 80, 2.4 at 20. An iPhone 18 Pro Max on iOS 27, which is Wi-Fi 7 with two spatial streams and 160 MHz channels at most, so its best case on 6 GHz is 2402 Mbit/s on paper. The AP hangs off a 1G switch port and the iperf3 server is a desktop wired to the same switch, so anything over about 940 Mbit/s is the cable talking, not the air. Keep that number in your head. It matters later.</p>
+<p>I started with Speedtest and gave up on it after three rungs. Most runs landed between 650 and 745 down and 38 to 39 up no matter what I changed, because something upstream of the Wi-Fi, most likely the ISP, was the bottleneck. A speed test that reads the same whatever you do is a very consistent way to learn nothing.</p>
+<h2>The ladder</h2>
+<p>Here's the climb, one change at a time, and what the AP actually did about each one. That column comes from <code>show ap bss-table</code> and <code>show ap association</code> on the AP, not from Central's banner.</p>
 <table>
 <thead>
 <tr>
-<th>Source</th>
-<th>Weight</th>
-<th>Why</th>
+<th>Rung</th>
+<th>What I set</th>
+<th>What the AP actually did</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>The box itself</td>
-<td>Highest</td>
-<td>It's the only thing that can't be out of date</td>
+<td>0</td>
+<td>My house SSID, WPA2 with MPSK</td>
+<td>Wi-Fi 6 at 80 MHz on 5 GHz. A Wi-Fi 7 phone on a Wi-Fi 7 AP with a Wi-Fi 6 connection</td>
 </tr>
 <tr>
-<td>Release note Products Supported / Upgrade sections</td>
-<td>High</td>
-<td>Purpose-built to answer version questions</td>
+<td>1</td>
+<td>Test SSID on WPA2, 11be ticked</td>
+<td>Central refused to save it with 6 GHz on. With 6 GHz off it saved, and the AP ran the SSID as Wi-Fi 6 with no MLD anyway</td>
 </tr>
 <tr>
-<td>Command History table on a CLI page</td>
-<td>High</td>
-<td>The only CLI changelog there is</td>
+<td>2</td>
+<td>WPA3 Personal (transition mode on), 11be on, MLO off</td>
+<td>Wi-Fi 7 on each band as its own BSS. The phone took 6 GHz at 160 MHz, then reassociated between 5 and 6 GHz in the middle of a test</td>
 </tr>
 <tr>
-<td>Command page prose</td>
-<td>Medium</td>
-<td>Demonstrably lags renames</td>
+<td>3</td>
+<td>MLO on</td>
+<td>One MLD across all three bands. The phone joined with links on 6 and 5 GHz and held one association through the first test</td>
 </tr>
 <tr>
-<td>Feature and config guides</td>
-<td>Medium</td>
-<td>Good on concepts, slow on specifics</td>
+<td>4</td>
+<td>802.11r on, MLO still on</td>
+<td>Central said "Configured Successfully." The AP-735 kept MLO and left 11r off. The Wi-Fi 6E AP-635 in the same group turned 11r on</td>
 </tr>
 <tr>
-<td>Datasheets, quick specs, marketing</td>
-<td>Low</td>
-<td>Not written to answer your question</td>
-</tr>
-<tr>
-<td>A forum post, mine included</td>
-<td>Low</td>
-<td>Useful lead, not a citation</td>
+<td>5</td>
+<td>802.11r on, MLO off (Monday night)</td>
+<td>The <code>r</code> flag came on for all three BSSs. Every time I flipped 11r, the push knocked my phone off and it stumbled getting back. More in the gotchas</td>
 </tr>
 </tbody>
 </table>
-<p>And two habits that have saved me more than the table has. Write down which source you used and when, because "the docs said so" is not a defense when the docs have since changed. And when the sources genuinely conflict and you can't test it, say that out loud in the change record instead of picking the convenient one quietly.</p>
+<p>Rungs 1, 4 and 5 are the ones that'll bite somebody, and none of them warns you about the part that matters. You find out from the BSS table flags or you don't find out.</p>
+<h2>Standing still</h2>
+<p>Three feet from the AP, iperf3, five streams, 30 seconds a run:</p>
+<table>
+<thead>
+<tr>
+<th>At 3 ft</th>
+<th>MLO on</th>
+<th>MLO off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Download</td>
+<td>866 and 839 Mbit/s</td>
+<td>782 Mbit/s</td>
+</tr>
+<tr>
+<td>Upload</td>
+<td>611 and 477 Mbit/s</td>
+<td>750 Mbit/s</td>
+</tr>
+</tbody>
+</table>
+<p>Two runs one way, one the other, all under a 1G ceiling. That's too few runs to call anything, and half the differences point the wrong way for the brochure. Standing still, MLO bought me nothing, and I wouldn't expect it to. One good link can already fill that cable.</p>
+<h2>The walk</h2>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 460" role="img" aria-label="Schematic of the walk route, not a floor plan. The AP-735 and the desk are together. From the desk the route goes to the laundry room 41 feet from the AP, then the hall 35 feet, the living room by the stairs 22 feet, the entry 22 feet, the dining room 23 feet, and back to the desk, with 20 seconds at each stop. Rings mark 10, 20, 30 and 40 feet from the AP.">
+<defs><marker id="rarr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker><clipPath id="rclip"><rect x="16" y="16" width="566" height="428" rx="12"/></clipPath></defs>
+<rect x="16" y="16" width="566" height="428" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<g clip-path="url(#rclip)">
+<circle cx="330" cy="368" r="80.0" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="374.0" y="295.7" text-anchor="start" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">10 ft</text>
+<circle cx="330" cy="368" r="160.0" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="414.0" y="226.4" text-anchor="start" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">20 ft</text>
+<circle cx="330" cy="368" r="240.0" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="454.0" y="157.2" text-anchor="start" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">30 ft</text>
+<circle cx="330" cy="368" r="320.0" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="494.0" y="87.9" text-anchor="start" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">40 ft</text>
+</g>
+<line x1="303.9" y1="371.7" x2="361.5" y2="60.5" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rarr)"/>
+<line x1="352.3" y1="53.6" x2="310.1" y2="84.2" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rarr)"/>
+<line x1="292.2" y1="107.7" x2="261.8" y2="193.3" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rarr)"/>
+<line x1="245.0" y1="218.1" x2="205.4" y2="252.0" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rarr)"/>
+<line x1="190.2" y1="277.1" x2="162.8" y2="411.5" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rarr)"/>
+<line x1="174.0" y1="423.0" x2="285.8" y2="390.8" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rarr)"/>
+<rect x="317" y="355" width="26" height="26" rx="7" fill="#8CE05E"/><text x="330.0" y="372.0" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="700" fill="#06202A">AP</text>
+<text x="350.0" y="388.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="700" fill="#EAF2F6">AP-735</text>
+<circle cx="301.2" cy="386.4" r="11" fill="#5ED2DA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="301.2" y="390.4" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#06202A">S</text>
+<text x="285.2" y="390.4" text-anchor="end" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">desk</text>
+<circle cx="159.6" cy="427.2" r="11" fill="#5ED2DA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="159.6" y="431.2" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#06202A">1</text>
+<text x="143.6" y="431.2" text-anchor="end" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">dining</text>
+<circle cx="193.2" cy="262.4" r="11" fill="#5ED2DA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="193.2" y="266.4" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#06202A">2</text>
+<text x="177.2" y="266.4" text-anchor="end" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">entry</text>
+<circle cx="256.4" cy="208.4" r="11" fill="#5ED2DA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="256.4" y="212.4" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#06202A">3</text>
+<text x="272.4" y="212.4" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">living room</text>
+<circle cx="297.2" cy="93.6" r="11" fill="#5ED2DA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="297.2" y="97.6" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#06202A">4</text>
+<text x="313.2" y="97.6" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">hall</text>
+<circle cx="364.4" cy="44.8" r="11" fill="#5ED2DA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="364.4" y="48.8" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#06202A">5</text>
+<text x="380.4" y="48.8" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">laundry</text>
+<text x="606.0" y="44.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="700" fill="#8CE05E">THE ROUTE</text>
+<circle cx="615" cy="72" r="9" fill="#5ED2DA"/><text x="615.0" y="76.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">S</text>
+<text x="632.0" y="76.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">Desk, 4 ft from the AP. Start here</text>
+<circle cx="615" cy="102" r="9" fill="#5ED2DA"/><text x="615.0" y="106.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">5</text>
+<text x="632.0" y="106.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#EAF2F6">Laundry room, 41 ft</text>
+<circle cx="615" cy="132" r="9" fill="#5ED2DA"/><text x="615.0" y="136.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">4</text>
+<text x="632.0" y="136.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#EAF2F6">Hall to the laundry, 35 ft</text>
+<circle cx="615" cy="162" r="9" fill="#5ED2DA"/><text x="615.0" y="166.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">3</text>
+<text x="632.0" y="166.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#EAF2F6">Living room by the stairs, 22 ft</text>
+<circle cx="615" cy="192" r="9" fill="#5ED2DA"/><text x="615.0" y="196.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">2</text>
+<text x="632.0" y="196.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#EAF2F6">Entry, 22 ft</text>
+<circle cx="615" cy="222" r="9" fill="#5ED2DA"/><text x="615.0" y="226.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">1</text>
+<text x="632.0" y="226.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#EAF2F6">Dining room, 23 ft</text>
+<circle cx="615" cy="252" r="9" fill="#5ED2DA"/><text x="615.0" y="256.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">S</text>
+<text x="632.0" y="256.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">Back to the desk</text>
+<text x="606.0" y="294.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#8BA2AE">20 seconds at each stop, about 1.5 ft</text>
+<text x="606.0" y="312.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#8BA2AE">a second between them. Five minutes of</text>
+<text x="606.0" y="330.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#8BA2AE">iperf3 download, SSID pinned to this</text>
+<text x="606.0" y="348.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#8BA2AE">one AP so the phone had nowhere else</text>
+<text x="606.0" y="366.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#8BA2AE">to go.</text>
+</svg><figcaption>The route. Start the download at the desk, walk to the laundry room, then four more stops at 20 seconds each and back to the desk. Distances are straight lines from the AP.</figcaption></figure>
+<p>Download running, five streams, five minutes. Start at the desk, walk to the laundry room, 41 feet and a few walls from the AP, then four more stops at 20 seconds each, and back. I pinned the SSID to the AP-735 for this. On my first walk, with MLO on and the SSID on all three APs, the phone let go of the 735 for at least 40 seconds, and I couldn't tell you where it went. Unpinned, you're measuring roaming. That's a different post.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 572" role="img" aria-label="Two charts of iperf3 download throughput per second over five minutes. Top: the same walk with MLO on and MLO off; the averages are close, MLO off has eight seconds at zero early in the walk and a one second dip when it moves to 5 GHz, MLO on has a single zero second. Bottom: a later MLO on walk to the laundry room and back, with a strip underneath showing the 6 GHz link carrying the download at the desk, a full reconnect near the desk, the traffic moving to the 5 GHz link at the far end, and staying on 5 GHz back at the desk.">
+<text x="24.0" y="24.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="14" font-weight="700" fill="#EAF2F6">Same route, same stops: MLO on and MLO off</text>
+<line x1="64" y1="42" x2="86" y2="42" stroke="#8CE05E" stroke-width="2.5"/><text x="92.0" y="46.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">MLO on, average 430 Mbit/s</text>
+<line x1="294" y1="42" x2="316" y2="42" stroke="#4FBDEA" stroke-width="2.5"/><text x="322.0" y="46.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">MLO off, average 403 Mbit/s</text>
+<text x="880.0" y="46.0" text-anchor="end" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#8BA2AE">iperf3 download, 5 streams, Mbit/s each second</text>
+<rect x="126.6" y="62" width="21.8" height="180" fill="rgba(245,165,36,0.20)"/>
+<line x1="64" y1="197.0" x2="880" y2="197.0" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+<text x="56.0" y="201.0" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">250</text>
+<line x1="64" y1="152.0" x2="880" y2="152.0" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+<text x="56.0" y="156.0" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">500</text>
+<line x1="64" y1="107.0" x2="880" y2="107.0" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+<text x="56.0" y="111.0" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">750</text>
+<line x1="64" y1="62.0" x2="880" y2="62.0" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+<text x="56.0" y="66.0" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">1000</text>
+<line x1="64" y1="242.0" x2="880" y2="242.0" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+<text x="56.0" y="246.0" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">0</text>
+<line x1="64" y1="72.8" x2="880" y2="72.8" stroke="#8BA2AE" stroke-width="1" stroke-dasharray="4 4" opacity="0.7"/>
+<text x="880.0" y="68.8" text-anchor="end" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#8BA2AE">1G wire, about 940</text>
+<polyline points="65.4,88.6 68.1,89.0 70.8,94.8 73.5,135.1 76.2,133.6 79.0,121.2 81.7,120.9 84.4,116.4 87.1,127.2 89.8,131.1 92.6,88.8 95.3,85.9 98.0,89.9 100.7,89.7 103.4,86.5 106.2,89.2 108.9,95.5 111.6,82.7 114.3,82.2 117.0,89.4 119.8,112.8 122.5,94.9 125.2,110.6 127.9,117.4 130.6,103.0 133.4,116.7 136.1,106.1 138.8,118.9 141.5,104.5 144.2,106.1 147.0,104.1 149.7,110.2 152.4,111.1 155.1,112.9 157.8,110.4 160.6,92.6 163.3,105.2 166.0,108.6 168.7,108.6 171.4,98.0 174.2,107.7 176.9,108.8 179.6,100.3 182.3,101.6 185.0,107.9 187.8,108.1 190.5,94.0 193.2,103.8 195.9,89.9 198.6,87.7 201.4,74.1 204.1,72.6 206.8,81.8 209.5,111.1 212.2,116.0 215.0,125.7 217.7,127.0 220.4,99.6 223.1,111.3 225.8,111.5 228.6,101.4 231.3,100.0 234.0,108.6 236.7,112.9 239.4,103.6 242.2,107.0 244.9,114.6 247.6,107.9 250.3,107.7 253.0,117.4 255.8,119.8 258.5,109.0 261.2,119.4 263.9,120.7 266.6,184.0 269.4,203.7 272.1,192.9 274.8,198.6 277.5,224.8 280.2,234.6 283.0,214.3 285.7,214.5 288.4,169.1 291.1,179.7 293.8,186.2 296.6,184.4 299.3,194.8 302.0,194.5 304.7,186.4 307.4,195.9 310.2,202.0 312.9,214.5 315.6,212.1 318.3,213.0 321.0,194.3 323.8,226.0 326.5,232.4 329.2,239.7 331.9,222.0 334.6,197.7 337.4,192.1 340.1,185.5 342.8,174.0 345.5,220.0 348.2,199.5 351.0,212.7 353.7,215.7 356.4,208.2 359.1,211.0 361.8,202.4 364.6,208.5 367.3,187.3 370.0,232.6 372.7,222.7 375.4,239.9 378.2,199.9 380.9,235.4 383.6,237.8 386.3,208.5 389.0,201.7 391.8,190.7 394.5,190.2 397.2,217.0 399.9,216.4 402.6,195.4 405.4,193.4 408.1,183.9 410.8,188.4 413.5,182.2 416.2,202.2 419.0,204.7 421.7,210.7 424.4,242.0 427.1,208.9 429.8,187.8 432.6,187.6 435.3,200.8 438.0,193.2 440.7,187.8 443.4,167.3 446.2,168.4 448.9,162.1 451.6,159.2 454.3,170.9 457.0,179.5 459.8,184.4 462.5,181.5 465.2,210.5 467.9,208.9 470.6,180.4 473.4,225.9 476.1,233.5 478.8,237.5 481.5,238.0 484.2,220.0 487.0,213.0 489.7,208.3 492.4,223.8 495.1,220.9 497.8,207.3 500.6,214.1 503.3,212.1 506.0,211.2 508.7,210.1 511.4,211.4 514.2,213.6 516.9,217.0 519.6,212.7 522.3,213.7 525.0,209.6 527.8,215.0 530.5,215.0 533.2,216.1 535.9,222.7 538.6,207.1 541.4,202.0 544.1,205.6 546.8,222.0 549.5,215.4 552.2,210.9 555.0,213.2 557.7,218.6 560.4,220.9 563.1,219.1 565.8,222.0 568.6,222.0 571.3,213.4 574.0,206.2 576.7,183.9 579.4,172.9 582.2,166.8 584.9,161.7 587.6,175.4 590.3,163.2 593.0,188.4 595.8,178.5 598.5,178.6 601.2,161.0 603.9,163.0 606.6,170.5 609.4,180.3 612.1,175.9 614.8,189.1 617.5,204.7 620.2,183.9 623.0,175.6 625.7,163.3 628.4,181.2 631.1,184.2 633.8,183.1 636.6,181.5 639.3,195.0 642.0,182.4 644.7,188.4 647.4,190.5 650.2,219.3 652.9,220.2 655.6,208.9 658.3,213.4 661.0,201.9 663.8,187.8 666.5,187.1 669.2,188.2 671.9,181.0 674.6,190.5 677.4,181.9 680.1,183.9 682.8,206.5 685.5,192.5 688.2,188.5 691.0,210.7 693.7,205.5 696.4,193.0 699.1,204.2 701.8,208.9 704.6,210.5 707.3,209.8 710.0,184.0 712.7,183.0 715.4,222.7 718.2,182.2 720.9,184.4 723.6,186.0 726.3,175.6 729.0,158.7 731.8,192.7 734.5,186.7 737.2,181.2 739.9,182.8 742.6,183.1 745.4,197.5 748.1,181.0 750.8,201.1 753.5,196.3 756.2,194.5 759.0,186.6 761.7,187.6 764.4,178.6 767.1,150.0 769.8,161.5 772.6,151.3 775.3,150.6 778.0,151.6 780.7,161.0 783.4,152.2 786.2,158.1 788.9,135.1 791.6,141.9 794.3,134.4 797.0,137.2 799.8,134.5 802.5,112.0 805.2,90.8 807.9,112.8 810.6,102.9 813.4,95.1 816.1,80.2 818.8,85.9 821.5,108.6 824.2,116.2 827.0,105.6 829.7,80.9 832.4,112.2 835.1,127.7 837.8,97.3 840.6,102.5 843.3,111.1 846.0,117.8 848.7,113.3 851.4,74.8 854.2,93.0 856.9,99.4 859.6,113.5 862.3,109.3 865.0,120.3 867.8,116.0 870.5,108.8 873.2,101.2 875.9,129.5 878.6,132.4" fill="none" stroke="#8CE05E" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="65.4,77.1 68.1,88.1 70.8,87.9 73.5,91.2 76.2,80.4 79.0,89.2 81.7,90.3 84.4,90.3 87.1,90.8 89.8,95.1 92.6,89.0 95.3,88.8 98.0,86.8 100.7,89.7 103.4,87.6 106.2,80.4 108.9,87.2 111.6,86.5 114.3,89.5 117.0,88.3 119.8,88.1 122.5,87.4 125.2,192.3 127.9,242.0 130.6,242.0 133.4,242.0 136.1,242.0 138.8,242.0 141.5,242.0 144.2,242.0 147.0,242.0 149.7,231.8 152.4,150.9 155.1,122.5 157.8,123.7 160.6,163.3 163.3,181.7 166.0,112.4 168.7,120.7 171.4,110.8 174.2,101.1 176.9,109.0 179.6,208.5 182.3,100.9 185.0,100.0 187.8,102.9 190.5,128.2 193.2,127.2 195.9,92.1 198.6,94.8 201.4,95.3 204.1,96.4 206.8,93.1 209.5,93.9 212.2,93.1 215.0,90.6 217.7,91.9 220.4,92.6 223.1,83.8 225.8,88.5 228.6,93.5 231.3,91.0 234.0,128.4 236.7,116.9 239.4,120.5 242.2,147.0 244.9,205.5 247.6,162.4 250.3,162.1 253.0,187.3 255.8,181.0 258.5,236.3 261.2,202.2 263.9,191.4 266.6,177.6 269.4,159.9 272.1,150.6 274.8,156.5 277.5,184.9 280.2,179.0 283.0,182.4 285.7,179.2 288.4,168.6 291.1,163.2 293.8,163.7 296.6,161.2 299.3,183.1 302.0,171.4 304.7,179.2 307.4,182.2 310.2,179.2 312.9,162.4 315.6,163.0 318.3,183.0 321.0,188.9 323.8,176.5 326.5,171.1 329.2,180.6 331.9,184.0 334.6,186.2 337.4,182.2 340.1,183.7 342.8,177.2 345.5,191.6 348.2,205.6 351.0,196.6 353.7,180.8 356.4,195.4 359.1,192.3 361.8,184.2 364.6,188.5 367.3,189.8 370.0,181.0 372.7,179.4 375.4,177.0 378.2,182.8 380.9,183.9 383.6,177.6 386.3,183.1 389.0,182.4 391.8,177.9 394.5,169.3 397.2,157.8 399.9,171.4 402.6,180.3 405.4,185.5 408.1,178.6 410.8,183.7 413.5,176.7 416.2,175.8 419.0,184.6 421.7,178.5 424.4,196.8 427.1,197.9 429.8,192.1 432.6,191.2 435.3,179.0 438.0,181.5 440.7,179.0 443.4,160.8 446.2,160.6 448.9,157.2 451.6,156.1 454.3,154.9 457.0,152.9 459.8,154.3 462.5,156.7 465.2,159.9 467.9,162.8 470.6,153.6 473.4,152.4 476.1,149.8 478.8,158.5 481.5,161.7 484.2,158.7 487.0,154.2 489.7,153.1 492.4,164.8 495.1,152.2 497.8,148.0 500.6,165.5 503.3,173.2 506.0,197.2 508.7,215.7 511.4,237.7 514.2,222.6 516.9,227.7 519.6,228.2 522.3,233.7 525.0,233.5 527.8,218.1 530.5,221.8 533.2,210.5 535.9,219.0 538.6,214.3 541.4,216.3 544.1,217.0 546.8,217.9 549.5,210.1 552.2,219.1 555.0,229.7 557.7,221.7 560.4,214.8 563.1,215.9 565.8,218.1 568.6,217.0 571.3,221.5 574.0,213.2 576.7,218.2 579.4,215.5 582.2,214.3 584.9,226.9 587.6,224.3 590.3,209.2 593.0,200.1 595.8,196.3 598.5,191.6 601.2,187.6 603.9,189.4 606.6,183.3 609.4,174.5 612.1,178.6 614.8,209.4 617.5,207.8 620.2,216.8 623.0,216.4 625.7,213.7 628.4,220.8 631.1,200.1 633.8,190.7 636.6,193.9 639.3,201.3 642.0,199.5 644.7,203.8 647.4,186.7 650.2,189.1 652.9,194.7 655.6,187.8 658.3,196.5 661.0,188.0 663.8,202.8 666.5,192.3 669.2,206.2 671.9,197.0 674.6,187.6 677.4,195.4 680.1,193.6 682.8,191.4 685.5,209.4 688.2,207.6 691.0,194.8 693.7,192.7 696.4,216.4 699.1,230.5 701.8,225.4 704.6,224.8 707.3,233.1 710.0,199.5 712.7,189.1 715.4,179.5 718.2,201.0 720.9,196.3 723.6,192.9 726.3,191.1 729.0,192.0 731.8,190.9 734.5,191.8 737.2,194.3 739.9,183.5 742.6,194.1 745.4,182.4 748.1,181.2 750.8,169.6 753.5,173.8 756.2,177.2 759.0,164.8 761.7,167.1 764.4,184.9 767.1,183.7 769.8,179.9 772.6,188.5 775.3,183.3 778.0,184.2 780.7,182.1 783.4,175.8 786.2,182.8 788.9,182.8 791.6,179.9 794.3,189.3 797.0,180.8 799.8,186.4 802.5,181.0 805.2,171.3 807.9,171.3 810.6,161.0 813.4,191.8 816.1,175.0 818.8,156.3 821.5,158.8 824.2,139.9 827.0,145.9 829.7,149.8 832.4,148.8 835.1,153.4 837.8,136.2 840.6,148.8 843.3,136.5 846.0,120.0 848.7,108.1 851.4,126.8 854.2,119.4 856.9,115.6 859.6,100.2 862.3,112.9 865.0,93.1 867.8,110.6 870.5,120.1 873.2,115.6 875.9,78.6 878.6,77.8" fill="none" stroke="#4FBDEA" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="154.3" y="58.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="600" fill="#F5A524">MLO off: 8 s at zero, phone rejoined 6 GHz from scratch</text>
+<line x1="258.5" y1="244" x2="258.5" y2="252" stroke="#F5A524" stroke-width="1.5"/>
+<text x="258.5" y="264.0" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#F5A524">MLO off moves to 5 GHz, one bad second</text>
+<line x1="424.4" y1="244" x2="424.4" y2="252" stroke="#8CE05E" stroke-width="1.5"/>
+<text x="428.4" y="264.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#8CE05E">MLO on: one zero second, no reassociation</text>
+<line x1="64.0" y1="278" x2="64.0" y2="285" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<text x="64.0" y="298.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">0</text>
+<line x1="227.2" y1="278" x2="227.2" y2="285" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<text x="227.2" y="298.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">1 min</text>
+<line x1="390.4" y1="278" x2="390.4" y2="285" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<text x="390.4" y="298.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">2</text>
+<line x1="553.6" y1="278" x2="553.6" y2="285" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<text x="553.6" y="298.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">3</text>
+<line x1="716.8" y1="278" x2="716.8" y2="285" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<text x="716.8" y="298.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">4</text>
+<line x1="880.0" y1="278" x2="880.0" y2="285" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<text x="880.0" y="298.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">5 min</text>
+<text x="24.0" y="326.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="14" font-weight="700" fill="#EAF2F6">MLO on, desk to laundry room and back: which link carried the download</text>
+<text x="216.3" y="342.0" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#8BA2AE">desk</text>
+<text x="391.8" y="342.0" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#8BA2AE">out</text>
+<text x="467.9" y="342.0" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#8BA2AE">laundry room</text>
+<text x="540.0" y="342.0" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#8BA2AE">back</text>
+<text x="719.5" y="342.0" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#8BA2AE">desk</text>
+<rect x="238.1" y="344" width="13.6" height="146" fill="rgba(245,165,36,0.20)"/>
+<line x1="64" y1="453.5" x2="880" y2="453.5" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+<text x="56.0" y="457.5" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">250</text>
+<line x1="64" y1="417.0" x2="880" y2="417.0" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+<text x="56.0" y="421.0" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">500</text>
+<line x1="64" y1="380.5" x2="880" y2="380.5" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+<text x="56.0" y="384.5" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">750</text>
+<line x1="64" y1="344.0" x2="880" y2="344.0" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+<text x="56.0" y="348.0" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">1000</text>
+<line x1="64" y1="490.0" x2="880" y2="490.0" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+<text x="56.0" y="494.0" text-anchor="end" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">0</text>
+<line x1="64" y1="352.8" x2="880" y2="352.8" stroke="#8BA2AE" stroke-width="1" stroke-dasharray="4 4" opacity="0.7"/>
+<text x="880.0" y="348.8" text-anchor="end" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#8BA2AE">1G wire, about 940</text>
+<polyline points="65.4,358.0 68.1,359.6 70.8,368.4 73.5,364.6 76.2,364.7 79.0,365.8 81.7,366.8 84.4,368.4 87.1,367.4 89.8,364.0 92.6,368.8 95.3,359.2 98.0,360.9 100.7,369.6 103.4,381.7 106.2,366.0 108.9,367.2 111.6,364.7 114.3,365.3 117.0,366.9 119.8,364.1 122.5,368.1 125.2,361.2 127.9,361.5 130.6,366.0 133.4,367.9 136.1,363.1 138.8,363.4 141.5,366.9 144.2,366.6 147.0,365.5 149.7,366.6 152.4,365.8 155.1,360.4 157.8,362.0 160.6,364.6 163.3,364.0 166.0,363.7 168.7,365.2 171.4,366.5 174.2,366.3 176.9,364.4 179.6,365.2 182.3,365.2 185.0,360.1 187.8,366.0 190.5,365.8 193.2,364.6 195.9,365.3 198.6,365.2 201.4,365.9 204.1,365.8 206.8,366.6 209.5,369.3 212.2,359.9 215.0,361.4 217.7,365.3 220.4,364.4 223.1,365.6 225.8,366.5 228.6,366.0 231.3,366.3 234.0,380.2 236.7,364.1 239.4,484.8 242.2,490.0 244.9,490.0 247.6,490.0 250.3,484.8 253.0,413.9 255.8,378.9 258.5,374.5 261.2,372.2 263.9,371.3 266.6,371.2 269.4,362.8 272.1,365.3 274.8,369.6 277.5,369.1 280.2,367.9 283.0,367.7 285.7,433.1 288.4,405.6 291.1,362.5 293.8,368.2 296.6,368.2 299.3,362.8 302.0,467.8 304.7,368.7 307.4,370.3 310.2,368.4 312.9,368.7 315.6,368.8 318.3,370.6 321.0,369.7 323.8,368.7 326.5,365.2 329.2,366.3 331.9,370.3 334.6,370.0 337.4,366.8 340.1,367.5 342.8,366.6 345.5,368.4 348.2,366.9 351.0,367.2 353.7,370.9 356.4,363.6 359.1,364.1 361.8,365.8 364.6,369.4 367.3,367.8 370.0,368.2 372.7,413.5 375.4,449.7 378.2,451.9 380.9,480.7 383.6,460.9 386.3,460.5 389.0,467.1 391.8,465.8 394.5,463.4 397.2,449.9 399.9,454.2 402.6,479.7 405.4,487.4 408.1,482.2 410.8,488.0 413.5,488.5 416.2,469.3 419.0,477.2 421.7,476.4 424.4,476.7 427.1,482.0 429.8,477.3 432.6,482.7 435.3,474.7 438.0,475.9 440.7,476.4 443.4,474.4 446.2,476.1 448.9,473.9 451.6,475.5 454.3,472.9 457.0,475.9 459.8,468.0 462.5,470.7 465.2,474.1 467.9,472.2 470.6,473.4 473.4,471.5 476.1,474.4 478.8,470.9 481.5,467.4 484.2,473.5 487.0,477.8 489.7,481.7 492.4,464.7 495.1,467.2 497.8,471.2 500.6,472.2 503.3,473.9 506.0,449.4 508.7,471.3 511.4,476.4 514.2,470.0 516.9,464.7 519.6,474.5 522.3,463.6 525.0,442.8 527.8,430.0 530.5,410.3 533.2,407.5 535.9,396.7 538.6,390.9 541.4,383.6 544.1,382.8 546.8,375.2 549.5,376.9 552.2,377.7 555.0,397.9 557.7,387.8 560.4,355.5 563.1,349.5 565.8,352.3 568.6,359.6 571.3,431.0 574.0,389.1 576.7,353.6 579.4,353.9 582.2,352.6 584.9,367.9 587.6,349.8 590.3,352.6 593.0,353.6 595.8,370.4 598.5,363.1 601.2,360.6 603.9,358.7 606.6,361.7 609.4,361.8 612.1,357.7 614.8,357.0 617.5,356.3 620.2,355.1 623.0,355.1 625.7,356.7 628.4,353.9 631.1,354.8 633.8,364.3 636.6,375.1 639.3,372.6 642.0,381.1 644.7,377.9 647.4,373.2 650.2,388.4 652.9,405.5 655.6,409.6 658.3,383.3 661.0,385.5 663.8,379.6 666.5,382.0 669.2,381.2 671.9,383.1 674.6,378.7 677.4,382.4 680.1,384.9 682.8,386.8 685.5,384.6 688.2,382.8 691.0,378.5 693.7,386.5 696.4,376.9 699.1,383.9 701.8,378.2 704.6,386.0 707.3,382.5 710.0,386.2 712.7,382.1 715.4,383.3 718.2,381.8 720.9,385.5 723.6,383.1 726.3,387.8 729.0,388.4 731.8,384.9 734.5,389.4 737.2,392.6 739.9,388.4 742.6,381.7 745.4,379.0 748.1,386.5 750.8,370.9 753.5,378.2 756.2,376.1 759.0,381.8 761.7,390.0 764.4,384.4 767.1,377.6 769.8,374.5 772.6,376.7 775.3,387.2 778.0,371.6 780.7,382.5 783.4,377.6 786.2,387.5 788.9,389.7 791.6,398.9 794.3,418.9 797.0,409.6 799.8,376.4 802.5,368.2 805.2,366.2 807.9,383.4 810.6,373.5 813.4,368.8 816.1,352.9 818.8,357.4 821.5,376.6 824.2,382.3 827.0,381.7 829.7,411.2 832.4,414.4 835.1,396.6 837.8,378.3 840.6,383.1 843.3,383.0 846.0,406.9 848.7,402.8 851.4,385.9 854.2,378.7 856.9,379.5 859.6,376.6 862.3,382.1 865.0,377.6 867.8,375.1 870.5,375.2 873.2,378.0 875.9,369.6 878.6,367.7" fill="none" stroke="#8CE05E" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="64.0" y="500" width="174.1" height="18" fill="#5ED2DA"/><text x="70.0" y="513.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="700" fill="#06202A">6 GHz link</text>
+<rect x="238.1" y="500" width="13.6" height="18" fill="#F5A524"/>
+<rect x="251.7" y="500" width="127.8" height="18" fill="#5ED2DA"/>
+<rect x="379.5" y="500" width="51.7" height="18" fill="rgba(255,255,255,0.18)"/>
+<rect x="431.2" y="500" width="448.8" height="18" fill="#4FBDEA"/><text x="437.2" y="513.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="700" fill="#06202A">5 GHz link, same association, no rejoin</text>
+<text x="244.9" y="534.0" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#F5A524">full reconnect, 3 s at zero</text>
+<text x="405.4" y="534.0" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#B0C4CF">switch</text>
+<text x="880.0" y="534.0" text-anchor="end" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#8BA2AE">next download started back on 6 GHz</text>
+<line x1="64.0" y1="490" x2="64.0" y2="497" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<line x1="227.2" y1="490" x2="227.2" y2="497" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<line x1="390.4" y1="490" x2="390.4" y2="497" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<line x1="553.6" y1="490" x2="553.6" y2="497" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<line x1="716.8" y1="490" x2="716.8" y2="497" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<line x1="880.0" y1="490" x2="880.0" y2="497" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+<text x="24.0" y="566.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="400" fill="#8BA2AE">Link in use read from show ap debug client-table mlo on the AP. Throughput from the iperf3 server log.</text>
+</svg><figcaption>Top: the same walk with MLO on and MLO off, per second from the iperf3 server log. Bottom: a later MLO-on walk to the laundry room and back, with the link carrying the download read off the AP.</figcaption></figure>
+<p>On the averages it's a tie: 430 against 403, medians 333 and 340. The MLO-off run actually did better through the middle of the house. Where they differ is the holes.</p>
+<p>With MLO off, about 20 seconds into the run the download went to zero for eight straight seconds. The AP's auth trace shows what happened: the phone came back to the same 6 GHz BSS with a brand new SAE exchange and four-way handshake, 44 ms start to finish on the AP's clock. Nothing logged a deauth or a disassociation from either side before it, and <code>show ap client-match action-history</code> had no entry for the phone, so the AP didn't push it. The phone went quiet on its own, came back, and TCP took a few more seconds to believe it. Forty-five seconds later it hopped to 5 GHz, which cost one bad second, and it stayed there for the rest of the download. MLO on had a single zero second in five minutes and never reassociated.</p>
+<p>One run each, and the MLO-off walk ran about 20 seconds behind by the end, so compare the shapes rather than second by second.</p>
+<h2>The strange part: sitting at the desk</h2>
+<p>The walk was the test. What happened at the desk afterwards is the part I can't fully explain. With MLO off, once the download ended, the phone started switching bands on its own: 6 GHz, 5 GHz, 6, 5, eleven times in the next eleven minutes, ten of them sitting still at my desk, four feet from the AP. Here's a slice of the auth trace, trimmed to the columns that matter:</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div><pre><code><span class="ln"><span class="pr">AP-735# </span>show ap debug auth-trace-buf | include &lt;phone-mac&gt;</span><span class="ln">Sep 27 16:48:38.040  station-up  &lt;phone-mac&gt;  &lt;5ghz-bssid&gt;  wpa3-sae aes-ccmp-128</span><span class="ln">Sep 27 16:50:08.341  station-up  &lt;phone-mac&gt;  &lt;6ghz-bssid&gt;  wpa3-sae aes-ccmp-128</span><span class="ln">Sep 27 16:50:46.919  station-up  &lt;phone-mac&gt;  &lt;5ghz-bssid&gt;  wpa3-sae aes-ccmp-128</span><span class="ln">Sep 27 16:51:19.307  station-up  &lt;phone-mac&gt;  &lt;6ghz-bssid&gt;  wpa3-sae aes-ccmp-128</span><span class="ln">Sep 27 16:52:02.320  station-up  &lt;phone-mac&gt;  &lt;5ghz-bssid&gt;  wpa3-sae aes-ccmp-128</span></code></pre></div>
+<p>Every one of those is a full reassociation with a four-way handshake behind it. Count the walk and the desk together and it's 13 reconnections in 16 minutes with MLO off. The same phone on the same AP with MLO on held one association for 16 minutes straight, walk included. That's the graphic at the top.</p>
+<p>The odd part: before the walk, with MLO already off, the phone sat on 6 GHz at the same desk for four minutes without a single switch. After the walk it couldn't make up its mind.</p>
+<p>So the next night I went after it. My first suspect was the FTM responder. It was on for every Sunday run, and the 10.8.1.0 release notes list frequent 6 GHz client disconnects on the 7xx APs when the AP runs FTM ranging scans, mostly on Enhanced Open SSIDs, with the FTM responder off as the workaround.</p>
+<p>MLO off again, phone on the same desk, auth trace read every few minutes. With FTM off, the phone moved once, from 5 GHz to 6, in 21 minutes, then sat on 6 GHz for twelve. With FTM back on, twelve and a half minutes on 6 GHz without a drop. So it isn't FTM, or not FTM on its own, and in over half an hour of sitting still with MLO off, the phone never went back and forth once.</p>
+<p>I didn't repeat the walk with a download running, which is what came right before the flipping on Sunday, so that part's still open. Take the ten desk switches as something that happened that afternoon, not something MLO off always does. What held both days is simpler: with MLO off, every band change the phone did make was a full reconnect.</p>
+<h2>What MLO actually does on a walk</h2>
+<p>The one view Central's Tools &gt; Commands list doesn't give you is per link. The AP console has it: <code>show ap debug client-table mlo</code> prints the MLD row plus a row per link, each with its own rates, SNR and byte counters. I piped it through <code>include</code> on the BSSID prefix to lose the legend, did one more walk with MLO on, desk to laundry room and back, and read it every 15 seconds or so.</p>
+<table>
+<thead>
+<tr>
+<th>Where I was</th>
+<th>6 GHz link</th>
+<th>5 GHz link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>At the desk</td>
+<td>2401 Mbit/s, carrying everything</td>
+<td>Up, zero packets</td>
+</tr>
+<tr>
+<td>Walking out</td>
+<td>432 Mbit/s, SNR 10</td>
+<td>Still zero</td>
+</tr>
+<tr>
+<td>Laundry room</td>
+<td>6 Mbit/s, SNR 8, no data for 20 s</td>
+<td>144 Mbit/s, SNR 7, carrying the download</td>
+</tr>
+<tr>
+<td>Back at the desk</td>
+<td>Up, idle</td>
+<td>960 to 1200 Mbit/s, carrying the download</td>
+</tr>
+<tr>
+<td>Next download</td>
+<td>Carrying again</td>
+<td>Idle</td>
+</tr>
+</tbody>
+</table>
+<p>That's the feature. The traffic moved from 6 GHz to 5 GHz inside one association: same association ID, no reassociation, no handshake. It wasn't instant. The iperf log shows about five seconds between 10 and 70 Mbit/s while 6 GHz died and before 5 GHz took over, but it never hit zero. Back at the desk the download stayed on 5 GHz until it finished, and 5 GHz at 80 MHz could still fill the 1G wire. The next download started on 6 GHz again.</p>
+<p>The AP has a name for what this phone does. <code>show ap association mlo</code> lists it as MLD-MLSR, multi-link single radio: links up on 6 and 5 GHz, but data on one link at any given moment. HPE's own example output shows an EMLSR client and an STR client. Mine is neither, so on this phone MLO was never going to add the two links together, whatever the slide says.</p>
+<p>And the honest part. In that same run, still near the desk, the phone did one full reconnect with MLO on: fresh SAE, new link addresses, three seconds of nothing. 10.8.1.0 does list a known issue with unexpected deauthentication when MLO is on (AOS-271966), but the trace didn't log a deauth before mine, so I can't pin it on that. Either way, MLO doesn't stop a client from deciding to start over. What it stops is a band change costing you a reconnect.</p>
+<h2>Gotchas</h2>
+<p><strong>802.11r and MLO don't mix on 10.8.1.0, and 11r without MLO has a trap of its own.</strong> Central (Classic, as of September 2026) will accept 11r on an MLO SSID and tell you it worked. The AP-735 kept MLO and quietly left 11r off. HPE documents 11r as unsupported with MLO in this release, so plan on no fast roaming between APs for that SSID, and check for the <code>r</code> flag in <code>show ap bss-table</code> instead of trusting the banner. Turn MLO off and the <code>r</code> flag does come back. What I didn't expect was what flipping it did to my iPhone. Every time I pushed 11r on with the phone connected, it came straight back with the plain SAE it had been using, and the four-way handshake died at message 1 or 3. Three times it switched to FT-SAE on its own and got back in 1 to 16 seconds. Twice it sat off the network until I tapped it. Pushing 11r off broke it the other way round: the phone came back asking for FT-SAE, the AP accepted the association anyway, and the handshake died at message 1. It didn't come back on its own either time. That's seven pushes and seven broken reconnects, with WPA3 transition mode on or off. A plain Wi-Fi toggle never tripped it. I caught two over the air, and both joined with FT-SAE in under 50 ms. <code>show ap debug mgmt-frames</code> in Tools &gt; Commands is what shows who hung up. The closest thing in the 10.8.1.0 known issues is an 11r bug about roaming (AOS-270569), not this. So flip 11r in a maintenance window, and check your iPhones actually came back.</p>
+<p><strong>Your Mac has a Wi-Fi sniffer, and it's free.</strong> Hold Option, click the Wi-Fi icon, open Wireless Diagnostics, then pick Window &gt; Sniffer. Choose the channel and width, click Start, and it writes a pcap that Wireshark opens. That's how I caught those two clean joins. The catch: the Mac drops off Wi-Fi while it listens, so you can't push a config change from the same laptop mid-capture. That's exactly why I don't have the broken reconnect on the air yet. And Sniffer isn't the only thing in that Window menu. Info, Logs, Scan and Performance sit right beside it, which is a decent little survey kit for a tool you never installed. Checked on macOS 26.6.2, September 2026.</p>
+<p><strong>WPA2 means Wi-Fi 6 on 10.8.1.0, whatever you ticked.</strong> An 11be checkbox on a WPA2 SSID gets you HE on the air and no MLD. The 10.8.1.0 release notes list that as a fix, so older builds may behave differently. WPA3 transition mode kept Wi-Fi 7 on 2.4 and 5 GHz in my lab, and Central refuses WPA2 with 6 GHz outright, which is at least honest.</p>
+<p><strong>Re-enabling MLO can leave clients single link.</strong> Three times in five tries, my phone came back on the MLO SSID as a single-band client until I toggled its Wi-Fi. If you flip MLO mid-test, make the client rejoin from scratch before you believe anything.</p>
+<p><strong>The per-link view is console only on my tenant.</strong> Neither <code>show ap debug client-table mlo</code> nor <code>show ap association mlo</code> is in the Tools &gt; Commands list as of September 2026. The remote console runs both.</p>
+<p><strong>The auth trace names your MPSK entries.</strong> On 10.8.1.0, <code>show ap debug auth-trace-buf</code> ends each MPSK client's key-2 line with a <code>pass:</code> field holding the name of the MPSK entry the client matched. I checked with a throwaway entry named unlike its passphrase, and the field showed the name. Trouble is, I'd named my house entries after their passphrases, so there they were, in clear, for anybody who can run show commands on that AP from Central's Tools or its console. Name MPSK entries after who they're for, not what they are, and redact that field before the output goes into a ticket or a forum post.</p>
 <h2>Bottom line</h2>
-<p>The docs aren't going to stop contradicting themselves, so the skill isn't finding the right page. It's knowing which page was built to answer the question you're actually asking, and being willing to write "unverified, here's why" when nothing was.</p></div>
+<p>MLO didn't make my phone faster, standing still or walking around. What it changed was what a band change costs. With it off, every band change was a full reconnect: thirteen reconnects in sixteen minutes on Sunday, twelve of them to switch bands, most of those in one stretch at my desk I couldn't repeat the next night. With it on, the phone held one association and the traffic moved between bands underneath it.</p>
+<p>That's a dropped-call and latency story, not a speed story. So test it like one: a walk and a call, not a speed test at three feet.</p></div>
       
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Switching, carefully <span class="meta">part 2 of 2</span></h3><div class="ser-steps"><a class="ser-step" href="vsx-upgrade-hitless.html"><span class="ser-n">1</span><span class="ser-t">Your VSX Upgrade Is Hitless Right Up Until It Isn&#x27;t</span></a><a class="ser-step here" href="when-the-docs-disagree.html"><span class="ser-n">2</span><span class="ser-t">When the Docs Disagree With Themselves, Somebody Has to Decide</span><span class="ser-tag">You are here</span></a></div></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="when-the-docs-disagree" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wi-Fi 7 rollout <span class="meta">part 3 of 3</span></h3><div class="ser-steps"><a class="ser-step" href="poe-budgets-wifi7-aps.html"><span class="ser-n">1</span><span class="ser-t">Your New AP Isn&#x27;t Broken, It&#x27;s Hungry: PoE Budgets in the Wi-Fi 7 Era</span></a><a class="ser-step" href="channel-173-survey-blind-spot.html"><span class="ser-n">2</span><span class="ser-t">Your Survey Tool Can&#x27;t See Channel 173</span></a><a class="ser-step here" href="mlo-isnt-a-speed-feature.html"><span class="ser-n">3</span><span class="ser-t">Wi-Fi 7 MLO Isn&#x27;t a Speed Feature. Walk Around and You&#x27;ll See Why.</span><span class="ser-tag">You are here</span></a></div></section>
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="mlo-isnt-a-speed-feature" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -831,12 +1044,12 @@ html.qam-fs .rig{display:none}
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="mdns-bridge-mode-airtime.html"><span class="eyebrow">Older</span>84 Percent of Your Airtime Is Printers Saying Hello</a><a class="pn g-card" href="vsx-upgrade-hitless.html"><span class="eyebrow">Newer</span>Your VSX Upgrade Is Hitless Right Up Until It Isn&#x27;t</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-12-a-troubleshooting-method.html"><span class="eyebrow">Older</span>A Troubleshooting Method</a></div>
     </section>
   </article>
 </div>
 </main>
-<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-switchwork.svg" alt="" width="104" height="104"></a>
+<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-signal.svg" alt="" width="104" height="104"></a>
 <footer><div class="wrap">
   <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
   <span><a href="/rss.xml">RSS</a></span>
