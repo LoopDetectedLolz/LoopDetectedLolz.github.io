@@ -5,13 +5,16 @@
  * find the answers to their questions. No account, no email. No code exists until the reader asks a question,
  * taps "Get a code", or accepts the one offer after their first lesson.
  *
- * Inlined on every Academy lesson, academy.html and sandbox.html, after progress-core.js and after
- * window.NFN_CFG = {api, sitekey, lesson}. An empty api keeps everything in this browser.
+ * Inlined on every post and lesson, academy.html and sandbox.html, after progress-core.js and after
+ * window.NFN_CFG = {api, sitekey, lesson, slug, changed}. An empty api keeps everything in this browser.
+ * On a post page the reader ticks "Mark as read" (p[slug] = today); if the post's front matter later carries
+ * `changed: YYYY-MM-DD | what changed` with a date after that mark, a line at the top says so until "Got it".
  *
  * window.NFNProgress
  *   get()               a copy of the record          code()            the save code here, or ""
  *   mark(field, i)      this lesson: "read" | "lab" | "game" | "check" (i = question 0 to 2)
  *   lab(id)             a CX Sandbox lab passed        seen(ids)         the reader has seen these answers
+ *   markPost()          this post, read today (moves forward, never back)
  *   questions()         the reader's own questions from the last pull, held and live, with answers
  *   getCode(token)      make a code (Turnstile token)  useCode(words)    restore: adopt a code and merge into it
  *   adopt(code)         take the fresh code a question came back with
@@ -27,6 +30,8 @@
   var CFG = window.NFN_CFG || {};
   var API = String(CFG.api || "").replace(/\/+$/, "");
   var LESSON = CFG.lesson ? String(CFG.lesson) : "";
+  var SLUG = typeof CFG.slug === "string" ? CFG.slug : "";          // every post page: its slug
+  var CHANGED = typeof CFG.changed === "string" ? CFG.changed : ""; // the post's last noted change, YYYY-MM-DD
   var K_DATA = "nfn:progress", K_CODE = "nfn:code", K_DIRTY = "nfn:dirty", K_OFFER = "nfn:offered";
 
   function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -58,6 +63,11 @@
     else return;
     w[LESSON] = l;
     change({ w: w });
+  }
+  function markPost() {
+    if (!SLUG) return;
+    var p = {}; p[SLUG] = Core.today();
+    change({ p: p });
   }
   function lab(id) { var labs = {}; labs[String(id)] = Core.today(); change({ labs: labs }); }
   function seen(ids) {
@@ -238,7 +248,8 @@
         li.classList.toggle("done", !!done);
         var b = li.querySelector("b"); if (b && text != null) b.textContent = text;
       };
-      set("read", st.read, st.read ? "Done" : "When you reach the end");
+      set("read", st.read, st.read ? "Done" : "");
+      card.querySelectorAll("[data-nfn-read]").forEach(function (b) { b.hidden = !!st.read; });
       set("lab", st.lab, null);
       set("check", st.checks === Core.CHECKS, st.checks + " of " + Core.CHECKS);
       set("game", st.game, st.game ? "Done" : "Not yet");
@@ -445,6 +456,39 @@
     paint();
   }
 
+  // ── every post: the read mark at the end, the changed line at the top ───
+  function shortDate(d) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ""); if (!m) return d || "";
+    return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][+m[2] - 1] + " " + (+m[3]) +
+      (m[1] !== String(new Date().getFullYear()) ? ", " + m[1] : "");
+  }
+  function postPage() {
+    var box = document.getElementById("readmark-box"), say = document.getElementById("readmark-say"),
+        note = document.getElementById("changed-note"), ack = document.getElementById("changed-ack"),
+        when = document.getElementById("changed-when");
+    if (box) box.addEventListener("change", function () { if (box.checked) markPost(); paint(); });
+    if (ack) ack.addEventListener("click", function () { markPost(); });
+    document.querySelectorAll("[data-nfn-read]").forEach(function (b) {
+      b.addEventListener("click", function () { mark("read"); markPost(); });
+    });
+    function paint() {
+      var read = Core.postRead(data, SLUG, LESSON), stale = Core.changedSince(data, SLUG, LESSON, CHANGED);
+      if (note) {
+        note.hidden = !stale;
+        if (stale && when) when.textContent = "You marked this read on " + shortDate(read) + ". It changed on " + shortDate(CHANGED) + ".";
+      }
+      if (box) {
+        box.checked = !!read;
+        box.disabled = !!read && !stale;
+        if (say) say.textContent = !read ? "Saved in this browser, and to your code if you have one." :
+          stale ? "Changed since you read it. Tick it again once you've read the update." : "Read on " + shortDate(read) + ".";
+        if (stale) box.checked = false, box.disabled = false;
+      }
+    }
+    onChange(paint);
+    paint();
+  }
+
   function onChange(fn) { if (typeof fn === "function") listeners.push(fn); }
 
   window.NFNProgress = {
@@ -452,7 +496,7 @@
     get: function () { return JSON.parse(JSON.stringify(data)); },
     code: function () { return code; },
     pulled: function () { return pulled; },
-    mark: mark, lab: lab, seen: seen,
+    mark: mark, lab: lab, seen: seen, markPost: markPost,
     questions: function () { return mine.slice(); },
     getCode: getCode, useCode: useCode, adopt: function (c) { if (Core.isCodeShape(c)) adopt(c, {}); }, addMine: addMine,
     onChange: onChange, renderCode: renderCode, turnstileToken: turnstileToken, resetTurnstile: resetTurnstile,
@@ -461,6 +505,7 @@
 
   function boot() {
     if (LESSON) lessonPage();
+    if (SLUG) postPage();
     if (document.getElementById("codebox") || document.querySelector(".lesson.live[data-lesson]")) academyPage();
     if (document.querySelector(".sb-pill[data-lab]")) sandboxPage();
     pull();

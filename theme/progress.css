@@ -1,5 +1,5 @@
-/* Academy progress, save codes and the self-check. Inlined by build-blog.py (progress_scripts) on Academy
-   lessons, academy.html and sandbox.html only. Kit tokens only; orange is the Academy's accent. */
+/* Academy progress, save codes, the self-check, and the read mark every post carries. Inlined by build-blog.py
+   (progress_scripts) on every post and lesson, academy.html and sandbox.html. Kit tokens only; orange is the Academy's accent. */
 
 /* the progress card at the end of a lesson */
 .prog{padding:var(--s5);margin-top:var(--s5)}
@@ -69,3 +69,19 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
 
 /* sandbox.html: a dot on every lab that has passed */
 .sb-pill.passed::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(140,224,94,0.18)}
+
+/* every post: the read mark at the end and the changed line at the top. Green on field notes, orange in the Academy. */
+.readmark,.changed-note{--rm:var(--green);--rm-soft:rgba(140,224,94,0.45)}
+body.acad .readmark,body.acad .changed-note{--rm:var(--orange);--rm-soft:rgba(245,165,36,0.5)}
+.readmark{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;padding:var(--s4) var(--s5);margin-top:var(--s5)}
+.rm-label{display:inline-flex;align-items:center;gap:10px;min-height:44px;font-weight:600;font-size:15px;cursor:pointer}
+.rm-label input{width:20px;height:20px;accent-color:var(--rm);cursor:pointer}
+.rm-label input:disabled{cursor:default}
+.rm-say{font-size:13.5px;line-height:1.5;color:var(--text-dim)}
+.changed-note{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap;padding:var(--s4) var(--s5);margin-top:var(--s4);border-color:var(--rm-soft)}
+.changed-note[hidden]{display:none}
+.changed-note .eyebrow{color:var(--rm)}
+.cn-text{flex:1 1 280px;min-width:0}
+.cn-text p{margin:4px 0 0;font-size:14.5px;line-height:1.55;color:var(--text-dim)}
+.cn-text .cn-what{color:var(--text)}
+.prog-items [data-nfn-read][hidden]{display:none}

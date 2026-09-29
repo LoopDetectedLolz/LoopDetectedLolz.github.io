@@ -8,10 +8,11 @@
  *   { "v": 1,
  *     "w":    { "<lesson number>": { "read": "YYYY-MM-DD", "lab": "...", "game": "...", "check": [0|1, 0|1, 0|1] } },
  *     "labs": { "<CX Sandbox lab id>": "YYYY-MM-DD" },
- *     "seen": { "<question id>": "<ISO time the reader last saw that question's answers>" } }
+ *     "seen": { "<question id>": "<ISO time the reader last saw that question's answers>" },
+ *     "p":    { "<post slug>": "YYYY-MM-DD the reader last marked it read" } }
  *
- * Merge rules: dates keep the earliest, checks OR together, seen keeps the latest, anything else is
- * dropped. That makes merge commutative, associative and idempotent, which progresstest.js proves.
+ * Merge rules: dates keep the earliest, checks OR together, seen and p keep the latest, anything else is
+ * dropped. p keeps the latest because "I read the update" has to be able to move a read date forward. That makes merge commutative, associative and idempotent, which progresstest.js proves.
  * Nothing can be un-done by a merge, so the page never offers an undo that would not stick.
  */
 (function (root, factory) {
@@ -30,6 +31,8 @@
   var LAB_RE = /^[a-z0-9][a-z0-9-]{0,60}$/;
   var QID_RE = /^[1-9]\d{0,11}$/;
   var LESSON_RE = /^[1-9]\d?$/;
+  var SLUG_RE = /^[a-z0-9][a-z0-9-]{0,100}$/;
+  var MAX_POSTS = 120;           // with the rest of a heavy record this stays under MAX_BYTES; the site has about 35 posts
   var CODE_RE = /^[a-z]{3,8}(?:-[a-z]{3,8}){3}$/;
 
   function isObj(o) { return !!o && typeof o === "object" && !Array.isArray(o); }
@@ -42,7 +45,7 @@
 
   function today(d) { return (d || new Date()).toISOString().slice(0, 10); }
   function nowIso(d) { return (d || new Date()).toISOString(); }
-  function emptyProgress() { return { labs: {}, seen: {}, v: V, w: {} }; }   // already in canonical key order
+  function emptyProgress() { return { labs: {}, p: {}, seen: {}, v: V, w: {} }; }   // already in canonical key order
 
   function cleanLesson(x) {
     if (!isObj(x)) return null;
@@ -77,6 +80,9 @@
     if (isObj(d.seen)) Object.keys(d.seen).forEach(function (k) {
       if (QID_RE.test(k) && typeof d.seen[k] === "string" && TS_RE.test(d.seen[k])) out.seen[k] = d.seen[k];
     });
+    if (isObj(d.p)) Object.keys(d.p).filter(function (k) {
+      return SLUG_RE.test(k) && typeof d.p[k] === "string" && DATE_RE.test(d.p[k]);
+    }).sort().slice(0, MAX_POSTS).forEach(function (k) { out.p[k] = d.p[k]; });
     return canonical(out);
   }
 
@@ -104,7 +110,8 @@
     });
     union(a.labs, b.labs).forEach(function (k) { out.labs[k] = earliest(a.labs[k], b.labs[k]); });
     union(a.seen, b.seen).forEach(function (k) { out.seen[k] = latest(a.seen[k], b.seen[k]); });
-    return canonical(out);
+    union(a.p, b.p).forEach(function (k) { out.p[k] = latest(a.p[k], b.p[k]); });
+    return validate(out);
   }
 
   /* same content, same string: keys sorted at every level */
@@ -136,10 +143,23 @@
     return n;
   }
 
+  /* the date a post counts as read: the later of the post mark and, for a lesson, the lesson's read */
+  function postRead(p, slug, lesson) {
+    var a = (p && p.p && p.p[slug]) || "";
+    var b = lesson ? lessonState(p, lesson).read : "";
+    return latest(a, b);
+  }
+  /* true when the reader marked it read before the post's last noted change */
+  function changedSince(p, slug, lesson, changed) {
+    var r = postRead(p, slug, lesson);
+    return !!(r && changed && DATE_RE.test(changed) && r < changed);
+  }
+
   return {
     V: V, MAX_BYTES: MAX_BYTES, CHECKS: CHECKS,
     normaliseCode: normaliseCode, isCodeShape: isCodeShape, today: today, nowIso: nowIso,
     emptyProgress: emptyProgress, validate: validate, merge: merge, canonical: canonical,
-    serialise: serialise, same: same, lessonState: lessonState, readCount: readCount, labCount: labCount
+    serialise: serialise, same: same, lessonState: lessonState, readCount: readCount, labCount: labCount,
+    postRead: postRead, changedSince: changedSince
   };
 });

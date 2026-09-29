@@ -101,13 +101,30 @@ PROGRESS_CORE = open(os.path.join(ROOT, "theme", "progress-core.js"), encoding="
 PROGRESS_JS = open(os.path.join(ROOT, "theme", "progress.js"), encoding="utf-8").read()
 PROGRESS_CSS = open(os.path.join(ROOT, "theme", "progress.css"), encoding="utf-8").read()
 
-def progress_scripts(lesson=0):
+def progress_scripts(lesson=0, post=None):
     cfg = {"api": COMMENTS_API.rstrip("/"), "sitekey": TURNSTILE_SITEKEY}
     if lesson:
         cfg["lesson"] = int(lesson)
+    if post:
+        cfg["slug"] = post["slug"]
+        if post.get("changed_date"):
+            cfg["changed"] = post["changed_date"]
     js = lambda s: s.replace("</", "<\\/")
     return ('<style>%s</style><script>window.NFN_CFG=%s;</script><script>%s</script><script>%s</script>'
             % (PROGRESS_CSS, json.dumps(cfg), js(PROGRESS_CORE), js(PROGRESS_JS)))
+
+def changed_block(p):
+    """The line at the top that only a reader who marked this read before the last noted change sees."""
+    if not p.get("changed_date"):
+        return ""
+    note = ('<p class="cn-what">%s</p>' % E(p["changed_note"])) if p.get("changed_note") else ""
+    return ('<aside class="changed-note g-card" id="changed-note" hidden aria-live="polite">'
+            '<div class="cn-text"><span class="eyebrow">Updated since you read it</span><p id="changed-when"></p>%s</div>'
+            '<button type="button" class="btn nfn-btn" id="changed-ack">Got it</button></aside>' % note)
+
+def readmark_block():
+    return ('<section class="readmark g-card" data-rise><label class="rm-label"><input type="checkbox" id="readmark-box">'
+            '<span>Mark as read</span></label><span class="rm-say" id="readmark-say"></span></section>')
 
 def has_game(p):
     """A lesson's game is any interactive widget that reports its last level to NFNProgress."""
@@ -235,6 +252,13 @@ def parse_post(path):
     meta["series"] = meta.get("series", "").strip()
     meta["series_order"] = int(meta.get("series_order", "0") or 0)
     meta["interactive"] = meta.get("interactive", "").strip()
+    # changed: YYYY-MM-DD | one sentence on what changed. Flags the post for readers who marked it read before that date.
+    ch = meta.get("changed", "").strip()
+    cm = re.match(r'^(\d{4}-\d{2}-\d{2})\s*(?:\|\s*(.*))?$', ch)
+    if ch and not cm:
+        sys.exit("changed: must be YYYY-MM-DD | what changed, in %s" % path)
+    meta["changed_date"] = cm.group(1) if cm else ""
+    meta["changed_note"] = (cm.group(2) or "").strip() if cm else ""
     meta["date_obj"] = datetime.date.fromisoformat(meta["date"])
     meta["date_h"] = meta["date_obj"].strftime("%b %d, %Y").replace(" 0", " ")
     meta["bot_explicit"] = bool(meta.get("bot"))
@@ -454,13 +478,14 @@ for i, p in enumerate(posts):
              % (p["date"], E(SITE["author"]), jsonld))
     page = head(p["title"], p["summary"], url, ogimg, up="../", extra=extra, active=("academy" if p["academy"] else ""), theme=("acad" if p["academy"] else ""))
     page += f'''
-<div class="narrow">{progress_scripts(p["academy"]) if p["academy"] else ""}
+<div class="narrow">{progress_scripts(p["academy"], p)}
   <div class="backbar"><a class="btn" href="../{"academy.html" if p["academy"] else ""}">{ICO_BACK}&nbsp;{"Academy" if p["academy"] else "All posts"}</a></div>
   <article>
     <header class="post-head g-hero cat-{E(p["cat"].replace(" ","-"))}" data-view="zoom">
       <div class="row" style="margin:0"><a class="tag {p["ccls"]}" href="../index.html#cat={E(p["cat"])}" title="All {E(p["cat"])} posts">{E(p["cat"])}</a><span class="meta">{("Lesson %d" % p["academy"]) if p.get("academy") else E(p["date_h"])} &#183; {p["readtime"]} min</span></div>
       <h1 class="h-hero">{E(p["title"])}</h1>
     </header>
+    {changed_block(p)}
     <div class="post-body g-card" data-rise>
       <div class="figure panel">{svg(p["hero"])}</div>
       {widget(p["interactive"]) if p["interactive"] else ""}
@@ -469,6 +494,7 @@ for i, p in enumerate(posts):
       {cxsim_block() if p["cxsim"] else ""}
     </div>
     {progress_block(p) if p["academy"] else ""}{series_nav(p)}
+    {"" if p["academy"] else readmark_block()}
     {qa_block(p) if p["academy"] else comments_block(p)}
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
