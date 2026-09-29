@@ -1530,13 +1530,13 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
 <p>Free space path loss. It's the only term in the budget you can't argue with.</p>
 <pre><code>FSPL(dB) = 20·log10(d) + 20·log10(f) - 27.55
 </code></pre>
-<p>Distance in metres, frequency in megahertz. Worked once, for my lab: 32 ft is 9.75 m, and the primary channel is 149, which is 5745 MHz.</p>
+<p>Distance in meters, frequency in megahertz. Worked once, for my lab: 32 ft is 9.75 m, and the primary channel is 149, which is 5745 MHz.</p>
 <pre><code>20·log10(9.75)  = 19.78
 20·log10(5745)  = 75.19
 19.78 + 75.19 - 27.55 = 67.4 dB
 </code></pre>
 <p>Nothing is absorbed in that formula and nothing is blocked. It's the wave spreading over the surface of a bigger and bigger sphere, and the sphere doesn't care what your building is made of.</p>
-<p>Two things fall out of it on site. It's logarithmic, so the early metres are the expensive ones: one metre to ten costs 20 dB, ten to a hundred costs another 20, and doubling the distance always costs 6. And it has a minimum valid distance. Put the client on top of the AP and you're inside the near field, roughly 80 cm for a typical AP at 5 GHz, and the formula isn't inaccurate, it's meaningless. Ask me how I know. I threw away ten beautiful samples.</p>
+<p>Two things fall out of it on site. It's logarithmic, so the early meters are the expensive ones: one meter to ten costs 20 dB, ten to a hundred costs another 20, and doubling the distance always costs 6. And it has a minimum valid distance. Put the client on top of the AP and you're inside the near field, roughly 80 cm for a typical AP at 5 GHz, and the formula isn't inaccurate, it's meaningless. Ask me how I know. I threw away ten beautiful samples.</p>
 <h2>What the gear shows you</h2>
 <p>Aruba Central showed <code>POWER 25 dBm</code> on the 5 GHz radio. My first instinct was to add the 5.5 dBi of published antenna gain and call it 30.5 dBm of EIRP. That's counting the antenna twice. Aruba's number already has it in.</p>
 <p>The configuration docs say so in both generations: the AOS 10 radio profile calls the power range minimum and maximum EIRP, and the AOS 8 ARM profile says outright that it includes antenna gain. If you'd rather see it live, ask a controller what a radio is doing right now:</p>
@@ -1579,7 +1579,7 @@ Juniper, both chains                                      24.0 dBm
 <h2>The lab</h2>
 <p>One AP, one laptop, about forty minutes.</p>
 <ol>
-<li>Read the AP's power figure, and find out what that field means before you use it. Note the channel centre frequency, not the channel number.</li>
+<li>Read the AP's power figure, and find out what that field means before you use it. Note the channel center frequency, not the channel number.</li>
 <li>Measure a distance and mark <strong>the client spot</strong> on the floor with tape. Mark the AP spot too, and label them differently. I marked only the AP position, told myself to stand on the tape, and took nine samples from two feet away before I noticed.</li>
 <li>Predict. EIRP minus FSPL. Write it down before you measure, because a prediction you write afterwards isn't a prediction.</li>
 <li>Measure. At least twenty samples from the client spot, standing still. Take the mean and the standard deviation.</li>
@@ -1592,10 +1592,10 @@ Juniper, both chains                                      24.0 dBm
                                = -15.0 dB
 </code></pre>
 <p>I had put zero in that slot, the way everyone does. The real answer was -15.</p>
-<p>My first guess was the laptop. Aluminium lid, right between the antenna and the AP, has to be worth ten. I turned the laptop around and took ten more samples. <strong>1.4 dB.</strong> Wrong by an order of magnitude. Here's where it actually went.</p>
+<p>My first guess was the laptop. Aluminum lid, right between the antenna and the AP, has to be worth ten. I turned the laptop around and took ten more samples. <strong>1.4 dB.</strong> Wrong by an order of magnitude. Here's where it actually went.</p>
 <figure>
 <img src="../media/lesson-03-ap-on-shelf.jpg" alt="The AP-735 lying flat on its back on a wooden shelf inside a bookcase, radome facing up, with another wooden shelf directly above it" width="1400" height="1026" loading="lazy">
-<figcaption>Fifteen decibels, most of them right here. The radome is aimed at the underside of the next shelf up, about eighteen inches away. The datasheet says these antennas are optimised for horizontal ceiling mount, with peak gain thirty to forty degrees below the AP.</figcaption>
+<figcaption>Fifteen decibels, most of them right here. The radome is aimed at the underside of the next shelf up, about eighteen inches away. The datasheet says these antennas are optimized for horizontal ceiling mount, with peak gain thirty to forty degrees below the AP.</figcaption>
 </figure>
 
 <p>That 5.5 dBi is real, and it's already inside Central's 25 dBm. It was just earned in a direction I wasn't using. The AP was on its back with its main lobe pointed at a plank, and my client was off to one side and slightly below. You don't get the peak by owning the datasheet.</p>

@@ -7,7 +7,7 @@ hero: hero-mesh-strand.svg
 bot: nfn-bot-signal.svg
 summary: HPE says the mesh profile survives conversion, and the same doc set says a mesh must be provisioned over the wire the first time. Nobody has reconciled those two sentences, and the one that is wrong is the one that costs you a lift. Plan for the wire.
 origin: A migrating-mesh-to-Central thread, and the sinking feeling that came with reading the plan
-series: Moving to AOS 10
+series: Migrating APs
 series_order: 3
 ---
 Somebody on Reddit was moving a mesh network to Central and laid out the plan. Convert the APs, let them come up in AOS 10, carry on. Reasonable plan, and it would have worked fine if every one of those APs had a cable in it.
@@ -85,4 +85,4 @@ And if 6 GHz backhaul is in the plan, check the opmode before you commit to the 
 
 Conversion is a provisioning event, and provisioning needs a path. Any AP whose only path is the network you are rebuilding cannot be provisioned by that rebuild, and mesh points are the clearest case because their path is the mesh itself.
 
-The rule generalises past mesh. Before you convert anything, ask how the device will reach its new manager after it forgets everything it knew. If the answer is the thing you are converting, put a cable in it first.
+The rule generalizes past mesh. Before you convert anything, ask how the device will reach its new manager after it forgets everything it knew. If the answer is the thing you are converting, put a cable in it first.

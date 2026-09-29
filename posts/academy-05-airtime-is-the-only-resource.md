@@ -72,7 +72,7 @@ What's left is design. Raise the minimum rate so the device at the edge has to f
 
 On 2.4 and 5 GHz, every SSID beacons about ten times a second, from every AP, at the lowest basic rate, whether or not a single client is connected. The model costs a beacon at 250 bytes of body, 278 on the air once the 802.11 header and FCS are on it, and bigger ones cost more. At 6 Mb/s that's 396 microseconds, 0.39 percent of the channel per SSID per AP.
 
-Sounds like nothing. Now multiply. Eight SSIDs on six APs sharing a channel is **18.6 percent** of it, gone, all day. Raise the floor to 12 Mb/s and it's 9.8. Cut to three SSIDs at 12 and it's 3.7. On 2.4 GHz at the 1 Mb/s default a beacon takes 2,416 microseconds, and eight SSIDs cost 19 percent of the channel from one AP before you count its neighbours. That's the old SSID horror story, and it's still true on any 2.4 radio left on defaults.
+Sounds like nothing. Now multiply. Eight SSIDs on six APs sharing a channel is **18.6 percent** of it, gone, all day. Raise the floor to 12 Mb/s and it's 9.8. Cut to three SSIDs at 12 and it's 3.7. On 2.4 GHz at the 1 Mb/s default a beacon takes 2,416 microseconds, and eight SSIDs cost 19 percent of the channel from one AP before you count its neighbors. That's the old SSID horror story, and it's still true on any 2.4 radio left on defaults.
 
 Broadcast and multicast go out the same way: basic rate, no ACK, no aggregation. The printers post is the worked example. 765 mDNS frames a second, each one put on the air by every AP in the VLAN at 6 Mb/s, cost about 40 percent of a channel, and the main fix was on the switch.
 
@@ -134,7 +134,7 @@ One AP, two laptops, a wired box running `iperf3 -s`, under an hour. Pin the AP'
 4. **Add a slow one.** Laptop B on the same SSID and radio, downloading at the same time. Make it slow: put it where it can barely hang on, or force it to 802.11a/g in the adapter's advanced settings if yours has that option. Write down both throughputs and the utilization.
 5. **Raise the floor.** Move the minimum rate to 12, then 24, and rerun step 4. Watch where laptop B goes.
 
-**What you should see.** Model expectations, labelled that way until I've run this on my own bench. Eight SSIDs on 2.4 GHz at 1 Mb/s should add about 19 percent of transmit utilization from one AP, and about 2 percent at 12 Mb/s. Laptop A alone should land well under its PHY rate: the model says about 720 Mb/s for a 1201 link, before real retries take their cut. With B downloading beside it at 6 or 12 Mb/s, A should lose half or more while utilization climbs. If B is only forced to 802.11a/g close to the AP, A should lose about a third while utilization actually drops a little, 83 to 77 percent in the model. Less busy, and a third less done. That's the whole lesson on one screen. Raise the floor past what B can hold and B leaves, and A gets its air back.
+**What you should see.** Model expectations, labeled that way until I've run this on my own bench. Eight SSIDs on 2.4 GHz at 1 Mb/s should add about 19 percent of transmit utilization from one AP, and about 2 percent at 12 Mb/s. Laptop A alone should land well under its PHY rate: the model says about 720 Mb/s for a 1201 link, before real retries take their cut. With B downloading beside it at 6 or 12 Mb/s, A should lose half or more while utilization climbs. If B is only forced to 802.11a/g close to the AP, A should lose about a third while utilization actually drops a little, 83 to 77 percent in the model. Less busy, and a third less done. That's the whole lesson on one screen. Raise the floor past what B can hold and B leaves, and A gets its air back.
 
 **What means it's broken.** If utilization doesn't move when you add SSIDs, check that the new ones are actually broadcasting on the radio you're watching. If A doesn't drop when B starts, B is probably on the other band or another AP, so check its channel in the client list. If utilization is high with nothing connected, something else is on your channel. Look at the receive and non-Wi-Fi split before you blame the SSIDs.
 
@@ -148,4 +148,4 @@ Answers: About 55 Mb/s. The packet's bits take 10 microseconds of a 218.5 micros
 
 ## Next lesson
 
-Interference from yourself. Somebody asked under lesson 2 whether adding APs to a big open floor makes the cell edge worse. The answer is mostly about channel width, and it starts where this lesson stops: `util_rx_other_bss`.
+Interference from yourself. Somebody asked on LinkedIn, under the lesson 2 post, whether adding APs to a big open floor makes the cell edge worse. The answer is mostly about channel width, and it starts where this lesson stops: `util_rx_other_bss`.

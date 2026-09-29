@@ -5,7 +5,7 @@ date: 2026-09-28
 tags: Wireless, Academy, Troubleshooting
 hero: hero-academy-12.svg
 academy: 12
-summary: Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practise finding each with the right tool.
+summary: Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practice finding each with the right tool.
 origin: Wireless Academy, lesson 12. Fundamentals first, then a lab on real gear
 ---
 Last week was the survey and what a heatmap can't see. This week is what to do when the ticket arrives anyway, saying "Wi-Fi is slow" and nothing else.
@@ -18,7 +18,7 @@ A wireless connection has four places to fail.
 
 **The client.** Its adapter, its driver, the rates and streams it supports, and what it decided to do. Lesson 4 was the rate it picked; lesson 9 was the AP it picked. A 1x1 badge reader on an old driver is a client problem and no AP setting fixes it.
 
-**RF.** Signal, SNR, noise floor, airtime, co-channel neighbours. Lessons 1, 3, 5, 6 and 7. The layer the ticket blames, and the fastest to prove or clear, because retries and SNR are on the first screen of both platforms.
+**RF.** Signal, SNR, noise floor, airtime, co-channel neighbors. Lessons 1, 3, 5, 6 and 7. The layer the ticket blames, and the fastest to prove or clear, because retries and SNR are on the first screen of both platforms.
 
 **Infrastructure.** The AP, the controller or cloud, the join, the auth, the VLAN, DHCP. Lesson 8. A client that associates and then goes nowhere is here, and the events name the step.
 
@@ -45,7 +45,7 @@ Every screen and command below is from an earlier lesson or a doc page. The job 
 |---|---|---|
 | Central client page | Client, RF | Health bar: Device Health, Signal Quality (SNR), Tx\|Rx Rate. Graphs: Retry Frames, Roaming Experience. Connection: Client Capabilities, Client Max Speed. Network: VLAN ID, Auth Server, DHCP Server |
 | Central client Events tab | Infrastructure | Client 802.1X Radius Reject, Client 802.1X Radius Timeout, Client EAP Failure, Client DHCP Acknowledged, Client DHCP Timeout, Client Roaming Success |
-| AOS CLI | Client, RF | `show ap debug client-table` (last-packet rates, Last_ACK_SNR), `show ap debug client-stats` (per-MCS counters), `show ap arm history`, `show ap bss-table` (channel, EIRP, client count per BSS), `show ap monitor ap-list` (neighbours with chan, curr-rssi, curr-snr) |
+| AOS CLI | Client, RF | `show ap debug client-table` (last-packet rates, Last_ACK_SNR), `show ap debug client-stats` (per-MCS counters), `show ap arm history`, `show ap bss-table` (channel, EIRP, client count per BSS), `show ap monitor ap-list` (neighbors with chan, curr-rssi, curr-snr) |
 | AOS 8 CLI | Infrastructure | `show auth-tracebuf` with `failures` or `mac <address>`: the 802.1X exchange with the server, packet by packet |
 | Mist Client Insights | All four | Current Values: RSSI, SNR, RX/TX rates, protocol. Client Events: Authorization Failure, DHCP Timed Out, DHCP Denied, Gateway ARP Timeout, DNS Failure. Pre-Connection charts: Authorization Latency, DHCP Latency |
 | Mist SLEs | Site-wide | Successful Connects, Time to Connect, Throughput, Coverage, Capacity, Roaming, AP Health. The classifiers under each name the layer for you |
@@ -62,7 +62,7 @@ The client layer is the one no platform shows well. Central gives you Client Cap
 One AP, one laptop, lesson 8's 802.1X SSID pointed at the ClearPass lab, the AP on a switch port you can edit, the Sidekick, and a microwave or a metal cabinet. Under an hour. Each break gets three columns in your notes: predicted, seen, and which counters stayed clean.
 
 1. Baseline. Laptop 3 m from the AP, connect, write down SNR, Retry Frames, the Access Tracker Accept, and the DHCP Acknowledged event (Central) or DHCP Success (Mist). Every break gets compared to this row.
-2. Break RF. Put the laptop behind the cabinet or run the microwave on the 2.4 GHz radio, same as lesson 7. Prediction first: RSSI holds within a few dB, SNR collapses, retries climb, no auth event, no DHCP event.
+2. Break RF. Put the laptop behind the cabinet or run the microwave on the 2.4 GHz radio, same as lesson 7. Prediction first, and the two breaks predict differently: behind the cabinet, RSSI and SNR fall together and the noise floor doesn't move; with the microwave, RSSI holds within a few dB, the floor rises and SNR collapses. Either way retries climb, no auth event, no DHCP event.
 3. Read it. Central: Signal Quality drops, Retry Frames climbs, Events tab quiet. Mist: SNR in Current Values drops, `tx_retries` from `/stats/clients` climbs, Client Events show nothing bad. Sidekick: the spectrum view shows the thing. Access Tracker: no new session, because the client never re-authenticated. That's RF, proven by retries, cleared on auth and DHCP.
 4. Put it back. Confirm SNR and retries return to the baseline row before the next break, or you're changing two things.
 5. Break auth. Change the RADIUS shared secret on the WLAN's server entry, on either platform, to something wrong. Reconnect the laptop. Prediction: SNR and retries unchanged, an auth failure event, nothing in Access Tracker.
@@ -84,7 +84,7 @@ The figures here are what the method expects. Measured ones replace them, same a
 2. You change the channel and the RADIUS timeout together. The user says it's better. What did you learn?
 3. Central shows Retry Frames at 40 percent and Signal Quality at 12 dB while the laptop reports a strong signal. Which lesson, which tool, and which layer?
 
-Answers: Upstream, or the DHCP side of infrastructure; the SNR and retries cleared RF, the Accept cleared auth, so the address is the only thing missing. Nothing, and you now owe two more trials to find out which one did it. Lesson 7, the Sidekick's spectrum view, RF; strong RSSI with low SNR is noise, and the client can't see noise, only the analyser can.
+Answers: Upstream, or the DHCP side of infrastructure; the SNR and retries cleared RF, the Accept cleared auth, so the address is the only thing missing. Nothing, and you now owe two more trials to find out which one did it. Lesson 7, the Sidekick's spectrum view, RF; strong RSSI with low SNR is noise, and the client can't see noise, only the analyzer can.
 
 ## What to do with all twelve
 

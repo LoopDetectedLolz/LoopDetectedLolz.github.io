@@ -37,7 +37,7 @@ The game gives every radio the same shot at every turn. It doesn't care how long
 
 So picture one old laptop that only speaks 802.11a/g, downloading beside yours. It can't bundle. In the model behind this site, your download alone on a quiet channel runs at about 720 Mbps. With the old laptop at 54 Mbps, right next to the AP, yours drops to about 480. Move the old one to the edge of the room, where it's down to 6 Mbps, and yours drops to about 210, while the old laptop holds about 60 percent of the air to get 3 Mbps out of it.
 
-Those are modelled numbers, not a capture: 5 GHz, everybody hearing everybody, nothing failing except collisions. Real radios lose frames to more than collisions, so expect real numbers to come in lower.
+Those are modeled numbers, not a capture: 5 GHz, everybody hearing everybody, nothing failing except collisions. Real radios lose frames to more than collisions, so expect real numbers to come in lower.
 
 The fix you've probably heard of is airtime fairness. It's a real feature on AOS 8 and Instant, but the release notes for both say it isn't supported on 802.11ax APs, and I couldn't find it in AOS 10 or in Mist. What's left is design, which is below.
 

@@ -2592,7 +2592,7 @@ var WYT = (function () {
 <p>What's left is design. Raise the minimum rate so the device at the edge has to find a closer AP. Keep legacy devices off the channel your fast clients live on, or retire them. Build coverage so clients sit near an AP. Level 4 is exactly this problem.</p>
 <h2>Overhead before anyone says anything</h2>
 <p>On 2.4 and 5 GHz, every SSID beacons about ten times a second, from every AP, at the lowest basic rate, whether or not a single client is connected. The model costs a beacon at 250 bytes of body, 278 on the air once the 802.11 header and FCS are on it, and bigger ones cost more. At 6 Mb/s that's 396 microseconds, 0.39 percent of the channel per SSID per AP.</p>
-<p>Sounds like nothing. Now multiply. Eight SSIDs on six APs sharing a channel is <strong>18.6 percent</strong> of it, gone, all day. Raise the floor to 12 Mb/s and it's 9.8. Cut to three SSIDs at 12 and it's 3.7. On 2.4 GHz at the 1 Mb/s default a beacon takes 2,416 microseconds, and eight SSIDs cost 19 percent of the channel from one AP before you count its neighbours. That's the old SSID horror story, and it's still true on any 2.4 radio left on defaults.</p>
+<p>Sounds like nothing. Now multiply. Eight SSIDs on six APs sharing a channel is <strong>18.6 percent</strong> of it, gone, all day. Raise the floor to 12 Mb/s and it's 9.8. Cut to three SSIDs at 12 and it's 3.7. On 2.4 GHz at the 1 Mb/s default a beacon takes 2,416 microseconds, and eight SSIDs cost 19 percent of the channel from one AP before you count its neighbors. That's the old SSID horror story, and it's still true on any 2.4 radio left on defaults.</p>
 <p>Broadcast and multicast go out the same way: basic rate, no ACK, no aggregation. The printers post is the worked example. 765 mDNS frames a second, each one put on the air by every AP in the VLAN at 6 Mb/s, cost about 40 percent of a channel, and the main fix was on the switch.</p>
 <p>The minimum rate moves all of this at once. New Central's presets are Most Compatible (1 Mb/s on 2.4 GHz, 6 on 5), Balanced (12 and 12) and High Density (24 and 24), and HPE's AOS 10 design guidance recommends 12 or 24. Mist has Compatible, No Legacy and High Density, with High Density at 24 everywhere. The cost is the cell edge. A client that can't hold the new floor has to move or drop, so survey before you raise it in a warehouse.</p>
 <h2>WMM: voice cuts the line</h2>
@@ -2662,7 +2662,7 @@ for ap in r.json():
 <li><strong>Add a slow one.</strong> Laptop B on the same SSID and radio, downloading at the same time. Make it slow: put it where it can barely hang on, or force it to 802.11a/g in the adapter's advanced settings if yours has that option. Write down both throughputs and the utilization.</li>
 <li><strong>Raise the floor.</strong> Move the minimum rate to 12, then 24, and rerun step 4. Watch where laptop B goes.</li>
 </ol>
-<p><strong>What you should see.</strong> Model expectations, labelled that way until I've run this on my own bench. Eight SSIDs on 2.4 GHz at 1 Mb/s should add about 19 percent of transmit utilization from one AP, and about 2 percent at 12 Mb/s. Laptop A alone should land well under its PHY rate: the model says about 720 Mb/s for a 1201 link, before real retries take their cut. With B downloading beside it at 6 or 12 Mb/s, A should lose half or more while utilization climbs. If B is only forced to 802.11a/g close to the AP, A should lose about a third while utilization actually drops a little, 83 to 77 percent in the model. Less busy, and a third less done. That's the whole lesson on one screen. Raise the floor past what B can hold and B leaves, and A gets its air back.</p>
+<p><strong>What you should see.</strong> Model expectations, labeled that way until I've run this on my own bench. Eight SSIDs on 2.4 GHz at 1 Mb/s should add about 19 percent of transmit utilization from one AP, and about 2 percent at 12 Mb/s. Laptop A alone should land well under its PHY rate: the model says about 720 Mb/s for a 1201 link, before real retries take their cut. With B downloading beside it at 6 or 12 Mb/s, A should lose half or more while utilization climbs. If B is only forced to 802.11a/g close to the AP, A should lose about a third while utilization actually drops a little, 83 to 77 percent in the model. Less busy, and a third less done. That's the whole lesson on one screen. Raise the floor past what B can hold and B leaves, and A gets its air back.</p>
 <p><strong>What means it's broken.</strong> If utilization doesn't move when you add SSIDs, check that the new ones are actually broadcasting on the radio you're watching. If A doesn't drop when B starts, B is probably on the other band or another AP, so check its channel in the client list. If utilization is high with nothing connected, something else is on your channel. Look at the receive and non-Wi-Fi split before you blame the SSIDs.</p>
 <h2>Three questions</h2>
 <ol>
@@ -2672,7 +2672,7 @@ for ap in r.json():
 </ol>
 <p>Answers: About 55 Mb/s. The packet's bits take 10 microseconds of a 218.5 microsecond turn; the rest is the gap, the count, the preamble, the padding in the last symbol, the 16 microsecond pause and the ACK. About 18.6 percent, and 12 Mb/s roughly halves it, to 9.8. Voice draws its number from 0 to 3, so with lots of busy radios in that queue most turns start with a collision and the real calls suffer. Priority only works while most traffic doesn't have it.</p>
 <h2>Next lesson</h2>
-<p>Interference from yourself. Somebody asked under lesson 2 whether adding APs to a big open floor makes the cell edge worse. The answer is mostly about channel width, and it starts where this lesson stops: <code>util_rx_other_bss</code>.</p></div>
+<p>Interference from yourself. Somebody asked on LinkedIn, under the lesson 2 post, whether adding APs to a big open floor makes the cell edge worse. The answer is mostly about channel width, and it starts where this lesson stops: <code>util_rx_other_bss</code>.</p></div>
       
     </div>
     <section class="prog g-card" id="prog" data-rise aria-label="Your progress on this lesson">
@@ -2902,7 +2902,7 @@ for ap in r.json():
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="a-radius-timeout-means-somebody-dropped-it-not-that-it-never-left.html"><span class="eyebrow">Older</span>A RADIUS Timeout Means Somebody Dropped It, Not That It Never Left</a><a class="pn g-card" href="academy-06-interference-from-yourself.html"><span class="eyebrow">Newer</span>Interference From Yourself</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-04-modulation-and-data-rates.html"><span class="eyebrow">Older</span>Modulation and Data Rates</a><a class="pn g-card" href="academy-06-interference-from-yourself.html"><span class="eyebrow">Newer</span>Interference From Yourself</a></div>
     </section>
   </article>
 </div>

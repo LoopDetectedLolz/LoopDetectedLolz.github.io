@@ -35,7 +35,7 @@ Laptops get away with it. Somebody clicks past the warning, or the browser alrea
 
 Phones don't:
 
-- **Android** at least tells you. The sign in screen swaps in a security warning, "The network you're trying to join has security issues," with the reason under it. The only way on is Continue anyway via browser, which closes the sign in screen. If the cert error is on a sub resource rather than the page itself, it gets cancelled without a word.
+- **Android** at least tells you. The sign in screen swaps in a security warning, "The network you're trying to join has security issues," with the reason under it. The only way on is Continue anyway via browser, which closes the sign in screen. If the cert error is on a sub resource rather than the page itself, it gets canceled without a word.
 - **iOS** doesn't document what the popup does with a bad cert on the post back. My own read, and I'll flag it as mine rather than Apple's: there's no Proceed, and the post just doesn't land.
 
 Either way no RADIUS fires, and as far as ClearPass knows the phone never tried.

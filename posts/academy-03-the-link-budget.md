@@ -35,7 +35,7 @@ Free space path loss. It's the only term in the budget you can't argue with.
 FSPL(dB) = 20·log10(d) + 20·log10(f) - 27.55
 ```
 
-Distance in metres, frequency in megahertz. Worked once, for my lab: 32 ft is 9.75 m, and the primary channel is 149, which is 5745 MHz.
+Distance in meters, frequency in megahertz. Worked once, for my lab: 32 ft is 9.75 m, and the primary channel is 149, which is 5745 MHz.
 
 ```
 20·log10(9.75)  = 19.78
@@ -45,7 +45,7 @@ Distance in metres, frequency in megahertz. Worked once, for my lab: 32 ft is 9.
 
 Nothing is absorbed in that formula and nothing is blocked. It's the wave spreading over the surface of a bigger and bigger sphere, and the sphere doesn't care what your building is made of.
 
-Two things fall out of it on site. It's logarithmic, so the early metres are the expensive ones: one metre to ten costs 20 dB, ten to a hundred costs another 20, and doubling the distance always costs 6. And it has a minimum valid distance. Put the client on top of the AP and you're inside the near field, roughly 80 cm for a typical AP at 5 GHz, and the formula isn't inaccurate, it's meaningless. Ask me how I know. I threw away ten beautiful samples.
+Two things fall out of it on site. It's logarithmic, so the early meters are the expensive ones: one meter to ten costs 20 dB, ten to a hundred costs another 20, and doubling the distance always costs 6. And it has a minimum valid distance. Put the client on top of the AP and you're inside the near field, roughly 80 cm for a typical AP at 5 GHz, and the formula isn't inaccurate, it's meaningless. Ask me how I know. I threw away ten beautiful samples.
 
 ## What the gear shows you
 
@@ -112,7 +112,7 @@ File the posture problem away. It comes back in lesson 11, when we put an AP on 
 
 One AP, one laptop, about forty minutes.
 
-1. Read the AP's power figure, and find out what that field means before you use it. Note the channel centre frequency, not the channel number.
+1. Read the AP's power figure, and find out what that field means before you use it. Note the channel center frequency, not the channel number.
 2. Measure a distance and mark **the client spot** on the floor with tape. Mark the AP spot too, and label them differently. I marked only the AP position, told myself to stand on the tape, and took nine samples from two feet away before I noticed.
 3. Predict. EIRP minus FSPL. Write it down before you measure, because a prediction you write afterwards isn't a prediction.
 4. Measure. At least twenty samples from the client spot, standing still. Take the mean and the standard deviation.
@@ -130,11 +130,11 @@ client antenna + off-lobe loss = RSSI - EIRP + FSPL
 
 I had put zero in that slot, the way everyone does. The real answer was -15.
 
-My first guess was the laptop. Aluminium lid, right between the antenna and the AP, has to be worth ten. I turned the laptop around and took ten more samples. **1.4 dB.** Wrong by an order of magnitude. Here's where it actually went.
+My first guess was the laptop. Aluminum lid, right between the antenna and the AP, has to be worth ten. I turned the laptop around and took ten more samples. **1.4 dB.** Wrong by an order of magnitude. Here's where it actually went.
 
 <figure>
 <img src="../media/lesson-03-ap-on-shelf.jpg" alt="The AP-735 lying flat on its back on a wooden shelf inside a bookcase, radome facing up, with another wooden shelf directly above it" width="1400" height="1026" loading="lazy">
-<figcaption>Fifteen decibels, most of them right here. The radome is aimed at the underside of the next shelf up, about eighteen inches away. The datasheet says these antennas are optimised for horizontal ceiling mount, with peak gain thirty to forty degrees below the AP.</figcaption>
+<figcaption>Fifteen decibels, most of them right here. The radome is aimed at the underside of the next shelf up, about eighteen inches away. The datasheet says these antennas are optimized for horizontal ceiling mount, with peak gain thirty to forty degrees below the AP.</figcaption>
 </figure>
 
 That 5.5 dBi is real, and it's already inside Central's 25 dBm. It was just earned in a direction I wasn't using. The AP was on its back with its main lobe pointed at a plank, and my client was off to one side and slightly below. You don't get the peak by owning the datasheet.

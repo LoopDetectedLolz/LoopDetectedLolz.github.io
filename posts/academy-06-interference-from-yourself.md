@@ -10,7 +10,7 @@ origin: Wireless Academy, lesson 6. Fundamentals first, then a lab on real gear
 ---
 Last week was airtime, the one thing a channel has and everything on it shares. This week the thing sharing it is your own AP across the hall.
 
-A reader asked under lesson 2, on LinkedIn. He has twelve APs on one very large single floor. Does the cell edge get worse as he keeps adding APs? And is there a system that self-tests and adjusts, or is it trial and error? Two good questions, and the answer to the first one depends on a number he didn't give me. It isn't twelve.
+A reader asked on LinkedIn, under the lesson 2 post. He has twelve APs on one very large single floor. Does the cell edge get worse as he keeps adding APs? And is there a system that self-tests and adjusts, or is it trial and error? Two good questions, and the answer to the first one depends on a number he didn't give me. It isn't twelve.
 
 ## The count isn't the variable
 
@@ -30,7 +30,7 @@ Two APs on one channel don't corrupt each other, mostly. They wait for each othe
 
 So the thing that degrades is airtime, and only airtime. The client's RSSI reads what it read before. Same SNR, same MCS row, half the throughput. If you're staring at a signal number to find the problem, you're on the wrong page. Computers are very patient about waiting their turn.
 
-Adjacent channels are the other case and they behave the opposite way. A transmitter isn't a brick wall in frequency. The 80 MHz spectral mask is flat to 39 MHz off centre, down 20 dB at 41 MHz, down 28 dB at 80 and down 40 dB at 120. That skirt lands in the next block. It isn't a preamble, so nothing defers to it. It's energy you can't decode, which is noise. It raises the floor, eats SNR and pushes the far clients down a row. Same channel costs you time; next-door channel costs you signal. Lesson 7 opens on that floor.
+Adjacent channels are the other case and they behave the opposite way. A transmitter isn't a brick wall in frequency. The 80 MHz spectral mask is flat to 39 MHz off center, down 20 dB at 41 MHz, down 28 dB at 80 and down 40 dB at 120. That skirt lands in the next block. It isn't a preamble, so nothing defers to it. It's energy you can't decode, which is noise. It raises the floor, eats SNR and pushes the far clients down a row. Same channel costs you time; next-door channel costs you signal. Lesson 7 opens on that floor.
 
 One thing about the word "adjacent" at 80 MHz. Channels 36, 40, 44 and 48 are the same 80 MHz block with a different primary. Two APs on primaries 36 and 44 are co-channel, full stop. The adjacent channel to that block is 52 to 64, and nothing else is.
 
@@ -53,7 +53,7 @@ Reuse under one means somebody shares. A shared 80 MHz channel, at the model's n
 
 ## What the automation does
 
-Yes, there's a system on both platforms, and it isn't trial and error. It's an optimiser. It moves two knobs, channel and transmit power, inside a box you drew. It doesn't move antenna gain or walls, and it doesn't move the width unless you let it. The engineer's job is the box: allowed channel list, width, minimum power, maximum power. Give it 80 MHz on a twelve-AP floor and it picks the least-bad six-colour map it can, every night, forever.
+Yes, there's a system on both platforms, and it isn't trial and error. It's an optimizer. It moves two knobs, channel and transmit power, inside a box you drew. It doesn't move antenna gain or walls, and it doesn't move the width unless you let it. The engineer's job is the box: allowed channel list, width, minimum power, maximum power. Give it 80 MHz on a twelve-AP floor and it picks the least-bad six-color map it can, every night, forever.
 
 **Aruba AOS 10 and Central: AirMatch.** APs send RF statistics to Central on a 24-hour cycle. Central splits the network into partitions, solves for channel, bandwidth and EIRP per radio, and pushes the plan at the hour you chose. In Central it's under Devices > Access Points > Config: the Activate Optimization toggle, the Automatically deploy optimization at drop-down, and Wireless Coverage Tuning, Conservative, Balanced or Aggressive per radio. The Central doc doesn't state a default hour; my tenant came up with 05:00 and Balanced, which matches the AOS 8 `airmatch profile`, where `deploy-hour` defaults to 5 and `quality-threshold` to 8 percent, so a plan has to be 8 percent better before it gets pushed. Your box lives in the Radios tab under RF Coverage: Allowed Channels, Minimum and Maximum bandwidth, and Allowed Transmit Power with a min and a max. Out of the box on 10.8 the 5 GHz bandwidth box is 20 to 80 MHz, so AirMatch will move width between those on its own and never picks 160 unless you raise the maximum. Between runs AirMatch still reacts locally to radar, noise and channel quality. The receipts are Channel Changes and Power Changes on the AP Radios tab, and `show ap arm history` on the AP.
 

@@ -49,7 +49,7 @@ It gets better. The doc page for the new name still lives at a URL ending in the
 
 So: **when a command doesn't behave the way a doc page says, check the Command History table before you check your own sanity.** That table is the closest thing AOS-CX has to a changelog for CLI syntax, and it's the first place I go now.
 
-Whether the old spelling still parses on a current build is undocumented in both directions, which means the only honest answer is the one you get from the box. Tab completion and `?` on the actual switch beat every page on the internet including this one. (The 120 minute ceiling on that timer, on the other hand, is documented right on the command page. That one you can just cite.)
+Whether the old spelling still parses on a current build is undocumented in both directions, which means the only honest answer is the one you get from the box. Tab completion and `?` on the actual switch beat every page on the internet including this one. (The command takes a timeout in minutes, and its 120 minute ceiling is documented right on the command page. That one you can just cite.)
 
 ## When the doc site itself is the obstacle
 

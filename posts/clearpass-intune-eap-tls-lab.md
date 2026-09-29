@@ -49,7 +49,7 @@ Deploy a trusted root profile first, because the SCEP profile references it and 
 |---|---|---|
 | Certificate type | Device | Lands in the Local Computer store |
 | Subject name format | `CN={{AAD_Device_ID}}` | The Entra device ID. Stable, and it's what ClearPass will key the lookup on |
-| SAN | URI = `AAD_Device_ID:{{AAD_Device_ID}}` | HPE's Intune extension parses the SAN URI as KEY:VALUE. Anything without a recognised key in front of it gets treated as a plain Intune DeviceId, which is not the same thing |
+| SAN | URI = `AAD_Device_ID:{{AAD_Device_ID}}` | HPE's Intune extension parses the SAN URI as KEY:VALUE. Anything without a recognized key in front of it gets treated as a plain Intune DeviceId, which is not the same thing |
 | Key storage provider | Enroll to TPM KSP, otherwise fail | See below |
 | Key size | 2048 | 4096 isn't supported with a hardware TPM |
 | Extended key usage | Client Authentication | |
@@ -120,7 +120,7 @@ Authorization:[Intune]:Intune Compliance State  EQUALS  compliant
 Authorization:[Intune]:Intune Jail Broken       EQUALS  False
 ```
 
-Lowercase `compliant`. I had it capitalised in an earlier version of this post and that rule matches nothing, which with a default-deny policy means it quarantines your entire healthy fleet. Or use `EQUALS_IGNORE_CASE` and stop having to care. And `EQUALS False` rather than `NOT_EQUALS True`, because Graph documents the jailbreak field as a string that defaults to empty, so it can come back blank or not come back at all, and `NOT_EQUALS True` passes both. Match the value you actually want.
+Lowercase `compliant`. I had it capitalized in an earlier version of this post and that rule matches nothing, which with a default-deny policy means it quarantines your entire healthy fleet. Or use `EQUALS_IGNORE_CASE` and stop having to care. And `EQUALS False` rather than `NOT_EQUALS True`, because Graph documents the jailbreak field as a string that defaults to empty, so it can come back blank or not come back at all, and `NOT_EQUALS True` passes both. Match the value you actually want.
 
 Which brings up the branch nobody writes. What does your policy do when the Intune lookup returns nothing? Not "non compliant." Nothing. Device isn't enrolled, the sync is broken, the client secret expired (the portal caps those at two years, put it on a calendar). Write that rule explicitly and make it a deny. A policy that only handles compliant and noncompliant has a third branch you didn't write, and it's the one that ends up in production. The compliance state field has seven possible values, and `inGracePeriod` is the one you'll meet mid-rollout.
 

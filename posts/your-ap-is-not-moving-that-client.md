@@ -3,7 +3,7 @@ title: Your AP Is Not Moving That Client
 slug: your-ap-is-not-moving-that-client
 date: 2026-09-17
 tags: Wireless, Clients, Roaming
-hero: hero-client-behaviour.svg
+hero: hero-client-behavior.svg
 summary: Roaming is a client decision, band steering is a suggestion, and the phone that sits disconnected after an elevator is running a documented backoff timer. Opening the Wi-Fi settings screen does not wake it up, and the popular explanation of why it seems to is mechanically wrong.
 origin: A Reddit thread about a phone that would not reconnect after an elevator ride, answered confidently and incorrectly by most of it
 ---
@@ -20,13 +20,13 @@ An access point cannot move a client. There is no frame that says "go to that AP
 
 What you have is a set of ways to make the decision easier or more attractive:
 
-**802.11k** hands the client a neighbour report, so instead of scanning the whole band to find out what is nearby it gets a list. Faster decision, same decider.
+**802.11k** hands the client a neighbor report, so instead of scanning the whole band to find out what is nearby it gets a list. Faster decision, same decider.
 
 **802.11v** BSS Transition Management sends the client a suggestion that it should move, optionally with a candidate list. The client is free to ignore it, and plenty do.
 
 **802.11r** makes the reassociation itself cheap once the client has decided, by pre-establishing key material. It shortens the gap, it does not cause the roam.
 
-**Band steering** is the bluntest of the set. The old way, and still what a lot of people picture, is to stop answering probe requests on 2.4 GHz for a client the AP has heard on 5, so the client's own scan comes back without the option you did not want it to take. Influence by omission, and a stubborn client with the 2.4 BSSID cached goes there anyway. On Aruba that is the legacy ARM behaviour and ClientMatch has replaced it: it steers after association, with an 802.11v transition request first and a deauth if the client ignores enough of them, and it keeps a list of clients that will not be steered so it stops fighting them. On AOS 10 it also declines the 2.4 GHz association outright for a client it knows is dual band. Better manners, same rule underneath: the client still decides where it goes next.
+**Band steering** is the bluntest of the set. The old way, and still what a lot of people picture, is to stop answering probe requests on 2.4 GHz for a client the AP has heard on 5, so the client's own scan comes back without the option you did not want it to take. Influence by omission, and a stubborn client with the 2.4 BSSID cached goes there anyway. On Aruba that is the legacy ARM behavior and ClientMatch has replaced it: it steers after association, with an 802.11v transition request first and a deauth if the client ignores enough of them, and it keeps a list of clients that will not be steered so it stops fighting them. On AOS 10 it also declines the 2.4 GHz association outright for a client it knows is dual band. Better manners, same rule underneath: the client still decides where it goes next.
 
 Every one of those is the infrastructure improving the quality of a decision that the client makes. Which is why "the AP would not move my client" is almost always a sentence about the client.
 
