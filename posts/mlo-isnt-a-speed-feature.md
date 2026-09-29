@@ -19,7 +19,7 @@ Same route, same stops, five minutes each. MLO on averaged 430 Mbit/s. MLO off a
 
 ## The bench
 
-An AP-735 on AOS-10 10.8.1.0, managed from Central, with a test SSID on all three bands: 6 GHz at 160 MHz, 5 GHz at 80, 2.4 at 20. An iPhone 18 Pro Max on iOS 27, which is Wi-Fi 7 with two spatial streams and 160 MHz channels at most, so its best case on 6 GHz is 2402 Mbit/s on paper. The AP hangs off a 1G switch port and the iperf3 server is a desktop wired to the same switch, so anything over about 940 Mbit/s is the cable talking, not the air. Keep that number in your head. It matters later.
+An AP-735 on AOS-10 10.8.1.0, managed from Central, with a test SSID on all three bands: 6 GHz at 160 MHz, 5 GHz at 80, 2.4 at 20. An iPhone 18 Pro Max on iOS 27, which is Wi-Fi 7 with two spatial streams, 160 MHz channels at most and a cap at MCS 11, so its best case on 6 GHz is 2402 Mbit/s on paper. The AP hangs off a 1G switch port and the iperf3 server is a desktop wired to the same switch, so anything over about 940 Mbit/s is the cable talking, not the air. Keep that number in your head. It matters later.
 
 I started with Speedtest and gave up on it after three rungs. Most runs landed between 650 and 745 down and 38 to 39 up no matter what I changed, because something upstream of the Wi-Fi, most likely the ISP, was the bottleneck. A speed test that reads the same whatever you do is a very consistent way to learn nothing.
 
@@ -59,7 +59,7 @@ Download running, five streams, five minutes. Start at the desk, walk to the lau
 
 On the averages it's a tie: 430 against 403, medians 333 and 340. The MLO-off run actually did better through the middle of the house. Where they differ is the holes.
 
-With MLO off, about 20 seconds into the run the download went to zero for eight straight seconds. The AP's auth trace shows what happened: the phone came back to the same 6 GHz BSS with a brand new SAE exchange and four-way handshake, 44 ms start to finish on the AP's clock. Nothing logged a deauth or a disassociation from either side before it, and `show ap client-match action-history` had no entry for the phone, so the AP didn't push it. The phone went quiet on its own, came back, and TCP took a few more seconds to believe it. Forty-five seconds later it hopped to 5 GHz, which cost one bad second, and it stayed there for the rest of the download. MLO on had a single zero second in five minutes and never reassociated.
+With MLO off, about 20 seconds into the run the download went to zero for eight straight seconds. The AP's auth trace shows what happened: the phone came back to the same 6 GHz BSS with a brand new SAE exchange and four-way handshake, 44 ms start to finish on the AP's clock. Nothing in the auth trace logged a deauth or a disassociation from either side before it, and `show ap client-match action-history` had no entry for the phone, so the AP didn't push it. The phone went quiet on its own, came back, and TCP took a few more seconds to believe it. Forty-five seconds later it hopped to 5 GHz, which cost one bad second, and it stayed there for the rest of the download. MLO on had a single zero second in five minutes and never reassociated.
 
 One run each, and the MLO-off walk ran about 20 seconds behind by the end, so compare the shapes rather than second by second.
 
