@@ -48,6 +48,8 @@ origin: One line on where it came from
 ---
 ```
 
+Optional: `changed: YYYY-MM-DD | one sentence on what changed`. Every post and lesson ends with a "Mark as read" box (lessons use the Read row on the progress card); the mark is `p[slug]` in the reader's progress record (`theme/progress-core.js`, latest date wins, capped at 120 posts) and travels with their save code. A reader who marked the post read before the `changed:` date sees a line at the top saying so, with this sentence, until they tap Got it. Only add it for a change a reader would want to know about, never for a typo. The Worker imports the same core, so after touching `progress-core.js` run `wrangler deploy` from `comments/`; until then post marks stay in the reader's browser and the server simply drops them.
+
 Optional: `bot: nfn-bot-<pose>.svg` to pick which Rig pose sits on the post page (default is picked from the tags; see `BOTS` in `build-blog.py`).
 
 Read time is calculated from word count. Posts sort by date, newest first, and the newest becomes the featured hero on the index. The featured post also gets a hidden card in the grid so category filters and search still find it.

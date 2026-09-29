@@ -548,8 +548,8 @@ html.qam-fs .rig{display:none}
   <nav class="nav"><a class="pill" href="/">Posts</a><a class="pill on" href="academy.html">Academy</a><a class="pill" href="tools.html">Tools</a><a class="pill" href="about.html">About</a><a class="pill outline" href="index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
   
 </div></div></header>
-<main class="wrap"><style>/* Academy progress, save codes and the self-check. Inlined by build-blog.py (progress_scripts) on Academy
-   lessons, academy.html and sandbox.html only. Kit tokens only; orange is the Academy's accent. */
+<main class="wrap"><style>/* Academy progress, save codes, the self-check, and the read mark every post carries. Inlined by build-blog.py
+   (progress_scripts) on every post and lesson, academy.html and sandbox.html. Kit tokens only; orange is the Academy's accent. */
 
 /* the progress card at the end of a lesson */
 .prog{padding:var(--s5);margin-top:var(--s5)}
@@ -619,6 +619,22 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
 
 /* sandbox.html: a dot on every lab that has passed */
 .sb-pill.passed::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(140,224,94,0.18)}
+
+/* every post: the read mark at the end and the changed line at the top. Green on field notes, orange in the Academy. */
+.readmark,.changed-note{--rm:var(--green);--rm-soft:rgba(140,224,94,0.45)}
+body.acad .readmark,body.acad .changed-note{--rm:var(--orange);--rm-soft:rgba(245,165,36,0.5)}
+.readmark{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;padding:var(--s4) var(--s5);margin-top:var(--s5)}
+.rm-label{display:inline-flex;align-items:center;gap:10px;min-height:44px;font-weight:600;font-size:15px;cursor:pointer}
+.rm-label input{width:20px;height:20px;accent-color:var(--rm);cursor:pointer}
+.rm-label input:disabled{cursor:default}
+.rm-say{font-size:13.5px;line-height:1.5;color:var(--text-dim)}
+.changed-note{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap;padding:var(--s4) var(--s5);margin-top:var(--s4);border-color:var(--rm-soft)}
+.changed-note[hidden]{display:none}
+.changed-note .eyebrow{color:var(--rm)}
+.cn-text{flex:1 1 280px;min-width:0}
+.cn-text p{margin:4px 0 0;font-size:14.5px;line-height:1.55;color:var(--text-dim)}
+.cn-text .cn-what{color:var(--text)}
+.prog-items [data-nfn-read][hidden]{display:none}
 </style><script>window.NFN_CFG={"api": "https://api.networkfieldnotes.com", "sitekey": "0x4AAAAAAE0IseyiQ4X9zk6r"};</script><script>/* Network Field Notes: the Academy progress core.
  *
  * Pure functions: no DOM, no storage, no network. theme/progress.js uses it in the page,
@@ -629,10 +645,11 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
  *   { "v": 1,
  *     "w":    { "<lesson number>": { "read": "YYYY-MM-DD", "lab": "...", "game": "...", "check": [0|1, 0|1, 0|1] } },
  *     "labs": { "<CX Sandbox lab id>": "YYYY-MM-DD" },
- *     "seen": { "<question id>": "<ISO time the reader last saw that question's answers>" } }
+ *     "seen": { "<question id>": "<ISO time the reader last saw that question's answers>" },
+ *     "p":    { "<post slug>": "YYYY-MM-DD the reader last marked it read" } }
  *
- * Merge rules: dates keep the earliest, checks OR together, seen keeps the latest, anything else is
- * dropped. That makes merge commutative, associative and idempotent, which progresstest.js proves.
+ * Merge rules: dates keep the earliest, checks OR together, seen and p keep the latest, anything else is
+ * dropped. p keeps the latest because "I read the update" has to be able to move a read date forward. That makes merge commutative, associative and idempotent, which progresstest.js proves.
  * Nothing can be un-done by a merge, so the page never offers an undo that would not stick.
  */
 (function (root, factory) {
@@ -651,6 +668,8 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
   var LAB_RE = /^[a-z0-9][a-z0-9-]{0,60}$/;
   var QID_RE = /^[1-9]\d{0,11}$/;
   var LESSON_RE = /^[1-9]\d?$/;
+  var SLUG_RE = /^[a-z0-9][a-z0-9-]{0,100}$/;
+  var MAX_POSTS = 120;           // with the rest of a heavy record this stays under MAX_BYTES; the site has about 35 posts
   var CODE_RE = /^[a-z]{3,8}(?:-[a-z]{3,8}){3}$/;
 
   function isObj(o) { return !!o && typeof o === "object" && !Array.isArray(o); }
@@ -663,7 +682,7 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
 
   function today(d) { return (d || new Date()).toISOString().slice(0, 10); }
   function nowIso(d) { return (d || new Date()).toISOString(); }
-  function emptyProgress() { return { labs: {}, seen: {}, v: V, w: {} }; }   // already in canonical key order
+  function emptyProgress() { return { labs: {}, p: {}, seen: {}, v: V, w: {} }; }   // already in canonical key order
 
   function cleanLesson(x) {
     if (!isObj(x)) return null;
@@ -698,6 +717,9 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
     if (isObj(d.seen)) Object.keys(d.seen).forEach(function (k) {
       if (QID_RE.test(k) && typeof d.seen[k] === "string" && TS_RE.test(d.seen[k])) out.seen[k] = d.seen[k];
     });
+    if (isObj(d.p)) Object.keys(d.p).filter(function (k) {
+      return SLUG_RE.test(k) && typeof d.p[k] === "string" && DATE_RE.test(d.p[k]);
+    }).sort().slice(0, MAX_POSTS).forEach(function (k) { out.p[k] = d.p[k]; });
     return canonical(out);
   }
 
@@ -725,7 +747,8 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
     });
     union(a.labs, b.labs).forEach(function (k) { out.labs[k] = earliest(a.labs[k], b.labs[k]); });
     union(a.seen, b.seen).forEach(function (k) { out.seen[k] = latest(a.seen[k], b.seen[k]); });
-    return canonical(out);
+    union(a.p, b.p).forEach(function (k) { out.p[k] = latest(a.p[k], b.p[k]); });
+    return validate(out);
   }
 
   /* same content, same string: keys sorted at every level */
@@ -757,11 +780,24 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
     return n;
   }
 
+  /* the date a post counts as read: the later of the post mark and, for a lesson, the lesson's read */
+  function postRead(p, slug, lesson) {
+    var a = (p && p.p && p.p[slug]) || "";
+    var b = lesson ? lessonState(p, lesson).read : "";
+    return latest(a, b);
+  }
+  /* true when the reader marked it read before the post's last noted change */
+  function changedSince(p, slug, lesson, changed) {
+    var r = postRead(p, slug, lesson);
+    return !!(r && changed && DATE_RE.test(changed) && r < changed);
+  }
+
   return {
     V: V, MAX_BYTES: MAX_BYTES, CHECKS: CHECKS,
     normaliseCode: normaliseCode, isCodeShape: isCodeShape, today: today, nowIso: nowIso,
     emptyProgress: emptyProgress, validate: validate, merge: merge, canonical: canonical,
-    serialise: serialise, same: same, lessonState: lessonState, readCount: readCount, labCount: labCount
+    serialise: serialise, same: same, lessonState: lessonState, readCount: readCount, labCount: labCount,
+    postRead: postRead, changedSince: changedSince
   };
 });
 </script><script>/* Network Field Notes: Academy progress in the browser, and the save code.
@@ -771,13 +807,16 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
  * find the answers to their questions. No account, no email. No code exists until the reader asks a question,
  * taps "Get a code", or accepts the one offer after their first lesson.
  *
- * Inlined on every Academy lesson, academy.html and sandbox.html, after progress-core.js and after
- * window.NFN_CFG = {api, sitekey, lesson}. An empty api keeps everything in this browser.
+ * Inlined on every post and lesson, academy.html and sandbox.html, after progress-core.js and after
+ * window.NFN_CFG = {api, sitekey, lesson, slug, changed}. An empty api keeps everything in this browser.
+ * On a post page the reader ticks "Mark as read" (p[slug] = today); if the post's front matter later carries
+ * `changed: YYYY-MM-DD | what changed` with a date after that mark, a line at the top says so until "Got it".
  *
  * window.NFNProgress
  *   get()               a copy of the record          code()            the save code here, or ""
  *   mark(field, i)      this lesson: "read" | "lab" | "game" | "check" (i = question 0 to 2)
  *   lab(id)             a CX Sandbox lab passed        seen(ids)         the reader has seen these answers
+ *   markPost()          this post, read today (moves forward, never back)
  *   questions()         the reader's own questions from the last pull, held and live, with answers
  *   getCode(token)      make a code (Turnstile token)  useCode(words)    restore: adopt a code and merge into it
  *   adopt(code)         take the fresh code a question came back with
@@ -793,6 +832,8 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
   var CFG = window.NFN_CFG || {};
   var API = String(CFG.api || "").replace(/\/+$/, "");
   var LESSON = CFG.lesson ? String(CFG.lesson) : "";
+  var SLUG = typeof CFG.slug === "string" ? CFG.slug : "";          // every post page: its slug
+  var CHANGED = typeof CFG.changed === "string" ? CFG.changed : ""; // the post's last noted change, YYYY-MM-DD
   var K_DATA = "nfn:progress", K_CODE = "nfn:code", K_DIRTY = "nfn:dirty", K_OFFER = "nfn:offered";
 
   function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -824,6 +865,11 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
     else return;
     w[LESSON] = l;
     change({ w: w });
+  }
+  function markPost() {
+    if (!SLUG) return;
+    var p = {}; p[SLUG] = Core.today();
+    change({ p: p });
   }
   function lab(id) { var labs = {}; labs[String(id)] = Core.today(); change({ labs: labs }); }
   function seen(ids) {
@@ -1004,7 +1050,8 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
         li.classList.toggle("done", !!done);
         var b = li.querySelector("b"); if (b && text != null) b.textContent = text;
       };
-      set("read", st.read, st.read ? "Done" : "When you reach the end");
+      set("read", st.read, st.read ? "Done" : "");
+      card.querySelectorAll("[data-nfn-read]").forEach(function (b) { b.hidden = !!st.read; });
       set("lab", st.lab, null);
       set("check", st.checks === Core.CHECKS, st.checks + " of " + Core.CHECKS);
       set("game", st.game, st.game ? "Done" : "Not yet");
@@ -1211,6 +1258,39 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
     paint();
   }
 
+  // ── every post: the read mark at the end, the changed line at the top ───
+  function shortDate(d) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ""); if (!m) return d || "";
+    return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][+m[2] - 1] + " " + (+m[3]) +
+      (m[1] !== String(new Date().getFullYear()) ? ", " + m[1] : "");
+  }
+  function postPage() {
+    var box = document.getElementById("readmark-box"), say = document.getElementById("readmark-say"),
+        note = document.getElementById("changed-note"), ack = document.getElementById("changed-ack"),
+        when = document.getElementById("changed-when");
+    if (box) box.addEventListener("change", function () { if (box.checked) markPost(); paint(); });
+    if (ack) ack.addEventListener("click", function () { markPost(); });
+    document.querySelectorAll("[data-nfn-read]").forEach(function (b) {
+      b.addEventListener("click", function () { mark("read"); markPost(); });
+    });
+    function paint() {
+      var read = Core.postRead(data, SLUG, LESSON), stale = Core.changedSince(data, SLUG, LESSON, CHANGED);
+      if (note) {
+        note.hidden = !stale;
+        if (stale && when) when.textContent = "You marked this read on " + shortDate(read) + ". It changed on " + shortDate(CHANGED) + ".";
+      }
+      if (box) {
+        box.checked = !!read;
+        box.disabled = !!read && !stale;
+        if (say) say.textContent = !read ? "Saved in this browser, and to your code if you have one." :
+          stale ? "Changed since you read it. Tick it again once you've read the update." : "Read on " + shortDate(read) + ".";
+        if (stale) box.checked = false, box.disabled = false;
+      }
+    }
+    onChange(paint);
+    paint();
+  }
+
   function onChange(fn) { if (typeof fn === "function") listeners.push(fn); }
 
   window.NFNProgress = {
@@ -1218,7 +1298,7 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
     get: function () { return JSON.parse(JSON.stringify(data)); },
     code: function () { return code; },
     pulled: function () { return pulled; },
-    mark: mark, lab: lab, seen: seen,
+    mark: mark, lab: lab, seen: seen, markPost: markPost,
     questions: function () { return mine.slice(); },
     getCode: getCode, useCode: useCode, adopt: function (c) { if (Core.isCodeShape(c)) adopt(c, {}); }, addMine: addMine,
     onChange: onChange, renderCode: renderCode, turnstileToken: turnstileToken, resetTurnstile: resetTurnstile,
@@ -1227,6 +1307,7 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
 
   function boot() {
     if (LESSON) lessonPage();
+    if (SLUG) postPage();
     if (document.getElementById("codebox") || document.querySelector(".lesson.live[data-lesson]")) academyPage();
     if (document.querySelector(".sb-pill[data-lab]")) sandboxPage();
     pull();

@@ -5,6 +5,7 @@ date: 2026-09-27
 tags: Wireless, Academy, Design
 hero: hero-academy-10.svg
 academy: 10
+changed: 2026-09-29 | Measured on the AP-735: the WLAN's Legacy minimum trims the whole rate set and moves the beacon to 24 Mb/s, not just the data floor.
 summary: Coverage asks whether everyone can hear the AP. Capacity asks whether everyone gets a turn. The cell isn't drawn by power, it's drawn by the slowest rate you allow, and raising that rate is the cheapest capacity you'll ever buy.
 origin: Wireless Academy, lesson 10. Fundamentals first, then a lab on real gear
 ---

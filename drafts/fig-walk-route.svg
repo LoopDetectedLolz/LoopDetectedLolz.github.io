@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 460" role="img" aria-label="Schematic of the walk route, not a floor plan. The AP-735 and the desk are together. From the desk the route goes to the laundry room 41 feet from the AP, then the hall 35 feet, the living room by the stairs 22 feet, the entry 22 feet, the dining room 23 feet, and back to the desk, with 20 seconds at each stop. Rings mark 10, 20, 30 and 40 feet from the AP.">
+<defs><marker id="rarr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker><clipPath id="rclip"><rect x="16" y="16" width="566" height="428" rx="12"/></clipPath></defs>
+<rect x="16" y="16" width="566" height="428" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<g clip-path="url(#rclip)">
+<circle cx="330" cy="368" r="80.0" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="374.0" y="295.7" text-anchor="start" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">10 ft</text>
+<circle cx="330" cy="368" r="160.0" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="414.0" y="226.4" text-anchor="start" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">20 ft</text>
+<circle cx="330" cy="368" r="240.0" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="454.0" y="157.2" text-anchor="start" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">30 ft</text>
+<circle cx="330" cy="368" r="320.0" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="494.0" y="87.9" text-anchor="start" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="400" fill="#8BA2AE">40 ft</text>
+</g>
+<line x1="303.9" y1="371.7" x2="361.5" y2="60.5" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rarr)"/>
+<line x1="352.3" y1="53.6" x2="310.1" y2="84.2" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rarr)"/>
+<line x1="292.2" y1="107.7" x2="261.8" y2="193.3" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rarr)"/>
+<line x1="245.0" y1="218.1" x2="205.4" y2="252.0" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rarr)"/>
+<line x1="190.2" y1="277.1" x2="162.8" y2="411.5" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rarr)"/>
+<line x1="174.0" y1="423.0" x2="285.8" y2="390.8" stroke="#5ED2DA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#rarr)"/>
+<rect x="317" y="355" width="26" height="26" rx="7" fill="#8CE05E"/><text x="330.0" y="372.0" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="11" font-weight="700" fill="#06202A">AP</text>
+<text x="350.0" y="388.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="700" fill="#EAF2F6">AP-735</text>
+<circle cx="301.2" cy="386.4" r="11" fill="#5ED2DA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="301.2" y="390.4" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#06202A">S</text>
+<text x="285.2" y="390.4" text-anchor="end" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">desk</text>
+<circle cx="159.6" cy="427.2" r="11" fill="#5ED2DA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="159.6" y="431.2" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#06202A">1</text>
+<text x="143.6" y="431.2" text-anchor="end" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">dining</text>
+<circle cx="193.2" cy="262.4" r="11" fill="#5ED2DA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="193.2" y="266.4" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#06202A">2</text>
+<text x="177.2" y="266.4" text-anchor="end" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">entry</text>
+<circle cx="256.4" cy="208.4" r="11" fill="#5ED2DA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="256.4" y="212.4" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#06202A">3</text>
+<text x="272.4" y="212.4" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">living room</text>
+<circle cx="297.2" cy="93.6" r="11" fill="#5ED2DA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="297.2" y="97.6" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#06202A">4</text>
+<text x="313.2" y="97.6" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">hall</text>
+<circle cx="364.4" cy="44.8" r="11" fill="#5ED2DA" stroke="#EAF2F6" stroke-width="1.2"/>
+<text x="364.4" y="48.8" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="11" font-weight="700" fill="#06202A">5</text>
+<text x="380.4" y="48.8" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">laundry</text>
+<text x="606.0" y="44.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="700" fill="#8CE05E">THE ROUTE</text>
+<circle cx="615" cy="72" r="9" fill="#5ED2DA"/><text x="615.0" y="76.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">S</text>
+<text x="632.0" y="76.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">Desk, 4 ft from the AP. Start here</text>
+<circle cx="615" cy="102" r="9" fill="#5ED2DA"/><text x="615.0" y="106.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">5</text>
+<text x="632.0" y="106.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#EAF2F6">Laundry room, 41 ft</text>
+<circle cx="615" cy="132" r="9" fill="#5ED2DA"/><text x="615.0" y="136.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">4</text>
+<text x="632.0" y="136.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#EAF2F6">Hall to the laundry, 35 ft</text>
+<circle cx="615" cy="162" r="9" fill="#5ED2DA"/><text x="615.0" y="166.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">3</text>
+<text x="632.0" y="166.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#EAF2F6">Living room by the stairs, 22 ft</text>
+<circle cx="615" cy="192" r="9" fill="#5ED2DA"/><text x="615.0" y="196.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">2</text>
+<text x="632.0" y="196.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#EAF2F6">Entry, 22 ft</text>
+<circle cx="615" cy="222" r="9" fill="#5ED2DA"/><text x="615.0" y="226.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">1</text>
+<text x="632.0" y="226.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#EAF2F6">Dining room, 23 ft</text>
+<circle cx="615" cy="252" r="9" fill="#5ED2DA"/><text x="615.0" y="256.0" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,Menlo,monospace" font-size="10" font-weight="700" fill="#06202A">S</text>
+<text x="632.0" y="256.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#B0C4CF">Back to the desk</text>
+<text x="606.0" y="294.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#8BA2AE">20 seconds at each stop, about 1.5 ft</text>
+<text x="606.0" y="312.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#8BA2AE">a second between them. Five minutes of</text>
+<text x="606.0" y="330.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#8BA2AE">iperf3 download, SSID pinned to this</text>
+<text x="606.0" y="348.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#8BA2AE">one AP so the phone had nowhere else</text>
+<text x="606.0" y="366.0" text-anchor="start" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-size="12" font-weight="400" fill="#8BA2AE">to go.</text>
+</svg>

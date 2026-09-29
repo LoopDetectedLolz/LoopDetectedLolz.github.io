@@ -23,6 +23,7 @@ const pick = a => a[Math.floor(rnd() * a.length)];
 const pad = n => String(n).padStart(2, "0");
 const rdate = () => "2026-" + pad(1 + Math.floor(rnd() * 12)) + "-" + pad(1 + Math.floor(rnd() * 28));
 const rts = () => rdate() + "T" + pad(Math.floor(rnd() * 24)) + ":" + pad(Math.floor(rnd() * 60)) + ":00.000Z";
+const SLUGS = ["pmf-broke-the-printers", "academy-10-capacity-not-coverage", "mdns-bridge-mode-airtime", "wifi-takes-turns"];
 const LABS = ["nac-01-bench", "nac-03-mac-auth", "sc-06-lacp", "l2-01-uplink", "sandbox"];
 
 function rprog() {
@@ -37,6 +38,8 @@ function rprog() {
   }
   for (let i = Math.floor(rnd() * 3); i > 0; i--) p.labs[pick(LABS)] = rdate();
   for (let i = Math.floor(rnd() * 3); i > 0; i--) p.seen[String(1 + Math.floor(rnd() * 50))] = rts();
+  if (rnd() < 0.7) { p.p = {}; for (let i = Math.floor(rnd() * 4); i > 0; i--) p.p[pick(SLUGS)] = rdate(); }
+  if (rnd() < 0.2) p.p = Object.assign(p.p || {}, { "Bad Slug": rdate(), "wifi-takes-turns-x": "soon" });
   // junk the validator has to drop
   if (rnd() < 0.2) p.extra = { x: 1 };
   if (rnd() < 0.2) p.w["0"] = { read: rdate() };
@@ -59,26 +62,28 @@ t("merge never loses anything either side had", () => {
       Object.keys(x.w).forEach(k => ["read", "lab", "game"].forEach(f => { if (x.w[k][f]) ok(m.w[k][f] && m.w[k][f] <= x.w[k][f], "lost lesson " + k + " " + f); }));
       Object.keys(x.labs).forEach(k => ok(m.labs[k] && m.labs[k] <= x.labs[k], "lost lab " + k));
       Object.keys(x.seen).forEach(k => ok(m.seen[k] && m.seen[k] >= x.seen[k], "lost seen " + k));
+      Object.keys(x.p).forEach(k => ok(m.p[k] && m.p[k] >= x.p[k], "lost post " + k));
     });
   }
 });
 t("dates keep the earliest, checks OR, seen keeps the latest", () => {
   const a = { w: { "2": { read: "2026-09-20", check: [1, 0, 0] } }, labs: { "sc-06-lacp": "2026-09-22" }, seen: { "9": "2026-09-01T10:00:00.000Z" } };
   const b = { w: { "2": { read: "2026-09-18", lab: "2026-09-25", check: [0, 0, 1] } }, labs: { "sc-06-lacp": "2026-09-21" }, seen: { "9": "2026-09-03T10:00:00.000Z" } };
-  eq(C.merge(a, b), { labs: { "sc-06-lacp": "2026-09-21" }, seen: { "9": "2026-09-03T10:00:00.000Z" }, v: 1,
+  eq(C.merge(a, b), { labs: { "sc-06-lacp": "2026-09-21" }, p: {}, seen: { "9": "2026-09-03T10:00:00.000Z" }, v: 1,
     w: { "2": { check: [1, 0, 1], lab: "2026-09-25", read: "2026-09-18" } } });
 });
 t("validate drops junk and never throws", () => {
   [null, undefined, 5, "x", [], [1, 2], { w: null }, { w: [] }, { w: { "1": "read" } }, { labs: [1] }, { seen: { "a": "b" } },
    { w: { "99": { read: "2026-01-01" } } }, { w: { "1": { check: [0, 0, 0] } } }, JSON.parse('{"__proto__":{"x":1}}')]
     .forEach(x => eq(C.validate(x), C.emptyProgress()));
-  eq(C.validate({ w: { "1": { read: "2026-09-10", nope: 1 } }, v: 7 }), { labs: {}, seen: {}, v: 1, w: { "1": { read: "2026-09-10" } } });
+  eq(C.validate({ w: { "1": { read: "2026-09-10", nope: 1 } }, v: 7 }), { labs: {}, p: {}, seen: {}, v: 1, w: { "1": { read: "2026-09-10" } } });
 });
 t("a heavy record still fits under the cap", () => {
   const p = { w: {}, labs: {}, seen: {} };
   for (let i = 1; i <= 12; i++) p.w[i] = { read: "2026-09-10", lab: "2026-09-11", game: "2026-09-12", check: [1, 1, 1] };
   for (let i = 0; i < 19; i++) p.labs["sc-" + pad(i) + "-a-long-lab-name"] = "2026-09-13";
   for (let i = 1; i <= 200; i++) p.seen[String(1000 + i)] = "2026-09-14T10:00:00.000Z";
+  p.p = {}; for (let i = 1; i <= 120; i++) p.p["a-post-slug-of-typical-length-" + i + "-x"] = "2026-09-15";
   const n = C.serialise(p).length;
   ok(n < C.MAX_BYTES, "a heavy record is " + n + " bytes");
 });
@@ -98,6 +103,26 @@ t("progress card helpers", () => {
   eq(C.lessonState(p, 1), { read: "2026-09-10", lab: "", game: "", checks: 2 });
   eq(C.readCount(p), 1);
   eq(C.labCount(p, ["nac-01-bench", "sc-06-lacp"]), 1);
+});
+
+t("post marks keep the latest, and a change after the mark flags", () => {
+  const a = { p: { "pmf-broke-the-printers": "2026-09-20" } }, b = { p: { "pmf-broke-the-printers": "2026-09-28" } };
+  eq(C.merge(a, b).p, { "pmf-broke-the-printers": "2026-09-28" });
+  const r = C.validate({ p: { "wifi-takes-turns": "2026-09-10" }, w: { "10": { read: "2026-09-12" } } });
+  eq(C.postRead(r, "wifi-takes-turns", 0), "2026-09-10");
+  eq(C.postRead(r, "academy-10-capacity-not-coverage", 10), "2026-09-12");
+  ok(C.changedSince(r, "wifi-takes-turns", 0, "2026-09-29"), "changed after the mark");
+  ok(!C.changedSince(r, "wifi-takes-turns", 0, "2026-09-10"), "changed the day it was marked");
+  ok(!C.changedSince(r, "never-read", 0, "2026-09-29"), "never marked read, no flag");
+  ok(!C.changedSince(r, "wifi-takes-turns", 0, ""), "no change noted");
+  ok(!C.changedSince(C.merge(r, { p: { "wifi-takes-turns": "2026-09-30" } }), "wifi-takes-turns", 0, "2026-09-29"), "update marked read");
+});
+t("the post map is capped and junk is dropped first", () => {
+  const p = { p: { "BAD": "2026-09-01" } };
+  for (let i = 0; i < 500; i++) p.p["post-" + String(i).padStart(3, "0")] = "2026-09-01";
+  const v = C.validate(p);
+  eq(Object.keys(v.p).length, 120);
+  ok(!v.p.BAD && v.p["post-000"], "kept the first 120 valid slugs");
 });
 
 // the word list
