@@ -14,7 +14,7 @@ Somebody hands you a heatmap. Green everywhere. The users say the Wi-Fi is bad. 
 
 ## Three surveys, three proofs
 
-**Predictive.** A floor plan, wall types with attenuation values, a model AP dragged onto the drawing, and the software works out where the signal should go. Ekahau AI Pro does this well. It proves nothing on its own. It's a plan. The model only knows the walls you drew and the losses you gave them, and lesson 3 was an hour of me finding that a glass door I'd have put down at a few dB measured nothing.
+**Predictive.** A floor plan, wall types with attenuation values, a model AP dragged onto the drawing, and the software works out where the signal should go. Ekahau AI Pro does this well. It proves nothing on its own. It's a plan. The model only knows the walls you drew and the losses you gave them, and lesson 3 was an hour of me discovering that the term I'd left out of my own budget, where the antenna was pointing, was worth more than any wall on the drawing.
 
 **AP-on-a-stick.** One real AP on a pole at a spot the plan picked, and you walk it. Ekahau's docs call it the checkpoint between the plan and the finished build: survey, freeze the AP in the project, move it to the next candidate spot, repeat. It proves one location at a time with real walls and a real radio. It can't prove the neighbour APs won't fight it, because they aren't there yet.
 
@@ -56,7 +56,7 @@ The 105 isn't arbitrary. The default beacon interval is 100 time units, 102.4 ms
 
 ## What a heatmap can't see
 
-The signal map is beacon RSSI measured by the survey tool's own radios. The Sidekick 2 has nine antennas Ekahau says are lab calibrated for omnidirectional consistency, which is the point: it's a repeatable instrument. It is not your client. The badge reader with one antenna behind a metal bracket hears a different number, and lesson 3 found 15 dB between the model and a laptop on a shelf. The map is what a very good radio heard. Nobody on the floor is carrying one.
+The signal map is beacon RSSI measured by the survey tool's own radios. The Sidekick 2 has nine antennas Ekahau says are lab calibrated for omnidirectional consistency, which is the point: it's a repeatable instrument. It is not your client. The badge reader with one antenna behind a metal bracket hears a different number, and lesson 3 found 15 dB between the model and a laptop thirty-two feet from an AP on a shelf. The map is what a very good radio heard. Nobody on the floor is carrying one.
 
 Then the things a beacon can't say.
 
@@ -105,7 +105,7 @@ One room, one AP of yours, whatever neighbours you can hear, the Sidekick 2 and 
 
 **What you should see.** The survey's channel matches the controller's, and at the tape marks the signal sits within a few dB of the lesson 3 prediction with a spread around 2 dB. The Continuous pass has fewer samples at any one spot than five seconds of Stop-and-Go did. After step 7 your AP is gone. Not weaker. Gone, and the room fills with the neighbours' colour or grey, while the controller still shows it up, on its channel, at its power, with clients.
 
-**What means it's broken.** A survey channel that doesn't match the controller's means the AP moved mid walk; check Channel Changes on Central or Radio Events on Mist and pin it harder. A signal 10 dB or more off the prediction with a small spread is lesson 3 again, the antenna pattern or the path, not the survey. A spread over 3 dB standing still is something moving. And an AP that never appears in step 5 with the default list is the real finding: compare the channel it's on with the channels the list offers, and if it's above 165 or in a DFS block the list skipped, the hole is in the scan list, not the building.
+**What means it's broken.** A survey channel that doesn't match the controller's means the AP moved mid-walk; check Channel Changes on Central or Radio Events on Mist and pin it harder. A signal 10 dB or more off the prediction with a small spread is lesson 3 again, the antenna pattern or the path, not the survey. A spread over 3 dB standing still is something moving. And an AP that never appears in step 5 with the default list is the real finding: compare the channel it's on with the channels the list offers, and if it's above 165 or in a DFS block the list skipped, the hole is in the scan list, not the building.
 
 ## Three questions
 

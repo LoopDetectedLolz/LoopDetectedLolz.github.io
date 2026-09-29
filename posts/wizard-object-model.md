@@ -12,7 +12,7 @@ Three threads inside about a week, and they didn't look anything like each other
 
 One person added an MPSK passphrase, the client authenticated, and then it sat there with no VLAN. One person stood up Central NAC on a tunneled WLAN and the RadSec certificate never got issued. One person just wanted a list of the devices in their fleet that were overriding group policy, and there isn't one in the UI.
 
-Three features, three people, one root cause. What the UI shows you is a flat list. What you actually built is a graph, it spans more than one class of device, and the wizard that built it wrote some of those objects and skipped the rest. Nothing errors. That's the whole problem.
+Three features, three people, one root cause. What the UI shows you is a flat list. What you actually built is a graph, it spans more than one class of device, and the wizard that built it wrote some of those objects and skipped the rest. Nothing errors. That's the problem.
 
 ## The role that stops at the AP
 

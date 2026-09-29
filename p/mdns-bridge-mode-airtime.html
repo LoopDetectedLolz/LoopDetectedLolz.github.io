@@ -602,7 +602,7 @@ html.qam-fs .rig{display:none}
 <p>Somebody posted a wireless performance problem on Airheads last week that I want to walk through, because the shape of it comes up constantly and almost nobody gets it right the first time.</p>
 <p>The setup: a 7030 on AOS 8.10, AP-515s, bridge mode SSID, clients on VLAN 20, no PEF license. Users complaining about throughput, ping spikes, and packet loss. Worst first thing in the morning when everyone badges in, gradually improving through the day. 5 GHz channel utilization sitting between 50 and 80 percent. Every AP on a different channel, so it wasn't co-channel interference.</p>
 <p>Then he did something most people skip. He built an isolated test switch with one uplink and one AP port, hung a MAC ACL on it, and counted. In five minutes and 52 seconds that uplink carried 141,291 IPv4 mDNS frames and 127,962 IPv6 mDNS frames. Call it 269,253 frames, about 765 packets per second, and by his count 84 percent of the frames crossing the link.</p>
-<p>Every one of those frames was being put on the air by every AP in VLAN 20.</p>
+<p>Every one of those frames was being put on the air by every AP in VLAN 20. The 84 percent is a share of frames on the wire, not of airtime, and the two aren't the same thing. The airtime figure comes out lower and it's still the whole problem, which is what the next section works out.</p>
 <p>One scoping note up front, because I got this wrong the first time I wrote it up. Everything below about the controller being unable to help is specific to <strong>AOS-8 controller-managed</strong> bridge mode. AOS-10 with Central behaves differently, and I cover that in its own section further down.</p>
 <h2>The math nobody does</h2>
 <p>Here's the part I think people skip, and it's the part that makes this lethal.</p>
@@ -655,7 +655,7 @@ html.qam-fs .rig{display:none}
 <p>IPv6 mDNS at ff02::fb is nearly the same story. RFC 4541 only exempts ff02::1 from MLD snooping, so ff02::fb is technically snoopable, but every mDNS host joins it, so the frames still reach almost every port. SSDP and WS-Discovery at 239.255.255.250 are technically snoopable, but almost nothing joins the group properly, so in practice they flood too.</p>
 <p>Turn IGMP snooping on anyway. It's the right thing for real application multicast. Just don't expect it to touch your top talkers.</p>
 <h2>What good looks like</h2>
-<p>Filter the specific noisy groups on the wired side, as close to the AP as you can get, and raise your basic rates so whatever survives costs less airtime. That's the whole design.</p>
+<p>Filter the specific noisy groups on the wired side, as close to the AP as you can get, and raise your basic rates so whatever survives costs less airtime. That's the design.</p>
 <p>The thing to be careful about is scope. Do not drop 224.0.0.0/24 or the whole <code>0100.5e00.0000</code> MAC range wholesale, for the reasons above. Name the groups you want gone:</p>
 <table>
 <thead>
@@ -961,7 +961,7 @@ show ap debug bss-stats ap-name &lt;ap&gt;
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="aos8-to-aos10-is-a-rebuild.html"><span class="eyebrow">Older</span>AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade</a><a class="pn g-card" href="when-the-docs-disagree.html"><span class="eyebrow">Newer</span>When the Docs Disagree With Themselves, Somebody Has to Decide</a></div>
+      <div class="postnav"><a class="pn g-card" href="aos8-to-aos10-is-a-rebuild.html"><span class="eyebrow">Older</span>AOS-8 to AOS-10 Is a Rebuild, Not an Upgrade</a><a class="pn g-card" href="vsx-upgrade-hitless.html"><span class="eyebrow">Newer</span>Your VSX Upgrade Is Hitless Right Up Until It Isn&#x27;t</a></div>
     </section>
   </article>
 </div>

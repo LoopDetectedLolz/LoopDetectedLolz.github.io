@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Your Captive Portal Works, Phones Just Won&#x27;t Tell You Why It Doesn&#x27;t</title>
-<meta name="description" content="Laptops pass a ClearPass Guest login and phones sit in pre auth. The page is fine; the phone&#x27;s popup rejects the AP or gateway&#x27;s portal cert on the post back, and one openssl command plus Access Tracker shows which of three places it died.">
+<meta name="description" content="Laptops pass a ClearPass Guest login and phones sit in pre-auth. The page is fine; the phone&#x27;s popup rejects the AP or gateway&#x27;s portal cert on the post back, and one openssl command plus Access Tracker shows which of three places it died.">
 <link rel="canonical" href="https://networkfieldnotes.com/p/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
@@ -10,15 +10,15 @@
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
 <meta property="og:title" content="Your Captive Portal Works, Phones Just Won&#x27;t Tell You Why It Doesn&#x27;t">
-<meta property="og:description" content="Laptops pass a ClearPass Guest login and phones sit in pre auth. The page is fine; the phone&#x27;s popup rejects the AP or gateway&#x27;s portal cert on the post back, and one openssl command plus Access Tracker shows which of three places it died.">
+<meta property="og:description" content="Laptops pass a ClearPass Guest login and phones sit in pre-auth. The page is fine; the phone&#x27;s popup rejects the AP or gateway&#x27;s portal cert on the post back, and one openssl command plus Access Tracker shows which of three places it died.">
 <meta property="og:url" content="https://networkfieldnotes.com/p/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.html">
 <meta property="og:image" content="https://networkfieldnotes.com/og/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Your Captive Portal Works, Phones Just Won&#x27;t Tell You Why It Doesn&#x27;t">
-<meta name="twitter:description" content="Laptops pass a ClearPass Guest login and phones sit in pre auth. The page is fine; the phone&#x27;s popup rejects the AP or gateway&#x27;s portal cert on the post back, and one openssl command plus Access Tracker shows which of three places it died.">
+<meta name="twitter:description" content="Laptops pass a ClearPass Guest login and phones sit in pre-auth. The page is fine; the phone&#x27;s popup rejects the AP or gateway&#x27;s portal cert on the post back, and one openssl command plus Access Tracker shows which of three places it died.">
 <meta name="twitter:image" content="https://networkfieldnotes.com/og/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-23"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your Captive Portal Works, Phones Just Won't Tell You Why It Doesn't", "description": "Laptops pass a ClearPass Guest login and phones sit in pre auth. The page is fine; the phone's popup rejects the AP or gateway's portal cert on the post back, and one openssl command plus Access Tracker shows which of three places it died.", "datePublished": "2026-09-23", "image": "https://networkfieldnotes.com/og/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.html", "keywords": "ClearPass, Captive Portal, Aruba Central, Certificates"}</script>
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-23"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your Captive Portal Works, Phones Just Won't Tell You Why It Doesn't", "description": "Laptops pass a ClearPass Guest login and phones sit in pre-auth. The page is fine; the phone's popup rejects the AP or gateway's portal cert on the post back, and one openssl command plus Access Tracker shows which of three places it died.", "datePublished": "2026-09-23", "image": "https://networkfieldnotes.com/og/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/your-captive-portal-works-phones-just-wont-tell-you-why-it-doesnt.html", "keywords": "ClearPass, Captive Portal, Aruba Central, Certificates"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -608,9 +608,9 @@ html.qam-fs .rig{display:none}
   <text x="40" y="326" fill="#8BA2AE" font-size="12">The page loading proves cert A. Only leg 3 meets cert B, and the popup won't click past it.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>One Airheads thread this week where laptops logged in and phones sat in the pre auth role on the VC.</div>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>One Airheads thread this week where laptops logged in and phones sat in the pre-auth role on the VC.</div>
       <div class="prose"><h2>Why I'm writing this</h2>
-<p>Somebody on the forums had ClearPass Guest on a Central managed Instant cluster. Laptops log in. Phones load the page, fill it in, tap Log In, and sit in the pre auth role on the VC. DHCP, DNS and the redirect were already checked.</p>
+<p>Somebody on the forums had ClearPass Guest on a Central managed Instant cluster. Laptops log in. Phones load the page, fill it in, tap Log In, and sit in the pre-auth role on the VC. DHCP, DNS and the redirect were already checked.</p>
 <p>That list of things that work is the diagnosis. When one kind of client passes, the config is mostly right and the difference is the client. Put the service rules down.</p>
 <p>I answered it. Then an HPE engineer on the thread added the missing intermediates angle, plus the line this post is built on: work out where in the guest workflow the login aborts, and the fix is usually trivial.</p>
 <p>The phone isn't broken. It's the only client in the building that won't click Proceed.</p>
@@ -623,7 +623,7 @@ html.qam-fs .rig{display:none}
 <li>Only then does the AP or gateway send RADIUS to ClearPass and get a role back.</li>
 </ol>
 <p>The page loading proves the ClearPass cert is fine. It proves nothing about the second cert, because the phone doesn't meet that one until leg three.</p>
-<p>Leg three dies four ways. The AP is still on its default cert, the cert has expired, it's served without its intermediates, or the name the Web Login posts to isn't on it.</p>
+<p>Leg three dies four-ways. The AP is still on its default cert, the cert has expired, it's served without its intermediates, or the name the Web Login posts to isn't on it.</p>
 <p>Laptops get away with it. Somebody clicks past the warning, or the browser already holds the missing intermediate (Firefox preloads them) and quietly fills the gap. The login works and nobody learns anything.</p>
 <p>Phones don't:</p>
 <ul>
@@ -635,20 +635,20 @@ html.qam-fs .rig{display:none}
 <ul>
 <li><strong>Two certs, both publicly trusted.</strong> One on ClearPass for the page, one on the AP or gateway for the post back. The phone checks each connection on its own, so they don't need the same CA.</li>
 <li><strong>Each one uploaded with its intermediates.</strong> Central wants one PEM file: the server cert, then the chain in order, then the private key. What counts is the chain the device serves, not the chain your laptop can build for it.</li>
-<li><strong>The Web Login Address is a SAN on the AP side cert.</strong> Not just the CN. iOS 13 stopped trusting names that only sit in the CN. Change the cert and the Address in the same change window. If you upload a wildcard, gateways and AOS 8 controllers swap the asterisk for <code>captiveportal-login</code>, so post to that name. The device is supposed to answer DNS for its own portal name (HPE has a support article for when a controller doesn't), and a pre auth client has to get that answer.</li>
-<li><strong>The ClearPass portal FQDN matches the ClearPass cert and resolves in pre auth.</strong> The pre auth role allows DHCP and DNS, carries the captive portal redirect for the client's HTTP and HTTPS probes, and permits 443 to ClearPass and to the captive portal address. Nothing more.</li>
+<li><strong>The Web Login Address is a SAN on the AP side cert.</strong> Not just the CN. iOS 13 stopped trusting names that only sit in the CN. Change the cert and the Address in the same change window. If you upload a wildcard, gateways and AOS 8 controllers swap the asterisk for <code>captiveportal-login</code>, so post to that name. The device is supposed to answer DNS for its own portal name (HPE has a support article for when a controller doesn't), and a pre-auth client has to get that answer.</li>
+<li><strong>The ClearPass portal FQDN matches the ClearPass cert and resolves in pre-auth.</strong> The pre-auth role allows DHCP and DNS, carries the captive portal redirect for the client's HTTP and HTTPS probes, and permits 443 to ClearPass and to the captive portal address. Nothing more.</li>
 </ul>
 <h2>Instant on Central, AOS 10, and AOS 8 in a paragraph</h2>
 <ul>
 <li><strong>Instant under Central</strong> is the thread's case, hence "VC". Upload the cert under Maintain, Organization, Certificates, then map it as Captive Portal under Certificate Usage in the group's Security settings. If nothing's mapped, Instant's own guide says the AP makes a self signed portal cert at first boot, and no phone trusts that. Central has a trusted securelogin.hpe.com cert for its own Cloud Guest, but I wouldn't assume it covers an external ClearPass SSID. <code>show cpcert</code> on the VC tells you what's actually there.</li>
 <li><strong>The Instant NAS.</strong> Each AP sends its own RADIUS unless Dynamic RADIUS Proxy is on, and then it's the VC address. ClearPass needs a network device entry for whichever one it is. A subnet entry is fine.</li>
 <li><strong>AOS 10.</strong> On a tunneled SSID the gateway is the authenticator and sends the RADIUS itself, with the cluster VIP as the NAS-IP, so the gateway goes into ClearPass and the APs don't. On a bridged SSID the AP talks to ClearPass itself. Current code uses securelogin.hpe.com as the portal name, and gateways run a demo self signed cert until you install yours.</li>
-<li><strong>AOS 8.</strong> The portal cert is <code>captive-portal-cert</code> in the web server profile. Legacy builds used securelogin.arubanetworks.com, so check the Address on migrated Web Login pages. That's the whole paragraph.</li>
+<li><strong>AOS 8.</strong> The portal cert is <code>captive-portal-cert</code> in the web server profile. Legacy builds used securelogin.arubanetworks.com, so check the Address on migrated Web Login pages. Nothing else to it.</li>
 <li><strong>Gotcha: the role name.</strong> The role ClearPass returns has to exist where the client lands: in the SSID's roles on Instant, in the group on AOS 10. I haven't found it written down what the AP does with a role it doesn't know, so this is my read. The client doesn't get the role you meant, and you'll blame the cert again.</li>
 <li><strong>Gotcha: Prevent CNA.</strong> It's a bypass, not a fix. ClearPass describes it as bypassing the Apple Captive Network Assistant and warns it may not work with every vendor. With the popup out of the way, Apple users finish in Safari and click past the cert. That's the same laptop habit that hid the problem in the first place.</li>
 </ul>
 <h2>Test it or it doesn't count</h2>
-<p>Start with the cert the phone sees. From a laptop on the guest SSID, still in pre auth:</p>
+<p>Start with the cert the phone sees. From a laptop on the guest SSID, still in pre-auth:</p>
 <pre><code>openssl s_client -connect &lt;PORTAL-FQDN&gt;:443 -servername &lt;PORTAL-FQDN&gt; -showcerts &lt;/dev/null
 </code></pre>
 <p><code>-showcerts</code> prints only the certs the server sent, in the order it sent them. Browsers help. openssl doesn't, and that's the point.</p>
@@ -658,7 +658,7 @@ html.qam-fs .rig{display:none}
 <p>Watch the source. With a Pre-Auth Check on, ClearPass checks the credentials itself through its Guest Access Web Login service, before the phone posts anything to the AP. That entry isn't the NAS. You want a RADIUS request from the AP, VC or gateway address.</p>
 <ul>
 <li><strong>Nothing from the NAS:</strong> the post back never landed, so it's the cert or the name. Check Event Viewer before you commit to that. RADIUS from a device that isn't in Network Devices ends up there instead of Access Tracker, and from the phone it looks exactly the same.</li>
-<li><strong>An accept with a role, phone still in pre auth:</strong> it's the role name or the NAS side.</li>
+<li><strong>An accept with a role, phone still in pre-auth:</strong> it's the role name or the NAS side.</li>
 <li><strong>A reject:</strong> you're in policy land after all, and this isn't your post.</li>
 </ul>
 <p>Cross check on the phone. On Android, take Continue anyway via browser. On iOS, join from Settings through the info button, tap Cancel on the popup and pick Without Internet, which Apple documents as keeping you on the network. Log in by hand. A warning you can click past, then a login that works: that's the cert.</p>
@@ -682,7 +682,7 @@ html.qam-fs .rig{display:none}
 <tbody>
 <tr>
 <td>AP side portal cert is public and in date</td>
-<td>openssl from a pre auth client</td>
+<td>openssl from a pre-auth client</td>
 <td>self signed, factory default, or expired</td>
 </tr>
 <tr>
@@ -696,8 +696,8 @@ html.qam-fs .rig{display:none}
 <td>the name is only in the CN, or missing</td>
 </tr>
 <tr>
-<td>Portal name resolves in pre auth</td>
-<td>nslookup from a pre auth client</td>
+<td>Portal name resolves in pre-auth</td>
+<td>nslookup from a pre-auth client</td>
 <td>no answer</td>
 </tr>
 <tr>
@@ -706,7 +706,7 @@ html.qam-fs .rig{display:none}
 <td>a warning on the form itself</td>
 </tr>
 <tr>
-<td>Pre auth role allows DNS and 443 to ClearPass and the portal address</td>
+<td>Pre-auth role allows DNS and 443 to ClearPass and the portal address</td>
 <td>the role in Central</td>
 <td>page or post back times out</td>
 </tr>
@@ -718,7 +718,7 @@ html.qam-fs .rig{display:none}
 <tr>
 <td>The returned role exists</td>
 <td>Access Tracker output against the SSID or group roles</td>
-<td>accept, still pre auth</td>
+<td>accept, still pre-auth</td>
 </tr>
 <tr>
 <td>Tested from a phone popup</td>
@@ -729,7 +729,7 @@ html.qam-fs .rig{display:none}
 </table>
 <h2>Bottom line</h2>
 <ul>
-<li>Laptops pass and phones sit in pre auth: read the AP side cert before you touch a ClearPass service. If the cert's clean, check the role name next.</li>
+<li>Laptops pass and phones sit in pre-auth: read the AP side cert before you touch a ClearPass service. If the cert's clean, check the role name next.</li>
 <li>Two public certs, matching names, full chains. Then test from the phone popup, because it's the only client that fails honestly.</li>
 </ul></div>
       
@@ -895,7 +895,7 @@ html.qam-fs .rig{display:none}
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="a-radius-timeout-means-somebody-dropped-it-not-that-it-never-left.html"><span class="eyebrow">Older</span>A RADIUS Timeout Means Somebody Dropped It, Not That It Never Left</a><a class="pn g-card" href="academy-04-modulation-and-data-rates.html"><span class="eyebrow">Newer</span>Modulation and Data Rates</a></div>
+      <div class="postnav"><a class="pn g-card" href="academy-03-the-link-budget.html"><span class="eyebrow">Older</span>The Link Budget</a><a class="pn g-card" href="academy-04-modulation-and-data-rates.html"><span class="eyebrow">Newer</span>Modulation and Data Rates</a></div>
     </section>
   </article>
 </div>

@@ -68,7 +68,7 @@ The card pill comes from the first tag via `CAT_MAP` in `build-blog.py` (clearpa
 
 **Date-stamp claims about what a product can't do.** Name the version and when it was measured, so the statement stays true after the vendor ships a fix.
 
-**No contact or invitation copy in posts.** No "get in touch", "reach out", "send it my way", "corrections welcome", "I'd like to hear about it" or anything that asks the reader to contact Dustin. Not in the bottom line, not in the post-end card, not in the About page. Posts end on the takeaway. One exception, and only one: the "Ask about this lesson" box at the end of each Academy lesson (`theme/widgets/qa.html`), added at Dustin's request on 2026-09-28. The lesson text itself still never asks the reader to get in touch.
+**No contact or invitation copy in posts, and no email address anywhere on the site.** The Socials page lists LinkedIn and Airheads only; `SITE` has no email key. No "get in touch", "reach out", "send it my way", "corrections welcome", "I'd like to hear about it" or anything that asks the reader to contact Dustin. Not in the bottom line, not in the post-end card, not in the About page. Posts end on the takeaway. One exception, and only one: the "Ask about this lesson" box at the end of each Academy lesson (`theme/widgets/qa.html`), added at Dustin's request on 2026-09-28. The lesson text itself still never asks the reader to get in touch.
 
 **Write SVGs with a shell heredoc, not a file-writing tool**, then check the byte count. File tools have silently written a few bytes of binary instead of the content. Always render and look at a hero before building: `rsvg-convert -w 900 -h 340 graphics/hero-x.svg -o /tmp/x.png`.
 
@@ -214,7 +214,7 @@ First person, short blunt sentences, contractions always, casual section headers
 ## Deploy gotchas
 
 - `git pull --rebase` before pushing. GitHub commits to `CNAME` itself when the custom domain changes in repo settings, so the remote can be ahead with nobody having pushed.
-- DNS is Cloudflare, CNAME `@` and `www` to `loopdetectedlolz.github.io`, proxy OFF. The grey cloud is required; proxying breaks certificate issuance.
+- DNS is Cloudflare, CNAME `@` and `www` to `loopdetectedlolz.github.io`. The proxy is ON as of 2026-09-29 (responses say `server: cloudflare`); it was off while the GitHub Pages certificate was first issued, and turning it off again is the fix if that certificate ever fails to renew. With the proxy on, Scrape Shield > Email Address Obfuscation must stay OFF: it rewrites anything shaped like an address, including ssh cipher names like `aes256-ctr@openssh.com` in `<pre>` blocks, into `/cdn-cgi/l/email-protection` links.
 - Old `#/post/<slug>` links redirect to `p/<slug>.html`. Keep that redirect in `theme/app.js`.
 - A dense figure in a post goes in `<figure class="wide"><div class="pan">`: the pan scrolls sideways on a phone so the figure stays legible instead of shrinking to nothing, and the caption stays put outside it. Same idea as the tables.
 - `.band` is the call-to-action card. The 5 GHz spectrum strip in the channel 173 post is `.spectrum`: it used to be `.band` too, and its `height:64px;overflow:hidden` silently clipped every CTA card on the site, including the one under the simulator, until 2026-09-11. Two components, two names.
