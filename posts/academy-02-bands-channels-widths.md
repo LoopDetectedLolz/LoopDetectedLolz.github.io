@@ -17,7 +17,7 @@ Three words, in plain language. A **band** is a stretch of spectrum a regulator 
 
 In the US there are three bands worth your time, and they are wildly different sizes.
 
-**2.4 GHz** gives you eleven channels, and only three of them fit side by side without overlapping: 1, 6 and 11. The rest overlap their neighbours, which is why channel 3 is not a clever compromise, it is two problems at once. Everything else lives here too, so the band is loud before you arrive.
+**2.4 GHz** gives you eleven channels, and only three of them fit side by side without overlapping: 1, 6 and 11. The rest overlap their neighbors, which is why channel 3 is not a clever compromise, it is two problems at once. Everything else lives here too, so the band is loud before you arrive.
 
 **5 GHz** is the working band, and it comes in four blocks you should know by name. U-NII-1 is channels 36 to 48. U-NII-2A is 52 to 64. U-NII-2C is 100 to 144, the big one. U-NII-3 is 149 to 165. Twenty-five channels of 20 MHz, which sounds like plenty until you start widening them. That's the classic list. Since the FCC's 2020 order there is also U-NII-4, channels 169 to 177, indoors only. Your AP has to support it and so do your clients, and plenty don't yet, but where it works it adds a seventh 80 MHz channel and a third 160, and that 160 is the only one in 5 GHz that doesn't need DFS. On my AOS 10 tenant the 5 GHz channel picker offers 169, 173 and 177 but leaves them off by default, along with 144, so you have to go and tick them. The channel 173 field note on this site is about what happens when your survey gear hasn't caught up.
 
@@ -45,18 +45,18 @@ Width is a radio setting, not an SSID setting, and that trips people up on both 
 
 In **Aruba Central**, width lives in the radio profile, inside the Allowed Channels pop-up, alongside the channel list and transmit power, and nowhere in the WLAN wizard. The important part is that the profile is an object you assign rather than a switch you flip: you choose which APs get which profile, so the group is a convenient default and not the only unit, and a single AP can be handed its own. An override on one AP beats what the group says. That is how you fix one bad room, and it is also how somebody's fix from eight months ago is still quietly in force on an AP nobody has looked at since.
 
-To see what an AP actually ended up on, rather than what you asked for, `show ap bss-table` gives you the BSSID, the channel and the width in use. That column is where you find out your 80 MHz plan quietly became 40 because a neighbour was already sitting there.
+To see what an AP actually ended up on, rather than what you asked for, `show ap bss-table` gives you the BSSID, the channel and the width in use. That column is where you find out your 80 MHz plan quietly became 40 because a neighbor was already sitting there.
 
 In **Mist**, width is in the RF template at org level, and you can override it on a single AP from that AP's page when one room genuinely needs something different. Client insights then shows you the PHY rate that resulted. Make the decision once in the template, and treat each per AP override as something that owes you an explanation later.
 
-On the **Sidekick**, the channel view shows you the width as occupied spectrum rather than as a setting, which is the only view that tells you what your neighbours chose.
+On the **Sidekick**, the channel view shows you the width as occupied spectrum rather than as a setting, which is the only view that tells you what your neighbors chose.
 
 ## The lab
 
 One AP, one client, about forty minutes.
 
-1. Put the AP on a 20 MHz channel in U-NII-1, somewhere clear, and connect one client a couple of metres away.
-2. Note three things: the client's PHY rate, its RSSI, and the AP's airtime utilisation.
+1. Put the AP on a 20 MHz channel in U-NII-1, somewhere clear, and connect one client a couple of meters away.
+2. Note three things: the client's PHY rate, its RSSI, and the AP's airtime utilization.
 3. Run a file transfer big enough to last a minute and record the throughput.
 4. Change the radio to 40 MHz, let the client reconnect, and repeat every measurement.
 5. Do it again at 80 MHz.

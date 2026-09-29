@@ -644,7 +644,7 @@ html.qam-fs .rig{display:none}
 <tr>
 <td>SAN</td>
 <td>URI = <code>AAD_Device_ID:{{AAD_Device_ID}}</code></td>
-<td>HPE's Intune extension parses the SAN URI as KEY:VALUE. Anything without a recognised key in front of it gets treated as a plain Intune DeviceId, which is not the same thing</td>
+<td>HPE's Intune extension parses the SAN URI as KEY:VALUE. Anything without a recognized key in front of it gets treated as a plain Intune DeviceId, which is not the same thing</td>
 </tr>
 <tr>
 <td>Key storage provider</td>
@@ -703,7 +703,7 @@ network={
 <pre><code>Authorization:[Intune]:Intune Compliance State  EQUALS  compliant
 Authorization:[Intune]:Intune Jail Broken       EQUALS  False
 </code></pre>
-<p>Lowercase <code>compliant</code>. I had it capitalised in an earlier version of this post and that rule matches nothing, which with a default-deny policy means it quarantines your entire healthy fleet. Or use <code>EQUALS_IGNORE_CASE</code> and stop having to care. And <code>EQUALS False</code> rather than <code>NOT_EQUALS True</code>, because Graph documents the jailbreak field as a string that defaults to empty, so it can come back blank or not come back at all, and <code>NOT_EQUALS True</code> passes both. Match the value you actually want.</p>
+<p>Lowercase <code>compliant</code>. I had it capitalized in an earlier version of this post and that rule matches nothing, which with a default-deny policy means it quarantines your entire healthy fleet. Or use <code>EQUALS_IGNORE_CASE</code> and stop having to care. And <code>EQUALS False</code> rather than <code>NOT_EQUALS True</code>, because Graph documents the jailbreak field as a string that defaults to empty, so it can come back blank or not come back at all, and <code>NOT_EQUALS True</code> passes both. Match the value you actually want.</p>
 <p>Which brings up the branch nobody writes. What does your policy do when the Intune lookup returns nothing? Not "non compliant." Nothing. Device isn't enrolled, the sync is broken, the client secret expired (the portal caps those at two years, put it on a calendar). Write that rule explicitly and make it a deny. A policy that only handles compliant and noncompliant has a third branch you didn't write, and it's the one that ends up in production. The compliance state field has seven possible values, and <code>inGracePeriod</code> is the one you'll meet mid-rollout.</p>
 <h2>Test it or it doesn't count</h2>
 <p>Every row should be a distinct, observable outcome. If two rows produce the same result, one of your rules isn't doing anything.</p>

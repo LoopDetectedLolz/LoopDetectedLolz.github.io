@@ -32,7 +32,7 @@ It has no active scan result either, because an active scan needs a target addre
 
 SNMP ARP polling is what breaks that deadlock. ClearPass reads the ARP table off the layer 3 gateway for that VLAN, which is the one device on the network that is guaranteed to have seen the endpoint's MAC and IP together. That single binding is the hinge. Once ClearPass has it, the endpoint record exists, the IP is attached to the MAC, and everything else Profiler can do has somewhere to point.
 
-The reason this is better than profiling after the fact is timing. The ARP read happens on a poll cycle, on its own, with no client involvement. By the time the device sends its first MAC authentication request, ClearPass already has a device category on the endpoint and your enforcement policy can match it on the first attempt. The alternative is a policy that has to reject or under-authorise the device once, profile it, and then wait for a re-auth to put it where it belongs. That works on a laptop that retries in seconds. It does not work on a controller that gives up and needs a site visit.
+The reason this is better than profiling after the fact is timing. The ARP read happens on a poll cycle, on its own, with no client involvement. By the time the device sends its first MAC authentication request, ClearPass already has a device category on the endpoint and your enforcement policy can match it on the first attempt. The alternative is a policy that has to reject or under-authorize the device once, profile it, and then wait for a re-auth to put it where it belongs. That works on a laptop that retries in seconds. It does not work on a controller that gives up and needs a site visit.
 
 ## The wrong assumption
 
@@ -40,7 +40,7 @@ The ARP read is worth protecting, so people protect it, and they protect it with
 
 SNMP read is not a publisher function. The node that performs it is chosen by the **Policy Manager Zone**, which is a field on two different pages that nobody checks together.
 
-Every cluster node has a zone, under Administration, Server Manager, Server Configuration, the node, System tab. Every network device also has a zone, under Configuration, Network, Devices, the device, SNMP Read Settings tab. The zone is the thing that says "these nodes talk to that gear", and it exists precisely so a node in one data centre does not poll a switch in another.
+Every cluster node has a zone, under Administration, Server Manager, Server Configuration, the node, System tab. Every network device also has a zone, under Configuration, Network, Devices, the device, SNMP Read Settings tab. The zone is the thing that says "these nodes talk to that gear", and it exists precisely so a node in one data center does not poll a switch in another.
 
 In my lab both nodes sat in Zone 1. The switch sat in `default`. Three zones existed and one of them had no servers in it at all.
 
@@ -54,7 +54,7 @@ So the checklist is short, and you do it before you touch a firewall:
 2. Read the zone on the network device. Different page, different tab.
 3. If they do not match, that is your finding. Fix the device to match the zone your nodes are in rather than inventing a new zone.
 
-While you are in there, note that `Device Info Poll Interval` lives in Service Parameters on **each node**, under ClearPass network services, not in Cluster-Wide Parameters. A cluster wide behaviour configured per node is exactly the kind of thing that hides a discrepancy for a year.
+While you are in there, note that `Device Info Poll Interval` lives in Service Parameters on **each node**, under ClearPass network services, not in Cluster-Wide Parameters. A cluster wide behavior configured per node is exactly the kind of thing that hides a discrepancy for a year.
 
 ## Proving it from the switch
 

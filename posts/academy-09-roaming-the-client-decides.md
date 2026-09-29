@@ -5,7 +5,7 @@ date: 2026-09-26
 tags: Wireless, Academy, Roaming
 hero: hero-academy-09.svg
 academy: 9
-summary: The AP never moves a client. It can tell the client who its neighbours are, suggest a better one, or throw it off and hope. What the client is actually doing when it decides, what 802.11k, v and r each change, and a walk test to watch it happen on Mist and Central.
+summary: The AP never moves a client. It can tell the client who its neighbors are, suggest a better one, or throw it off and hope. What the client is actually doing when it decides, what 802.11k, v and r each change, and a walk test to watch it happen on Mist and Central.
 origin: Wireless Academy, lesson 9. Fundamentals first, then a lab on real gear
 ---
 Last week was how many exchanges it takes to get on. This week is what happens when the client wants to get on somewhere else.
@@ -20,7 +20,7 @@ That gap between "-70 dBm" and "8 dB better" is where sticky clients live. A Mac
 
 The standards give the AP three ways to help.
 
-**802.11k** is a neighbour report. The client asks its AP who the neighbours are and gets BSSIDs and channels. Apple's devices use the first six entries to pick which channels to scan, and Apple's doc says that without it the client scans every channel on every band, which can add several seconds. 11k shortens the search. It doesn't start it.
+**802.11k** is a neighbor report. The client asks its AP who the neighbors are and gets BSSIDs and channels. Apple's devices use the first six entries to pick which channels to scan, and Apple's doc says that without it the client scans every channel on every band, which can add several seconds. 11k shortens the search. It doesn't start it.
 
 **802.11v** BSS transition management is a suggestion. The AP sends a frame saying "here's a better AP, please go". The client may go, may decline, may ignore it. Mist's doc says clients are free to ignore it and often do.
 
@@ -50,7 +50,7 @@ That's the pitch for 11r on a voice SSID: half the frames of a PSK roam, a fifth
 
 On the WLAN, Security has Fast Roaming: Default is local PMKID caching only, which the doc says doesn't scale, then OKC and .11r. OKC only appears once the security type is Enterprise (802.1X); a Personal (SAE) WLAN offers Default and .11r, which makes sense, since OKC is a way of carrying an 802.1X key around. The API's `roam_mode` takes `NONE`, `OKC` or `11r`. 802.11k and 802.11v are on by default, the WLAN options doc lists no switch for them, and the API's `disable_11k` sits in the site Wi-Fi settings.
 
-**Aruba Central.** Open the client details page. The Roaming Experience pane lists each roam with Date/Time, SSID, Latency(ms), To BSSID, Source AP, Destination AP, Roaming Type, Band and RSSI (dBm). ClientMatch's own moves are under Analyze, Alerts & Events, Events, with the Advanced Filtering option Client Match Steer. What ClientMatch does, per the doc: for an 11v-capable client it sends a BSS transition request and waits. For one that isn't, every neighbouring radio except the target refuses the client for 5 seconds, and 2 seconds later the current AP sends a deauthentication. A client that ignores five 11v requests goes on an unsteerable list for 24 hours; one that beats three deauth moves, 48. Load-balance moves are 11v only. On AOS 10 the whole thing runs from Central, not a controller.
+**Aruba Central.** Open the client details page. The Roaming Experience pane lists each roam with Date/Time, SSID, Latency(ms), To BSSID, Source AP, Destination AP, Roaming Type, Band and RSSI (dBm). ClientMatch's own moves are under Analyze, Alerts & Events, Events, with the Advanced Filtering option Client Match Steer. What ClientMatch does, per the doc: for an 11v-capable client it sends a BSS transition request and waits. For one that isn't, every neighboring radio except the target refuses the client for 5 seconds, and 2 seconds later the current AP sends a deauthentication. A client that ignores five 11v requests goes on an unsteerable list for 24 hours; one that beats three deauth moves, 48. Load-balance moves are 11v only. On AOS 10 the whole thing runs from Central, not a controller.
 
 The WLAN toggles are on the Security page under Advanced Settings, in a Fast Roaming section: Opportunistic Key Caching (OKC), 802.11r, 802.11k, and 802.11v, worded "802.11v based BSS transition". The 11v toggle is documented on the personal-security page; the enterprise page as written lists only OKC, 11r and 11k, so check the box, as of September 2026.
 
@@ -71,7 +71,7 @@ Two APs on different channels, one phone or laptop, a corridor, under an hour. P
 
 **What you should see.** Six roams at roughly the same RSSI every time, and on Apple gear at or below the -70 dBm line, not at the crossing. The 11r walk should cut the reported latency hard; Mist's doc says half the frames of a PSK roam, and the platforms grade it against 400 ms instead of 2 seconds. The roam point doesn't move with 11r. 11k won't move it either; it only shortens the scan once the client starts. A BTM request the client acts on, or a shove, is the only thing that brings it earlier. Those are the model's expectations; the measured numbers replace them.
 
-**What means it's broken.** A client that never roams until the ping dies is sticky: compare its RSSI at the drop to the neighbour on the Sidekick trace. A roam to the weaker AP is Suboptimal Roam on Mist and usually a stale scan list; 11k is the fix. An 11r walk slower than the plain one means the client doesn't do FT and fell back, or the mobility domain doesn't match across APs; 11r Key Lookup Failure and 11r FBT Failure name it. A roam with no event at all is a disconnect and a rejoin, and the ping gap is last week's join sequence.
+**What means it's broken.** A client that never roams until the ping dies is sticky: compare its RSSI at the drop to the neighbor on the Sidekick trace. A roam to the weaker AP is Suboptimal Roam on Mist and usually a stale scan list; 11k is the fix. An 11r walk slower than the plain one means the client doesn't do FT and fell back, or the mobility domain doesn't match across APs; 11r Key Lookup Failure and 11r FBT Failure name it. A roam with no event at all is a disconnect and a rejoin, and the ping gap is last week's join sequence.
 
 ## Three questions
 
@@ -79,7 +79,7 @@ Two APs on different channels, one phone or laptop, a corridor, under an hour. P
 2. An 11r roam on an EAP-TLS SSID: how many frames, and does RADIUS see it?
 3. ClientMatch wants a non-11v client off an AP. What does it actually do?
 
-Answers: Not yet. The iPhone's trigger is -70 dBm and it isn't looking until it crosses it, though once it does, 10 dB better clears the 8 dB bar. Four frames, FT authentication and FT reassociation, and RADIUS never hears about it; the key came from the PMK-R0 set up at the first join. It has every neighbouring radio except the target refuse the client for 5 seconds, waits 2, deauthenticates it, and relies on the client rejoining where it's allowed.
+Answers: Not yet. The iPhone's trigger is -70 dBm and it isn't looking until it crosses it, though once it does, 10 dB better clears the 8 dB bar. Four frames, FT authentication and FT reassociation, and RADIUS never hears about it; the key came from the PMK-R0 set up at the first join. It has every neighboring radio except the target refuse the client for 5 seconds, waits 2, deauthenticates it, and relies on the client rejoining where it's allowed.
 
 ## Next lesson
 

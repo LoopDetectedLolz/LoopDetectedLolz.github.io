@@ -61,7 +61,7 @@ def bot_for(meta):
     return "nfn-bot-think.svg"
 
 # ── "what the box said" terminal blocks ──────────────────────────────────────
-# ```term fences become a terminal panel. Lines that look like a prompt get the prompt colour,
+# ```term fences become a terminal panel. Lines that look like a prompt get the prompt color,
 # lines ending in "  <<" get highlighted (the marker is removed).
 _PROMPT = re.compile(r'^(\(?[\w.-]+\)?\s?[#$>]\s|[\w.-]+[#>]\s|\$\s|C:\\[^>]*>\s?)')
 def terminalize(h):
@@ -192,7 +192,7 @@ def widgets(html):
     return WIDGET_RE.sub(one, html)
 
 # ── CX Sandbox ───────────────────────────────────────────────────────────────
-# {{cxsim: lesson-id}} (or {{cxsim}} for the free sandbox) on its own line becomes a modelled
+# {{cxsim: lesson-id}} (or {{cxsim}} for the free sandbox) on its own line becomes a modeled
 # AOS-CX terminal. The lesson JSON from theme/cxsim/lessons/ is inlined into the div and the
 # engine plus widget are appended once per page, so the post works offline like everything else.
 CXSIM_RE = re.compile(r'<p>\{\{cxsim(?::\s*([^}]+?))?\s*\}\}</p>')
@@ -207,7 +207,7 @@ def cxsim(html):
     return CXSIM_RE.sub(one, html)
 def cxsim_block():
     engine = open(os.path.join(ROOT, "theme", "cxsim", "engine.js"), encoding="utf-8").read()
-    # the real 10.18 command set (cxcorpus.py), loaded before the engine so an unmodelled command gets the box's answer
+    # the real 10.18 command set (cxcorpus.py), loaded before the engine so an unmodeled command gets the box's answer
     cpath = os.path.join(ROOT, "theme", "cxsim", "corpus", "aoscx.js")
     corpus = "<script>%s</script>" % open(cpath, encoding="utf-8").read().replace("</", "<\\/") if os.path.exists(cpath) else ""
     # the command notes (theme/cxsim/notes.json, checked by cxnotes.js) feed the widget's About this command panel
@@ -242,7 +242,7 @@ def parse_post(path):
     return meta
 
 posts = sorted((parse_post(p) for p in glob.glob(os.path.join(ROOT, "posts", "*.md"))),
-               key=lambda m: m["date_obj"], reverse=True)
+               key=lambda m: (m["date_obj"], int(m.get("academy") or 0)), reverse=True)
 if not posts:
     sys.exit("no posts")
 year = datetime.date.today().year
@@ -523,7 +523,7 @@ ACADEMY = [
     ("Modulation and Data Rates", "MCS, coding rate, spatial streams. Why \"speed\" is a table, not a number.", "Read the PHY rate in the Central and Mist client views and work the MCS table backwards, force a lower rate, measure throughput."),
     ("Airtime Is the Only Resource", "Half duplex, contention, PHY rate versus throughput, and the overhead nobody budgets for.", "Count the beacon tax, run a slow laptop beside a fast one, then raise the floor and watch it leave."),
     ("Interference From Yourself", "Co-channel and adjacent-channel interference, reuse, cell overlap.", "Two APs on one channel. Count retries, watch airtime."),
-    ("Noise, SNR, and Why RSSI Lies", "Noise floor, SNR, and what a spectrum analyser shows that a Wi-Fi card can't.", "Spectrum view with a real interferer. RSSI stays put, SNR collapses."),
+    ("Noise, SNR, and Why RSSI Lies", "Noise floor, SNR, and what a spectrum analyzer shows that a Wi-Fi card can't.", "Spectrum view with a real interferer. RSSI stays put, SNR collapses."),
     ("Joining a Network", "Probe, authentication, association, the 4-way handshake, EAP. What happens before the first packet.", "Capture a join on Mist and on Aruba, then read the same join in ClearPass Access Tracker."),
     ("Roaming: the Client Decides", "Thresholds, 802.11k/v/r, sticky clients, and why the AP can only suggest.", "A walk test with the Mist client timeline and the Central client events."),
     ("Capacity, Not Coverage", "Clients per radio, cell size, minimum basic rate, application budgets.", "Raise the minimum basic rate on both platforms and watch the cell shrink."),
@@ -556,7 +556,7 @@ acad += f'''{progress_scripts()}
 </section>
 <section class="acad-why g-card" data-rise>
   <span class="eyebrow">Why orange</span>
-  <p>The colour is a nod to the Airheads community. My first expert-level certification came out of an AOS 6 lab and a stack of forum posts by people who answered questions they didn't have to. This section is me paying that forward.</p>
+  <p>The color is a nod to the Airheads community. My first expert-level certification came out of an AOS 6 lab and a stack of forum posts by people who answered questions they didn't have to. This section is me paying that forward.</p>
 </section>
 <section>
   <div class="lessons">{"".join(acad_items)}</div>
@@ -565,7 +565,7 @@ acad += f'''{progress_scripts()}
 <section class="band g-card" data-rise>
   <div>
     <h3>Type on a switch first</h3>
-    <p>The CX Sandbox is a modelled AOS-CX switch in the page: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, device profiles, voice VLANs, tunnelling, a LAG, spanning tree, an SVI and OSPF. Eighteen labs with checks, or a blank switch to poke at.</p>
+    <p>The CX Sandbox is a modeled AOS-CX switch in the page: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, device profiles, voice VLANs, tunnelling, a LAG, spanning tree, an SVI and OSPF. Eighteen labs with checks, or a blank switch to poke at.</p>
     <span class="meta" id="acad-labs" data-labs="__SANDBOX_LABS__" hidden></span>
   </div>
   <a class="btn" href="sandbox.html" data-origin="zoom">Open the sandbox</a>
@@ -601,12 +601,12 @@ sb_pills = "".join('<div class="sb-group"><span class="eyebrow">%s</span><div cl
     '<button class="pill sb-pill%s" type="button" data-lab="%s">%s</button>' % (" on" if lid == "sandbox" else "", E(lid), E(_pill_label(lid))) for lid in labs))
     for g, labs in SANDBOX_GROUPS)
 sb_labs = "".join('<div class="sb-lab" data-lab="%s"%s>%s</div>' % (E(lid), "" if i == 0 else ' hidden', cxsim('<p>{{cxsim: %s}}</p>' % lid)) for i, lid in enumerate(SANDBOX_LABS))
-sb = head("CX Sandbox · " + SITE["name"], "A modelled HPE Aruba Networking CX switch you can type on: VLANs, MAC auth, 802.1X, roles and device profiles against a fake ClearPass, voice VLANs, tunnelling, LACP, REST and cable tests. Eighteen labs with checks and a blank switch.", BASE_URL + "/sandbox.html", BASE_URL + "/og/sandbox.png", active="academy")
+sb = head("CX Sandbox · " + SITE["name"], "A modeled HPE Aruba Networking CX switch you can type on: VLANs, MAC auth, 802.1X, roles and device profiles against a fake ClearPass, voice VLANs, tunnelling, LACP, REST and cable tests. Eighteen labs with checks and a blank switch.", BASE_URL + "/sandbox.html", BASE_URL + "/og/sandbox.png", active="academy")
 sb += f'''{progress_scripts()}
 <section class="sim-intro">
   <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
   <h1 class="h-hero">A switch you can type on</h1>
-  <p class="lede">A modelled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes were checked line by line against AOS-CX 10.18.1002 running on my own bench, last on September 28, 2026, and the wording where it differs is mine. The command lists of 10.15 through 10.18 sit behind it, so a real command it doesn't model says so, a line the box would refuse gets the box's own error, and the picker in the corner of the terminal switches which release's syntax you get. Pipes work too: <code>include</code>, <code>exclude</code>, <code>begin</code> and <code>count</code>. Where it fakes hardware (link speed, PoE, the cable tester, a gateway to tunnel to) it says so on the screen.</p>
+  <p class="lede">A modeled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes were checked line by line against AOS-CX 10.18.1002 running on my own bench, last on September 28, 2026, and the wording where it differs is mine. The command lists of 10.15 through 10.18 sit behind it, so a real command it doesn't model says so, a line the box would refuse gets the box's own error, and the picker in the corner of the terminal switches which release's syntax you get. Pipes work too: <code>include</code>, <code>exclude</code>, <code>begin</code> and <code>count</code>. Where it fakes hardware (link speed, PoE, the cable tester, a gateway to tunnel to) it says so on the screen.</p>
 </section>
 {CX_TOOLS_CSS}{cx_tools("sandbox")}
 <nav class="sb-picker" aria-label="Labs">{sb_pills}</nav>
@@ -1228,7 +1228,7 @@ sim += f'''
 <section class="band g-card" data-rise>
   <div>
     <h3>How it was built</h3>
-    <p>The walkthrough post covers what is real, what is modelled, and why the voice call breaks before the chat does.</p>
+    <p>The walkthrough post covers what is real, what is modeled, and why the voice call breaks before the chat does.</p>
   </div>
   <a class="btn" href="p/how-the-banner-works.html">Read the field note</a>
 </section>
@@ -1411,7 +1411,7 @@ for p in posts:
 og_card(SITE["tagline"][:110], "Field notes", os.path.join(ROOT, "og", "home.png"))
 og_card("Wireless Academy: the theory, and the lab that proves it", "Wireless Academy", os.path.join(ROOT, "og", "academy.png"))
 og_card("The simulator: a Wi-Fi link you can break, one symbol at a time", "Simulator", os.path.join(ROOT, "og", "simulator.png"))
-og_card("The CX Sandbox: a modelled AOS-CX switch you can type on, with a fake ClearPass behind it", "CX Sandbox", os.path.join(ROOT, "og", "sandbox.png"))
+og_card("The CX Sandbox: a modeled AOS-CX switch you can type on, with a fake ClearPass behind it", "CX Sandbox", os.path.join(ROOT, "og", "sandbox.png"))
 og_card("AOS-CX command notes: what each command does, examples, release changes and where the sandbox pretends", "CX Sandbox", os.path.join(ROOT, "og", "cx-notes.png"))
 og_card("Paste an AOS-CX config, get findings back. It never leaves your browser.", "CX Sandbox", os.path.join(ROOT, "og", "cx-check.png"))
 og_card("Build an AOS-CX access switch config block by block, every block explained and checked", "CX Sandbox", os.path.join(ROOT, "og", "cx-build.png"))

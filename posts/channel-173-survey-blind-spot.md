@@ -41,9 +41,9 @@ Three things fall out of this, and the stuck laptop is the least of them.
 
 **Coverage that exists but isn't on any map.** Two of twelve radios were serving clients from spectrum that appears nowhere in the deliverable. Every conclusion in that report about cell edges and overlap was drawn from an incomplete picture, and I didn't know it while I was drawing them.
 
-**Roam candidates that only some clients can see.** Support for 169 to 177 is not uniform across a client fleet. A Wi-Fi 6E laptop from the last couple of years is fine. Plenty of what's actually on your floor is not. So one device sees a strong neighbour and roams, and the device next to it sees nothing there and holds on, and you get two clients in the same chair behaving completely differently. That's a miserable thing to troubleshoot if you don't know the channel is in play.
+**Roam candidates that only some clients can see.** Support for 169 to 177 is not uniform across a client fleet. A Wi-Fi 6E laptop from the last couple of years is fine. Plenty of what's actually on your floor is not. So one device sees a strong neighbor and roams, and the device next to it sees nothing there and holds on, and you get two clients in the same chair behaving completely differently. That's a miserable thing to troubleshoot if you don't know the channel is in play.
 
-**Sticky clients with a real cause.** The 49-minute case wasn't a client driver being lazy. That laptop could hear the AP fine, it just couldn't see anything better, because the alternatives it was allowed to look at were quieter than the one it was already on. The behaviour looked like a client problem. It was a channel plan problem.
+**Sticky clients with a real cause.** The 49-minute case wasn't a client driver being lazy. That laptop could hear the AP fine, it just couldn't see anything better, because the alternatives it was allowed to look at were quieter than the one it was already on. The behavior looked like a client problem. It was a channel plan problem.
 
 ## What I'd do about it
 
@@ -57,7 +57,7 @@ Pull your AP list and check what your radios are actually on right now. On Merak
 
 Then open your most recent project file and check the highest 5 GHz frequency it recorded. If it stops at 5825 MHz and you found radios above it, your survey has a hole in it, and now you know exactly how big.
 
-## The part that generalises
+## The part that generalizes
 
 I've been doing this long enough to treat the survey as the source of truth, and this is a decent reminder that it isn't. A survey is a record of what the tool could measure on the day. Where those two things differ, nothing in the output flags the difference for you.
 

@@ -557,52 +557,7 @@ html.qam-fs .rig{display:none}
       <h1 class="h-hero">Your AP Is Not Moving That Client</h1>
     </header>
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A phone standing under a healthy access point stays disconnected because two client side timers are still running">
-  <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
-    .lbl{fill:#B0C4CF;font-size:11px}
-    .big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
-    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:10.5px;fill:#5ED2DA}
-    .hd{font-size:13px;font-weight:700}
-  </style></defs>
-
-  <text x="30" y="36" class="t eyebrow">"THE WIRELESS WON'T LET IT BACK ON"</text>
-  <text x="30" y="66" class="t big">Full signal overhead, and the phone is still counting.</text>
-
-  <g class="t">
-    <!-- AP, healthy -->
-    <rect x="30" y="112" width="180" height="120" rx="12" fill="rgba(3,10,16,0.55)" stroke="#8CE05E"/>
-    <text x="48" y="138" class="lbl" fill="#8BA2AE">ACCESS POINT</text>
-    <text x="48" y="166" class="hd" fill="#8CE05E">Nothing wrong</text>
-    <text x="48" y="190" class="lbl">Beaconing, strong, idle,</text>
-    <text x="48" y="208" class="lbl">with no way to say "come here"</text>
-    <g stroke="#8CE05E" fill="none" opacity="0.5" stroke-width="1.6" stroke-linecap="round">
-      <path d="M218 158 A14 14 0 0 1 218 186"/>
-      <path d="M226 148 A24 24 0 0 1 226 196"/>
-      <path d="M234 138 A34 34 0 0 1 234 206"/>
-    </g>
-
-    <!-- the air -->
-    <line x1="270" y1="104" x2="270" y2="244" stroke="#ffffff" stroke-opacity="0.16" stroke-dasharray="4 6"/>
-    <text x="270" y="262" class="lbl" font-size="10.5" text-anchor="middle" fill="#8BA2AE">the air</text>
-
-    <!-- phone, deciding -->
-    <rect x="326" y="112" width="546" height="120" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.14)"/>
-    <text x="346" y="138" class="lbl" fill="#8BA2AE">CLIENT, HOLDING TWO TIMERS</text>
-
-    <rect x="346" y="152" width="246" height="62" rx="9" fill="#5ED2DA" fill-opacity="0.12" stroke="#5ED2DA" stroke-opacity="0.55"/>
-    <text x="362" y="176" class="hd" fill="#5ED2DA">Scan backoff</text>
-    <text x="362" y="198" class="t mono">20 → 40 → 80 → 160 s</text>
-
-    <rect x="608" y="152" width="246" height="62" rx="9" fill="#5ED2DA" fill-opacity="0.12" stroke="#5ED2DA" stroke-opacity="0.55"/>
-    <text x="624" y="176" class="hd" fill="#5ED2DA">Network disabled</text>
-    <text x="624" y="198" class="t mono">no internet, 10 minutes</text>
-  </g>
-
-  <text x="30" y="292" class="t lbl" fill="#8BA2AE">Neither timer is measuring signal strength, so no amount of RF design shortens them.</text>
-  <text x="30" y="314" class="t lbl" fill="#8BA2AE">Opening the Wi-Fi screen does not reset either one. It just supplies scan results sooner.</text>
-</svg></div>
+      <div class="figure panel"><div class="panel panel-pad">missing graphic: hero-client-behavior.svg</div></div>
       
       <div class="callout origin"><span class="eyebrow">Where this came from</span>A Reddit thread about a phone that would not reconnect after an elevator ride, answered confidently and incorrectly by most of it</div>
       <div class="prose"><p>Somebody rides an elevator, comes out, and their phone sits there on no network for a minute or two while every laptop in the building is already back. The thread that follows always blames the wireless. Sticky clients, bad roaming, the AP will not let go, band steering is broken.</p>
@@ -611,10 +566,10 @@ html.qam-fs .rig{display:none}
 <h2>What you actually control</h2>
 <p>An access point cannot move a client. There is no frame that says "go to that AP now, this is not a request."</p>
 <p>What you have is a set of ways to make the decision easier or more attractive:</p>
-<p><strong>802.11k</strong> hands the client a neighbour report, so instead of scanning the whole band to find out what is nearby it gets a list. Faster decision, same decider.</p>
+<p><strong>802.11k</strong> hands the client a neighbor report, so instead of scanning the whole band to find out what is nearby it gets a list. Faster decision, same decider.</p>
 <p><strong>802.11v</strong> BSS Transition Management sends the client a suggestion that it should move, optionally with a candidate list. The client is free to ignore it, and plenty do.</p>
 <p><strong>802.11r</strong> makes the reassociation itself cheap once the client has decided, by pre-establishing key material. It shortens the gap, it does not cause the roam.</p>
-<p><strong>Band steering</strong> is the bluntest of the set. The old way, and still what a lot of people picture, is to stop answering probe requests on 2.4 GHz for a client the AP has heard on 5, so the client's own scan comes back without the option you did not want it to take. Influence by omission, and a stubborn client with the 2.4 BSSID cached goes there anyway. On Aruba that is the legacy ARM behaviour and ClientMatch has replaced it: it steers after association, with an 802.11v transition request first and a deauth if the client ignores enough of them, and it keeps a list of clients that will not be steered so it stops fighting them. On AOS 10 it also declines the 2.4 GHz association outright for a client it knows is dual band. Better manners, same rule underneath: the client still decides where it goes next.</p>
+<p><strong>Band steering</strong> is the bluntest of the set. The old way, and still what a lot of people picture, is to stop answering probe requests on 2.4 GHz for a client the AP has heard on 5, so the client's own scan comes back without the option you did not want it to take. Influence by omission, and a stubborn client with the 2.4 BSSID cached goes there anyway. On Aruba that is the legacy ARM behavior and ClientMatch has replaced it: it steers after association, with an 802.11v transition request first and a deauth if the client ignores enough of them, and it keeps a list of clients that will not be steered so it stops fighting them. On AOS 10 it also declines the 2.4 GHz association outright for a client it knows is dual band. Better manners, same rule underneath: the client still decides where it goes next.</p>
 <p>Every one of those is the infrastructure improving the quality of a decision that the client makes. Which is why "the AP would not move my client" is almost always a sentence about the client.</p>
 <figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-label="The roaming decision split between what the infrastructure can influence and what the client alone decides">
   <defs><style>

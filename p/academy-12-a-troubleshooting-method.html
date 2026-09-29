@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>A Troubleshooting Method</title>
-<meta name="description" content="Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practise finding each with the right tool.">
+<meta name="description" content="Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practice finding each with the right tool.">
 <link rel="canonical" href="https://networkfieldnotes.com/p/academy-12-a-troubleshooting-method.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
@@ -10,15 +10,15 @@
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
 <meta property="og:title" content="A Troubleshooting Method">
-<meta property="og:description" content="Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practise finding each with the right tool.">
+<meta property="og:description" content="Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practice finding each with the right tool.">
 <meta property="og:url" content="https://networkfieldnotes.com/p/academy-12-a-troubleshooting-method.html">
 <meta property="og:image" content="https://networkfieldnotes.com/og/academy-12-a-troubleshooting-method.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="A Troubleshooting Method">
-<meta name="twitter:description" content="Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practise finding each with the right tool.">
+<meta name="twitter:description" content="Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practice finding each with the right tool.">
 <meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-12-a-troubleshooting-method.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-28"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "A Troubleshooting Method", "description": "Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practise finding each with the right tool.", "datePublished": "2026-09-28", "image": "https://networkfieldnotes.com/og/academy-12-a-troubleshooting-method.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-12-a-troubleshooting-method.html", "keywords": "Wireless, Academy, Troubleshooting"}</script>
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-28"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "A Troubleshooting Method", "description": "Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practice finding each with the right tool.", "datePublished": "2026-09-28", "image": "https://networkfieldnotes.com/og/academy-12-a-troubleshooting-method.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-12-a-troubleshooting-method.html", "keywords": "Wireless, Academy, Troubleshooting"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -1322,7 +1322,7 @@ ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(2
 <h2>Four layers</h2>
 <p>A wireless connection has four places to fail.</p>
 <p><strong>The client.</strong> Its adapter, its driver, the rates and streams it supports, and what it decided to do. Lesson 4 was the rate it picked; lesson 9 was the AP it picked. A 1x1 badge reader on an old driver is a client problem and no AP setting fixes it.</p>
-<p><strong>RF.</strong> Signal, SNR, noise floor, airtime, co-channel neighbours. Lessons 1, 3, 5, 6 and 7. The layer the ticket blames, and the fastest to prove or clear, because retries and SNR are on the first screen of both platforms.</p>
+<p><strong>RF.</strong> Signal, SNR, noise floor, airtime, co-channel neighbors. Lessons 1, 3, 5, 6 and 7. The layer the ticket blames, and the fastest to prove or clear, because retries and SNR are on the first screen of both platforms.</p>
 <p><strong>Infrastructure.</strong> The AP, the controller or cloud, the join, the auth, the VLAN, DHCP. Lesson 8. A client that associates and then goes nowhere is here, and the events name the step.</p>
 <p><strong>Upstream.</strong> The switch port, PoE, the uplink, DNS, the internet. Out of scope for the Academy, and in my experience where about half the "Wi-Fi is slow" tickets end.</p>
 <p>The method is four lines. Reproduce it. Locate the layer before you touch anything. One change at a time. Write the prediction down before you measure, lesson 3's habit. Then read the counter that proves the layer: retries for RF, Access Tracker for auth, the DHCP event for infrastructure. And read the counters that stayed clean. A clean counter is how you rule a layer out, and ruling layers out is most of the job.</p>
@@ -1356,7 +1356,7 @@ all at once:        2^n combinations   3 suspects  -&gt;  8 to tell them apart
 <tr>
 <td>AOS CLI</td>
 <td>Client, RF</td>
-<td><code>show ap debug client-table</code> (last-packet rates, Last_ACK_SNR), <code>show ap debug client-stats</code> (per-MCS counters), <code>show ap arm history</code>, <code>show ap bss-table</code> (channel, EIRP, client count per BSS), <code>show ap monitor ap-list</code> (neighbours with chan, curr-rssi, curr-snr)</td>
+<td><code>show ap debug client-table</code> (last-packet rates, Last_ACK_SNR), <code>show ap debug client-stats</code> (per-MCS counters), <code>show ap arm history</code>, <code>show ap bss-table</code> (channel, EIRP, client count per BSS), <code>show ap monitor ap-list</code> (neighbors with chan, curr-rssi, curr-snr)</td>
 </tr>
 <tr>
 <td>AOS 8 CLI</td>
@@ -1396,7 +1396,7 @@ all at once:        2^n combinations   3 suspects  -&gt;  8 to tell them apart
 <p>One AP, one laptop, lesson 8's 802.1X SSID pointed at the ClearPass lab, the AP on a switch port you can edit, the Sidekick, and a microwave or a metal cabinet. Under an hour. Each break gets three columns in your notes: predicted, seen, and which counters stayed clean.</p>
 <ol>
 <li>Baseline. Laptop 3 m from the AP, connect, write down SNR, Retry Frames, the Access Tracker Accept, and the DHCP Acknowledged event (Central) or DHCP Success (Mist). Every break gets compared to this row.</li>
-<li>Break RF. Put the laptop behind the cabinet or run the microwave on the 2.4 GHz radio, same as lesson 7. Prediction first: RSSI holds within a few dB, SNR collapses, retries climb, no auth event, no DHCP event.</li>
+<li>Break RF. Put the laptop behind the cabinet or run the microwave on the 2.4 GHz radio, same as lesson 7. Prediction first, and the two breaks predict differently: behind the cabinet, RSSI and SNR fall together and the noise floor doesn't move; with the microwave, RSSI holds within a few dB, the floor rises and SNR collapses. Either way retries climb, no auth event, no DHCP event.</li>
 <li>Read it. Central: Signal Quality drops, Retry Frames climbs, Events tab quiet. Mist: SNR in Current Values drops, <code>tx_retries</code> from <code>/stats/clients</code> climbs, Client Events show nothing bad. Sidekick: the spectrum view shows the thing. Access Tracker: no new session, because the client never re-authenticated. That's RF, proven by retries, cleared on auth and DHCP.</li>
 <li>Put it back. Confirm SNR and retries return to the baseline row before the next break, or you're changing two things.</li>
 <li>Break auth. Change the RADIUS shared secret on the WLAN's server entry, on either platform, to something wrong. Reconnect the laptop. Prediction: SNR and retries unchanged, an auth failure event, nothing in Access Tracker.</li>
@@ -1415,7 +1415,7 @@ all at once:        2^n combinations   3 suspects  -&gt;  8 to tell them apart
 <li>You change the channel and the RADIUS timeout together. The user says it's better. What did you learn?</li>
 <li>Central shows Retry Frames at 40 percent and Signal Quality at 12 dB while the laptop reports a strong signal. Which lesson, which tool, and which layer?</li>
 </ol>
-<p>Answers: Upstream, or the DHCP side of infrastructure; the SNR and retries cleared RF, the Accept cleared auth, so the address is the only thing missing. Nothing, and you now owe two more trials to find out which one did it. Lesson 7, the Sidekick's spectrum view, RF; strong RSSI with low SNR is noise, and the client can't see noise, only the analyser can.</p>
+<p>Answers: Upstream, or the DHCP side of infrastructure; the SNR and retries cleared RF, the Accept cleared auth, so the address is the only thing missing. Nothing, and you now owe two more trials to find out which one did it. Lesson 7, the Sidekick's spectrum view, RF; strong RSSI with low SNR is noise, and the client can't see noise, only the analyzer can.</p>
 <h2>What to do with all twelve</h2>
 <p>Run the labs, keep the numbers, and put the calculators on the Tools page to work every time a ticket says "slow" without saying why.</p></div>
       
