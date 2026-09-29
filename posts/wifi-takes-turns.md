@@ -21,7 +21,7 @@ Nobody talks until the room has been quiet for a moment. Then everybody who want
 
 If you don't hear "got it," you don't know why. Maybe you and somebody else hit zero together and talked over each other. Maybe the frame just didn't make it. Nobody actually hears a collision. You just never get the answer, so you treat it like one: pick your next number from a range twice as big and play again.
 
-That's the whole thing, and a radio plays it every time it wants the air, on every Wi-Fi network. The client plays it. The AP plays it. On 5 GHz the quiet moment is 43 microseconds for normal traffic, a tick is 9, the first number comes out of 0 to 15, and "got it" comes back 16 microseconds after the frame ends.
+That's the entire game, and a radio plays it every time it wants the air, on every Wi-Fi network. The client plays it. The AP plays it. On 5 GHz the quiet moment is 43 microseconds for normal traffic, a tick is 9, the first number comes out of 0 to 15, and "got it" comes back 16 microseconds after the frame ends.
 
 ## Speed is how fast you talk once you have the microphone
 

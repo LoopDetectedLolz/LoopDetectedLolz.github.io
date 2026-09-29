@@ -42,7 +42,7 @@ standard roam, EAP:  auth 2 + assoc 2 + EAP-TLS (a dozen and up) + 4-way 4  = 20
 11r roam, either:    FT auth 2 + FT reassoc 2                             =  4 frames
 ```
 
-That's the whole pitch for 11r on a voice SSID: half the frames of a PSK roam, a seventh of an EAP-TLS one, and no RADIUS in the path. Nobody publishes a roam time you can plan against, so I use what the platforms grade against. Mist's Roaming SLE calls an 11r roam slow past 400 ms and a standard or OKC roam slow past 2 seconds. Central flags a roam as high latency past 50 ms. Two vendors, two ideas of slow, and both are just the line they drew.
+That's the pitch for 11r on a voice SSID: half the frames of a PSK roam, a fifth of an EAP-TLS one, and no RADIUS in the path. Nobody publishes a roam time you can plan against, so I use what the platforms grade against. Mist's Roaming SLE calls an 11r roam slow past 400 ms and a standard or OKC roam slow past 2 seconds. Central flags a roam as high latency past 50 ms. Two vendors, two ideas of slow, and both are just the line they drew.
 
 ## What the gear shows you
 

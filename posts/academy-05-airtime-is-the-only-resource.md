@@ -31,7 +31,7 @@ A Wi-Fi channel is one conversation. One radio talks and everybody else on that 
 
 Why random? If everybody waited the same fixed time, everybody would start at the same moment, every time. The random number is all that stands between a busy channel and constant collisions.
 
-That's the whole thing, and the game under the hero makes you play it. Level 1 is you and the AP. Level 2 fills the room, hides your number and makes you keep count yourself. Level 3 can't be won, and I'll let you find out why. Level 4 hands you the AP. Play it before you read on. The next section will feel obvious.
+That's the lesson, and the game under the hero makes you play it. Level 1 is you and the AP. Level 2 fills the room, hides your number and makes you keep count yourself. Level 3 can't be won, and I'll let you find out why. Level 4 hands you the AP. Play it before you read on. The next section will feel obvious.
 
 ## The number that matters
 
@@ -70,7 +70,7 @@ What's left is design. Raise the minimum rate so the device at the edge has to f
 
 ## Overhead before anyone says anything
 
-On 2.4 and 5 GHz, every SSID beacons about ten times a second, from every AP, at the lowest basic rate, whether or not a single client is connected. The model costs a beacon at 250 bytes, and bigger ones cost more. At 6 Mb/s that's 396 microseconds, 0.39 percent of the channel per SSID per AP.
+On 2.4 and 5 GHz, every SSID beacons about ten times a second, from every AP, at the lowest basic rate, whether or not a single client is connected. The model costs a beacon at 250 bytes of body, 278 on the air once the 802.11 header and FCS are on it, and bigger ones cost more. At 6 Mb/s that's 396 microseconds, 0.39 percent of the channel per SSID per AP.
 
 Sounds like nothing. Now multiply. Eight SSIDs on six APs sharing a channel is **18.6 percent** of it, gone, all day. Raise the floor to 12 Mb/s and it's 9.8. Cut to three SSIDs at 12 and it's 3.7. On 2.4 GHz at the 1 Mb/s default a beacon takes 2,416 microseconds, and eight SSIDs cost 19 percent of the channel from one AP before you count its neighbours. That's the old SSID horror story, and it's still true on any 2.4 radio left on defaults.
 

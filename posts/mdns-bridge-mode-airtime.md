@@ -15,7 +15,7 @@ The setup: a 7030 on AOS 8.10, AP-515s, bridge mode SSID, clients on VLAN 20, no
 
 Then he did something most people skip. He built an isolated test switch with one uplink and one AP port, hung a MAC ACL on it, and counted. In five minutes and 52 seconds that uplink carried 141,291 IPv4 mDNS frames and 127,962 IPv6 mDNS frames. Call it 269,253 frames, about 765 packets per second, and by his count 84 percent of the frames crossing the link.
 
-Every one of those frames was being put on the air by every AP in VLAN 20.
+Every one of those frames was being put on the air by every AP in VLAN 20. The 84 percent is a share of frames on the wire, not of airtime, and the two aren't the same thing. The airtime figure comes out lower and it's still the whole problem, which is what the next section works out.
 
 One scoping note up front, because I got this wrong the first time I wrote it up. Everything below about the controller being unable to help is specific to **AOS-8 controller-managed** bridge mode. AOS-10 with Central behaves differently, and I cover that in its own section further down.
 
@@ -75,7 +75,7 @@ Turn IGMP snooping on anyway. It's the right thing for real application multicas
 
 ## What good looks like
 
-Filter the specific noisy groups on the wired side, as close to the AP as you can get, and raise your basic rates so whatever survives costs less airtime. That's the whole design.
+Filter the specific noisy groups on the wired side, as close to the AP as you can get, and raise your basic rates so whatever survives costs less airtime. That's the design.
 
 The thing to be careful about is scope. Do not drop 224.0.0.0/24 or the whole `0100.5e00.0000` MAC range wholesale, for the reasons above. Name the groups you want gone:
 

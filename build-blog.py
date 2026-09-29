@@ -19,7 +19,6 @@ SITE = {
     "role": "Lead Mobility Engineer · HPE Aruba Networking and HPE Juniper Networking",
     "airheads": "https://airheads.hpe.com/profile?UserKey=94e7a1d9-a7e0-4e9f-abbc-faa06c06b759",
     "linkedin": "https://www.linkedin.com/in/dustinburns3020/",
-    "email": "dustin.burns@networkfieldnotes.com",   # socials page only; keep out of feeds and metadata
 }
 COMMENTS_API = "https://api.networkfieldnotes.com"   # empty this line to turn comments off everywhere
 TURNSTILE_SITEKEY = "0x4AAAAAAE0IseyiQ4X9zk6r"   # public half of the Turnstile widget, safe in the page
@@ -259,6 +258,7 @@ def category(p):
     return CAT_MAP.get(first.lower(), first)
 def source(p):
     o = p.get("origin", "").lower()
+    if "reddit" in o: return "Reddit thread"
     if "airheads" in o or "thread" in o: return "Airheads thread"
     if "lab" in o: return "Lab build"
     if "engagement" in o or "customer" in o or "site" in o: return "Field engagement"
@@ -520,7 +520,7 @@ ACADEMY = [
     ("What a Radio Actually Sends", "Frequency, wavelength, amplitude. mW, dBm and dB, and the two rules that let you do the math in your head.", "Read RSSI on an Aruba AP and a Mist AP, double the distance, watch it fall about 6 dB. Confirm on the Sidekick."),
     ("Bands, Channels and Widths", "2.4, 5 and 6 GHz, the U-NII blocks, DFS, and what a wider channel actually costs.", "Change channel width on both platforms and watch client PHY rates and airtime move."),
     ("The Link Budget", "EIRP, antenna gain, receive sensitivity, free space path loss. Where the signal goes.", "Predict RSSI at 10 m, measure it, explain the gap."),
-    ("Modulation and Data Rates", "MCS, coding rate, spatial streams. Why \"speed\" is a table, not a number.", "Read MCS in the Central and Mist client views, force a lower rate, measure throughput."),
+    ("Modulation and Data Rates", "MCS, coding rate, spatial streams. Why \"speed\" is a table, not a number.", "Read the PHY rate in the Central and Mist client views and work the MCS table backwards, force a lower rate, measure throughput."),
     ("Airtime Is the Only Resource", "Half duplex, contention, PHY rate versus throughput, and the overhead nobody budgets for.", "Count the beacon tax, run a slow laptop beside a fast one, then raise the floor and watch it leave."),
     ("Interference From Yourself", "Co-channel and adjacent-channel interference, reuse, cell overlap.", "Two APs on one channel. Count retries, watch airtime."),
     ("Noise, SNR, and Why RSSI Lies", "Noise floor, SNR, and what a spectrum analyser shows that a Wi-Fi card can't.", "Spectrum view with a real interferer. RSSI stays put, SNR collapses."),
@@ -1265,8 +1265,7 @@ print("  + tools.html (%d KB of model in the page)" % (len(SIM_JS) // 1024))
 
 # ── socials (genie target) ──────────────────────────────────────────────────
 SOCIALS = [("LinkedIn", "Where I post when something is worth a wider audience.", SITE["linkedin"], "in"),
-           ("HPE Airheads", "Where most of these posts start life, as somebody else's question.", SITE["airheads"], "AH"),
-           ("Email", SITE["email"], "mailto:" + SITE["email"], "@")]
+           ("HPE Airheads", "Where most of these posts start life, as somebody else's question.", SITE["airheads"], "AH")]
 soc = head("Elsewhere · " + SITE["name"], "Where to find Dustin Burns online.", BASE_URL + "/socials.html", BASE_URL + "/og/home.png", active="")
 soc += '''
 <div class="narrow">

@@ -6,12 +6,12 @@ tags: Wireless, Academy, RF
 hero: hero-academy-03.svg
 academy: 3
 interactive: closethelink
-summary: Four numbers tell you how loud your signal will be when it arrives. I wrote the budget for my own lab, walked thirty two feet, and came up fifteen decibels short with nothing in the way. The gap was real. It was hiding in the one term everybody sets to zero.
+summary: Four numbers tell you how loud your signal will be when it arrives. I wrote the budget for my own lab, walked thirty-two feet, and came up fifteen decibels short with nothing in the way. The gap was real. It was hiding in the one term everybody sets to zero.
 origin: Wireless Academy, lesson 3. Predicted it, measured it, went looking for the gap in the wrong place, then built a bench that couldn't answer the question either, for the same reason
 ---
 Last week was the room the radio lives in. This week is whether the signal actually gets across it.
 
-A link budget is the arithmetic that tells you how loud your signal will be when it arrives. It takes about thirty seconds to write. I wrote one for my own lab, put an AP on a shelf, walked thirty two feet, and measured what my laptop actually heard. I was off by fifteen decibels, and the physics never moved. What moved was my understanding of what the number on my screen was measuring, and then of what my own measurement could prove. That's the lesson, and it isn't the arithmetic.
+A link budget is the arithmetic that tells you how loud your signal will be when it arrives. It takes about thirty seconds to write. I wrote one for my own lab, put an AP on a shelf, walked thirty-two feet, and measured what my laptop actually heard. I was off by fifteen decibels, and the physics never moved. What moved was my understanding of what the number on my screen was measuring, and then of what my own measurement could prove. That's the lesson, and it isn't the arithmetic.
 
 ## Four numbers on a napkin
 
