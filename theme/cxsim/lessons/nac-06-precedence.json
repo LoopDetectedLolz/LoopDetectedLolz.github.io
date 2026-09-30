@@ -55,7 +55,7 @@
  "hints": [
   "A rejected dot1x attempt is not the end: with mac-auth also enabled the switch tries the next method. show port-access clients detail shows which one won.",
   "aaa authentication port-access client-limit 2 in the interface context. The default is one client per port.",
-  "radius dyn-authorization enable is global. Without it the switch never listens for CoA and ClearPass times out.",
+  "radius dyn-authorization enable is global. Without it the switch ignores CoA, and ClearPass only reports that the action failed, with no reason.",
   "The switch also has to know who may send CoA: radius dyn-authorization client 192.0.2.10 secret-key plaintext cppm-lab-key. Until then it drops the request and counts it in show radius dyn-authorization."
  ],
  "devices": [

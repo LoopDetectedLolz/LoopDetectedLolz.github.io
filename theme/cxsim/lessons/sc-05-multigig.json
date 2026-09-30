@@ -34,7 +34,7 @@
   "`show interface 1/1/1 physical` shows the speed the link runs at and what the port is configured to allow.",
   "`speed auto` with nothing after it offers every speed the port can do. `no speed` does the same. `speed auto 1g` offers only 1G.",
   "`speed 1000-full` is a fixed speed with auto-negotiation off: nothing faster is ever offered.",
-  "The speeds here are the hardware's. The Switch Simulator has virtual ports and hides `speed` entirely, so this part of the sandbox is modelled, not captured."
+  "The speeds here are the hardware's. The Switch Simulator has virtual ports and hides `speed` entirely, so this part of the sandbox is modeled, not captured."
  ],
  "devices": [
   {

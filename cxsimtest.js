@@ -385,7 +385,8 @@ has(l2.exec("show interface brief").out, "lag1           1       trunk  --      
 has(l2.exec("show interface lag 1").out, " Speed                       : 2000 Mb/s ", "LAG speed is the sum of the active members");
 has(l2.exec("show lacp aggregates").out, "Interfaces       : 1/1/13 1/1/14", "both members listed"); has(l2.exec("show lacp interfaces").out, "1/1/14     lag1       14    1     ALFNCD", "both members aggregate");
 has(l2.exec("show lacp interfaces").out, "ALFNCD", "LACP in sync");
-has(l2.exec("show interface 1/1/8").out, "BPDU guard", "desk switch err-disabled");
+has(l2.exec("show interface 1/1/8").out, "Link state: down", "desk switch err-disabled: show interface says only link down, like 10.18");
+has(l2.exec("show spanning-tree").out, "Bpdu-Error", "desk switch err-disabled: show spanning-tree names Bpdu-Error, like 10.18");
 has(l2.exec("show spanning-tree").out, "Root Port: lag1", "core is root");
 has(l2.exec("show vlan 10").out, "lag1", "lag carries vlan 10");
 allPass(l2, "l2 lab solved");

@@ -78,6 +78,8 @@
    ],
    "fix": [
     "cli-session",
+    "    max-per-user 1",
+    "    tracking-range 25",
     "    timeout 15",
     "    exit"
    ],

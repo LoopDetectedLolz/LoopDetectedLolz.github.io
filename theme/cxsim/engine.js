@@ -1755,7 +1755,7 @@
     var self = this, rows = [];
     this.portNames().forEach(function (n) {
       var i = self.ifaces[n], up = self.linkUp(n);
-      var reason = self.errdisabled[n] ? "Error-disabled" : (i.shutdown ? "Administratively down" : (up ? "" : (i.copper ? "Waiting for link" : "No XCVR installed")));
+      var reason = self.errdisabled[n] ? "" : (i.shutdown ? "Administratively down" : (up ? "" : (i.copper ? "Waiting for link" : "No XCVR installed")));
       rows.push(briefRow(n, i.routing || i.lag ? (i.lag ? self.lags[i.lag].native : "--") : (i.mode === "trunk" ? String(i.native) : String(i.access)), i.routing ? "routed" : (i.lag ? (self.lags[i.lag].mode) : i.mode), "--", i.shutdown ? "no" : "yes", up ? "up" : "down", reason, up ? String(self.portMb(n)) : "--", i.desc || "--"));
     });
     Object.keys(this.svis).forEach(function (v) { rows.push(briefRow("vlan" + v, "--", "--", "--", self.svis[v].shutdown ? "no" : "yes", self.sviUp(+v) && !self.svis[v].shutdown ? "up" : "down", "", "--", "--")); });
@@ -1785,7 +1785,7 @@
     var blocked = up && nac.any && !admitted, o = [""];
     o.push("Interface " + n + " is " + (up ? "up" + (blocked ? " (Blocked)" : "") : "down") + " ", " Admin state is " + (i.shutdown ? "down" : "up"));
     if (blocked) o.push(" State information: Blocked by Port Access Security");
-    else if (err) o.push(" State information: " + err);
+    // 10.18.1002 (lab, 2026-09-26): a port BPDU guard or loop protect disabled shows only "Link state: down"
     else if (i.shutdown) o.push(" State information: Administratively down");
     else if (!up) o.push(" State information: " + (i.copper ? "Waiting for link" : "No XCVR installed"));
     // 10.15 says how long the link has been up; 10.17 added the Hardware port line (checked on 10.15, 10.16, 10.17 and 10.18)
@@ -1957,7 +1957,7 @@
       "  Bridge ID  Priority  : " + this.stp.priority * 4096 + "               ", "             MAC-Address: " + myMac + "   ", "             Hello time(in seconds):2  Max Age(in seconds):20", "             Forward Delay(in seconds):15", "",
       "Port         Role           State      Cost           Priority   Type             BPDU-Tx    BPDU-Rx    TCN-Tx     TCN-Rx", "------------ -------------- ---------- -------------- ---------- ---------------- ---------- ---------- ---------- ----------"];
     var rows = [];
-    this.portNames().forEach(function (n) { var i = self.ifaces[n]; if (i.routing || i.lag) return; var st = self.stpState(n), up = self.linkUp(n) && !self.errdisabled[n]; var role = up ? st.role : "Disabled", state = up ? st.state : "Down"; rows.push(pad(n, 13) + pad(role, 15) + pad(state, 11) + pad("20000", 15) + pad("128", 11) + pad(up ? (i.adminEdge ? "P2P Edge" : "P2P") : (i.adminEdge ? "P2P Edge" : "Shr"), 17) + pad(up ? String(9 + self.tick) : "0", 11) + pad(up && role === "Root" ? String(9 + self.tick) : "0", 11) + pad("0", 11) + "0"); });
+    this.portNames().forEach(function (n) { var i = self.ifaces[n]; if (i.routing || i.lag) return; var st = self.stpState(n), up = self.linkUp(n) && !self.errdisabled[n]; var bpe = /^BPDU guard/.test(self.errdisabled[n] || ""), role = up ? st.role : "Disabled", state = up ? st.state : (bpe ? "Bpdu-Error" : "Down"); rows.push(pad(n, 13) + pad(role, 15) + pad(state, 11) + pad("20000", 15) + pad("128", 11) + pad(up ? (i.adminEdge ? "P2P Edge" : "P2P") : (i.adminEdge ? "P2P Edge" : "Shr"), 17) + pad(up ? String(9 + self.tick) : "0", 11) + pad(up && role === "Root" ? String(9 + self.tick) : "0", 11) + pad("0", 11) + "0"); });
     Object.keys(this.lags).forEach(function (l) { var lu = self.lagUp(l), isRoot = rootPort === "lag" + l; rows.push(pad("lag" + l, 13) + pad(lu.up ? (isRoot ? "Root" : "Designated") : "Disabled", 15) + pad(lu.up ? "Forwarding" : "Down", 11) + pad("20000", 15) + pad("64", 11) + pad(lu.up ? "P2P" : "Shr", 17) + pad(lu.up ? String(9 + self.tick) : "0", 11) + pad(lu.up && isRoot ? String(9 + self.tick) : "0", 11) + pad("0", 11) + "0"); });
     return o.concat(rows).concat(["", "Number of topology changes    : 0", "Last topology change occurred : 0 seconds ago", ""]).join("\n");
   };
