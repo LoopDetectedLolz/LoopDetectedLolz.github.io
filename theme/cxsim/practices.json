@@ -62,7 +62,7 @@
   },
   {
    "t": "Two RADIUS servers in one group",
-   "w": "Port access points at a group. With one server in it, a ClearPass reboot is an outage for every desk.",
+   "w": "Port access points at a group. With one server in it, a ClearPass reboot stops every new login and every reauthentication, and without a critical role those clients get nothing.",
    "lines": [
     "radius-server host 192.0.2.10 key plaintext <SHARED-SECRET>",
     "radius-server host 192.0.2.11 key plaintext <SHARED-SECRET>",
@@ -85,7 +85,7 @@
   },
   {
    "t": "Let ClearPass change its mind",
-   "w": "CoA lets ClearPass re-role or kick a client after the fact, which posture and guest flows lean on. On 10.18 each ClearPass node needs its own client line.",
+   "w": "CoA lets ClearPass re-role or kick a client after the fact, which posture and guest flows lean on. On 10.18 each ClearPass node needs its own client line, and ClearPass has to send the AOS-CX profiles: the default ArubaOS Wireless Terminate Session gets a NAK.",
    "lines": [
     "radius dyn-authorization enable",
     "radius dyn-authorization client 192.0.2.10 secret-key plaintext <SHARED-SECRET>"

@@ -11,7 +11,7 @@
   ],
   "key": "cppm-lab-key"
  },
- "task": "A modelled 6200F with nothing configured. Type ? for what is available in the current context, Tab to complete, and sim help for the sandbox's own commands. The devices on the right can be plugged in whenever you want to see what the switch does with them.",
+ "task": "A modeled 6200F with nothing configured. Type ? for what is available in the current context, Tab to complete, and sim help for the sandbox's own commands. The devices on the right can be plugged in whenever you want to see what the switch does with them.",
  "devices": [
   {
    "id": "printer",

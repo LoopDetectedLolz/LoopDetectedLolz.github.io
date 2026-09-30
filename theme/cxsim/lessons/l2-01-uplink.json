@@ -34,7 +34,7 @@
  "hints": [
   "interface lag 1 first: no shutdown, no routing, vlan trunk allowed 10,20,30, lacp mode active. Then lag 1 inside interface 1/1/13-1/1/14. A new LAG is created shut down, so the no shutdown is not optional.",
   "spanning-tree in the config context enables it. port-type admin-edge and bpdu-guard are per interface.",
-  "show lacp interfaces shows whether the partner agreed. show interface 1/1/8 says why a port is down."
+  "show lacp interfaces shows whether the partner agreed. For a port that went down, show spanning-tree says why; on the real 10.18 box show interface only says the link is down."
  ],
  "devices": [
   {

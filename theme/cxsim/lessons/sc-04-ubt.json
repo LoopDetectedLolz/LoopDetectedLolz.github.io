@@ -57,7 +57,7 @@
   "`ubt-client-vlan 666`, then `ubt zone CAMPUS vrf default` with `primary-controller ip 192.0.2.50` and `enable`. `show ubt` says whether the zone is up.",
   "`port-access role TUNNEL-EMPLOYEE`, `gateway-zone zone CAMPUS gateway-role authenticated`. The switch has to know the role ClearPass sends, or the laptop fails authorization.",
   "Port-based: `port-access role PBT-IOT` with `gateway-zone zone CAMPUS gateway-role iot`, then `port-access fallback-role PBT-IOT` on 1/1/4.",
-  "`show ubt users all` lists who is tunnelled. The zone needs the gateway reachable: the switch already has 192.0.2.2 on VLAN 10."
+  "`show ubt users all` lists who is tunneled. The zone needs the gateway reachable: the switch already has 192.0.2.2 on VLAN 10."
  ],
  "devices": [
   {
@@ -102,14 +102,14 @@
    }
   },
   {
-   "desc": "The laptop is tunnelled (user-based)",
+   "desc": "The laptop is tunneled (user-based)",
    "ubt": {
     "zone": "CAMPUS",
     "dev": "laptop"
    }
   },
   {
-   "desc": "The camera is tunnelled (port-based)",
+   "desc": "The camera is tunneled (port-based)",
    "ubt": {
     "zone": "CAMPUS",
     "dev": "camera"

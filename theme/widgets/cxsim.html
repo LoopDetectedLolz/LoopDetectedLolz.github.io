@@ -176,7 +176,7 @@ body.acad .cx-line .pr{color:#ffd28a}
     root.innerHTML = "";
     var head = el("div", "cx-head");
     head.appendChild(el("span", "eyebrow", "CX Sandbox"));
-    head.appendChild(el("b", "", lesson.title || "Try it on a modelled switch"));
+    head.appendChild(el("b", "", lesson.title || "Try it on a modeled switch"));
     if (lesson.track) head.appendChild(el("span", "meta", lesson.track + (lesson.number ? " · lab " + lesson.number : "")));
     // the release the syntax follows; picking one runs `sim release <x>` so the change shows in the terminal
     var rels = CXSim.releases ? CXSim.releases() : [], relSel = null;
@@ -283,7 +283,7 @@ body.acad .cx-line .pr{color:#ffd28a}
     if (NOTES.length) { showNote(null); root.appendChild(about); }
 
     var foot = el("div", "cx-foot");
-    foot.appendChild(el("span", "", "Modelled switch, not the real one. Not affiliated with or endorsed by HPE."));
+    foot.appendChild(el("span", "", "Modeled switch, not the real one. Not affiliated with or endorsed by HPE."));
     foot.appendChild(el("span", "", "? for help, Tab to complete, Ctrl-C to cancel a line."));
     foot.appendChild(el("span", "", API ? "Progress stays in this browser; anonymous counts of errors and passes are sent so the labs can be fixed where people get stuck." : "Progress stays in this browser."));
     root.appendChild(foot);
@@ -402,7 +402,7 @@ body.acad .cx-line .pr{color:#ffd28a}
 
     // ── restore ──────────────────────────────────────────────────────────
     if (saved && saved.lines) { saved.lines.forEach(function (l) { var s = el("span", l.c, l.t); out.appendChild(s); }); history = saved.history || []; hi = history.length; hintN = saved.hintN || 0; if (hintN && hintBtn && lesson.hints.length) { var d = el("div", "cx-hint"); d.appendChild(inlineCode(lesson.hints[(hintN - 1) % lesson.hints.length])); hintBox.appendChild(d); } out.scrollTop = out.scrollHeight; write("(picked up where you left off)", "sys"); }
-    else { write((lesson.hostname || "switch") + " (modelled " + (CXSim.MODELS[lesson.model || "6200F-12"] || {}).name + ", " + (sim.sw && sim.sw.version || CXSim.VERSION) + ")", "sys"); write("Type ? for what is available here. sim help explains the sandbox commands.", "sys"); }
+    else { write((lesson.hostname || "switch") + " (modeled " + (CXSim.MODELS[lesson.model || "6200F-12"] || {}).name + ", " + (sim.sw && sim.sw.version || CXSim.VERSION) + ")", "sys"); write("Type ? for what is available here. sim help explains the sandbox commands.", "sys"); }
     refreshPrompt(); renderDevices();
     if (imp) {
       var cfgLines = String(imp.config).split("\n").filter(function (l) { return l.trim(); }), inBanner = "", skipDeeper = -1;

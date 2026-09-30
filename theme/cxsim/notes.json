@@ -9,7 +9,7 @@
   "LLDP",
   "RADIUS",
   "Port access",
-  "Tunnelling",
+  "Tunneling",
   "Device profiles",
   "Routing",
   "Stacking",
@@ -219,7 +219,7 @@
     ]
    ],
    "v": [
-    "10.18 added CPU idle, user and system lines; 10.17 printed CPU utilisation only."
+    "10.18 added CPU idle, user and system lines; 10.17 printed CPU utilization only."
    ],
    "rel": [
     "10.15",
@@ -433,7 +433,7 @@
    "c": "*",
    "g": "VLANs",
    "t": "VLANs and their ports",
-   "w": "Every VLAN, up or down, and which ports carry it. Down with no_member_port means no port is in it; no_member_forwarding means ports are in it but none is up. A role a client holds adds its VLANs to that port here.",
+   "w": "Every VLAN, up or down, and which ports carry it. Down with no_member_port means no port is in it; no_member_forwarding means ports are in it but none is up. A role's VLAN is per client, MAC-based: the lab switch mapped each client into its role's VLAN on the port, and that VLAN's SVI came up with the first client.",
    "ex": [
     [
      "show vlan"
@@ -480,7 +480,7 @@
    "c": "if",
    "g": "Interfaces",
    "t": "Turn a port off",
-   "w": "Admin down. no shutdown turns it back on and also clears an error-disabled port. A port nobody configured may be shut: show interface brief says Administratively down.",
+   "w": "Admin down. no shutdown turns it back on. A port BPDU guard disabled needs shutdown and then no shutdown, or the bpdu-guard timeout. A port nobody configured may be shut: show interface brief says Administratively down.",
    "ex": [
     [
      "interface 1/1/11",
@@ -662,7 +662,7 @@
    "c": "*",
    "g": "Interfaces",
    "t": "Every port on one screen",
-   "w": "Native VLAN, mode, enabled, up or down, why it is down, speed and description. Read the Reason column first.",
+   "w": "Native VLAN, mode, enabled, up or down, why it is down, speed and description. Read the Reason column first, but don't trust an empty one: on 10.18 a port BPDU guard or loop protect shut shows down with no reason. show spanning-tree and show loop-protect say why.",
    "ex": [
     [
      "show interface brief"
@@ -847,7 +847,7 @@
    "c": "*",
    "g": "LAGs and LACP",
    "t": "Did the partner agree",
-   "w": "Actor and partner state per member. ALFNCD is what you want: Active, Long timeout, aggregable, in sync, collecting, distributing. An empty partner line means nothing is talking back.",
+   "w": "Actor and partner state per member. ALFNCD is what you want: Active, Long timeout, aggregable, in sync, collecting, distributing. With lacp rate fast the L reads S, so ASFNCD is just as good. An empty partner line means nothing is talking back.",
    "ex": [
     [
      "show lacp interfaces"
@@ -902,7 +902,7 @@
      "spanning-tree priority 4"
     ]
    ],
-   "tip": "Decide who is root and set their priority low. Leave it to chance and the oldest switch wins.",
+   "tip": "Decide who is root and set its priority low. Leave it to chance and the lowest bridge MAC wins, which is usually the oldest switch in the closet.",
    "rel": [
     "10.15",
     "10.16",
@@ -915,7 +915,7 @@
    "c": "if",
    "g": "Spanning tree",
    "t": "An edge port",
-   "w": "A port where only end devices live: it forwards at once instead of waiting through listening and learning.",
+   "w": "A port where only end devices live: it goes straight to forwarding instead of waiting out discarding and learning.",
    "ex": [
     [
      "interface 1/1/1-1/1/12",
@@ -937,7 +937,7 @@
    "c": "if",
    "g": "Spanning tree",
    "t": "Shut the port if a switch appears",
-   "w": "A BPDU arriving on the port error-disables it. Pair it with admin-edge on every access port. no shutdown brings it back once the switch is gone.",
+   "w": "A BPDU arriving on the port disables it. show spanning-tree calls it Bpdu-Error; on 10.18 show interface brief leaves the Reason column empty, so don't look there. Pair it with admin-edge on every access port. Once the switch is gone, shutdown then no shutdown brings the port back, or spanning-tree bpdu-guard timeout does it on its own.",
    "ex": [
     [
      "interface 1/1/1-1/1/12",
@@ -976,7 +976,7 @@
    "c": "*",
    "g": "Spanning tree",
    "t": "Root, role and state per port",
-   "w": "Who is root, which port leads there, and each port's role and state.",
+   "w": "Who is root, which port leads there, and each port's role and state. Under MSTP it prints only instance 0, the CIST; show spanning-tree mst <n> gives the roles in another instance.",
    "ex": [
     [
      "show spanning-tree"
@@ -1063,7 +1063,7 @@
      "show lldp neighbor-info | include CAM"
     ]
    ],
-   "tip": "On a port-access port the switch drops LLDP from a client that has not authenticated, unless the port has allow-lldp-bpdu. An empty neighbour on a phone port is often that.",
+   "tip": "On a port-access port the switch drops LLDP from a client that has not authenticated, unless the port has allow-lldp-bpdu. An empty neighbor on a phone port is often that.",
    "rel": [
     "10.15",
     "10.16",
@@ -1158,7 +1158,7 @@
    "c": "*",
    "g": "RADIUS",
    "t": "Requests, accepts, rejects, timeouts",
-   "w": "Counters per server. Timeouts climbing with no accepts usually means the shared secret. show radius-server statistics on its own is incomplete on 10.18.",
+   "w": "Counters per server. Timeouts climbing with no accepts usually means the shared secret. All zeros while clients hit Server-Timeout means the requests never left: on my bench a server the switch couldn't ARP for never moved a counter. show radius-server statistics on its own is incomplete on 10.18.",
    "ex": [
     [
      "show radius-server statistics authentication"
@@ -1195,7 +1195,8 @@
     "10.16",
     "10.17",
     "10.18"
-   ]
+   ],
+   "tip": "Pick the AOS-CX profiles in ClearPass: the AOS-CX Disconnect profile ends a session and the AOS-CX Bounce Switch Port profile is the CoA. The default ArubaOS Wireless Terminate Session profile carries only Calling-Station-Id, and the switch NAKs it with Missing-Attribute. Tested against ClearPass 6.11.1 on 2026-09-29."
   },
   {
    "k": "show radius dyn-authorization",
@@ -1275,7 +1276,7 @@
    "c": "if",
    "g": "Port access",
    "t": "How many clients a port takes",
-   "w": "One by default. A PC behind a phone needs two, or a multi-domain port. Only clients that got in take a place.",
+   "w": "One by default, up to 256 on a 6200 or 6300. A PC behind a phone needs two, or a multi-domain port.",
    "ex": [
     [
      "interface 1/1/3",
@@ -1297,7 +1298,7 @@
    "c": "if",
    "g": "Port access",
    "t": "Which method goes first",
-   "w": "dot1x then mac-auth is the default. A device with no supplicant waits out the 802.1X timeout before MAC auth starts; mac-auth first is faster for printers and slower for laptops.",
+   "w": "dot1x then mac-auth is the default. A device with no supplicant waits for 802.1X to give up before MAC auth starts, and on 10.18 defaults that took 165 seconds on my bench. initial-auth-response-timeout 10 under the port's dot1x authenticator cut it to about 10. mac-auth first gets a printer in within seconds, but a MAC-auth accept ends it there and the laptop never tries 802.1X, so only put it first where a MAC-auth role is fine for everything on the port.",
    "ex": [
     [
      "interface 1/1/5",
@@ -1448,9 +1449,9 @@
   {
    "k": "gateway-zone zone <WORD> gateway-role <WORD>",
    "c": "role",
-   "g": "Tunnelling",
+   "g": "Tunneling",
    "t": "Tunnel this role's traffic",
-   "w": "Clients in this role are tunnelled to the gateway cluster of the zone, where the gateway role applies. That is user-based tunnelling when RADIUS assigns the role, port-based when a port's fallback role does.",
+   "w": "Clients in this role are tunneled to the gateway cluster of the zone, where the gateway role applies. That is user-based tunneling when RADIUS assigns the role. Put the same kind of role on a port as its fallback role and everything on the port tunnels; the sandbox models that, and I haven't run it against a real gateway.",
    "ex": [
     [
      "port-access role TUNNEL-EMPLOYEE",
@@ -1477,7 +1478,7 @@
    "c": "*",
    "g": "Port access",
    "t": "Who is on and how",
-   "w": "One line per client: port, name, role, VLAN, and four flags: how it got in (1x, ma, dp), mode (c, d, m), device type (d, v) and status (s, f, p). --|c|-|f is a failure. Add detail for the history, interface, mac or role to filter.",
+   "w": "One line per client: port, name, role, VLAN, and four flags: how it got in (1x, ma, ps, dp), mode (c, d, m), device type (d, v) and status (s, f, p, and d for a downloadable role that failed to download). --|c|-|f is a failure. Add detail for the history, interface, mac or role to filter.",
    "ex": [
     [
      "show port-access clients"
@@ -1567,8 +1568,8 @@
    "k": "port-access lldp-group <WORD>",
    "c": "config",
    "g": "Device profiles",
-   "t": "Recognise a device by its LLDP",
-   "w": "Ordered match and ignore rules; the first rule a neighbour hits decides. sysname is exact, sys-desc matches if the description contains the word (proved on the lab switch), vendor-oui plus type matches a TLV. Rules without seq number themselves 10, 20, 30.",
+   "t": "Recognize a device by its LLDP",
+   "w": "Ordered match and ignore rules; the first rule a neighbor hits decides. sys-desc matches if the description contains the word (proved on the lab switch), vendor-oui plus type matches a TLV.",
    "ex": [
     [
      "port-access lldp-group APS",
@@ -1600,7 +1601,7 @@
    "k": "port-access device-profile <WORD>",
    "c": "config",
    "g": "Device profiles",
-   "t": "Give a recognised device a role",
+   "t": "Give a recognized device a role",
    "w": "Ties an LLDP group to a role, then enable. Works on a port with no port-access at all; on a port-access port it applies when 802.1X and MAC auth do not get the device in. The client shows as dp.",
    "ex": [
     [
@@ -1626,7 +1627,7 @@
    "c": "*",
    "g": "Device profiles",
    "t": "Profiles and who matched",
-   "w": "The profiles and their state. interface all lists each matched neighbour with its profile, group, role and whether it applied.",
+   "w": "The profiles and their state. interface all lists each matched neighbor with its profile, group, role and whether it applied.",
    "ex": [
     [
      "show port-access device-profile"
@@ -1647,7 +1648,7 @@
    "c": "if",
    "g": "Port access",
    "t": "A role for whatever is on the port",
-   "w": "The role a client gets when nothing else gives it one. With no authentication on the port that is everything plugged in: with a gateway zone in the role, that is port-based tunnelling.",
+   "w": "The role a client gets when nothing else gives it one. With no authentication on the port that is everything plugged in: with a gateway zone in the role, that is port-based tunneling.",
    "ex": [
     [
      "interface 1/1/4",
@@ -1664,9 +1665,9 @@
   {
    "k": "ubt-client-vlan <1-4094>",
    "c": "config",
-   "g": "Tunnelling",
-   "t": "The VLAN tunnelled clients use",
-   "w": "In local-vlan mode (what show ubt reports) this is the reserved VLAN all tunnelled client traffic uses to reach the gateway. Create it first and use it for nothing else, as HPE's guide says.",
+   "g": "Tunneling",
+   "t": "The VLAN tunneled clients use",
+   "w": "In local-vlan mode (what show ubt reports) this is the reserved VLAN all tunneled client traffic uses to reach the gateway. Create it first and use it for nothing else, as HPE's guide says.",
    "ex": [
     [
      "vlan 666",
@@ -1688,7 +1689,7 @@
   {
    "k": "ubt zone <WORD> vrf <WORD>",
    "c": "config",
-   "g": "Tunnelling",
+   "g": "Tunneling",
    "t": "Where the tunnels go",
    "w": "A zone names the gateway cluster: primary and backup controller addresses, reached in a VRF, and enable. show ubt says whether it is up.",
    "ex": [
@@ -1713,9 +1714,9 @@
   {
    "k": "show ubt",
    "c": "*",
-   "g": "Tunnelling",
+   "g": "Tunneling",
    "t": "Zone state",
-   "w": "Each zone's controllers, VLAN, admin and operational state. brief is one line per zone; users all lists who is tunnelled.",
+   "w": "Each zone's controllers, VLAN, admin and operational state. brief is one line per zone; users all lists who is tunneled.",
    "ex": [
     [
      "show ubt"

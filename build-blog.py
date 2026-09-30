@@ -591,7 +591,7 @@ acad += f'''{progress_scripts()}
 <section class="band g-card" data-rise>
   <div>
     <h3>Type on a switch first</h3>
-    <p>The CX Sandbox is a modeled AOS-CX switch in the page: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, device profiles, voice VLANs, tunnelling, a LAG, spanning tree, an SVI and OSPF. Eighteen labs with checks, or a blank switch to poke at.</p>
+    <p>The CX Sandbox is a modeled AOS-CX switch in the page: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, device profiles, voice VLANs, tunneling, a LAG, spanning tree, an SVI and OSPF. Eighteen labs with checks, or a blank switch to poke at.</p>
     <span class="meta" id="acad-labs" data-labs="__SANDBOX_LABS__" hidden></span>
   </div>
   <a class="btn" href="sandbox.html" data-origin="zoom">Open the sandbox</a>
@@ -603,12 +603,158 @@ acad += f'''{progress_scripts()}
 # it. A strip of outline pills ties the five together (the orange ring stays the nav's alone).
 CX_PAGES = [("sandbox", "sandbox.html", "Sandbox"), ("notes", "cx-notes.html", "Command notes"), ("check", "cx-check.html", "Config checker"),
             ("build", "cx-build.html", "Script builder"), ("guide", "cx-guide.html", "Releases and hardening")]
+# the four diagrams on cx-notes.html, with the habits under each (defined here because the search indexes them)
+CX_FIGS = {
+    "fig-cx-radius": ("RADIUS", "802.1X against ClearPass, from link up to a change of authorization.", [
+        "Two RADIUS servers in the group before go-live. One server is a single point of failure for every port.",
+        "A critical role on every port-access port, so a ClearPass outage ends somewhere you chose.",
+        "radius dyn-authorization client for each ClearPass node, or the switch drops every CoA and Disconnect and the only trace is the Invalid Client Addresses counter in show radius dyn-authorization.",
+        "Auth failing? Look in Access Tracker first. No entry at all means ClearPass never processed it: check the address, the VRF and the shared secret. A wrong secret reads Server-Timeout on the switch, same as a dead server."]),
+    "fig-cx-lldp-med": ("LLDP", "LLDP-MED on a phone port: the phone speaks first, the switch answers with the voice VLAN.", [
+        "Make the voice VLAN a real VLAN with voice set, tag it on the phone port, and leave the data VLAN native.",
+        "No network policy on the phone? Check the phone sends LLDP-MED before touching the switch.",
+        "On a NAC port add allow-lldp-bpdu, or LLDP from the phone is dropped before anything reads it."]),
+    "fig-cx-lacp": ("LAGs and LACP", "LACP bringing up a two-member LAG, and the flags that prove it.", [
+        "Build the LAG first, then add members, then no shutdown the LAG. Settings live on the LAG.",
+        "lacp mode active on both ends. A static LAG only where the far end cannot speak LACP.",
+        "lacp rate fast on both ends notices a dead member in about three seconds instead of ninety.",
+        "Done means ASFNCD for actor and partner on every member in show lacp interfaces, or ALFNCD if you left the rate slow."]),
+    "fig-cx-mda": ("Port access", "Multi-domain authentication: a phone and the PC behind it, each with its own role.", [
+        "Multi-domain is one voice device plus one data device. More PCs behind a phone: raise client-limit multi-domain.",
+        "The phone's role carries device-traffic-class voice, a native data VLAN and the voice VLAN tagged.",
+        "Test the failure path before users do: take ClearPass away and read what the phone and the PC get."]),
+}
 def cx_tools(active):
-    return ('<nav class="cx-tools" aria-label="CX Sandbox pages">%s</nav>' % "".join(
+    return ('<div class="cx-head"><nav class="cx-tools" aria-label="CX Sandbox pages">%s</nav>%s</div>' % ("".join(
         '<a class="pill %s" href="%s"%s>%s</a>' % ("soft" if k == active else "outline", href, ' aria-current="page"' if k == active else "", E(name))
-        for k, href, name in CX_PAGES))
-CX_TOOLS_CSS = ('<style>.cx-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s4)}.cx-tools .pill{font-weight:600}'
-                '.cx-tools .pill.soft{box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18)}</style>')
+        for k, href, name in CX_PAGES), cx_search()))
+
+# ── the shared CX look: compact rows and one search across the five pages ────
+# A row is a <details>, so every page still opens and reads without JavaScript. The search index is built here
+# from the same JSON the pages are built from, inlined into each page (the checker and builder pages allow no
+# requests), and it jumps to the page and opens the row. Anchors: notes n-<slug>, labs sandbox.html#lab=<id>,
+# practices p-<slug>, CIS controls cis-<id>, releases r-<rel>, diagrams fig-cx-<name>.
+def cx_row(rid, key, title, badges="", body="", cls="", opened=False, q=""):
+    return ('<details class="cxr%s"%s%s%s><summary>%s<span class="cxr-t">%s</span><span class="cxr-b">%s</span></summary><div class="cxr-body">%s</div></details>'
+            % (" " + cls if cls else "", ' id="%s"' % rid if rid else "", " open" if opened else "", ' data-q="%s"' % E(q) if q else "",
+               '<span class="cxr-k">%s</span>' % key if key else "", title, badges, body))
+def cx_badge(text, kind=""):
+    return '<span class="cxr-badge%s">%s</span>' % (" " + kind if kind else "", E(text))
+def cx_slugify(s):
+    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+_CX_INDEX = None
+def cx_index():
+    global _CX_INDEX
+    if _CX_INDEX is not None:
+        return _CX_INDEX
+    L = lambda p: json.load(open(os.path.join(ROOT, "theme", "cxsim", *p.split("/")), encoding="utf-8"))
+    out = [["Page", n, "", h, n.lower()] for k, h, n in CX_PAGES]
+    for n in L("notes.json")["notes"]:
+        slug = "n-" + re.sub(r"[^a-z0-9]+", "-", re.sub(r"<[^>]*>", "x", n["k"].lower())).strip("-")
+        out.append(["Command", n["k"], n["t"], "cx-notes.html#" + slug, " ".join([n["k"], n["t"], n["g"], n["w"][:160]]).lower()])
+    for lid in SANDBOX_LABS:
+        m = _lab_meta(lid)
+        out.append(["Lab", _pill_label(lid), m["task"].split(". ")[0][:90], "sandbox.html#lab=" + lid, " ".join([m["title"], m["task"]]).lower()])
+    for p in L("practices.json")["practices"]:
+        out.append(["Practice", p["t"], p["w"][:90], "cx-guide.html#p-" + cx_slugify(p["t"]), " ".join([p["t"], p["w"]] + p.get("lines", [])).lower()])
+    for c in L("cis.json")["controls"]:
+        out.append(["CIS", "CIS " + c["id"], c["ask"][:90], "cx-guide.html#cis-" + c["id"].replace(".", "-"), " ".join(["cis", c["id"], c["ask"]] + (c.get("check") or []) + (c.get("fix") or [])).lower()])
+    rels = [v[0] for v in json.loads(re.search(r'"v":(\[\[.*?\]\])', open(os.path.join(ROOT, "theme", "cxsim", "corpus", "aoscx.js"), encoding="utf-8").read()).group(1))]
+    for r in rels:
+        out.append(["Release", "AOS-CX " + r, "What changed in this release", "cx-guide.html#r-" + r.replace(".", "-"), ("aos-cx release version what changed new " + r).lower()])
+    for fid, (g, cap, tips) in CX_FIGS.items():
+        out.append(["Diagram", cap.split(":")[0].rstrip("."), g, "cx-notes.html#" + fid, " ".join([g, cap] + tips).lower()])
+    _CX_INDEX = json.dumps(out, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    return _CX_INDEX
+def cx_search():
+    return ('<div class="cxs" role="search"><input type="search" id="cxs-q" placeholder="Search commands, labs, CIS, releases" aria-label="Search the CX Sandbox pages" '
+            'autocomplete="off" spellcheck="false" aria-controls="cxs-r" aria-expanded="false"><ul class="cxs-r g-chrome" id="cxs-r" role="listbox" hidden></ul></div>'
+            '<script type="application/json" id="cxs-data">%s</script>' % cx_index())
+CX_TOOLS_CSS = '''<style>
+.cx-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px;margin:0 0 var(--s5)}
+.cx-tools{display:flex;flex-wrap:wrap;gap:8px}.cx-tools .pill{font-weight:600}
+.cx-tools .pill.soft{box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18)}
+.cxs{position:relative;flex:1 1 280px;max-width:420px}
+.cxs input{width:100%;min-height:44px;font:15px var(--sans);color:var(--text);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-pill);padding:0 var(--s4);outline:none}
+.cxs input:focus{border-color:var(--blue-light)}
+.cxs-r{position:absolute;z-index:40;left:0;right:0;top:calc(100% + 6px);margin:0;padding:6px;list-style:none;max-height:min(70vh,460px);overflow:auto;border-radius:var(--r-inner);background:rgba(6,16,25,0.97)}
+.cxs-r li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;align-items:baseline;padding:8px 10px;border-radius:10px;cursor:pointer;min-height:40px}
+.cxs-r li.on,.cxs-r li:hover{background:rgba(255,255,255,0.08)}
+.cxs-r .k{grid-row:1/3;font:600 10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--blue-light);min-width:64px}
+.cxs-r .t{font:13.5px var(--mono);color:var(--text);overflow-wrap:anywhere}
+.cxs-r .s{font-size:12.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cxs-r .none{display:block;color:var(--text-muted);font-size:13.5px;cursor:default}
+.cxr-list{padding:0;overflow:hidden}
+.cxr{border-top:1px solid var(--line);scroll-margin-top:96px}
+.cxr:first-child{border-top:0}
+.cxr>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,1.4fr) 160px 14px;gap:4px 16px;align-items:center;min-height:48px;padding:9px var(--s4)}
+.cxr>summary::-webkit-details-marker{display:none}
+.cxr>summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--text-muted);border-bottom:2px solid var(--text-muted);transform:rotate(45deg) translate(-2px,-2px);justify-self:end;transition:transform 0.2s cubic-bezier(0.32,0.72,0,1)}
+.cxr[open]>summary::after{transform:rotate(225deg) translate(-2px,-2px)}
+.cxr>summary:hover,.cxr[open]>summary{background:rgba(255,255,255,0.04)}
+.cxr.nokey>summary{grid-template-columns:minmax(0,1fr) 160px 14px}
+.cxr-k{font:13px/1.45 var(--mono);color:var(--text);overflow-wrap:anywhere}
+.cxr-k i{font-style:normal;color:var(--text-muted)}
+.cxr-t{color:var(--text-dim);font-size:14.5px;line-height:1.45}
+.cxr.nokey .cxr-t{color:var(--text);font-weight:600}
+.cxr-b{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+.cxr-badge{font:10.5px var(--mono);color:var(--text-muted);border:1px solid var(--line);border-radius:var(--r-pill);padding:2px 7px;white-space:nowrap}
+.cxr-badge.blue{color:var(--blue-light);border-color:rgba(79,189,234,0.45)}
+.cxr-badge.teal{color:var(--teal);border-color:rgba(94,210,218,0.45)}
+.cxr-badge.green{color:#bdf29c;border-color:rgba(140,224,94,0.5)}
+.cxr-badge.warn{color:#ffd28a;border-color:rgba(245,165,36,0.6)}
+.cxr-badge.error{background:var(--orange);border-color:var(--orange);color:var(--ink);font-weight:700}
+.cxr-body{padding:6px var(--s4) var(--s4);min-width:0}
+.cxr-body>p{color:var(--text-dim);font-size:14.5px;line-height:1.6;margin:0 0 10px;max-width:880px}
+.cxr-body pre{margin:8px 0 0;font:12.5px/1.55 var(--mono);color:var(--text);background:rgba(3,10,16,0.6);border:1px solid var(--line);border-radius:10px;padding:10px 12px;overflow-x:auto}
+.cxr.hit>summary{box-shadow:inset 3px 0 0 var(--blue-light);background:rgba(79,189,234,0.08)}
+.cx-sechead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 var(--s3)}
+.cx-sechead h2{font-size:24px;letter-spacing:-0.02em;margin:0}
+.cx-sechead h2 small{font:13px var(--mono);color:var(--text-muted);margin-left:8px;letter-spacing:0}
+.cx-all{font:600 12.5px var(--sans);color:var(--text-muted);background:none;border:1px solid var(--line);border-radius:var(--r-pill);min-height:38px;padding:0 12px;cursor:pointer}
+.cx-all:hover{color:var(--text)}
+@media (max-width:700px){.cxr>summary{grid-template-columns:minmax(0,1fr) 14px;padding:10px var(--s3)}.cxr>summary .cxr-t{grid-column:1}.cxr>summary .cxr-b{grid-column:1;justify-content:flex-start}
+  .cxr.nokey>summary{grid-template-columns:minmax(0,1fr) 14px}.cxr-body{padding:6px var(--s3) var(--s3)}.cxs{max-width:none;flex-basis:100%}.cxs input{font-size:16px}}
+</style>'''
+CX_UI_JS = r'''<script>
+(function(){
+  var q=document.getElementById('cxs-q'),box=document.getElementById('cxs-r'),dat=document.getElementById('cxs-data');
+  var here=location.pathname.split('/').pop()||'index.html';
+  function reveal(){
+    var h=decodeURIComponent(location.hash.slice(1));if(!h||/^(lab|import)/.test(h))return;
+    var el=document.getElementById(h);if(!el)return;
+    for(var p=el;p;p=p.parentElement){if(p.tagName==='DETAILS')p.open=true;if(p.hidden)p.hidden=false;}
+    document.querySelectorAll('.cxr.hit').forEach(function(x){x.classList.remove('hit');});
+    if(el.classList.contains('cxr'))el.classList.add('hit');
+    setTimeout(function(){el.scrollIntoView({block:'start'});},30);
+  }
+  window.addEventListener('hashchange',reveal);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',reveal);else reveal();
+  document.querySelectorAll('.cx-all').forEach(function(b){b.addEventListener('click',function(){
+    var rows=document.querySelectorAll(b.getAttribute('data-scope')+' details.cxr'),open=!b.classList.contains('on');
+    rows.forEach(function(r){r.open=open;});b.classList.toggle('on',open);b.textContent=open?'Collapse all':'Expand all';});});
+  if(!q||!dat)return;
+  var IDX=JSON.parse(dat.textContent),sel=-1,hits=[];
+  function go(e){var u=e[3],p=u.split('#')[0];if(p===here){if(location.hash==='#'+u.split('#')[1])reveal();else location.hash=u.split('#')[1];}else location.href=u;close();q.blur();}
+  function close(){box.hidden=true;q.setAttribute('aria-expanded','false');sel=-1;}
+  function paint(){box.innerHTML='';
+    if(!hits.length){var n=document.createElement('li');n.className='none';n.textContent='Nothing matches. Try one word: lacp, voice, coa.';box.appendChild(n);}
+    hits.forEach(function(e,i){var li=document.createElement('li');li.setAttribute('role','option');if(i===sel)li.className='on';
+      var k=document.createElement('span');k.className='k';k.textContent=e[0];var t=document.createElement('span');t.className='t';t.textContent=e[1];var s=document.createElement('span');s.className='s';s.textContent=e[2];
+      li.appendChild(k);li.appendChild(t);li.appendChild(s);li.addEventListener('mousedown',function(ev){ev.preventDefault();go(e);});box.appendChild(li);});
+    box.hidden=false;q.setAttribute('aria-expanded','true');}
+  function run(){var v=q.value.trim().toLowerCase();if(!v){close();return;}var w=v.split(/\s+/);
+    hits=IDX.map(function(e){var t=e[1].toLowerCase(),s=0;for(var i=0;i<w.length;i++){if(e[4].indexOf(w[i])<0&&t.indexOf(w[i])<0)return null;if(t.indexOf(w[i])===0)s+=6;else if(t.indexOf(w[i])>=0)s+=3;else if(e[2].toLowerCase().indexOf(w[i])>=0)s+=1;}
+      if(t===v)s+=20;return [s,e];}).filter(Boolean).sort(function(a,b){return b[0]-a[0]||a[1][1].length-b[1][1].length;}).slice(0,14).map(function(x){return x[1];});
+    sel=hits.length?0:-1;paint();}
+  q.addEventListener('input',run);q.addEventListener('focus',function(){if(q.value.trim())run();});q.addEventListener('blur',function(){setTimeout(close,120);});
+  q.addEventListener('keydown',function(e){if(box.hidden&&e.key!=='Enter')return;
+    if(e.key==='ArrowDown'){sel=Math.min(hits.length-1,sel+1);paint();e.preventDefault();}
+    else if(e.key==='ArrowUp'){sel=Math.max(0,sel-1);paint();e.preventDefault();}
+    else if(e.key==='Enter'){if(hits[sel])go(hits[sel]);e.preventDefault();}
+    else if(e.key==='Escape'){close();}});
+  document.addEventListener('keydown',function(e){if(e.key==='/'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'){e.preventDefault();q.focus();}});
+})();
+</script>'''
 
 # ── CX Sandbox page: every lab, one picker ──────────────────────────────────
 SANDBOX_LABS = ["sandbox", "nac-01-bench", "nac-02-discovery", "nac-03-mac-auth", "nac-04-dot1x", "nac-05-roles", "nac-06-precedence", "l2-01-uplink", "l3-01-routing",
@@ -623,11 +769,15 @@ def _pill_label(lid):
     t = re.sub(r"^Scenario (\d+): ", r"\1: ", t)
     return t.replace("Lab ", "").replace("Switching lab: ", "L2: ").replace("Routing lab: ", "L3: ").replace("CX Sandbox", "Free play")
 open(os.path.join(ROOT, "academy.html"), "w", encoding="utf-8").write(acad.replace("__SANDBOX_LABS__", E(",".join(l for l in SANDBOX_LABS if l != "sandbox"))))
-sb_pills = "".join('<div class="sb-group"><span class="eyebrow">%s</span><div class="sb-row">%s</div></div>' % (E(g), "".join(
-    '<button class="pill sb-pill%s" type="button" data-lab="%s">%s</button>' % (" on" if lid == "sandbox" else "", E(lid), E(_pill_label(lid))) for lid in labs))
+def _lab_topic(lid):
+    t = _lab_meta(lid)["task"].split(". ")[0]
+    return t if len(t) <= 96 else t[:93].rsplit(" ", 1)[0] + "..."
+sb_pills = "".join('<div class="sb-grp"><span class="eyebrow">%s</span>%s</div>' % (E(g), "".join(
+    '<button class="sb-pill%s" type="button" data-lab="%s" data-q="%s"><b>%s</b><small>%s</small></button>' % (
+        " on" if lid == "sandbox" else "", E(lid), E((_lab_meta(lid)["title"] + " " + _lab_meta(lid)["task"]).lower()), E(_pill_label(lid)), E(_lab_topic(lid))) for lid in labs))
     for g, labs in SANDBOX_GROUPS)
 sb_labs = "".join('<div class="sb-lab" data-lab="%s"%s>%s</div>' % (E(lid), "" if i == 0 else ' hidden', cxsim('<p>{{cxsim: %s}}</p>' % lid)) for i, lid in enumerate(SANDBOX_LABS))
-sb = head("CX Sandbox · " + SITE["name"], "A modeled HPE Aruba Networking CX switch you can type on: VLANs, MAC auth, 802.1X, roles and device profiles against a fake ClearPass, voice VLANs, tunnelling, LACP, REST and cable tests. Eighteen labs with checks and a blank switch.", BASE_URL + "/sandbox.html", BASE_URL + "/og/sandbox.png", active="academy")
+sb = head("CX Sandbox · " + SITE["name"], "A modeled HPE Aruba Networking CX switch you can type on: VLANs, MAC auth, 802.1X, roles and device profiles against a fake ClearPass, voice VLANs, tunneling, LACP, REST and cable tests. Eighteen labs with checks and a blank switch.", BASE_URL + "/sandbox.html", BASE_URL + "/og/sandbox.png", active="tools")
 sb += f'''{progress_scripts()}
 <section class="sim-intro">
   <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
@@ -635,15 +785,54 @@ sb += f'''{progress_scripts()}
   <p class="lede">A modeled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes were checked line by line against AOS-CX 10.18.1002 running on my own bench, last on September 28, 2026, and the wording where it differs is mine. The command lists of 10.15 through 10.18 sit behind it, so a real command it doesn't model says so, a line the box would refuse gets the box's own error, and the picker in the corner of the terminal switches which release's syntax you get. Pipes work too: <code>include</code>, <code>exclude</code>, <code>begin</code> and <code>count</code>. Where it fakes hardware (link speed, PoE, the cable tester, a gateway to tunnel to) it says so on the screen.</p>
 </section>
 {CX_TOOLS_CSS}{cx_tools("sandbox")}
-<nav class="sb-picker" aria-label="Labs">{sb_pills}</nav>
+<style>
+.sb-pick{{position:relative;margin:0 0 var(--s4)}}
+.sb-cur{{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px var(--s4);cursor:pointer;text-align:left;color:var(--text);font:inherit;border:1px solid var(--line);border-radius:var(--r-inner)}}
+.sb-cur .eyebrow{{flex:none}}
+.sb-cur b{{font-size:16px;font-weight:600;flex:1;min-width:0}}
+.sb-cur .n{{font:12px var(--mono);color:var(--text-muted);white-space:nowrap}}
+.sb-cur::after{{content:"";width:8px;height:8px;border-right:2px solid var(--text-muted);border-bottom:2px solid var(--text-muted);transform:rotate(45deg);margin:-4px 4px 0}}
+.sb-menu{{margin-top:8px;padding:var(--s3);border-radius:var(--r-inner)}}
+.sb-menu input{{width:100%;min-height:44px;font:15px var(--sans);color:var(--text);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-pill);padding:0 var(--s4);outline:none;margin:0 0 var(--s3)}}
+.sb-menu input:focus{{border-color:var(--blue-light)}}
+.sb-cols{{columns:2 320px;column-gap:var(--s4)}}
+.sb-grp{{break-inside:avoid;margin:0 0 6px}}
+.sb-grp .eyebrow{{display:block;margin:8px 0 4px}}
+.sb-pill{{display:flex;flex-direction:column;gap:1px;width:100%;text-align:left;cursor:pointer;background:none;border:0;border-radius:10px;padding:7px 10px;min-height:44px;color:var(--text);font:inherit;position:relative}}
+.sb-pill b{{font-size:14px;font-weight:600;padding-right:18px}}
+.sb-pill small{{font-size:12.5px;color:var(--text-muted);line-height:1.4}}
+.sb-pill:hover{{background:rgba(255,255,255,0.06)}}
+.sb-pill.on{{background:rgba(47,168,224,0.16);box-shadow:inset 3px 0 0 var(--blue)}}
+.sb-pill.passed::after{{position:absolute;right:10px;top:13px}}
+.sb-nav{{display:flex;gap:8px;margin:0 0 var(--s3)}}
+.sb-nav button{{cursor:pointer;font:600 13px var(--sans)}}
+</style>
+<div class="sb-pick">
+  <button class="sb-cur g-card" type="button" id="sb-cur" aria-expanded="false" aria-controls="sb-menu"><span class="eyebrow" id="sb-cur-g">Free play</span><b id="sb-cur-t">Free play</b><span class="n" id="sb-cur-n"></span></button>
+  <div class="sb-menu g-card" id="sb-menu" hidden>
+    <input type="search" id="sb-find" placeholder="Find a lab: lacp, voice, 802.1X, cable" aria-label="Find a lab" autocomplete="off">
+    <nav class="sb-cols" aria-label="Labs">{sb_pills}</nav>
+  </div>
+</div>
+<div class="sb-nav"><button class="pill outline" type="button" id="sb-prev">Previous lab</button><button class="pill outline" type="button" id="sb-next">Next lab</button></div>
 {sb_labs}
 {cxsim_block()}
 <script>
 (function(){{
-  var pills=document.querySelectorAll('.sb-pill'),labs=document.querySelectorAll('.sb-lab');
-  function show(id){{var found=false;labs.forEach(function(l){{var on=l.getAttribute('data-lab')===id;l.hidden=!on;if(on)found=true;}});if(!found)return show('sandbox');pills.forEach(function(p){{p.classList.toggle('on',p.getAttribute('data-lab')===id);}});}}
-  pills.forEach(function(p){{p.addEventListener('click',function(){{var id=p.getAttribute('data-lab');show(id);try{{history.replaceState(null,'','#lab='+id);}}catch(e){{}}}});}});
-  var m=/[#&]lab=([a-z0-9-]+)/.exec(location.hash);if(m)show(m[1]);
+  var pills=[].slice.call(document.querySelectorAll('.sb-pill')),labs=document.querySelectorAll('.sb-lab'),cur=document.getElementById('sb-cur'),menu=document.getElementById('sb-menu'),find=document.getElementById('sb-find'),at='sandbox';
+  function open(v){{menu.hidden=!v;cur.setAttribute('aria-expanded',v?'true':'false');if(v){{find.value='';filt();setTimeout(function(){{find.focus();}},0);}}}}
+  function show(id){{var found=false;labs.forEach(function(l){{var on=l.getAttribute('data-lab')===id;l.hidden=!on;if(on)found=true;}});if(!found)return show('sandbox');at=id;
+    pills.forEach(function(p,i){{var on=p.getAttribute('data-lab')===id;p.classList.toggle('on',on);if(on){{document.getElementById('sb-cur-t').textContent=p.querySelector('b').textContent;
+      document.getElementById('sb-cur-g').textContent=p.parentNode.querySelector('.eyebrow').textContent;document.getElementById('sb-cur-n').textContent=(i+1)+' of '+pills.length;}}}});}}
+  function pick(id){{show(id);open(false);try{{history.replaceState(null,'','#lab='+id);}}catch(e){{}}}}
+  function filt(){{var w=find.value.trim().toLowerCase().split(/\s+/).filter(Boolean);pills.forEach(function(p){{var d=p.getAttribute('data-q');p.hidden=!w.every(function(x){{return d.indexOf(x)>=0;}});}});
+    document.querySelectorAll('.sb-grp').forEach(function(g){{g.hidden=!g.querySelector('.sb-pill:not([hidden])');}});}}
+  cur.addEventListener('click',function(){{open(menu.hidden);}});find.addEventListener('input',filt);
+  find.addEventListener('keydown',function(e){{if(e.key==='Enter'){{var f=pills.filter(function(p){{return !p.hidden;}})[0];if(f)pick(f.getAttribute('data-lab'));}}else if(e.key==='Escape'){{open(false);cur.focus();}}}});
+  pills.forEach(function(p){{p.addEventListener('click',function(){{pick(p.getAttribute('data-lab'));}});}});
+  function step(d){{var i=pills.findIndex(function(p){{return p.getAttribute('data-lab')===at;}});pick(pills[(i+d+pills.length)%pills.length].getAttribute('data-lab'));}}
+  document.getElementById('sb-prev').addEventListener('click',function(){{step(-1);}});document.getElementById('sb-next').addEventListener('click',function(){{step(1);}});
+  show('sandbox');var m=/[#&]lab=([a-z0-9-]+)/.exec(location.hash);if(m)show(m[1]);
   window.addEventListener('hashchange',function(){{var m=/[#&]lab=([a-z0-9-]+)/.exec(location.hash);if(m)show(m[1]);}});
 }})();
 </script>
@@ -654,7 +843,7 @@ sb += f'''{progress_scripts()}
   </div>
   <a class="btn" href="academy.html">Back to the Academy</a>
 </section>
-''' + foot("nfn-bot-switchwork.svg")
+''' + CX_UI_JS + foot("nfn-bot-switchwork.svg")
 open(os.path.join(ROOT, "sandbox.html"), "w", encoding="utf-8").write(sb)
 
 # ── CX command notes: every note the sandbox shows, on one page ──────────────
@@ -662,26 +851,6 @@ open(os.path.join(ROOT, "sandbox.html"), "w", encoding="utf-8").write(sb)
 # claim against the corpus). The four diagrams sit in the group they explain, with the habits that go with them.
 CX_NOTES = json.load(open(os.path.join(ROOT, "theme", "cxsim", "notes.json"), encoding="utf-8"))
 CX_RELS = [v[0] for v in json.loads(re.search(r'"v":(\[\[.*?\]\])', open(os.path.join(ROOT, "theme", "cxsim", "corpus", "aoscx.js"), encoding="utf-8").read()).group(1))]
-CX_FIGS = {
-    "fig-cx-radius": ("RADIUS", "802.1X against ClearPass, from link up to a change of authorization.", [
-        "Two RADIUS servers in the group before go-live. One server is a single point of failure for every port.",
-        "A critical role on every port-access port, so a ClearPass outage ends somewhere you chose.",
-        "radius dyn-authorization client for each ClearPass node, or CoA and Disconnect fail without a sound.",
-        "Auth failing? Look in Access Tracker first. No entry at all means the request never arrived: secret, address or VRF."]),
-    "fig-cx-lldp-med": ("LLDP", "LLDP-MED on a phone port: the phone speaks first, the switch answers with the voice VLAN.", [
-        "Make the voice VLAN a real VLAN with voice set, tag it on the phone port, and leave the data VLAN native.",
-        "No network policy on the phone? Check the phone sends LLDP-MED before touching the switch.",
-        "On a NAC port add allow-lldp-bpdu, or LLDP from the phone is dropped before anything reads it."]),
-    "fig-cx-lacp": ("LAGs and LACP", "LACP bringing up a two-member LAG, and the flags that prove it.", [
-        "Build the LAG first, then add members, then no shutdown the LAG. Settings live on the LAG.",
-        "lacp mode active on both ends. A static LAG only where the far end cannot speak LACP.",
-        "lacp rate fast on both ends notices a dead member in about three seconds instead of ninety.",
-        "Done means ALFNCD for actor and partner on every member in show lacp interfaces."]),
-    "fig-cx-mda": ("Port access", "Multi-domain authentication: a phone and the PC behind it, each with its own role.", [
-        "Multi-domain is one voice device plus one data device. More PCs behind a phone: raise client-limit multi-domain.",
-        "The phone's role carries device-traffic-class voice, a native data VLAN and the voice VLAN tagged.",
-        "Test the failure path before users do: take ClearPass away and read what the phone and the PC get."]),
-}
 def cx_slug(k):
     return "n-" + re.sub(r"[^a-z0-9]+", "-", re.sub(r"<[^>]*>", "x", k.lower())).strip("-")
 _slugs = [cx_slug(n["k"]) for n in CX_NOTES["notes"]]
@@ -700,75 +869,56 @@ def cx_note_html(n):
     if n.get("tip"): calls += '<div class="cxn-call tip"><b>Habit:</b> %s</div>' % E(n["tip"])
     ex = "".join('<span class="ln">%s</span>' % E(l) for i, e in enumerate(n["ex"]) for l in ([""] if i else []) + e)
     see = "".join('<a href="#%s">%s</a>' % (cx_slug(k), E(k)) for k in n.get("see", []))
-    words = " ".join([n["k"], n["t"], n["w"], n["g"]] + [l for e in n["ex"] for l in e]).lower()
-    return ('<article class="cxn g-card" id="%s" data-q="%s"><div class="cxn-syn"><code>%s</code></div><h3>%s</h3><p>%s</p>'
-            '<p class="cxn-rel">%s</p>%s<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code>%s</code></pre></div>%s</article>'
-            % (cx_slug(n["k"]), E(words), cx_syntax(n["k"]), E(n["t"]), E(n["w"]), E(cx_rel(n)), calls, ex,
-               '<p class="cxn-see"><span>Goes with</span>%s</p>' % see if see else ""))
+    badges = ((cx_badge("changed", "blue") if n.get("v") else "") + (cx_badge("sandbox fakes", "teal") if n.get("fake") else "")
+              + (cx_badge("sandbox only") if n.get("rel") == "sandbox" else ""))
+    body = ('<p>%s</p><p class="cxn-rel">%s</p>%s<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>try it in the sandbox</b></div><pre><code>%s</code></pre></div>%s'
+            % (E(n["w"]), E(cx_rel(n)), calls, ex, '<p class="cxn-see"><span>Goes with</span>%s</p>' % see if see else ""))
+    return cx_row(cx_slug(n["k"]), cx_syntax(n["k"]), E(n["t"]), badges, body)
 def cx_fig_html(fid):
     grp, cap, tips = CX_FIGS[fid]
-    return ('<figure class="figure panel cxn-fig" id="%s">%s<figcaption>%s</figcaption><ul class="cxn-tips">%s</ul></figure>'
-            % (fid, svg(fid + ".svg"), E(cap), "".join("<li>%s</li>" % E(t) for t in tips)))
+    return cx_row(fid, "", E(cap), cx_badge("diagram", "green"),
+                  '<figure class="figure cxn-fig">%s</figure><ul class="cxn-tips">%s</ul>' % (svg(fid + ".svg"), "".join("<li>%s</li>" % E(t) for t in tips)), cls="nokey")
 _groups = CX_NOTES["groups"]
 def _gid(g): return "g-" + re.sub(r"[^a-z0-9]+", "-", g.lower()).strip("-")
-cxn_body = "".join('<section class="cxn-group" id="%s"><h2>%s</h2>%s<div class="cxn-list">%s</div></section>' % (
-    _gid(g), E(g), "".join(cx_fig_html(f) for f, v in CX_FIGS.items() if v[0] == g),
+def _gcount(g): return sum(1 for n in CX_NOTES["notes"] if n["g"] == g)
+cxn_body = "".join('<section class="cxn-group" id="%s"><div class="cx-sechead"><h2>%s<small>%d</small></h2></div><div class="cxr-list g-card">%s%s</div></section>' % (
+    _gid(g), E(g), _gcount(g), "".join(cx_fig_html(f) for f, v in CX_FIGS.items() if v[0] == g),
     "".join(cx_note_html(n) for n in CX_NOTES["notes"] if n["g"] == g)) for g in _groups)
-cxn_nav = "".join('<a class="pill outline" href="#%s">%s</a>' % (_gid(g), E(g)) for g in _groups)
+cxn_nav = "".join('<a class="pill outline" href="#%s">%s <span class="c">%d</span></a>' % (_gid(g), E(g), _gcount(g)) for g in _groups)
 CXN_DESC = "Every command the CX Sandbox has a note for: what it does, examples to type, what changed from AOS-CX 10.15 to 10.18, where the sandbox fakes hardware, and diagrams of 802.1X, LLDP-MED, LACP and a phone with a PC behind it."
-cxn = head("CX command notes · " + SITE["name"], CXN_DESC, BASE_URL + "/cx-notes.html", BASE_URL + "/og/cx-notes.png", active="academy")
+cxn = head("CX command notes · " + SITE["name"], CXN_DESC, BASE_URL + "/cx-notes.html", BASE_URL + "/og/cx-notes.png", active="tools")
 cxn += f'''
 {CX_TOOLS_CSS}
 <style>
-.cxn-bar{{margin:0 0 var(--s3)}}
-.cxn-bar input{{width:100%;max-width:520px;min-height:44px;font:16px var(--sans);color:var(--text);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-pill);padding:0 var(--s4);outline:none}}
-.cxn-bar input:focus{{border-color:var(--blue-light)}}
-.cxn-groups{{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s5)}}
-.cxn-groups .pill{{min-height:40px}}
-.cxn-group{{margin:0 0 var(--s7)}}
-.cxn-group h2{{font-size:24px;letter-spacing:-0.02em;margin:0 0 var(--s4)}}
-.cxn-list{{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:var(--s4)}}
-.cxn{{padding:var(--s4) var(--s5);min-width:0}}
-.cxn-syn code{{font:13px/1.5 var(--mono);color:var(--text);overflow-wrap:anywhere}}
-.cxn-syn i{{font-style:normal;color:var(--text-muted)}}
-.cxn h3{{font-size:17px;margin:6px 0 6px;letter-spacing:-0.01em}}
-.cxn p{{color:var(--text-dim);font-size:15px;line-height:1.6;margin:0 0 10px}}
-.cxn .cxn-rel{{font:12px/1.5 var(--mono);color:var(--text-muted)}}
-.cxn-call{{font-size:14px;line-height:1.55;color:var(--text-dim);padding:8px 12px;margin:0 0 8px;border-left:3px solid var(--blue-light);background:rgba(79,189,234,0.08);border-radius:0 10px 10px 0}}
+.cxn-groups{{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 var(--s3)}}
+.cxn-groups .pill{{min-height:38px;font-size:13px;padding:0 12px}}
+.cxn-groups .c{{font:11px var(--mono);color:var(--text-muted)}}
+.cxn-bar2{{display:flex;justify-content:flex-end;margin:0 0 var(--s4)}}
+.cxn-group{{margin:0 0 var(--s5);scroll-margin-top:96px}}
+.cxn-rel{{font:12px/1.5 var(--mono)!important;color:var(--text-muted)!important}}
+.cxn-call{{font-size:14px;line-height:1.55;color:var(--text-dim);padding:8px 12px;margin:0 0 8px;border-left:3px solid var(--blue-light);background:rgba(79,189,234,0.08);border-radius:0 10px 10px 0;max-width:880px}}
 .cxn-call b{{color:var(--text)}}
 .cxn-call.fake{{border-left-color:var(--teal);background:rgba(94,210,218,0.08)}}
 .cxn-call.tip{{border-left-color:var(--green);background:rgba(140,224,94,0.07)}}
-.cxn .term{{margin:var(--s3) 0 var(--s2)}}
-.cxn .term pre{{margin:0;border:0;border-radius:0;background:none;padding:var(--s3) var(--s4);overflow:auto;font:13px/1.55 var(--mono)}}
-.cxn-see{{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px}}
+.cxr-body .term{{margin:var(--s3) 0 var(--s2);max-width:880px}}
+.cxr-body .term pre{{margin:0;border:0;border-radius:0;background:none;padding:var(--s3) var(--s4);overflow:auto;font:13px/1.55 var(--mono)}}
+.cxn-see{{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px;margin:0}}
 .cxn-see span{{font:600 11px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}}
 .cxn-see a{{font:12.5px var(--mono);color:var(--blue-light);display:inline-flex;align-items:center;min-height:38px}}
-.cxn-fig{{margin:0 0 var(--s5)}}
-.cxn-tips{{margin:var(--s3) 0 0;padding-left:1.2em;color:var(--text-dim);font-size:14.5px;line-height:1.6}}
+.cxn-fig{{margin:0 0 var(--s3)}}
+.cxn-tips{{margin:0;padding-left:1.2em;color:var(--text-dim);font-size:14.5px;line-height:1.6;max-width:880px}}
 .cxn-tips li{{margin:0 0 4px}}
-.cxn-none{{color:var(--text-muted);display:none}}
-@media (max-width:700px){{.cxn{{padding:var(--s3) var(--s4)}}}}
 </style>
 <section class="sim-intro">
   <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
   <h1 class="h-hero">The commands, one note each</h1>
-  <p class="lede">What each command does, two or three examples you can type into the <a href="sandbox.html">sandbox</a>, what changed between AOS-CX {CX_RELS[0]} and {CX_RELS[-1]}, and where the sandbox fakes hardware instead of reproducing it. Every example is run through the sandbox before this page is built, and every release line comes from the command lists I pulled off the Switch Simulator for each release. The same notes show up beside the terminal as you type.</p>
+  <p class="lede">What each command does, two or three examples you can type into the <a href="sandbox.html">sandbox</a>, what changed between AOS-CX {CX_RELS[0]} and {CX_RELS[-1]}, and where the sandbox fakes hardware instead of reproducing it. Every example is run through the sandbox before this page is built, and every release line comes from the command lists and show output I pulled off the Switch Simulator for each release, or from HPE's guide where the simulator has no hardware. The same notes show up beside the terminal as you type.</p>
 </section>
 {cx_tools("notes")}
-<div class="cxn-bar"><input type="search" id="cxn-q" placeholder="Filter: lacp, radius, voice, 1/1/1" aria-label="Filter the command notes" autocomplete="off"></div>
 <nav class="cxn-groups" aria-label="Groups">{cxn_nav}</nav>
-{cxn_body}
-<p class="cxn-none" id="cxn-none">Nothing matches that. Try a shorter word.</p>
-<script>
-(function(){{
-  var q=document.getElementById('cxn-q'),cards=document.querySelectorAll('.cxn'),groups=document.querySelectorAll('.cxn-group'),none=document.getElementById('cxn-none');
-  function run(){{var v=q.value.trim().toLowerCase(),shown=0;cards.forEach(function(c){{var on=!v||c.getAttribute('data-q').indexOf(v)>=0;c.hidden=!on;if(on)shown++;}});
-    groups.forEach(function(g){{var any=g.querySelector('.cxn:not([hidden])');g.hidden=!!v&&!any;var f=g.querySelectorAll('.cxn-fig');f.forEach(function(x){{x.hidden=!!v;}});}});
-    none.style.display=shown?'none':'block';}}
-  q.addEventListener('input',run);
-}})();
-</script>
-''' + foot("nfn-bot-switchwork.svg")
+<div class="cxn-bar2"><button class="cx-all" type="button" data-scope="#cxn-all">Expand all</button></div>
+<div id="cxn-all">{cxn_body}</div>
+''' + CX_UI_JS + foot("nfn-bot-switchwork.svg")
 open(os.path.join(ROOT, "cx-notes.html"), "w", encoding="utf-8").write(cxn)
 
 # ── CX config checker: paste a config, findings back, nothing leaves the page ─
@@ -784,13 +934,17 @@ CX_ENGINE_BUNDLE = "<script>%s</script><script>%s</script>" % (_js("theme/cxsim/
 cxc_sample = open(os.path.join(ROOT, "theme", "cxsim", "samples", "check-sample.cfg"), encoding="utf-8").read().replace("</", "<\\/")
 cxc_rel_opts = "".join('<option value="%s">%s</option>' % (r, r) for r in reversed(CX_RELS))
 CXC_DESC = "Paste an AOS-CX running config and get findings back: syntax each release would refuse, names that are never defined, CIS benchmark controls by number, and campus habits. It runs in your browser; the config never leaves the page."
-cxc = head("CX config checker · " + SITE["name"], CXC_DESC, BASE_URL + "/cx-check.html", BASE_URL + "/og/cx-check.png", active="academy", extra=CX_CSP)
+cxc = head("CX config checker · " + SITE["name"], CXC_DESC, BASE_URL + "/cx-check.html", BASE_URL + "/og/cx-check.png", active="tools", extra=CX_CSP)
 cxc += f'''
 {CX_TOOLS_CSS}
 <style>
-.cxc-safe{{display:flex;gap:14px;align-items:flex-start;padding:var(--s4) var(--s5);margin:0 0 var(--s4)}}
-.cxc-safe svg{{flex:none;width:28px;height:28px;margin-top:2px}}
-.cxc-safe h2{{font-size:18px;margin:0 0 6px}}
+.cxc-safe{{padding:0;margin:0 0 var(--s4)}}
+.cxc-safe>summary{{list-style:none;display:flex;gap:12px;align-items:center;min-height:48px;padding:8px var(--s4);cursor:pointer;font-size:14.5px;color:var(--text-dim)}}
+.cxc-safe>summary::-webkit-details-marker{{display:none}}
+.cxc-safe>summary b{{color:var(--text)}}
+.cxc-safe>summary u{{color:var(--blue-light);text-decoration:none;margin-left:4px}}
+.cxc-safe svg{{flex:none;width:24px;height:24px}}
+.cxc-safe-b{{padding:0 var(--s4) var(--s4) calc(var(--s4) + 36px)}}
 .cxc-safe p{{margin:0 0 6px;color:var(--text-dim);font-size:15px;line-height:1.6}}
 .cxc-safe p:last-child{{margin:0}}
 .cxc-in{{padding:var(--s4) var(--s5);margin:0 0 var(--s4)}}
@@ -809,8 +963,11 @@ cxc += f'''
 .cxc-counts{{display:flex;flex-wrap:wrap;gap:8px;margin:var(--s3) 0 0}}
 .cxc-counts button{{font:600 13px var(--sans);min-height:40px;padding:0 14px;border-radius:var(--r-pill);border:1px solid var(--line);background:rgba(255,255,255,0.05);color:var(--text-dim);cursor:pointer}}
 .cxc-counts button.on{{background:rgba(255,255,255,0.12);color:var(--text);border-color:rgba(255,255,255,0.3)}}
-.cxc-list{{display:grid;gap:var(--s3)}}
-.cxc-f{{padding:var(--s3) var(--s4)}}
+.cxc-list{{margin:0 0 var(--s3)}}
+.cxc-list:empty{{display:none}}
+.cxc-f .cxr-body>p{{font-size:14.5px}}
+.cxc-f>summary{{grid-template-columns:96px minmax(0,1fr) 170px 14px}}
+@media (max-width:700px){{.cxc-f>summary{{grid-template-columns:minmax(0,1fr) 14px}}}}
 .cxc-f header{{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 6px}}
 .cxc-f h3{{font-size:16px;margin:0;letter-spacing:-0.01em}}
 .cxc-sev{{font:700 10.5px var(--mono);letter-spacing:0.12em;text-transform:uppercase;border-radius:var(--r-pill);padding:4px 9px}}
@@ -824,12 +981,14 @@ cxc += f'''
 .cxc-fix{{position:relative;margin:8px 0 0}}
 .cxc-fix pre{{margin:0;font:12.5px/1.5 var(--mono);color:var(--text);background:rgba(140,224,94,0.06);border:1px solid rgba(140,224,94,0.35);border-radius:8px;padding:8px 12px;overflow-x:auto}}
 .cxc-fix button{{position:absolute;top:4px;right:4px;font:600 11.5px var(--sans);color:var(--text-dim);background:rgba(3,10,16,0.8);border:1px solid var(--line);border-radius:var(--r-pill);min-height:38px;padding:0 12px;cursor:pointer}}
-.cxc-man{{padding:var(--s4) var(--s5);margin:var(--s4) 0 0;display:none}}
+.cxc-man{{margin:var(--s4) 0 0;display:none;padding:0}}
 .cxc-man.on{{display:block}}
-.cxc-man h2{{font-size:18px;margin:0 0 8px}}
+.cxc-man>summary{{list-style:none;cursor:pointer;min-height:48px;display:flex;align-items:center;padding:8px var(--s4);font-weight:600}}
+.cxc-man>summary::-webkit-details-marker{{display:none}}
+.cxc-man ul{{margin:0;padding:0 var(--s4) var(--s4) calc(var(--s4) + 1.2em)}}
 .cxc-man li{{color:var(--text-dim);font-size:14.5px;line-height:1.6;margin:0 0 6px}}
 .cxc-man b{{color:var(--text)}}
-@media (max-width:700px){{.cxc-in,.cxc-safe,.cxc-sum,.cxc-man{{padding:var(--s3) var(--s4)}}.cxc-in textarea{{font-size:16px}}}}
+@media (max-width:700px){{.cxc-in,.cxc-sum{{padding:var(--s3) var(--s4)}}.cxc-safe-b{{padding:0 var(--s3) var(--s3)}}.cxc-in textarea{{font-size:16px}}}}
 </style>
 <section class="sim-intro">
   <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
@@ -837,15 +996,12 @@ cxc += f'''
   <p class="lede">Drop in an AOS-CX running config. Every line is checked against the real command set of the release you pick, from {CX_RELS[0]} to {CX_RELS[-1]}, every name it uses is checked against what it defines, and the rest is held up to the CIS benchmark for CX switches, by control number, and to the habits that keep a campus access switch out of trouble. Each finding says why, and most come with the lines that fix them.</p>
 </section>
 {cx_tools("check")}
-<section class="cxc-safe g-card" aria-labelledby="cxc-safe-h">
-  <svg viewBox="0 0 28 28" aria-hidden="true"><path d="M14 2 4 6v7c0 6.2 4.2 11.2 10 13 5.8-1.8 10-6.8 10-13V6z" fill="none" stroke="#8CE05E" stroke-width="2"/><path d="m9.5 14 3 3 6-6.5" fill="none" stroke="#8CE05E" stroke-width="2"/></svg>
-  <div>
-    <h2 id="cxc-safe-h">Your config never leaves this page</h2>
+<details class="cxc-safe g-card"><summary><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M14 2 4 6v7c0 6.2 4.2 11.2 10 13 5.8-1.8 10-6.8 10-13V6z" fill="none" stroke="#8CE05E" stroke-width="2"/><path d="m9.5 14 3 3 6-6.5" fill="none" stroke="#8CE05E" stroke-width="2"/></svg><span><b>Your config never leaves this page.</b> Enforced by the browser, not just promised. <u>How</u></span></summary><div class="cxc-safe-b">
+    
     <p>The checker is code that came down with the page. It reads the box below and nothing else, and it runs in this tab. Nothing is uploaded, stored or logged, and there is no analytics on this page.</p>
     <p>That is enforced, not just promised: the page carries a Content-Security-Policy with <code>connect-src 'none'</code>, so your browser refuses any network request it might try once it has loaded. Open the network tab in your browser's developer tools, paste, check, and watch it stay empty. Close the tab and the config is gone.</p>
     <p>What that cannot cover: browser extensions can read any page you open. Secrets in a running config are already ciphertext, but hostnames and addresses still say a lot about a network, so follow your own policy on where configs go.</p>
-  </div>
-</section>
+  </div></details>
 <section class="cxc-in g-card">
   <label for="cxc-text" class="eyebrow">Running config</label>
   <textarea id="cxc-text" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Paste the output of show running-config here"></textarea>
@@ -858,8 +1014,8 @@ cxc += f'''
   </div>
 </section>
 <section class="cxc-sum g-card" id="cxc-sum" aria-live="polite"></section>
-<div class="cxc-list" id="cxc-list"></div>
-<section class="cxc-man g-card" id="cxc-man"></section>
+<div class="cxc-list cxr-list g-card" id="cxc-list"></div>
+<details class="cxc-man g-card" id="cxc-man"></details>
 <script type="text/plain" id="cxc-sample">{cxc_sample}</script>
 {CX_ENGINE_BUNDLE}
 <script>{_js("theme/cxsim/checker.js")}</script>
@@ -872,18 +1028,19 @@ cxc += f'''
     list.innerHTML='';var r=last;if(!r)return;
     r.findings.forEach(function(f){{
       if(filter!=='all'&&f.kind!==filter&&f.sev!==filter)return;
-      var c=el('article','cxc-f g-card'),h=el('header');
-      h.appendChild(el('span','cxc-sev '+f.sev,f.sev==='warn'?'warning':f.sev));
-      if(f.cis)h.appendChild(el('span','cxc-tag','CIS '+f.cis));else h.appendChild(el('span','cxc-tag',KIND[f.kind]||f.kind));
-      h.appendChild(el('h3','',f.title));c.appendChild(h);
-      if(f.line){{var ln=el('div','ln');ln.appendChild(el('b','','line '+f.line));ln.appendChild(document.createTextNode(f.text||''));c.appendChild(ln);}}
-      c.appendChild(el('p','',f.why+(f.also&&f.also.length?' Also on line'+(f.also.length>1?'s ':' ')+f.also.join(', ')+'.':'')));
+      var c=el('details','cxr cxc-f'),h=el('summary'),bd=el('div','cxr-body');
+      h.appendChild(el('span','cxr-k',f.line?'line '+f.line:(f.cis?'CIS '+f.cis:(KIND[f.kind]||f.kind))));h.appendChild(el('span','cxr-t',f.title));
+      var bs=el('span','cxr-b');bs.appendChild(el('span','cxr-badge '+(f.sev==='error'?'error':f.sev==='warn'?'warn':''),f.sev==='warn'?'warning':f.sev));
+      bs.appendChild(el('span','cxr-badge blue',f.cis?'CIS '+f.cis:(KIND[f.kind]||f.kind)));h.appendChild(bs);c.appendChild(h);c.appendChild(bd);
+      if(f.line){{var ln=el('div','ln');ln.appendChild(el('b','','line '+f.line));ln.appendChild(document.createTextNode(f.text||''));bd.appendChild(ln);}}
+      bd.appendChild(el('p','',f.why+(f.also&&f.also.length?' Also on line'+(f.also.length>1?'s ':' ')+f.also.join(', ')+'.':'')));
       if(f.fix&&f.fix.length){{var fx=el('div','cxc-fix'),pre=el('pre','',f.fix.join('\\n')),b=el('button','','Copy');b.type='button';
         b.addEventListener('click',function(){{try{{navigator.clipboard.writeText(f.fix.join('\\n')).then(function(){{b.textContent='Copied';setTimeout(function(){{b.textContent='Copy';}},1400);}});}}catch(e){{}}}});
-        fx.appendChild(pre);fx.appendChild(b);c.appendChild(fx);}}
+        fx.appendChild(pre);fx.appendChild(b);bd.appendChild(fx);}}
+      if(f.sev==='error')c.open=true;
       list.appendChild(c);
     }});
-    if(!list.childNodes.length)list.appendChild(el('p','meta','Nothing in this group.'));
+    if(!list.childNodes.length)list.appendChild(el('p','meta cxr-body','Nothing in this group.'));
   }}
   function run(){{
     var t=ta.value;if(!t.trim()){{sum.className='cxc-sum g-card on';sum.innerHTML='';sum.appendChild(el('p','','Paste a running config first, or try the sample.'));list.innerHTML='';man.className='cxc-man g-card';return;}}
@@ -896,7 +1053,7 @@ cxc += f'''
     [['all','All '+r.findings.length],['error','Errors '+s.error]].concat(Object.keys(KIND).filter(function(k){{return kinds[k];}}).map(function(k){{return [k,KIND[k]+' '+kinds[k]];}})).forEach(function(x){{
       var b=el('button',x[0]===filter?'on':'',x[1]);b.type='button';b.addEventListener('click',function(){{filter=x[0];counts.querySelectorAll('button').forEach(function(y){{y.className=y===b?'on':'';}});render();}});counts.appendChild(b);}});
     sum.appendChild(counts);render();
-    man.className='cxc-man g-card on';man.innerHTML='';man.appendChild(el('h2','','Checks a config cannot show'));
+    man.className='cxc-man g-card on';man.innerHTML='';man.appendChild(el('summary','','Checks a config cannot show ('+r.manual.length+')'));
     var ul=el('ul');r.manual.forEach(function(m){{var li=el('li');li.appendChild(el('b','','CIS '+m.cis+': '+m.title+'. '));li.appendChild(document.createTextNode(m.how));ul.appendChild(li);}});man.appendChild(ul);
   }}
   document.getElementById('cxc-go').addEventListener('click',run);
@@ -911,7 +1068,7 @@ cxc += f'''
   window.__cxc={{run:run}};
 }})();
 </script>
-''' + foot("nfn-bot-switchwork.svg")
+''' + CX_UI_JS + foot("nfn-bot-switchwork.svg")
 open(os.path.join(ROOT, "cx-check.html"), "w", encoding="utf-8").write(cxc)
 
 # ── CX script builder: pick, answer, paste ───────────────────────────────────
@@ -920,7 +1077,7 @@ open(os.path.join(ROOT, "cx-check.html"), "w", encoding="utf-8").write(cxc)
 # stays here.
 cxb_models = "".join('<option value="%s"%s>%s</option>' % (k, " selected" if k == "6200F-24" else "", E(k)) for k in ["6200F-12", "6200F-24", "6200F-48", "6300M-48", "6300M-24SR5"])
 CXB_DESC = "Pick what an AOS-CX access switch needs, answer a few questions, and get a paste-ready config with every block explained, checked against the release's real command set and pasted into a sandbox switch first."
-cxb = head("CX script builder · " + SITE["name"], CXB_DESC, BASE_URL + "/cx-build.html", BASE_URL + "/og/cx-build.png", active="academy", extra=CX_CSP)
+cxb = head("CX script builder · " + SITE["name"], CXB_DESC, BASE_URL + "/cx-build.html", BASE_URL + "/og/cx-build.png", active="tools", extra=CX_CSP)
 def _f(fid, label, value, hint="", kind="text", wide=False):
     return ('<label class="cxb-f%s"><span>%s</span><input type="%s" id="%s" value="%s" spellcheck="false" autocomplete="off" autocapitalize="off">%s</label>'
             % (" wide" if wide else "", E(label), kind, fid, E(value), '<small>%s</small>' % E(hint) if hint else ""))
@@ -939,7 +1096,7 @@ cxb_form = "".join([
           + '<label class="cxb-c"><input type="checkbox" id="b-nac-coa" checked> Change of authorization (CoA)</label><label class="cxb-c"><input type="checkbox" id="b-nac-mac" checked> MAC auth for what has no supplicant</label>'),
     _feat("phones", "IP phones with a PC behind them", True, _f("b-ph-vlan", "Voice VLAN", "30", kind="number") + _f("b-ph-name", "Its name", "VOICE"), "LLDP-MED, multi-domain"),
     _feat("aps", "Access points", True, _f("b-ap-ports", "Ports", "1/1/21-1/1/24") + _f("b-ap-vlan", "AP management VLAN", "99", kind="number") + _f("b-ap-name", "Its name", "AP-MGMT")
-          + _f("b-ap-tagged", "SSID VLANs to tag", "10,30") + _f("b-ap-match", "Word in the AP's LLDP description", "AP-515", "Check with show lldp neighbor-info"), "recognised by LLDP"),
+          + _f("b-ap-tagged", "SSID VLANs to tag", "10,30") + _f("b-ap-match", "Word in the AP's LLDP description", "AP-515", "Check with show lldp neighbor-info"), "recognized by LLDP"),
     _feat("uplink", "Uplink LAG", True, _f("b-up-lag", "LAG number", "1", kind="number") + _f("b-up-ports", "Member ports", "1/1/27-1/1/28") + _f("b-up-native", "Native VLAN", "99", kind="number")
           + _f("b-up-desc", "Description", "uplink to core") + '<label class="cxb-c"><input type="checkbox" id="b-up-fast" checked> lacp rate fast</label>'),
     _feat("ubt", "Tunnel staff traffic to gateways (UBT)", False, _f("b-ubt-zone", "Zone", "CAMPUS") + _f("b-ubt-primary", "Primary gateway", "192.0.2.50") + _f("b-ubt-backup", "Backup gateway", "")
@@ -951,9 +1108,9 @@ cxb += f'''
 {CX_TOOLS_CSS}
 <style>
 .cxb{{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:var(--s5);align-items:stretch;height:calc(100vh - 150px);min-height:560px}}
-.cxb-form{{display:grid;gap:var(--s3);align-content:start;overflow:auto;padding:2px 6px 2px 2px;overscroll-behavior:contain}}
+.cxb-form{{display:grid;gap:10px;align-content:start;overflow:auto;padding:2px 6px 2px 2px;overscroll-behavior:contain}}
 .cxb-jump{{display:none}}
-.cxb-feat{{margin:0;padding:var(--s3) var(--s4) var(--s4);border:1px solid var(--line);min-width:0}}
+.cxb-feat{{margin:0;padding:6px var(--s3) var(--s3);border:1px solid var(--line);min-width:0}}
 .cxb-feat legend{{padding:0 4px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}}
 .cxb-feat legend small{{color:var(--text-muted);font:12px var(--mono)}}
 .cxb-feat.off .cxb-body{{display:none}}
@@ -975,11 +1132,10 @@ cxb += f'''
 .cxb-acts{{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s4)}}
 .cxb-acts .btn{{border:0;cursor:pointer;font:600 15px var(--sans)}}
 .cxb-acts .pill{{cursor:pointer;font:600 13.5px var(--sans)}}
-.cxb-blk{{margin:0 0 var(--s4);padding:0 0 var(--s4);border-bottom:1px solid var(--line)}}
-.cxb-blk:last-child{{border-bottom:0}}
-.cxb-blk h3{{font-size:16px;margin:0 0 4px}}
-.cxb-blk p{{margin:0 0 8px;color:var(--text-dim);font-size:14.5px;line-height:1.6}}
-.cxb-blk pre{{margin:0;font:12.5px/1.55 var(--mono);color:var(--text);background:rgba(3,10,16,0.6);border:1px solid var(--line);border-radius:10px;padding:10px 12px;overflow-x:auto}}
+#cxb-blocks{{border:1px solid var(--line);border-radius:var(--r-inner);overflow:hidden}}
+#cxb-blocks:empty{{display:none}}
+.cxb-blk>summary{{padding:8px var(--s3)}}
+.cxb-blk .cxr-body{{padding:4px var(--s3) var(--s3)}}
 .cxb-blk .proof{{margin-top:6px;font:12px var(--mono);color:var(--text-muted)}}
 .cxb-note{{font-size:13px;color:var(--text-muted);line-height:1.55;margin:var(--s3) 0 0}}
 @media (max-width:960px){{.cxb{{grid-template-columns:minmax(0,1fr);height:auto;min-height:0}}.cxb-form{{overflow:visible;padding:0}}.cxb-out{{overflow:visible}}.cxb-jump{{display:inline-flex}}}}
@@ -1001,6 +1157,7 @@ cxb += f'''
       <button class="pill outline" type="button" id="cxb-dl">Download .txt</button>
       <button class="pill outline" type="button" id="cxb-sb">Open in the sandbox</button>
       <button class="pill outline" type="button" id="cxb-ck">Run the checker on it</button>
+      <button class="pill outline" type="button" id="cxb-all">Show every block</button>
     </div>
     <div id="cxb-blocks"></div>
     <p class="cxb-note">Open in the sandbox hands the config over in this browser's storage and swaps the shared secret for the bench ClearPass's own (192.0.2.10, cppm-lab-key), so the devices on the bench can authenticate. The checker deletes what it is handed as soon as it reads it.</p>
@@ -1014,7 +1171,7 @@ cxb += f'''
   function $(id){{return document.getElementById(id);}}
   function v(id){{var e=$(id);return e?e.value.trim():'';}}
   function el(t,c,x){{var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}}
-  var FEATS=['access','nac','phones','aps','uplink','ubt','mgmt','harden'],KEY='cxbuild:answers',last=null,timer=null;
+  var FEATS=['access','nac','phones','aps','uplink','ubt','mgmt','harden'],KEY='cxbuild:answers',last=null,timer=null,allOpen=false;
   function answers(){{
     var f={{}};FEATS.forEach(function(k){{f[k]=$('f-'+k).checked;}});
     return {{model:v('b-model'),release:v('b-release'),hostname:v('b-hostname'),features:f,
@@ -1032,15 +1189,18 @@ cxb += f'''
     var a=answers();FEATS.forEach(function(k){{document.querySelector('[data-feat="'+k+'"]').classList.toggle('off',!a.features[k]);}});
     // remember the answers, not the secret
     try{{var keep=JSON.parse(JSON.stringify(a));keep.nac.secret='';localStorage.setItem(KEY,JSON.stringify(keep));}}catch(e){{}}
-    var b=CXBuild.build(a),st=$('cxb-stat'),bl=$('cxb-blocks');last=b;bl.innerHTML='';st.innerHTML='';
-    if(b.problems.length){{st.className='cxb-stat bad';st.appendChild(el('b','','Fix these first:'));var ul=el('ul');b.problems.forEach(function(p){{ul.appendChild(el('li','',p));}});st.appendChild(ul);return;}}
+    var b=CXBuild.build(a),st=$('cxb-stat'),bl=$('cxb-blocks');last=b;st.innerHTML='';
+    if(b.problems.length){{bl.innerHTML='';st.className='cxb-stat bad';st.appendChild(el('b','','Fix these first:'));var ul=el('ul');b.problems.forEach(function(p){{ul.appendChild(el('li','',p));}});st.appendChild(ul);return;}}
     var r=CXBuild.verify(b),ok=!r.syntaxBad.length&&!r.engineBad.length;
     st.className='cxb-stat'+(ok?'':' bad');
     st.appendChild(el('b','',b.lines.length+' lines for a '+b.model+' on '+b.release+'. '));
     st.appendChild(document.createTextNode(ok?('The '+b.release+' command set takes every line it covers ('+r.syntaxOk+'; '+r.notChecked+' sit in blocks the command lists do not cover), and a sandbox switch took the whole paste.'):'Something does not check out:'));
     if(!ok){{var u2=el('ul');r.syntaxBad.concat(r.engineBad).forEach(function(p){{u2.appendChild(el('li','',p));}});st.appendChild(u2);}}
-    b.blocks.forEach(function(k){{var d=el('div','cxb-blk');d.appendChild(el('h3','',k.title));d.appendChild(el('p','',k.why));d.appendChild(el('pre','',k.lines.join('\\n')));
-      if(k.proof.length)d.appendChild(el('div','proof','Proves it: '+k.proof.join(' · ')));bl.appendChild(d);}});
+    var wasOpen={{}};bl.querySelectorAll('details.cxr[open]').forEach(function(d){{wasOpen[d.getAttribute('data-k')]=1;}});bl.innerHTML='';
+    b.blocks.forEach(function(k){{var d=el('details','cxr nokey cxb-blk'),sm=el('summary'),bd=el('div','cxr-body');d.setAttribute('data-k',k.title);if(wasOpen[k.title]||allOpen)d.open=true;
+      sm.appendChild(el('span','cxr-t',k.title));var bs=el('span','cxr-b');bs.appendChild(el('span','cxr-badge',k.lines.length+' line'+(k.lines.length===1?'':'s')));sm.appendChild(bs);d.appendChild(sm);
+      bd.appendChild(el('p','',k.why));bd.appendChild(el('pre','',k.lines.join('\\n')));
+      if(k.proof.length)bd.appendChild(el('div','proof','Proves it: '+k.proof.join(' · ')));d.appendChild(bd);bl.appendChild(d);}});
   }}
   function soon(){{clearTimeout(timer);timer=setTimeout(render,160);}}
   try{{var s=JSON.parse(localStorage.getItem(KEY)||'null');if(s){{
@@ -1059,10 +1219,11 @@ cxb += f'''
   function sandboxCopy(){{var s=last.answers.nac.secret||'CHANGE-ME';return last.config.split(s).join('cppm-lab-key');}}
   $('cxb-sb').addEventListener('click',function(){{if(!last||last.problems.length)return;try{{localStorage.setItem('cxsim:import',JSON.stringify({{model:last.model,release:last.release,config:sandboxCopy(),at:Date.now()}}));}}catch(e){{}}location.href='sandbox.html#lab=sandbox&import=1';}});
   $('cxb-ck').addEventListener('click',function(){{if(!last||last.problems.length)return;try{{localStorage.setItem('cxcheck:import',JSON.stringify({{release:last.release,config:last.config,at:Date.now()}}));}}catch(e){{}}location.href='cx-check.html#import';}});
+  $('cxb-all').addEventListener('click',function(){{allOpen=!allOpen;$('cxb-all').textContent=allOpen?'Fold the blocks':'Show every block';$('cxb-blocks').querySelectorAll('details.cxr').forEach(function(d){{d.open=allOpen;}});}});
   render();window.__cxb={{render:render}};
 }})();
 </script>
-''' + foot("nfn-bot-switchwork.svg")
+''' + CX_UI_JS + foot("nfn-bot-switchwork.svg")
 open(os.path.join(ROOT, "cx-build.html"), "w", encoding="utf-8").write(cxb)
 
 # ── CX releases and hardening: what changed, what good looks like, CIS by number ─
@@ -1168,27 +1329,27 @@ for rel in reversed(CXG_RELS):
     cli = ('<p class="cxg-src">%d command forms appear in %s and %d that %s had are gone, across the contexts the lists cover. Forms, not features: one new option can add a few.</p>%s%s'
            % (nn, rel, ng, CXG_RELS[CXG_RELS.index(rel) - 1], cxg_groups(new, "new"), cxg_groups(gone, "gone"))) if CXG_RELS.index(rel) else (
            '<p class="cxg-src">The baseline: %d command forms across the contexts harvested. Every later release is compared with the one before it.</p>' % sum(len(v) for v in CXG_FORMS.values()))
-    cxg_rel_html += ('<section class="cxg-rel g-card" id="r-%s"><h3>AOS-CX %s</h3><div class="cxg-cols"><div><h4 class="cxg-h">In HPE\'s Feature Navigator</h4>%s</div>'
-                     '<div><h4 class="cxg-h">In the command line</h4>%s<h4 class="cxg-h">Called out in the command notes</h4>%s</div></div></section>'
-                     % (rel.replace(".", "-"), rel, cxg_nav(rel), cli, cxg_notes(rel)))
-cxg_pract = "".join('<article class="cxg-p g-card"><h3>%s</h3><p>%s</p>%s%s</article>' % (
-    E(p["t"]), E(p["w"]), '<pre>%s</pre>' % E("\n".join(p["lines"])) if p["lines"] else "",
-    '<a class="cxg-see" href="cx-notes.html#%s">The note on <code>%s</code></a>' % (cx_slug(p["see"]), E(p["see"])) if p.get("see") else "") for p in CX_PRACT)
-cxg_cis = "".join('<article class="cxg-c g-card"><header><span class="cxg-id">CIS %s</span><span class="cxg-auto %s">%s</span></header><p>%s</p>%s%s</article>' % (
-    E(c["id"]), "on" if c["auto"] == "config" else "", "The config checker looks for this" if c["auto"] == "config" else "Check this by hand",
-    E(c["ask"]), '<p class="cxg-chk">Check: %s</p>' % " · ".join('<code>%s</code>' % E(x) for x in c["check"]) if c["check"] else "",
-    '<pre>%s</pre>' % E("\n".join(c["fix"])) if c["fix"] else "") for c in CX_CIS["controls"])
+    nfeat = len([f for f in CX_FEAT["features"] if any(f[x] in [b for b in CX_FEAT["compared"] if b.startswith(rel + ".")] for x in ("6200", "6300"))])
+    badges = (cx_badge("%d features" % nfeat, "teal") if nfeat else "") + (cx_badge("+%d / -%d forms" % (nn, ng), "blue") if CXG_RELS.index(rel) else cx_badge("baseline"))
+    cxg_rel_html += cx_row("r-" + rel.replace(".", "-"), "", "AOS-CX " + rel + (" (newest here)" if rel == CXG_RELS[-1] else ""), badges,
+                           '<div class="cxg-cols"><div><h4 class="cxg-h">In HPE\'s Feature Navigator</h4>%s</div><div><h4 class="cxg-h">In the command line</h4>%s<h4 class="cxg-h">Called out in the command notes</h4>%s</div></div>'
+                           % (cxg_nav(rel), cli, cxg_notes(rel)), cls="nokey", opened=(rel == CXG_RELS[-1]))
+cxg_pract = "".join(cx_row("p-" + cx_slugify(p["t"]), "", E(p["t"]), cx_badge("%d lines" % len(p["lines"])) if p["lines"] else "", '<p>%s</p>%s%s' % (
+    E(p["w"]), '<pre>%s</pre>' % E("\n".join(p["lines"])) if p["lines"] else "",
+    '<a class="cxg-see" href="cx-notes.html#%s">The note on <code>%s</code></a>' % (cx_slug(p["see"]), E(p["see"])) if p.get("see") else ""), cls="nokey") for p in CX_PRACT)
+cxg_cis = "".join(cx_row("cis-" + c["id"].replace(".", "-"), '<b>CIS %s</b>' % E(c["id"]), E(c["ask"]),
+    cx_badge("checker looks", "green") if c["auto"] == "config" else cx_badge("by hand"),
+    '%s%s' % ('<p class="cxg-chk">Check: %s</p>' % " · ".join('<code>%s</code>' % E(x) for x in c["check"]) if c["check"] else "",
+              '<pre>%s</pre>' % E("\n".join(c["fix"])) if c["fix"] else '<p class="cxg-chk">No config lines: this one is a process or a check by eye.</p>'), cls="cis") for c in CX_CIS["controls"])
 CXG_DESC = "What changed in AOS-CX from 10.15 to 10.18 for the 6200 and 6300, from HPE's Feature Navigator and the command lists themselves; best practices for a campus access switch; and hardening mapped to the CIS benchmark by control number."
-cxg = head("CX releases and hardening · " + SITE["name"], CXG_DESC, BASE_URL + "/cx-guide.html", BASE_URL + "/og/cx-guide.png", active="academy")
+cxg = head("CX releases and hardening · " + SITE["name"], CXG_DESC, BASE_URL + "/cx-guide.html", BASE_URL + "/og/cx-guide.png", active="tools")
 cxg += f'''
 {CX_TOOLS_CSS}
 <style>
-.cxg-jump{{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 var(--s5)}}
-.cxg-sec{{margin:0 0 var(--s7)}}
-.cxg-sec>h2{{font-size:26px;letter-spacing:-0.02em;margin:0 0 8px}}
-.cxg-sec>p{{color:var(--text-dim);font-size:16px;line-height:1.6;max-width:820px;margin:0 0 var(--s4)}}
-.cxg-rel{{padding:var(--s4) var(--s5);margin:0 0 var(--s4)}}
-.cxg-rel h3{{font-size:22px;margin:0 0 var(--s3)}}
+.cxg-jump{{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 var(--s4)}}
+.cxg-jump .pill{{min-height:38px;font-size:13px;padding:0 12px}}
+.cxg-sec{{margin:0 0 var(--s6);scroll-margin-top:96px}}
+.cxg-sec>p{{color:var(--text-dim);font-size:15px;line-height:1.6;max-width:880px;margin:0 0 var(--s3)}}
 .cxg-cols{{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s5)}}
 .cxg-h{{font:600 11px var(--mono);letter-spacing:0.14em;text-transform:uppercase;color:var(--blue-light);margin:0 0 8px}}
 .cxg-cols>div>.cxg-h:not(:first-child){{margin-top:var(--s4)}}
@@ -1200,22 +1361,16 @@ cxg += f'''
 .cxg-cli{{border-top:1px solid var(--line);padding:6px 0}}
 .cxg-cli summary{{cursor:pointer;min-height:38px;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text-dim)}}
 .cxg-cli summary b{{color:var(--text);font-weight:600}}
-.cxg-cli code,.cxg-notes code,.cxg-p code,.cxg-c code{{font:12.5px var(--mono);color:var(--text);overflow-wrap:anywhere}}
+.cxg-cli code,.cxg-notes code,.cxr-body code{{font:12.5px var(--mono);color:var(--text);overflow-wrap:anywhere}}
 .cxg-cli i{{font-style:normal;color:var(--text-muted)}}
 .cxg-cli .more{{color:var(--text-muted);font-size:12.5px}}
 .cxg-notes a{{color:var(--blue-light)}}
-.cxg-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,380px),1fr));gap:var(--s4)}}
-.cxg-p,.cxg-c{{padding:var(--s4) var(--s5);min-width:0}}
-.cxg-p h3{{font-size:17px;margin:0 0 6px}}
-.cxg-p p,.cxg-c p{{color:var(--text-dim);font-size:14.5px;line-height:1.6;margin:0 0 8px}}
-.cxg-p pre,.cxg-c pre{{margin:8px 0 0;font:12.5px/1.55 var(--mono);color:var(--text);background:rgba(3,10,16,0.6);border:1px solid var(--line);border-radius:10px;padding:10px 12px;overflow-x:auto}}
 .cxg-see{{display:inline-flex;align-items:center;min-height:38px;margin-top:6px;font-size:13.5px;color:var(--blue-light)}}
-.cxg-c header{{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;margin:0 0 8px}}
-.cxg-id{{font:700 13px var(--mono);color:var(--text)}}
-.cxg-auto{{font:11px var(--mono);color:var(--text-muted);border:1px solid var(--line);border-radius:var(--r-pill);padding:2px 8px}}
-.cxg-auto.on{{color:#bdf29c;border-color:rgba(140,224,94,0.5)}}
-.cxg-chk{{font-size:13px!important}}
-@media (max-width:860px){{.cxg-cols{{grid-template-columns:minmax(0,1fr)}}.cxg-rel,.cxg-p,.cxg-c{{padding:var(--s3) var(--s4)}}}}
+.cxg-chk{{font-size:13px!important;margin:0 0 6px!important}}
+.cxr.cis>summary{{grid-template-columns:86px minmax(0,1fr) 160px 14px}}
+.cxr.cis .cxr-k b{{font-weight:700}}
+@media (max-width:860px){{.cxg-cols{{grid-template-columns:minmax(0,1fr)}}}}
+@media (max-width:700px){{.cxr.cis>summary{{grid-template-columns:minmax(0,1fr) 14px}}}}
 </style>
 <section class="sim-intro">
   <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
@@ -1225,21 +1380,21 @@ cxg += f'''
 {cx_tools("guide")}
 <nav class="cxg-jump" aria-label="Sections"><a class="pill outline" href="#releases">By release</a><a class="pill outline" href="#practice">Best practices</a><a class="pill outline" href="#cis">Hardening, CIS by number</a></nav>
 <section class="cxg-sec" id="releases">
-  <h2>By release</h2>
+  <div class="cx-sechead"><h2>By release<small>{len(CXG_RELS)}</small></h2></div>
   <p>Newest first. The Feature Navigator is HPE's list of what each platform supports in each release, compared here with licenses Native and Advanced and read on {E(CX_FEAT["fetched"])}; a feature sits under the first release it shows up in. The command line column is the difference between the command lists of one release and the one before it, which catches syntax the navigator never mentions. The Simulator hides hardware, so PoE, VSF and some speeds do not show there.</p>
-  {cxg_rel_html}
+  <div class="cxr-list g-card">{cxg_rel_html}</div>
 </section>
 <section class="cxg-sec" id="practice">
-  <h2>Best practices for a campus access switch</h2>
+  <div class="cx-sechead"><h2>Best practices for a campus access switch<small>{len(CX_PRACT)}</small></h2><button class="cx-all" type="button" data-scope="#practice">Expand all</button></div>
   <p>The habits, each with the few lines that do it. The <a href="cx-build.html">script builder</a> writes most of them for you, and the <a href="cx-check.html">config checker</a> tells you which a config is missing.</p>
-  <div class="cxg-grid">{cxg_pract}</div>
+  <div class="cxr-list g-card">{cxg_pract}</div>
 </section>
 <section class="cxg-sec" id="cis">
-  <h2>Hardening, CIS by control number</h2>
+  <div class="cx-sechead"><h2>Hardening, CIS by control number<small>{len(CX_CIS["controls"])}</small></h2><button class="cx-all" type="button" data-scope="#cis">Expand all</button></div>
   <p>The {E(CX_CIS["benchmark"])} has {len(CX_CIS["controls"])} automated and manual items. They are mapped here by control number only: the numbers come from the public Tenable audit file for it, the wording is mine, and the benchmark's own text is not reproduced. Where a control can be read from a config, the config checker looks for it; the rest need eyes on the box.</p>
-  <div class="cxg-grid">{cxg_cis}</div>
+  <div class="cxr-list g-card">{cxg_cis}</div>
 </section>
-''' + foot("nfn-bot-switchwork.svg")
+''' + CX_UI_JS + foot("nfn-bot-switchwork.svg")
 open(os.path.join(ROOT, "cx-guide.html"), "w", encoding="utf-8").write(cxg)
 
 # ── simulator page: the banner on its own ───────────────────────────────────
@@ -1268,13 +1423,36 @@ open(os.path.join(ROOT, "simulator.html"), "w", encoding="utf-8").write(sim)
 import lab as _lab
 SIM_JS = "\n".join(open(os.path.join(ROOT, "theme", "sim", f + ".js"), encoding="utf-8").read()
                    for f in _lab.SIM if os.path.exists(os.path.join(ROOT, "theme", "sim", f + ".js")))
-TOOLS_DESC = "Four planning tools that show their working: how many access points a crowd needs, where to aim an antenna at a block of seats, how a mesh forms on a field and what it will carry, and what happened on a site from what the controller recorded."
+TOOLS_DESC = "Planning tools that show their working: how many access points a crowd needs, where to aim an antenna at a block of seats, how a mesh forms on a field and what it will carry, and what happened on a site from what the controller recorded. Plus the CX Sandbox, a modeled AOS-CX switch with a config checker and script builder."
 tools = head("Tools · " + SITE["name"], TOOLS_DESC, BASE_URL + "/tools.html", BASE_URL + "/og/tools.png", active="tools")
 tools += f'''
 <section class="sim-intro">
   <span class="tag green"><span class="dot"></span>Tools</span>
   <h1 class="h-hero">Planning tools that show their working</h1>
   <p class="lede">Every number on these pages is computed from the standards and the physics, not looked up, and every control lives in the address bar, so a link is the whole argument. The mesh planner was held against a real point on 2026-09-13: the budgets matched to a couple of dB, and the one thing it got wrong was fixed the same morning. Open a fold to see how a figure was reached; the story fold under the mesh map tells the tree in the order a mesh forms. The fifth tab is the simulator, one frame sent symbol by symbol through a link you can break; it also has <a href="simulator.html">a page of its own</a>.</p>
+</section>
+<style>
+.cx-strip{{padding:var(--s4) var(--s5);margin:0 0 var(--s5)}}
+.cx-strip h2{{font-size:20px;margin:4px 0 6px}}
+.cx-strip>p{{color:var(--text-dim);font-size:15px;line-height:1.6;margin:0 0 var(--s3);max-width:880px}}
+.cx-strip-l{{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:8px}}
+.cx-strip-l a{{display:flex;flex-direction:column;gap:2px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--r-inner);background:rgba(255,255,255,0.03);min-height:44px}}
+.cx-strip-l a:hover{{background:rgba(255,255,255,0.07)}}
+.cx-strip-l b{{color:var(--text);font-size:15px}}
+.cx-strip-l span{{color:var(--text-muted);font-size:13px;line-height:1.45}}
+@media (max-width:700px){{.cx-strip{{padding:var(--s3) var(--s4)}}}}
+</style>
+<section class="cx-strip g-card" id="cx" data-rise>
+  <span class="eyebrow">AOS-CX switching</span>
+  <h2>The CX Sandbox and its tools</h2>
+  <p>A modeled AOS-CX switch you can type on, with a fake ClearPass behind it, and four pages that work beside it. All five run in your browser; nothing you type or paste leaves the page.</p>
+  <nav class="cx-strip-l" aria-label="CX Sandbox pages">
+    <a href="sandbox.html"><b>CX Sandbox</b><span>Eighteen labs with checks, or a blank switch</span></a>
+    <a href="cx-notes.html"><b>Command notes</b><span>One note per command, with examples to type</span></a>
+    <a href="cx-check.html"><b>Config checker</b><span>Paste a running config, get findings back</span></a>
+    <a href="cx-build.html"><b>Script builder</b><span>Answer a few questions, get a paste-ready config</span></a>
+    <a href="cx-guide.html"><b>Releases and hardening</b><span>What changed 10.15 to 10.18, habits, CIS by number</span></a>
+  </nav>
 </section>
 <script>{SIM_JS}</script>
 ''' + widget("tools").replace("<!-- qam:here (the build and the lab put the simulator widget here) -->", qam, 1) + '''

@@ -39,11 +39,11 @@
   "aaa authentication port-access mac-auth",
   "enable"
  ],
- "task": "Both methods are on for every port, everything is plugged in, and everything fails. ClearPass is answering Access-Accept with a role in it every time. Read the reason, then make the switch able to honour what it is being told: EMPLOYEE in VLAN 10, PRINTERS in VLAN 20, and VOICE in a new VLAN 30 named VOICE.",
+ "task": "Both methods are on for every port, everything is plugged in, and everything fails. ClearPass is answering Access-Accept with a role in it every time. Read the reason, then make the switch able to honor what it is being told: EMPLOYEE in VLAN 10, PRINTERS in VLAN 20, and VOICE in a new VLAN 30 named VOICE.",
  "hints": [
   "show port-access clients detail. The reason names the missing piece.",
   "port-access role <NAME> then vlan access <id>. The VLAN has to exist before a role can point at it.",
-  "Clients re-authenticate on their own once the role exists. port-access reauthenticate interface 1/1/1-1/1/5 makes them do it now, if you want to watch."
+  "Don't wait on them: port-access reauthenticate interface 1/1/1-1/1/5 makes every client try again now that the role exists."
  ],
  "devices": [
   {

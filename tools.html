@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Tools · Network Field Notes</title>
-<meta name="description" content="Four planning tools that show their working: how many access points a crowd needs, where to aim an antenna at a block of seats, how a mesh forms on a field and what it will carry, and what happened on a site from what the controller recorded.">
+<meta name="description" content="Planning tools that show their working: how many access points a crowd needs, where to aim an antenna at a block of seats, how a mesh forms on a field and what it will carry, and what happened on a site from what the controller recorded. Plus the CX Sandbox, a modeled AOS-CX switch with a config checker and script builder.">
 <link rel="canonical" href="https://networkfieldnotes.com/tools.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
@@ -10,13 +10,13 @@
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
 <meta property="og:title" content="Tools · Network Field Notes">
-<meta property="og:description" content="Four planning tools that show their working: how many access points a crowd needs, where to aim an antenna at a block of seats, how a mesh forms on a field and what it will carry, and what happened on a site from what the controller recorded.">
+<meta property="og:description" content="Planning tools that show their working: how many access points a crowd needs, where to aim an antenna at a block of seats, how a mesh forms on a field and what it will carry, and what happened on a site from what the controller recorded. Plus the CX Sandbox, a modeled AOS-CX switch with a config checker and script builder.">
 <meta property="og:url" content="https://networkfieldnotes.com/tools.html">
 <meta property="og:image" content="https://networkfieldnotes.com/og/tools.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Tools · Network Field Notes">
-<meta name="twitter:description" content="Four planning tools that show their working: how many access points a crowd needs, where to aim an antenna at a block of seats, how a mesh forms on a field and what it will carry, and what happened on a site from what the controller recorded.">
+<meta name="twitter:description" content="Planning tools that show their working: how many access points a crowd needs, where to aim an antenna at a block of seats, how a mesh forms on a field and what it will carry, and what happened on a site from what the controller recorded. Plus the CX Sandbox, a modeled AOS-CX switch with a config checker and script builder.">
 <meta name="twitter:image" content="https://networkfieldnotes.com/og/tools.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -553,6 +553,29 @@ html.qam-fs .rig{display:none}
   <span class="tag green"><span class="dot"></span>Tools</span>
   <h1 class="h-hero">Planning tools that show their working</h1>
   <p class="lede">Every number on these pages is computed from the standards and the physics, not looked up, and every control lives in the address bar, so a link is the whole argument. The mesh planner was held against a real point on 2026-09-13: the budgets matched to a couple of dB, and the one thing it got wrong was fixed the same morning. Open a fold to see how a figure was reached; the story fold under the mesh map tells the tree in the order a mesh forms. The fifth tab is the simulator, one frame sent symbol by symbol through a link you can break; it also has <a href="simulator.html">a page of its own</a>.</p>
+</section>
+<style>
+.cx-strip{padding:var(--s4) var(--s5);margin:0 0 var(--s5)}
+.cx-strip h2{font-size:20px;margin:4px 0 6px}
+.cx-strip>p{color:var(--text-dim);font-size:15px;line-height:1.6;margin:0 0 var(--s3);max-width:880px}
+.cx-strip-l{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:8px}
+.cx-strip-l a{display:flex;flex-direction:column;gap:2px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--r-inner);background:rgba(255,255,255,0.03);min-height:44px}
+.cx-strip-l a:hover{background:rgba(255,255,255,0.07)}
+.cx-strip-l b{color:var(--text);font-size:15px}
+.cx-strip-l span{color:var(--text-muted);font-size:13px;line-height:1.45}
+@media (max-width:700px){.cx-strip{padding:var(--s3) var(--s4)}}
+</style>
+<section class="cx-strip g-card" id="cx" data-rise>
+  <span class="eyebrow">AOS-CX switching</span>
+  <h2>The CX Sandbox and its tools</h2>
+  <p>A modeled AOS-CX switch you can type on, with a fake ClearPass behind it, and four pages that work beside it. All five run in your browser; nothing you type or paste leaves the page.</p>
+  <nav class="cx-strip-l" aria-label="CX Sandbox pages">
+    <a href="sandbox.html"><b>CX Sandbox</b><span>Eighteen labs with checks, or a blank switch</span></a>
+    <a href="cx-notes.html"><b>Command notes</b><span>One note per command, with examples to type</span></a>
+    <a href="cx-check.html"><b>Config checker</b><span>Paste a running config, get findings back</span></a>
+    <a href="cx-build.html"><b>Script builder</b><span>Answer a few questions, get a paste-ready config</span></a>
+    <a href="cx-guide.html"><b>Releases and hardening</b><span>What changed 10.15 to 10.18, habits, CIS by number</span></a>
+  </nav>
 </section>
 <script>/* Network Field Notes simulator core: namespace, deterministic randomness, and
    the whole of a tool's state carried in the URL so a link is an argument you

@@ -79,7 +79,7 @@
       if (+A.nac.critVlan) vlan(vid(A.nac.critVlan, "The critical role's VLAN"), +A.nac.critVlan === dataV ? A.access.vlanName : "CRITICAL");
     }
     var ubtV = F.ubt ? vid(A.ubt.clientVlan, "The tunnel client VLAN") : 0;
-    if (F.ubt) { need(F.nac, "Tunnelling rides on a role ClearPass hands out: turn on 802.1X too."); need(isIp(A.ubt.primary) && (!A.ubt.backup || isIp(A.ubt.backup)), "Gateway addresses are IPv4 addresses."); need(word(A.ubt.zone) && word(A.ubt.gwRole), "Zone and gateway role are one word each."); vlan(ubtV, "UBT-CLIENT"); }
+    if (F.ubt) { need(F.nac, "Tunneling rides on a role ClearPass hands out: turn on 802.1X too."); need(isIp(A.ubt.primary) && (!A.ubt.backup || isIp(A.ubt.backup)), "Gateway addresses are IPv4 addresses."); need(word(A.ubt.zone) && word(A.ubt.gwRole), "Zone and gateway role are one word each."); vlan(ubtV, "UBT-CLIENT"); }
     var mgV = F.mgmt ? vid(A.mgmt.vlan, "The management VLAN") : 0;
     if (F.mgmt) { need(isPrefix(A.mgmt.ip), "The switch address is an address with a mask length, like 192.0.2.21/24."); need(isIp(A.mgmt.gw), "The default gateway is an IPv4 address."); if (!vlans[mgV]) vlan(mgV, "MGMT"); }
     var ntp = list(A.time.ntp).filter(Boolean), syslog = String(A.time.syslog || "").trim();
@@ -91,7 +91,7 @@
     function block(id, title, why, lines, proof) { blocks.push({ id: id, title: title, why: why, lines: lines, proof: proof || [] }); }
     var vids = Object.keys(vlans).map(Number).sort(function (a, b) { return a - b; });
 
-    block("hostname", "Name the switch", "The name shows in the prompt, in LLDP to the neighbours, and in every log line. Put the location in it.", ["hostname " + A.hostname], ["show system"]);
+    block("hostname", "Name the switch", "The name shows in the prompt, in LLDP to the neighbors, and in every log line. Put the location in it.", ["hostname " + A.hostname], ["show system"]);
     var vl = []; vids.forEach(function (v) { vl.push("vlan " + v, "    name " + vlans[v].name); if (vlans[v].voice) vl.push("    voice"); vl.push("    exit"); });
     block("vlans", "VLANs first", "A port, a role or a trunk cannot use a VLAN that does not exist, so they come before anything that names them." + (F.phones ? " The voice VLAN is marked voice, which is what lets LLDP-MED hand it to phones." : ""), vl, ["show vlan"]);
     block("stp", "Spanning tree on", "MSTP, the default mode. Without it one patch cable looped between two wall ports takes a VLAN down.", ["spanning-tree"], ["show spanning-tree"]);
@@ -123,9 +123,9 @@
     var dp = [];
     if (F.phones) dp.push("port-access lldp-group LLDP-MED-ENDPOINTS", "    seq 10 match vendor-oui 0012bb type 1", "    exit", "port-access device-profile PHONES", "    associate lldp-group LLDP-MED-ENDPOINTS", "    associate role " + "VOICE", "    enable", "    exit");
     if (F.aps) dp.push("port-access lldp-group APS", "    seq 10 match sys-desc " + A.aps.match, "    exit", "port-access device-profile APS", "    associate lldp-group APS", "    associate role AP-TRUNK", "    enable", "    exit");
-    if (dp.length) block("profiles", "Recognise phones and APs by what they say on LLDP", (F.phones ? "Every LLDP-MED device sends the TIA's OUI, 0012bb, in its capabilities TLV, so that one rule catches phones of any brand. " : "") + (F.aps ? "APs are matched on a word in their LLDP system description: sys-desc matches when the description contains it. Check yours with show lldp neighbor-info on an AP port before you trust " + A.aps.match + ". " : "") + "A profile gives the matched device its role without ClearPass knowing it.", dp, ["show port-access device-profile", "show lldp neighbor-info"]);
+    if (dp.length) block("profiles", "Recognize phones and APs by what they say on LLDP", (F.phones ? "Every LLDP-MED device sends the TIA's OUI, 0012bb, in its capabilities TLV, so that one rule catches phones of any brand. " : "") + (F.aps ? "APs are matched on a word in their LLDP system description: sys-desc matches when the description contains it. Check yours with show lldp neighbor-info on an AP port before you trust " + A.aps.match + ". " : "") + "A profile gives the matched device its role without ClearPass knowing it.", dp, ["show port-access device-profile", "show lldp neighbor-info"]);
 
-    if (F.ubt) block("ubt", "Tunnels to the gateways", "The zone names the gateway cluster; ubt-client-vlan is the VLAN tunnelled clients use on the switch. Keep that VLAN for this and nothing else.", ["ubt-client-vlan " + ubtV, "ubt zone " + A.ubt.zone + " vrf default", "    primary-controller ip " + A.ubt.primary].concat(A.ubt.backup ? ["    backup-controller ip " + A.ubt.backup] : []).concat(["    enable", "    exit"]), ["show ubt", "show ubt users all"]);
+    if (F.ubt) block("ubt", "Tunnels to the gateways", "The zone names the gateway cluster; ubt-client-vlan is the VLAN tunneled clients use on the switch. Keep that VLAN for this and nothing else.", ["ubt-client-vlan " + ubtV, "ubt zone " + A.ubt.zone + " vrf default", "    primary-controller ip " + A.ubt.primary].concat(A.ubt.backup ? ["    backup-controller ip " + A.ubt.backup] : []).concat(["    enable", "    exit"]), ["show ubt", "show ubt users all"]);
 
     if (F.uplink) {
       var allowed = vids.slice();
@@ -146,7 +146,7 @@
       pl.push("    spanning-tree port-type admin-edge", "    spanning-tree bpdu-guard", "    loop-protect", "    exit");
       block("desk", "Desk ports", "Access ports in VLAN " + dataV + "." + (F.nac ? " 802.1X first, MAC auth for what has no supplicant" + (+A.nac.critVlan ? ", and the critical role when ClearPass is unreachable" : "") + "." : "") + (F.phones ? " Multi-domain takes one phone and one PC; allow-lldp-bpdu lets the phone's LLDP in before it authenticates, which the phone profile needs." : "") + " admin-edge forwards at once for a laptop's DHCP timer, BPDU guard shuts the port if a switch appears, and loop-protect catches a loop through one that swallows BPDUs.", pl, F.nac ? ["show port-access clients", "show interface brief"] : ["show interface brief"]);
     }
-    if (F.aps) block("aps", "AP ports", "Plain access in the AP management VLAN until LLDP says an AP is there; then the APS profile turns the port into the AP-TRUNK trunk. An AP that has not been recognised can still reach its controller.", ["interface " + span(aps, names), "    no shutdown", "    description access point", "    no routing", "    vlan access " + apV, "    spanning-tree port-type admin-edge", "    spanning-tree bpdu-guard", "    exit"], ["show port-access clients onboarding-method device-profile", "show lldp neighbor-info"]);
+    if (F.aps) block("aps", "AP ports", "Plain access in the AP management VLAN until LLDP says an AP is there; then the APS profile turns the port into the AP-TRUNK trunk. An AP that has not been recognized can still reach its controller.", ["interface " + span(aps, names), "    no shutdown", "    description access point", "    no routing", "    vlan access " + apV, "    spanning-tree port-type admin-edge", "    spanning-tree bpdu-guard", "    exit"], ["show port-access clients onboarding-method device-profile", "show lldp neighbor-info"]);
 
     if (F.mgmt) block("mgmt", "An address to manage it by", "The switch's own address in VLAN " + mgV + ", a default route, and SSH in the default VRF. The SVI comes up when any port in the VLAN is up.", ["interface vlan " + mgV, "    ip address " + A.mgmt.ip, "    exit", "ip route 0.0.0.0/0 " + A.mgmt.gw, "ssh server vrf default"], ["show ip interface brief", "show ip route"]);
 
