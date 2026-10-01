@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Your ClearPass SAML Login Validates and Still Fails</title>
-<meta name="description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/saml-login-validates-and-still-fails.html">
+<title>IBNS 2.0 Listens for CoA on the Wrong Port Until You Tell It Otherwise</title>
+<meta name="description" content="A Catalyst 9300 listens for RADIUS change of authorization on UDP 1700 out of the box, and ClearPass sends to 3799, so CoA fails silently until you add one line. Here&#x27;s that line and the rest of an IBNS 2.0 edge port for a four node ClearPass cluster, laid out the same way as the AOS-CX version.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/ibns-coa-wrong-port.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="Your ClearPass SAML Login Validates and Still Fails">
-<meta property="og:description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/saml-login-validates-and-still-fails.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/saml-login-validates-and-still-fails.png">
+<meta property="og:title" content="IBNS 2.0 Listens for CoA on the Wrong Port Until You Tell It Otherwise">
+<meta property="og:description" content="A Catalyst 9300 listens for RADIUS change of authorization on UDP 1700 out of the box, and ClearPass sends to 3799, so CoA fails silently until you add one line. Here&#x27;s that line and the rest of an IBNS 2.0 edge port for a four node ClearPass cluster, laid out the same way as the AOS-CX version.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/ibns-coa-wrong-port.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/ibns-coa-wrong-port.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Your ClearPass SAML Login Validates and Still Fails">
-<meta name="twitter:description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/saml-login-validates-and-still-fails.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-05"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your ClearPass SAML Login Validates and Still Fails", "description": "Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.", "datePublished": "2026-09-05", "image": "https://networkfieldnotes.com/og/saml-login-validates-and-still-fails.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/saml-login-validates-and-still-fails.html", "keywords": "ClearPass, Security, Entra ID, SAML"}</script>
+<meta name="twitter:title" content="IBNS 2.0 Listens for CoA on the Wrong Port Until You Tell It Otherwise">
+<meta name="twitter:description" content="A Catalyst 9300 listens for RADIUS change of authorization on UDP 1700 out of the box, and ClearPass sends to 3799, so CoA fails silently until you add one line. Here&#x27;s that line and the rest of an IBNS 2.0 edge port for a four node ClearPass cluster, laid out the same way as the AOS-CX version.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/ibns-coa-wrong-port.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-10-03"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "IBNS 2.0 Listens for CoA on the Wrong Port Until You Tell It Otherwise", "description": "A Catalyst 9300 listens for RADIUS change of authorization on UDP 1700 out of the box, and ClearPass sends to 3799, so CoA fails silently until you add one line. Here's that line and the rest of an IBNS 2.0 edge port for a four node ClearPass cluster, laid out the same way as the AOS-CX version.", "datePublished": "2026-10-03", "image": "https://networkfieldnotes.com/og/ibns-coa-wrong-port.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/ibns-coa-wrong-port.html", "keywords": "ClearPass, Cisco, 802.1X, Security"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -636,7 +636,7 @@ body.acad .readmark,body.acad .changed-note{--rm:var(--orange);--rm-soft:rgba(24
 .cn-text p{margin:4px 0 0;font-size:14.5px;line-height:1.55;color:var(--text-dim)}
 .cn-text .cn-what{color:var(--text)}
 .prog-items [data-nfn-read][hidden]{display:none}
-</style><script>window.NFN_CFG={"api": "https://api.networkfieldnotes.com", "sitekey": "0x4AAAAAAE0IseyiQ4X9zk6r", "slug": "saml-login-validates-and-still-fails"};</script><script>/* Network Field Notes: the Academy progress core.
+</style><script>window.NFN_CFG={"api": "https://api.networkfieldnotes.com", "sitekey": "0x4AAAAAAE0IseyiQ4X9zk6r", "slug": "ibns-coa-wrong-port"};</script><script>/* Network Field Notes: the Academy progress core.
  *
  * Pure functions: no DOM, no storage, no network. theme/progress.js uses it in the page,
  * comments/worker.js uses it on the server, progresstest.js tests it. The page and the Worker run
@@ -1319,159 +1319,331 @@ body.acad .readmark,body.acad .changed-note{--rm:var(--orange);--rm-soft:rgba(24
   <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
     <header class="post-head g-hero cat-NAC" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-blue" href="../index.html#cat=NAC" title="All NAC posts">NAC</a><span class="meta">Sep 5, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">Your ClearPass SAML Login Validates and Still Fails</h1>
+      <div class="row" style="margin:0"><a class="tag c-blue" href="../index.html#cat=NAC" title="All NAC posts">NAC</a><span class="meta">Oct 3, 2026 &#183; 16 min</span></div>
+      <h1 class="h-hero">IBNS 2.0 Listens for CoA on the Wrong Port Until You Tell It Otherwise</h1>
     </header>
     
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Three places a ClearPass admin SAML login fails silently">
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="ClearPass sends change of authorization to UDP 3799. A Catalyst listens on UDP 1700 by default, so the request is never heard until port 3799 is set under aaa server radius dynamic-author.">
   <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:11px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:10px;fill:#8CE05E}
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
   </style>
-  <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#B0C4CF"/></marker></defs>
-  <text x="30" y="36" class="t eyebrow">"SSO IS SET UP AND LOGIN FAILS"</text>
-  <text x="30" y="66" class="t big">Trust is half the job. The other half hands out the privilege.</text>
-  <g class="t">
-    <!-- admin -->
-    <rect x="20" y="150" width="70" height="60" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="55" y="185" text-anchor="middle" fill="#EAF2F6" font-size="13">Admin</text>
-    <line x1="90" y1="180" x2="115" y2="180" stroke="#B0C4CF" stroke-width="2" marker-end="url(#arr3)"/>
-    <!-- gate 1 -->
-    <rect x="120" y="110" width="230" height="140" rx="10" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA"/>
-    <text x="235" y="136" text-anchor="middle" fill="#5ED2DA" font-size="13" font-weight="700">Gate 1 · redirect at all?</text>
-    <text x="235" y="160" text-anchor="middle" fill="#EAF2F6" font-size="12">Single Sign-On page</text>
-    <text x="235" y="180" text-anchor="middle" class="lbl">Enable SSO for: Policy Manager ticked?</text>
-    <text x="235" y="200" text-anchor="middle" class="lbl">IdP URL set?</text>
-    <text x="235" y="232" text-anchor="middle" class="mono">Configuration › Identity › Single Sign-On</text>
-    <line x1="350" y1="180" x2="378" y2="180" stroke="#B0C4CF" stroke-width="2" marker-end="url(#arr3)"/>
-    <!-- gate 2 -->
-    <rect x="383" y="110" width="240" height="140" rx="10" fill="rgba(3,10,16,0.55)" stroke="#4FBDEA"/>
-    <text x="503" y="136" text-anchor="middle" fill="#4FBDEA" font-size="13" font-weight="700">Gate 2 · assertion valid?</text>
-    <text x="503" y="160" text-anchor="middle" fill="#EAF2F6" font-size="12">Entra ⇄ ClearPass trust</text>
-    <text x="503" y="180" text-anchor="middle" class="lbl">IdP signing cert required, in CTL first</text>
-    <text x="503" y="200" text-anchor="middle" class="lbl">Entity ID + Reply URL = SP metadata</text>
-    <text x="503" y="232" text-anchor="middle" class="mono">Name ID defaults to UPN</text>
-    <line x1="623" y1="180" x2="651" y2="180" stroke="#B0C4CF" stroke-width="2" marker-end="url(#arr3)"/>
-    <!-- gate 3 -->
-    <rect x="656" y="110" width="224" height="140" rx="10" fill="rgba(3,10,16,0.55)" stroke="#8CE05E"/>
-    <text x="768" y="136" text-anchor="middle" fill="#8CE05E" font-size="13" font-weight="700">Gate 3 · any privilege?</text>
-    <text x="768" y="160" text-anchor="middle" fill="#EAF2F6" font-size="12">Admin SSO Login service</text>
-    <text x="768" y="180" text-anchor="middle" class="lbl">Aruba Application Authorization</text>
-    <text x="768" y="200" text-anchor="middle" class="lbl">enforcement → admin privilege</text>
-    <text x="768" y="232" text-anchor="middle" class="mono">Service Templates &amp; Wizards</text>
-  </g>
-  <rect x="30" y="272" width="840" height="44" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
-  <text x="450" y="290" text-anchor="middle" class="t lbl">All three fail the same way from the login page. Authenticated with no role looks exactly like a failed login.</text>
-  <text x="450" y="308" text-anchor="middle" class="t" fill="#8CE05E" font-size="12">SAML everywhere you can. RADIUS and TACACS+ where you must.</text>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="30" y="36" class="t eb" font-size="12" fill="#8CE05E">IBNS 2.0 ON A CATALYST 9300</text>
+  <text x="30" y="66" class="t big" font-size="12" fill="#fff">ClearPass sends CoA to 3799. The switch listens on 1700.</text>
+  <rect x="30" y="110" width="200" height="170" rx="10" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="130" y="190" class="t" font-size="16" fill="#EAF2F6" text-anchor="middle" font-weight="700">ClearPass</text>
+  <text x="130" y="212" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">sends to 3799</text>
+  <rect x="640" y="110" width="230" height="170" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <text x="755" y="140" class="t" font-size="15" fill="#EAF2F6" text-anchor="middle" font-weight="700">Catalyst 9300</text>
+  <rect x="664" y="160" width="182" height="40" rx="8" fill="none" stroke="#8BA2AE" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <text x="755" y="185" class="m" font-size="12" fill="#8BA2AE" text-anchor="middle">listening: UDP 1700</text>
+  <rect x="664" y="220" width="182" height="40" rx="8" fill="#8CE05E" stroke="#8CE05E" stroke-width="1"/>
+  <text x="755" y="245" class="m" font-size="12" fill="#06202A" text-anchor="middle" font-weight="700">listening: UDP 3799</text>
+  <path d="M234 180 L560 180" stroke="#8BA2AE" stroke-width="1.8" fill="none" stroke-dasharray="6 5" marker-end="url(#am)"/>
+  <text x="400" y="168" class="t" font-size="12" fill="#8BA2AE" text-anchor="middle">default: nobody on 3799</text>
+  <text x="590" y="186" class="t" font-size="22" fill="#8BA2AE" text-anchor="middle" font-weight="700">?</text>
+  <path d="M234 240 L658 240" stroke="#8CE05E" stroke-width="2.4" fill="none" marker-end="url(#ag)"/>
+  <text x="420" y="230" class="t" font-size="13" fill="#8CE05E" text-anchor="middle" font-weight="700">after one line: port 3799</text>
+  <text x="30" y="320" class="t cap" font-size="12" fill="#8BA2AE">aaa server radius dynamic-author, port 3799. Cisco&#x27;s CoA guide gives 1700 as the default.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>A year-old Airheads thread about admin MFA, revived by someone who had &quot;set up SSO&quot; and couldn&#x27;t log in</div>
-      <div class="prose"><h2>Why I'm writing this</h2>
-<p>Every ClearPass deployment I touch now gets the same question from the security team within a week: can we put MFA on the admin GUI? The answer is yes, and the way you do it is SAML to whatever identity provider already has MFA in front of it, which these days is usually Entra ID.</p>
-<p>That's the easy part. The part that generates forum threads is what happens next. You configure single sign-on, the login page redirects to Microsoft, you authenticate, you get bounced back to ClearPass, and it says no. No error worth reading. Just no.</p>
-<p>Someone hit exactly this on the forums and asked what they'd missed. Turns out there are three different things you can miss, and they all fail the same way from the login page, so here they are in the order to check them.</p>
-<h2>The two halves nobody explains together</h2>
-<p>ClearPass admin SSO is two separate jobs, and the documentation treats them as two separate pages, which is why people finish one and think they're done.</p>
-<p><strong>The trust half</strong> lives under Configuration, Identity, Single Sign-On. That's where you tell ClearPass who the IdP is, what certificate to trust, and which applications should use SSO at all. When this half is right, the SAML assertion comes back and validates.</p>
-<p><strong>The privilege half</strong> is a service. ClearPass doesn't hand out admin rights because Microsoft said you're a real person. It hands them out because a service ran, matched you, and an enforcement profile said Super Administrator or Read-only Administrator or whatever the role is. If that service doesn't exist, you're authenticated and you have nothing, and authenticated with nothing looks exactly like a failed login.</p>
-<p>Most "SSO is set up but login fails" threads are people who built the trust half and never built the service half.</p>
-<h2>Gate 1: does it redirect at all?</h2>
-<p>On the Single Sign-On page there's a field called Enable SSO for, and it's a list of applications (Policy Manager, Guest, Insight, Onboard, and the Guest operator login). Policy Manager has to be ticked. If it isn't, the admin login page never redirects to your IdP in the first place, and you'll sit there wondering why your carefully built Entra app never sees a request.</p>
-<p>While you're on that page, confirm the IdP URL is the actual sign-on endpoint from the Entra enterprise app, not the tenant login page.</p>
-<h2>Gate 2: does the assertion validate?</h2>
-<p>The Identity Provider Signing Certificate field is required, and there's a step before it: the cert has to be in the Certificate Trust List first, or it won't appear in that dropdown. Download the signing cert from the Entra app (Base64), import it under Administration, Certificates, Trust List with the Usage set to SAML, then come back and select it. It shows up with a CN of Microsoft Azure Federated SSO. Miss that and the assertion arrives, fails signature validation, and you get the same silent no.</p>
-<p>Two more things have to agree between the two sides. The Entity ID and the Reply URL in the Entra app need to match what ClearPass publishes in its SP metadata, which you can download from the same page. They're of the form <code>https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp</code> and <code>https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp/acs</code>. Copy them out of the metadata rather than typing them; a trailing slash is enough to break it.</p>
-<p>If you run a cluster, that FQDN is per node. Every node has its own ACS URL, and the Entra app has to carry all of them as Reply URLs, or SSO works against the publisher and fails against everything else. HPE's own Okta write-up makes the same point with Okta's "requestable SSO URLs," and it applies just as much to Entra.</p>
-<p>And one that isn't on either page: NTP. ClearPass's own SSO doc says flatly that if the clocks are out of sync, SAML will not function. Assertions carry validity windows measured in minutes. Check <code>show ntp</code> or the Server Configuration page before you touch anything else. Call it gate zero.</p>
-<h2>Gate 3: does anybody get a privilege?</h2>
-<p>This is the one the original thread was missing. Go to Configuration, Service Templates and Wizards, and use the Policy Manager Admin SSO Login (SAML SP Service) template. It was called ClearPass Admin SSO Login in 6.8 and earlier, which is why half the guides you'll find use the old name. It builds the service and the enforcement policy that actually maps a user to an admin privilege level. You can hand-build the same thing, and if you do, the service type is Aruba Application Authorization. The user guide describes that type as providing authorization for users of Aruba applications, sending a Generic Application Enforcement profile to grant the privilege. So: service type Aruba Application Authorization, enforcement policy type Application, enforcement profile Generic Application Enforcement pointed at Super Administrator or Read-only Administrator or whichever level you mean. I had Authentication in an earlier draft of this. HPE's own Entra write-up says Authorization, and so does the user guide.</p>
-<p>One more thing that isn't obvious until you try group-based roles. Entra sends its group and tenant claims with long schema-style attribute names that aren't in the ClearPass SSO dictionary out of the box. To match on them you export the SSO dictionary under Administration, Dictionaries, Applications, add the attributes, and import it back. Until you do, the group claim is in the assertion (a SAML tracer will show it) and ClearPass just can't see it.</p>
-<p>Then check what the service is matching on. Entra sends the user principal name as the Name ID by default. If your enforcement conditions or your authorization source lookup expect sAMAccountName, nothing matches, nobody gets a role, same silent failure. Either change the Entra claim to send the attribute ClearPass expects, or change the ClearPass side to look up by UPN. Pick one and write it down.</p>
-<pre><code>Configuration &gt; Identity &gt; Single Sign-On
-  Enable SSO for: [x] Policy Manager
-  IdP URL: https://login.microsoftonline.com/&lt;TENANT-ID&gt;/saml2
-  IdP Signing Certificate: &lt;cert already in Trust List&gt;
-
-Configuration &gt; Service Templates &amp; Wizards &gt; Policy Manager Admin SSO Login (SAML SP Service)
-  Service type:             Aruba Application Authorization
-  Enforcement policy type:  Application
-  Enforcement profile:      Generic Application Enforcement -&gt; admin privilege level
-                            (Super Administrator, Read-only Administrator, ...)
-
-Administration &gt; Certificates &gt; Trust List
-  Entra signing cert, Usage: SAML
-
-Entra enterprise app
-  Identifier (Entity ID): https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp
-  Reply URL (ACS):        https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp/acs   (one per cluster node)
-  Name ID:                user.userprincipalname (default)
-</code></pre>
-<h2>Where to look when it still fails</h2>
-<p>Access Tracker. A SAML admin login that reaches the service shows up there as an Application Auth request (HPE's own SSO write-ups show exactly that), and the reject reason tells you which gate you're stuck at. If there's nothing in Access Tracker at all, you're at gate 1 or gate 2: the request never got far enough to hit a service. A SAML tracer extension in the browser shows you the assertion itself, which is the fastest way to see whether a claim is actually being sent.</p>
-<p>And a bit of sequencing advice straight from HPE support: enable SSO for Guest or Insight first, prove the round trip works, then tick Policy Manager. A broken SSO build on Policy Manager is a lockout, and you'd rather find gate 3 on the Insight login page.</p>
-<p>One more setting worth knowing on the SSO page while you're building this for MFA: Force Authentication, off by default. Turn it on and ClearPass makes the IdP re-authenticate even when the admin already has a live session with Microsoft, which is usually what the security team meant when they asked for MFA on the GUI.</p>
-<h2>Checklist</h2>
-<table>
-<thead>
-<tr>
-<th>Check</th>
-<th>Where</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Clocks in sync</td>
-<td>NTP on every node</td>
-</tr>
-<tr>
-<td>Policy Manager ticked under Enable SSO for</td>
-<td>Configuration, Identity, Single Sign-On</td>
-</tr>
-<tr>
-<td>IdP signing cert imported to the Trust List, then selected</td>
-<td>Same page, after Certificate Trust List</td>
-</tr>
-<tr>
-<td>Entity ID and Reply URL copied from SP metadata</td>
-<td>Entra enterprise app</td>
-</tr>
-<tr>
-<td>Every cluster node's ACS URL is a Reply URL in Entra</td>
-<td>Entra enterprise app</td>
-</tr>
-<tr>
-<td>Policy Manager Admin SSO Login service exists, type Aruba Application Authorization</td>
-<td>Service Templates and Wizards</td>
-</tr>
-<tr>
-<td>Generic Application Enforcement profile maps to a real admin privilege level</td>
-<td>The service's enforcement policy</td>
-</tr>
-<tr>
-<td>Group claim attributes added to the SSO dictionary, if you map roles on groups</td>
-<td>Administration, Dictionaries, Applications</td>
-</tr>
-<tr>
-<td>Force Authentication on, if MFA every time is the requirement</td>
-<td>Single Sign-On page</td>
-</tr>
-<tr>
-<td>Name ID attribute matches what the service looks up</td>
-<td>Entra claims vs ClearPass conditions</td>
-</tr>
-<tr>
-<td>Request visible in Access Tracker</td>
-<td>Monitoring</td>
-</tr>
-</tbody>
-</table>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Built while writing deployment templates for a four node ClearPass cluster</div>
+      <div class="prose"><p>ClearPass sends a disconnect. Access Tracker says it went. The laptop doesn't move.</p>
+<p>The switch never heard it. A Catalyst running IOS-XE listens for RADIUS change of authorization on UDP 1700 by default, and ClearPass sends to 3799, the port RFC 5176 assigned. Nothing on either side tells you the two disagree. <code>port 3799</code> under <code>aaa server radius dynamic-author</code> fixes it, and it's the line most templates I inherit are missing.</p>
+<p>This is the second of three posts that build the same edge port against the same four node ClearPass cluster, in the same order. <a href="cx-counts-a-reject-as-alive.html">The first was AOS-CX</a>. This one is a Catalyst 9300 on IOS-XE 17.9 or later with IBNS 2.0, the class-map and policy-map style of identity configuration. Junos is next.</p>
 <h2>Bottom line</h2>
-<p>SAML everywhere you can, RADIUS and TACACS+ where you must. That was the consensus on the thread and I agree with it. Just know that on ClearPass, SAML is two builds, not one, and the second one is the one that gives you a role.</p></div>
+<ul>
+<li><strong><code>port 3799</code> under <code>aaa server radius dynamic-author</code>.</strong> Cisco's default is 1700. ClearPass sends to 3799. Add a <code>client</code> line for each of the four nodes while you're there.</li>
+<li><strong><code>dot1x timeout tx-period 10</code> on the port.</strong> Cisco's documented arithmetic is (max-reauth-req + 1) x tx-period before 802.1X gives up. That's 90 seconds with the defaults and 30 with this.</li>
+<li><strong><code>lldp run</code>.</strong> It's off by default on a Catalyst. A Cisco phone gets by on CDP; anything else needs LLDP-MED to learn its voice VLAN.</li>
+<li><strong>The automate-tester and dead-criteria together.</strong> The switch learns a node is dead from real requests timing out, and the tester is what brings it back.</li>
+</ul>
+<h2>Four ClearPass nodes and how the switch decides one is dead</h2>
+<p>Four <code>radius server</code> blocks, one group, and the switch tries them in order. Two pieces of config decide when it stops trying one.</p>
+<p><code>radius-server dead-criteria time 5 tries 3</code> is the death sentence. Cisco's dead server detection guide says both conditions have to be met: no valid reply for 5 seconds since the last one, and 3 consecutive timeouts. Those are real client requests timing out, so somebody's laptop pays for the discovery.</p>
+<p><code>deadtime 15</code> on the group is how long a dead server sits out, in minutes. And <code>automate-tester username svc-radius-probe probe-on</code> on each server is how it gets back in: with <code>probe-on</code>, Cisco's load balancing guide says the tester only sends test packets while the server is marked dead.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-label="Catalyst 9300: how the switch decides a ClearPass node is dead and how it comes back. Marked dead: real client requests time out (5 s and 3 tries). The client pays. Back in service: automate-tester probe-on gets any reply, even a Reject. No password is configured.">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="20" y="28" class="t hd" font-size="12" fill="#fff">Real requests mark a node dead. The tester brings it back.</text>
+  <rect x="20" y="60" width="270" height="176" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <text x="40" y="92" class="t" font-size="15" fill="#EAF2F6" font-weight="700">Catalyst 9300</text>
+  <text x="40" y="112" class="t" font-size="12" fill="#B0C4CF">IOS-XE 17.9+, IBNS 2.0</text>
+  <text x="40" y="150" class="m" font-size="11" fill="#8BA2AE">HOW IT KNOWS</text>
+  <text x="40" y="172" class="t" font-size="12" fill="#5ED2DA">dead-criteria time 5 tries 3</text>
+  <path d="M292 118 L548 92" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="470" y="92.9219" class="t" font-size="11" fill="#5ED2DA" text-anchor="middle">real request</text>
+  <rect x="552" y="74" width="328" height="36" rx="8" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="568" y="97" class="t" font-size="13" fill="#EAF2F6" font-weight="700">CPPM 1</text>
+  <text x="650" y="97" class="t" font-size="12" fill="#B0C4CF">Access-Accept</text>
+  <text x="866" y="97" class="t" font-size="12" fill="#8CE05E" text-anchor="end" font-weight="700">alive</text>
+  <path d="M292 138 L548 134" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="470" y="128.219" class="t" font-size="11" fill="#5ED2DA" text-anchor="middle">real request</text>
+  <rect x="552" y="116" width="328" height="36" rx="8" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="568" y="139" class="t" font-size="13" fill="#EAF2F6" font-weight="700">CPPM 2</text>
+  <text x="650" y="139" class="t" font-size="12" fill="#B0C4CF">Access-Accept</text>
+  <text x="866" y="139" class="t" font-size="12" fill="#8CE05E" text-anchor="end" font-weight="700">alive</text>
+  <path d="M292 158 L548 176" stroke="#8BA2AE" stroke-width="1.6" fill="none" stroke-dasharray="5 4" marker-end="url(#am)"/>
+  <text x="470" y="163.516" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">3 timeouts in 5 s</text>
+  <rect x="552" y="158" width="328" height="36" rx="8" fill="none" stroke="#8BA2AE" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <text x="568" y="181" class="t" font-size="13" fill="#B0C4CF" font-weight="700">CPPM 3</text>
+  <text x="650" y="181" class="t" font-size="12" fill="#8BA2AE">no reply</text>
+  <text x="866" y="181" class="t" font-size="12" fill="#8BA2AE" text-anchor="end" font-weight="700">DEAD</text>
+  <path d="M292 178 L548 218" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="470" y="198.812" class="t" font-size="11" fill="#5ED2DA" text-anchor="middle">tester probe</text>
+  <rect x="552" y="200" width="328" height="36" rx="8" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="568" y="223" class="t" font-size="13" fill="#EAF2F6" font-weight="700">CPPM 4</text>
+  <text x="650" y="223" class="t" font-size="12" fill="#B0C4CF">Access-Reject</text>
+  <text x="866" y="223" class="t" font-size="12" fill="#8CE05E" text-anchor="end" font-weight="700">alive again</text>
+  <rect x="20" y="250" width="860" height="66" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10" stroke-width="1"/>
+  <text x="36" y="276" class="t" font-size="12" fill="#B0C4CF">Marked dead: real client requests time out (5 s and 3 tries). The client pays.</text>
+  <text x="36" y="300" class="t" font-size="12" fill="#B0C4CF">Back in service: automate-tester probe-on gets any reply, even a Reject. No password is configured.</text>
+</svg><figcaption>Real requests mark a node dead. The automate-tester probes only dead nodes and brings one back on any reply, an Accept or a Reject.</figcaption></figure>
+<p>Here's the part that matches what I saw on AOS-CX. Cisco's guide says the tester doesn't need a successful authentication, "especially because no password was configured", and that a server returning Access-Reject is alive. So any answer is proof of life, and the probe account will be rejected every time because the switch never sends a real password for it.</p>
+<h3>The probe service</h3>
+<p>Same idea as the CX post, and it's the same service if you have both kinds of switch in the cluster.</p>
+<ol>
+<li><strong>A local user.</strong> <code>svc-radius-probe</code> in Local Users, any throwaway role. Not AD: a lockout would make every switch call every node dead.</li>
+<li><strong>A service, placed first.</strong> RADIUS Enforcement (Generic). Rules: <code>Radius:IETF:User-Name EQUALS svc-radius-probe</code> AND <code>Connection:NAD-IP-Address BELONGS_TO_GROUP &lt;SWITCH-NAD-GROUP&gt;</code>. <code>[PAP]</code>, <code>[Local User Repository]</code>, <code>[Allow Access Profile]</code>, no VLAN, no role.</li>
+<li><strong>Open one probe in Access Tracker</strong> and build any extra rules from what your switch sends.</li>
+</ol>
+<p>The difference on Cisco is that you should expect REJECT on every entry, because the tester has no password to send. That's fine. The service isn't there to say yes. It's there so the rejects are filed under a name you can filter out, instead of landing as "Service Categorization failed" next to your real failures. A plain PAP request with no EAP rarely matches an 802.1X service's rules, and a MAC auth service expects the User-Name to be a MAC.</p>
+<p>Noise is lower here than on CX, because <code>probe-on</code> only probes dead servers. A healthy cluster sends no probes at all.</p>
+<h2>802.1X, then MAC auth, then the fallbacks</h2>
+<p>IBNS 2.0 puts the order in a policy map instead of on the port. The session starts with 802.1X; if the client doesn't answer or fails, the policy ends 802.1X and runs MAB; if MAB fails, it activates a quarantine template and authorizes the port into it.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 390" role="img" aria-label="Catalyst 9300 edge port timeline: Laptop, supplicant, a few seconds; Printer, no supplicant, 30 s with tx-period 10, max-reauth-req 2.  Critical path: aaa-timeout, unauthorized, then CRITICAL_DATA + VOICE, then authorize, pause reauth. Reject path: 802.1X fails or no reply, then MAB fails, then QUARANTINE, authorize.">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="20" y="28" class="t hd" font-size="12" fill="#fff">One port, four outcomes, link up to authorized.</text>
+  <text x="20" y="56" class="m" font-size="11" fill="#8BA2AE">TO SCALE, SECONDS FROM LINK UP</text>
+  <path d="M190 64 L190 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="190" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">0 s</text>
+  <path d="M362.5 64 L362.5 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="362.5" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">30 s</text>
+  <path d="M535 64 L535 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="535" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">60 s</text>
+  <path d="M707.5 64 L707.5 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="707.5" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">90 s</text>
+  <path d="M880 64 L880 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="880" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">120 s</text>
+  <text x="20" y="91" class="t" font-size="12" fill="#EAF2F6" font-weight="600">Laptop, supplicant</text>
+  <rect x="190" y="72" width="17.25" height="26" rx="5" fill="#5ED2DA" fill-opacity="0.25" stroke="#5ED2DA" stroke-width="1"/>
+  <rect x="207.25" y="72" width="672.75" height="26" rx="5" fill="#8CE05E" stroke="#8CE05E" stroke-width="1"/>
+  <text x="217.25" y="89.5" class="t" font-size="12" fill="#06202A" font-weight="700">authorized</text>
+  <text x="870" y="89.5" class="t" font-size="11" fill="#06202A" text-anchor="end">a few seconds</text>
+  <text x="20" y="153" class="t" font-size="12" fill="#EAF2F6" font-weight="600">Printer, no supplicant</text>
+  <rect x="190" y="134" width="172.5" height="26" rx="5" fill="#8BA2AE" fill-opacity="0.25" stroke="#8BA2AE" stroke-width="1"/>
+  <text x="198" y="151.5" class="t" font-size="11" fill="#B0C4CF">802.1X gives up</text>
+  <rect x="362.5" y="134" width="17.25" height="26" rx="5" fill="#4FBDEA" fill-opacity="0.25" stroke="#4FBDEA" stroke-width="1"/>
+  <rect x="379.75" y="134" width="500.25" height="26" rx="5" fill="#8CE05E" stroke="#8CE05E" stroke-width="1"/>
+  <text x="389.75" y="151.5" class="t" font-size="12" fill="#06202A" font-weight="700">authorized</text>
+  <text x="870" y="151.5" class="t" font-size="11" fill="#06202A" text-anchor="end">30 s with tx-period 10, max-reauth-req 2</text>
+  <path d="M190 164 L190 168 L707.5 168 L707.5 164" stroke="#8BA2AE" stroke-width="1.3" fill="none" stroke-dasharray="4 4"/>
+  <text x="715.5" y="172" class="t" font-size="11" fill="#8BA2AE">defaults: 90 s</text>
+  <text x="20" y="244" class="m" font-size="11" fill="#8BA2AE">SEQUENCE</text>
+  <text x="20" y="274" class="t" font-size="12" fill="#EAF2F6" font-weight="600">All servers down</text>
+  <rect x="190" y="252" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.3"/>
+  <text x="295" y="274" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">aaa-timeout, unauthorized</text>
+  <path d="M402 269 L425 269" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#at)"/>
+  <rect x="428" y="252" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.3"/>
+  <text x="533" y="274" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">CRITICAL_DATA + VOICE</text>
+  <path d="M640 269 L663 269" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#at)"/>
+  <rect x="666" y="252" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="771" y="274" class="t" font-size="12" fill="#EAF2F6" text-anchor="middle" font-weight="700">authorize, pause reauth</text>
+  <text x="880" y="304" class="t" font-size="11" fill="#8BA2AE" text-anchor="end">aaa-available clears the critical session</text>
+  <text x="20" y="334" class="t" font-size="12" fill="#EAF2F6" font-weight="600">Rejected</text>
+  <rect x="190" y="312" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.3"/>
+  <text x="295" y="334" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">802.1X fails or no reply</text>
+  <path d="M402 329 L425 329" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#at)"/>
+  <rect x="428" y="312" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.3"/>
+  <text x="533" y="334" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">MAB fails</text>
+  <path d="M640 329 L663 329" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#at)"/>
+  <rect x="666" y="312" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="#8BA2AE" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <text x="771" y="334" class="t" font-size="12" fill="#EAF2F6" text-anchor="middle" font-weight="700">QUARANTINE, authorize</text>
+  <text x="880" y="364" class="t" font-size="11" fill="#8BA2AE" text-anchor="end">no Session-Timeout: stays until CoA</text>
+  <text x="20" y="382" class="t" font-size="11" fill="#8BA2AE">Timing per Cisco&#x27;s 802.1X deployment guide: (max-reauth-req + 1) x tx-period.</text>
+</svg><figcaption>One port, four outcomes. A supplicant is authorized in seconds, a silent printer reaches MAB in about 30, a dead cluster gets the critical templates, and a MAB reject lands in quarantine.</figcaption></figure>
+<p>The timer that matters is <code>dot1x timeout tx-period</code>. Cisco's 802.1X deployment guide gives the time before 802.1X times out as (max-reauth-req + 1) x tx-period. The defaults are 2 and 30 seconds, so a printer with no supplicant waits 90 seconds before MAB. With tx-period 10 it's 30.</p>
+<p>The fallbacks, as the policy below writes them:</p>
+<ul>
+<li><strong>All servers down, client not yet authorized.</strong> The <code>AAA_SVR_DOWN_UNAUTHD_HOST</code> class (<code>match result-type aaa-timeout</code> and <code>match authorization-status unauthorized</code>) activates <code>CRITICAL_DATA</code> and <code>CRITICAL_VOICE</code>, authorizes, and pauses reauthentication so the port doesn't keep asking a cluster that isn't there.</li>
+<li><strong>All servers down, client already authorized.</strong> Pause reauthentication and leave it alone.</li>
+<li><strong>Servers back.</strong> On <code>aaa-available</code>, a session in a critical template is cleared so it authenticates for real; anyone else has reauthentication resumed. <code>authentication critical recovery delay 1000</code> spaces that out so four hundred ports don't all hit ClearPass in the same second. 1000 ms is already the default; I write it out so the next person sees it.</li>
+<li><strong>MAB rejected.</strong> Activate <code>QUARANTINE</code> and authorize. Note there's no Session-Timeout in that branch, so the client stays in quarantine until a CoA or <code>clear access-session</code> moves it. That's a decision, not an accident: ClearPass is the thing that should let it out.</li>
+<li><strong>A supplicant shows up late.</strong> On <code>agent-found</code>, MAB is terminated and 802.1X starts, so a laptop that was quiet at boot doesn't stay a MAB session forever.</li>
+</ul>
+<p><code>dot1x critical eapol</code> sends an EAPOL-Success to a supplicant that was let in by the critical template, so the laptop thinks it's on and requests an address.</p>
+<p>Printers get their VLAN from ClearPass with Tunnel-Type 13 (VLAN), Tunnel-Medium-Type 6 (802) and Tunnel-Private-Group-Id <code>Printers</code>. Cisco's guide accepts a VLAN name or number there. I use the name, so the same enforcement profile works on every switch whatever the VLAN number is, as long as the VLAN is named <code>Printers</code>.</p>
+<h2>Phone and PC on one port</h2>
+<p><code>access-session host-mode multi-domain</code> gives the port a voice domain and a data domain. The switch only puts a device in the voice domain when ClearPass says so: Cisco's 802.1X guide says the server has to send <code>cisco-av-pair</code> <code>device-traffic-class=voice</code>, and without it the phone is treated as a data device.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-label="Catalyst 9300 phone and PC on one port. The phone is in the voice domain, tagged in the voice VLAN, because ClearPass returns cisco-av-pair device-traffic-class=voice. The PC is in the data domain with the VLAN from its own authorization.">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="20" y="28" class="t hd" font-size="12" fill="#fff">Two sessions on one port. Each gets its VLAN from its own authorization.</text>
+  <rect x="20" y="150" width="120" height="60" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <text x="80" y="178" class="t" font-size="14" fill="#EAF2F6" text-anchor="middle" font-weight="700">PC</text>
+  <text x="80" y="197" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">data device</text>
+  <path d="M142 180 L182 180" stroke="#B0C4CF" stroke-width="1.6" fill="none" marker-end="url(#am)"/>
+  <rect x="186" y="150" width="130" height="60" rx="10" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="251" y="178" class="t" font-size="14" fill="#EAF2F6" text-anchor="middle" font-weight="700">IP phone</text>
+  <text x="251" y="197" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">voice device</text>
+  <path d="M318 180 L360 180" stroke="#B0C4CF" stroke-width="1.6" fill="none" marker-end="url(#am)"/>
+  <rect x="364" y="120" width="150" height="120" rx="10" fill="rgba(3,10,16,0.55)" stroke="#4FBDEA" stroke-width="1.5"/>
+  <text x="439" y="150" class="m" font-size="11" fill="#8BA2AE" text-anchor="middle">EDGE PORT</text>
+  <text x="439" y="176" class="t" font-size="13" fill="#EAF2F6" text-anchor="middle" font-weight="700">Catalyst 9300</text>
+  <text x="439" y="200" class="m" font-size="11" fill="#4FBDEA" text-anchor="middle">host-mode multi-domain</text>
+  <path d="M380 116 C 340 80, 290 90, 262 146" stroke="#8CE05E" stroke-width="1.8" fill="none" marker-end="url(#ag)"/>
+  <text x="200" y="82" class="t" font-size="12" fill="#8CE05E">CDP or LLDP-MED: voice VLAN</text>
+  <rect x="548" y="60" width="332" height="110" rx="10" fill="rgba(3,10,16,0.55)" stroke="#8CE05E" stroke-width="1.4"/>
+  <text x="566" y="86" class="m" font-size="11" fill="#8CE05E">VOICE DOMAIN</text>
+  <text x="566" y="110" class="t" font-size="14" fill="#EAF2F6" font-weight="700">VOICE VLAN, tagged</text>
+  <text x="566" y="134" class="t" font-size="12" fill="#B0C4CF">ClearPass returns cisco-av-pair</text>
+  <text x="566" y="154" class="m" font-size="12" fill="#5ED2DA">device-traffic-class=voice</text>
+  <rect x="548" y="184" width="332" height="110" rx="10" fill="rgba(3,10,16,0.55)" stroke="#4FBDEA" stroke-width="1.4"/>
+  <text x="566" y="210" class="m" font-size="11" fill="#4FBDEA">DATA DOMAIN</text>
+  <text x="566" y="234" class="t" font-size="14" fill="#EAF2F6" font-weight="700">DATA VLAN, untagged</text>
+  <text x="566" y="258" class="t" font-size="12" fill="#B0C4CF">ClearPass returns a VLAN,</text>
+  <text x="566" y="278" class="t" font-size="12" fill="#B0C4CF">or the access VLAN stays</text>
+  <path d="M516 160 L544 120" stroke="#8CE05E" stroke-width="1.6" fill="none" marker-end="url(#ag)"/>
+  <path d="M516 200 L544 238" stroke="#4FBDEA" stroke-width="1.6" fill="none" marker-end="url(#ab)"/>
+  <text x="20" y="318" class="t" font-size="11" fill="#B0C4CF">lldp run. LLDP is off by default on a Catalyst; a non Cisco phone needs it to learn the voice VLAN.</text>
+</svg><figcaption>Two sessions on one port. The phone is in the voice domain because ClearPass returned device-traffic-class=voice; the PC's VLAN comes from its own authorization.</figcaption></figure>
+<p>The voice VLAN is <code>switchport voice vlan &lt;VOICE-VLAN&gt;</code> on the port. A Cisco phone learns it over CDP, which is on by default. Anything else learns it from LLDP-MED, and LLDP is off by default on a Catalyst until you <code>lldp run</code>. I turn it on everywhere; a third party phone that boots into the data VLAN is a support call.</p>
+<p>The PC's VLAN comes from its own authorization, the native access VLAN unless ClearPass returns another one.</p>
+<h2>CoA, accounting and TACACS</h2>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-label="Catalyst 9300 and ClearPass: the switch sends RADIUS on 1812, accounting on 1813 and TACACS+ on TCP 49; ClearPass sends CoA to the switch on UDP 3799. The trap: aaa authorization commands 15 default group CPPM-TACACS local if-authenticated Config lines go to ClearPass too. A deny is final; local is only tried when no server answers. Own change, own revert timer.">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="20" y="28" class="t hd" font-size="12" fill="#fff">Who starts each conversation.</text>
+  <rect x="20" y="60" width="150" height="236" rx="10" fill="rgba(3,10,16,0.55)" stroke="#4FBDEA" stroke-width="1.3"/>
+  <text x="95" y="172" class="t" font-size="13" fill="#EAF2F6" text-anchor="middle" font-weight="700">Catalyst 9300</text>
+  <text x="95" y="192" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">switch</text>
+  <rect x="430" y="60" width="150" height="236" rx="10" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="505" y="164" class="t" font-size="14" fill="#EAF2F6" text-anchor="middle" font-weight="700">ClearPass</text>
+  <text x="505" y="184" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">four nodes</text>
+  <path d="M172 92 L426 92" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="186" y="84" class="m" font-size="12" fill="#5ED2DA" font-weight="700">UDP 1812</text>
+  <text x="414" y="84" class="t" font-size="12" fill="#B0C4CF" text-anchor="end">RADIUS auth</text>
+  <path d="M172 142 L426 142" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="186" y="134" class="m" font-size="12" fill="#5ED2DA" font-weight="700">UDP 1813</text>
+  <text x="414" y="134" class="t" font-size="12" fill="#B0C4CF" text-anchor="end">accounting</text>
+  <path d="M172 192 L426 192" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="186" y="184" class="m" font-size="12" fill="#5ED2DA" font-weight="700">TCP 49</text>
+  <text x="414" y="184" class="t" font-size="12" fill="#B0C4CF" text-anchor="end">TACACS+</text>
+  <path d="M428 254 L174 254" stroke="#8CE05E" stroke-width="2.2" fill="none" marker-end="url(#ag)"/>
+  <text x="186" y="246" class="m" font-size="12" fill="#8CE05E" font-weight="700">UDP 3799</text>
+  <text x="414" y="246" class="t" font-size="12" fill="#B0C4CF" text-anchor="end">CoA, ClearPass starts it</text>
+  <text x="300" y="274" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">port 3799 under dynamic-author</text>
+  <text x="300" y="228" class="t" font-size="11" fill="#8BA2AE"></text>
+  <path d="M174 222 L300 222" stroke="#8BA2AE" stroke-width="1.4" stroke-dasharray="4 4"/>
+  <text x="186" y="216" class="t" font-size="11" fill="#8BA2AE">default listener on 1700: 3799 never lands</text>
+  <rect x="606" y="60" width="274" height="236" rx="10" fill="rgba(3,10,16,0.55)" stroke="#F5A524" stroke-width="1.5"/>
+  <text x="624" y="86" class="m" font-size="11" fill="#F5A524" font-weight="700">THE TRAP</text>
+  <text x="624" y="112" class="m" font-size="11.5" fill="#F5A524">aaa authorization commands 15</text>
+  <text x="624" y="131" class="m" font-size="11.5" fill="#F5A524">default group CPPM-TACACS</text>
+  <text x="624" y="150" class="m" font-size="11.5" fill="#F5A524">local if-authenticated</text>
+  <text x="624" y="179" class="t" font-size="12" fill="#B0C4CF">Config lines go to ClearPass too.</text>
+  <text x="624" y="198" class="t" font-size="12" fill="#B0C4CF">A deny is final; local is only</text>
+  <text x="624" y="217" class="t" font-size="12" fill="#B0C4CF">tried when no server answers.</text>
+  <text x="624" y="246" class="t" font-size="12" fill="#B0C4CF">Own change, own revert timer.</text>
+  <text x="20" y="318" class="t" font-size="11" fill="#8BA2AE">1812, 1813 and 49 start at the switch. Only CoA starts at ClearPass, so only CoA needs the switch to be listening.</text>
+</svg><figcaption>Who starts each conversation. The switch talks to ClearPass on 1812, 1813 and 49; ClearPass talks to the switch on 3799, but only after port 3799 replaces Cisco's default of 1700.</figcaption></figure>
+<p><strong>CoA.</strong> <code>aaa server radius dynamic-author</code>, a <code>client &lt;CPPMn-IP&gt; server-key &lt;RADIUS-KEY&gt;</code> line per node, <code>port 3799</code>, and <code>auth-type any</code>. In ClearPass, the Cisco Reauthenticate Session profile and the Cisco Disconnect profile are the two I use. I avoid Bounce Host Port on phone ports: bouncing the link reboots a PoE phone, and that's a dropped call.</p>
+<p><strong>Accounting.</strong> <code>aaa accounting identity default start-stop group CPPM-RADIUS</code>. In IBNS 2.0, identity accounting covers 802.1X, MAB and web auth sessions. <code>aaa accounting update newinfo periodic 2880</code> sends an interim update when something new is learned and otherwise every 48 hours (the periodic value is minutes).</p>
+<p>If you want ClearPass to profile from what the switch sees, the device sensor sends LLDP, CDP and DHCP attributes in accounting. A filter list does nothing on its own; it needs a <code>device-sensor filter-spec</code> line pointing at it and <code>device-sensor accounting</code>.</p>
+<p><strong>TACACS.</strong> Four <code>tacacs server</code> blocks on TCP 49, a group, and <code>aaa authentication login default group CPPM-TACACS local</code>. The <code>local</code> at the end is only reached when no server answers. A reject is final. The console gets its own list that's local only, so a ClearPass outage never costs you the console.</p>
+<p>The trap is command authorization. Once <code>aaa authorization commands 15</code> is on, every command goes to ClearPass, and Cisco's command reference says config mode commands are authorized too by default. Turn it on halfway through a paste and the rest of the paste goes to ClearPass line by line, and any line ClearPass denies is rejected. <code>local if-authenticated</code> doesn't save you: the next method is tried only when no server answers, and a deny stops the list. So it goes on in its own step, after ClearPass has a TACACS command policy, from a session you're prepared to lose, with a revert timer armed.</p>
+<h2>Edge hardening checklist</h2>
+<ul>
+<li>Four nodes in one RADIUS group and one TACACS group, both with a source interface.</li>
+<li>Dead criteria, deadtime, and an automate-tester on every server.</li>
+<li>Critical data and voice templates, a quarantine template, and an <code>aaa-available</code> branch that clears critical sessions.</li>
+<li><code>port 3799</code> and a dynamic-author client for every node.</li>
+<li>Identity accounting with interim updates.</li>
+<li>TACACS login with local after the group, a local only console list.</li>
+<li>Command authorization last, in its own change.</li>
+<li><code>spanning-tree portfast</code> and <code>spanning-tree bpduguard enable</code> on edge ports, storm control on broadcast.</li>
+<li>DHCP snooping, dynamic ARP inspection on the user VLANs (it reads the snooping table), and a device-tracking policy.</li>
+<li>A management ACL on the vty lines and the HTTPS server, <code>login block-for</code> with a quiet mode ACL, type 6 password encryption, SSH only.</li>
+<li>Banner, exec timeout, NTP, syslog.</li>
+<li><code>configure terminal revert timer</code> before any AAA change.</li>
+</ul>
+<p>Two warnings on that list. Type 6 encryption ties every stored key to the master key; Cisco's own note says remove the master key and every type 6 secret is unusable, so record it somewhere that isn't the switch. And <code>authentication convert-to new-style</code> is how you move an old style config to IBNS 2.0, and Cisco says it can't be undone. <code>authentication display new-style</code> previews it and is reversible.</p>
+<h2>The config</h2>
+<p>Everything in angle brackets is yours. I haven't run this exact paste on a 9300 on my bench; every line is checked against Cisco's 17.x configuration guides and command references, and I'd still paste it into one lab switch first.</p>
+<p>Arm a revert first. <code>configure terminal revert timer 10</code> rolls back after 10 minutes unless you <code>configure confirm</code>. It works from the config archive, so set an archive path before you rely on it, which is also where <code>configure replace</code> finds its file later.</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div><pre><code><span class="ln"><span class="pr">edge-sw# </span>configure terminal</span><span class="ln">edge-sw(config)# archive</span><span class="ln">edge-sw(config-archive)# path flash:archive</span><span class="ln">edge-sw(config-archive)# maximum 5</span><span class="ln">edge-sw(config-archive)# end</span><span class="ln"><span class="pr">edge-sw# </span>configure terminal revert timer 10</span><span class="ln"> </span><span class="ln"> </span><span class="ln">aaa new-model</span><span class="ln">aaa session-id common</span><span class="ln">!</span><span class="ln">! ---- RADIUS: four nodes ----</span><span class="ln">radius server CPPM1</span><span class="ln"> address ipv4 &lt;CPPM1-IP&gt; auth-port 1812 acct-port 1813</span><span class="ln"> key &lt;RADIUS-KEY&gt;</span><span class="ln"> automate-tester username svc-radius-probe probe-on</span><span class="ln">radius server CPPM2</span><span class="ln"> address ipv4 &lt;CPPM2-IP&gt; auth-port 1812 acct-port 1813</span><span class="ln"> key &lt;RADIUS-KEY&gt;</span><span class="ln"> automate-tester username svc-radius-probe probe-on</span><span class="ln">radius server CPPM3</span><span class="ln"> address ipv4 &lt;CPPM3-IP&gt; auth-port 1812 acct-port 1813</span><span class="ln"> key &lt;RADIUS-KEY&gt;</span><span class="ln"> automate-tester username svc-radius-probe probe-on</span><span class="ln">radius server CPPM4</span><span class="ln"> address ipv4 &lt;CPPM4-IP&gt; auth-port 1812 acct-port 1813</span><span class="ln"> key &lt;RADIUS-KEY&gt;</span><span class="ln"> automate-tester username svc-radius-probe probe-on</span><span class="ln">!</span><span class="ln">aaa group server radius CPPM-RADIUS</span><span class="ln"> server name CPPM1</span><span class="ln"> server name CPPM2</span><span class="ln"> server name CPPM3</span><span class="ln"> server name CPPM4</span><span class="ln"> ip radius source-interface &lt;MGMT-INTERFACE&gt;</span><span class="ln"> deadtime 15</span><span class="ln">!</span><span class="ln">radius-server dead-criteria time 5 tries 3</span><span class="ln">radius-server attribute 6 on-for-login-auth</span><span class="ln">radius-server attribute 8 include-in-access-req</span><span class="ln">radius-server attribute 25 access-request include</span><span class="ln">radius-server attribute 31 mac format ietf upper-case</span><span class="ln">!</span><span class="ln">aaa authentication dot1x default group CPPM-RADIUS</span><span class="ln">aaa authorization network default group CPPM-RADIUS</span><span class="ln">aaa accounting identity default start-stop group CPPM-RADIUS</span><span class="ln">aaa accounting update newinfo periodic 2880</span><span class="ln">!</span><span class="ln">! ---- CoA: ClearPass sends to 3799 ----</span><span class="ln">aaa server radius dynamic-author</span><span class="ln"> client &lt;CPPM1-IP&gt; server-key &lt;RADIUS-KEY&gt;</span><span class="ln"> client &lt;CPPM2-IP&gt; server-key &lt;RADIUS-KEY&gt;</span><span class="ln"> client &lt;CPPM3-IP&gt; server-key &lt;RADIUS-KEY&gt;</span><span class="ln"> client &lt;CPPM4-IP&gt; server-key &lt;RADIUS-KEY&gt;</span><span class="ln"> port 3799</span><span class="ln"> auth-type any</span><span class="ln">!</span><span class="ln">! ---- TACACS: login, exec, accounting ----</span><span class="ln">tacacs server CPPM1-TAC</span><span class="ln"> address ipv4 &lt;CPPM1-IP&gt;</span><span class="ln"> key &lt;TACACS-KEY&gt;</span><span class="ln">tacacs server CPPM2-TAC</span><span class="ln"> address ipv4 &lt;CPPM2-IP&gt;</span><span class="ln"> key &lt;TACACS-KEY&gt;</span><span class="ln">tacacs server CPPM3-TAC</span><span class="ln"> address ipv4 &lt;CPPM3-IP&gt;</span><span class="ln"> key &lt;TACACS-KEY&gt;</span><span class="ln">tacacs server CPPM4-TAC</span><span class="ln"> address ipv4 &lt;CPPM4-IP&gt;</span><span class="ln"> key &lt;TACACS-KEY&gt;</span><span class="ln">aaa group server tacacs+ CPPM-TACACS</span><span class="ln"> server name CPPM1-TAC</span><span class="ln"> server name CPPM2-TAC</span><span class="ln"> server name CPPM3-TAC</span><span class="ln"> server name CPPM4-TAC</span><span class="ln"> ip tacacs source-interface &lt;MGMT-INTERFACE&gt;</span><span class="ln">!</span><span class="ln">aaa authentication login default group CPPM-TACACS local</span><span class="ln">aaa authentication login CONSOLE local</span><span class="ln">aaa authorization exec default group CPPM-TACACS local if-authenticated</span><span class="ln">aaa accounting exec default start-stop group CPPM-TACACS</span><span class="ln">aaa accounting commands 15 default start-stop group CPPM-TACACS</span><span class="ln">!</span><span class="ln">! ---- 802.1X globals ----</span><span class="ln">dot1x system-auth-control</span><span class="ln">dot1x critical eapol</span><span class="ln">authentication critical recovery delay 1000</span><span class="ln">lldp run</span><span class="ln">!</span><span class="ln">vlan &lt;DATA-VLAN&gt;</span><span class="ln"> name DATA</span><span class="ln">vlan &lt;VOICE-VLAN&gt;</span><span class="ln"> name VOICE</span><span class="ln">vlan &lt;PRINTER-VLAN&gt;</span><span class="ln"> name Printers</span><span class="ln">vlan &lt;QUAR-VLAN&gt;</span><span class="ln"> name QUARANTINE</span><span class="ln">!</span><span class="ln">ip dhcp snooping vlan &lt;DATA-VLAN&gt;,&lt;VOICE-VLAN&gt;,&lt;PRINTER-VLAN&gt;,&lt;QUAR-VLAN&gt;</span><span class="ln">no ip dhcp snooping information option</span><span class="ln">ip dhcp snooping</span><span class="ln">ip arp inspection vlan &lt;DATA-VLAN&gt;,&lt;VOICE-VLAN&gt;,&lt;PRINTER-VLAN&gt;,&lt;QUAR-VLAN&gt;</span><span class="ln">!</span><span class="ln">device-tracking policy EDGE-TRACK</span><span class="ln"> tracking enable</span><span class="ln">device-tracking tracking auto-source</span><span class="ln">!</span><span class="ln">! ---- optional: profiling data to ClearPass ----</span><span class="ln">device-sensor filter-list lldp list LLDP-LIST</span><span class="ln"> tlv name system-name</span><span class="ln"> tlv name system-description</span><span class="ln">device-sensor filter-list dhcp list DHCP-LIST</span><span class="ln"> option name host-name</span><span class="ln"> option name class-identifier</span><span class="ln"> option name parameter-request-list</span><span class="ln">device-sensor filter-spec lldp include list LLDP-LIST</span><span class="ln">device-sensor filter-spec dhcp include list DHCP-LIST</span><span class="ln">device-sensor accounting</span><span class="ln">device-sensor notify all-changes</span><span class="ln">!</span><span class="ln">! ---- service templates ----</span><span class="ln">service-template CRITICAL_DATA</span><span class="ln"> vlan &lt;DATA-VLAN&gt;</span><span class="ln">service-template CRITICAL_VOICE</span><span class="ln"> voice vlan</span><span class="ln">service-template QUARANTINE</span><span class="ln"> vlan &lt;QUAR-VLAN&gt;</span><span class="ln">!</span><span class="ln">! ---- classes ----</span><span class="ln">class-map type control subscriber match-all AAA_SVR_DOWN_UNAUTHD_HOST</span><span class="ln"> match result-type aaa-timeout</span><span class="ln"> match authorization-status unauthorized</span><span class="ln">class-map type control subscriber match-all AAA_SVR_DOWN_AUTHD_HOST</span><span class="ln"> match result-type aaa-timeout</span><span class="ln"> match authorization-status authorized</span><span class="ln">class-map type control subscriber match-all DOT1X_FAILED</span><span class="ln"> match method dot1x</span><span class="ln"> match result-type method dot1x authoritative</span><span class="ln">class-map type control subscriber match-all DOT1X_NO_RESP</span><span class="ln"> match method dot1x</span><span class="ln"> match result-type method dot1x agent-not-found</span><span class="ln">class-map type control subscriber match-all MAB_FAILED</span><span class="ln"> match method mab</span><span class="ln"> match result-type method mab authoritative</span><span class="ln">class-map type control subscriber match-any IN_CRITICAL_AUTH</span><span class="ln"> match activated-service-template CRITICAL_DATA</span><span class="ln"> match activated-service-template CRITICAL_VOICE</span><span class="ln">class-map type control subscriber match-none NOT_IN_CRITICAL_AUTH</span><span class="ln"> match activated-service-template CRITICAL_DATA</span><span class="ln"> match activated-service-template CRITICAL_VOICE</span><span class="ln">!</span><span class="ln">! ---- the policy ----</span><span class="ln">policy-map type control subscriber EDGE-DOT1X-MAB</span><span class="ln"> event session-started match-all</span><span class="ln">  10 class always do-until-failure</span><span class="ln">   10 authenticate using dot1x priority 10</span><span class="ln"> event authentication-failure match-first</span><span class="ln">  10 class AAA_SVR_DOWN_UNAUTHD_HOST do-until-failure</span><span class="ln">   10 activate service-template CRITICAL_DATA</span><span class="ln">   20 activate service-template CRITICAL_VOICE</span><span class="ln">   30 authorize</span><span class="ln">   40 pause reauthentication</span><span class="ln">  20 class AAA_SVR_DOWN_AUTHD_HOST do-until-failure</span><span class="ln">   10 pause reauthentication</span><span class="ln">   20 authorize</span><span class="ln">  30 class DOT1X_FAILED do-until-failure</span><span class="ln">   10 terminate dot1x</span><span class="ln">   20 authenticate using mab priority 20</span><span class="ln">  40 class DOT1X_NO_RESP do-until-failure</span><span class="ln">   10 terminate dot1x</span><span class="ln">   20 authenticate using mab priority 20</span><span class="ln">  50 class MAB_FAILED do-until-failure</span><span class="ln">   10 terminate mab</span><span class="ln">   20 activate service-template QUARANTINE</span><span class="ln">   30 authorize</span><span class="ln">  60 class always do-until-failure</span><span class="ln">   10 terminate dot1x</span><span class="ln">   20 terminate mab</span><span class="ln">   30 authentication-restart 60</span><span class="ln"> event aaa-available match-all</span><span class="ln">  10 class IN_CRITICAL_AUTH do-until-failure</span><span class="ln">   10 clear-session</span><span class="ln">  20 class NOT_IN_CRITICAL_AUTH do-until-failure</span><span class="ln">   10 resume reauthentication</span><span class="ln"> event agent-found match-all</span><span class="ln">  10 class always do-until-failure</span><span class="ln">   10 terminate mab</span><span class="ln">   20 authenticate using dot1x priority 10</span><span class="ln"> event inactivity-timeout match-all</span><span class="ln">  10 class always do-until-failure</span><span class="ln">   10 clear-session</span><span class="ln">!</span><span class="ln">! ---- one edge port ----</span><span class="ln">interface &lt;EDGE-PORT&gt;</span><span class="ln"> description EDGE</span><span class="ln"> switchport mode access</span><span class="ln"> switchport access vlan &lt;DATA-VLAN&gt;</span><span class="ln"> switchport voice vlan &lt;VOICE-VLAN&gt;</span><span class="ln"> device-tracking attach-policy EDGE-TRACK</span><span class="ln"> authentication periodic</span><span class="ln"> authentication timer reauthenticate server</span><span class="ln"> access-session host-mode multi-domain</span><span class="ln"> access-session closed</span><span class="ln"> access-session port-control auto</span><span class="ln"> mab</span><span class="ln"> dot1x pae authenticator</span><span class="ln"> dot1x timeout tx-period 10</span><span class="ln"> dot1x max-reauth-req 2</span><span class="ln"> spanning-tree portfast</span><span class="ln"> spanning-tree bpduguard enable</span><span class="ln"> storm-control broadcast level 1.00</span><span class="ln"> service-policy type control subscriber EDGE-DOT1X-MAB</span><span class="ln">!</span><span class="ln">interface &lt;UPLINK-PORT&gt;</span><span class="ln"> ip dhcp snooping trust</span><span class="ln"> ip arp inspection trust</span><span class="ln">!</span><span class="ln">errdisable recovery cause bpduguard</span><span class="ln">errdisable recovery interval 300</span><span class="ln">!</span><span class="ln">! ---- management ----</span><span class="ln">ip domain name &lt;DOMAIN&gt;</span><span class="ln">crypto key generate rsa general-keys modulus 3072</span><span class="ln">ip ssh version 2</span><span class="ln">key config-key password-encrypt &lt;MASTER-KEY&gt;</span><span class="ln">password encryption aes</span><span class="ln">ip access-list standard MGMT-ACL</span><span class="ln"> permit &lt;MGMT-SUBNET&gt; &lt;MGMT-WILDCARD&gt;</span><span class="ln">login block-for 120 attempts 5 within 60</span><span class="ln">login quiet-mode access-class MGMT-ACL</span><span class="ln">no ip http server</span><span class="ln">ip http secure-server</span><span class="ln">ip http authentication aaa</span><span class="ln">ip http access-class ipv4 MGMT-ACL</span><span class="ln">ntp server &lt;NTP1-IP&gt;</span><span class="ln">ntp server &lt;NTP2-IP&gt;</span><span class="ln">logging host &lt;SYSLOG-IP&gt;</span><span class="ln">banner login ^C</span><span class="ln">Authorized use only. Activity is logged.</span><span class="ln">^C</span><span class="ln">line con 0</span><span class="ln"> login authentication CONSOLE</span><span class="ln"> exec-timeout 15 0</span><span class="ln">line vty 0 15</span><span class="ln"> access-class MGMT-ACL in</span><span class="ln"> exec-timeout 15 0</span><span class="ln"> transport input ssh</span><span class="ln">end</span><span class="ln"><span class="pr">edge-sw# </span>configure confirm</span></code></pre></div>
+<p>Then the second step, on its own, with its own revert timer, from a TACACS session, after ClearPass has a TACACS command policy that permits what your admins run:</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div><pre><code><span class="ln"><span class="pr">edge-sw# </span>configure terminal revert timer 10</span><span class="ln">aaa authorization commands 15 default group CPPM-TACACS local if-authenticated</span><span class="ln">end</span><span class="ln"><span class="pr">edge-sw# </span>configure confirm</span></code></pre></div>
+<p>On the ClearPass side, each switch is a network device with the RADIUS and TACACS keys, the Cisco vendor, and CoA on port 3799, in the NAD group the probe service matches. Phones get <code>device-traffic-class=voice</code>. Printers get the three tunnel attributes with <code>Printers</code>. TACACS admins get Shell <code>priv-lvl</code> 15.</p>
+<h2>How to prove it works</h2>
+<p><strong>Dead detection.</strong> <code>show aaa servers</code> lists each server's state and dead time. Block RADIUS to one node, send a few authentications through, and watch it go DEAD after the criteria are met; unblock it and watch the tester bring it back. Access Tracker should show the probe rejects in your probe service while it's down.</p>
+<p><strong>A laptop.</strong> <code>show access-session interface &lt;EDGE-PORT&gt; details</code> shows the method (dot1x), the status (Authorized), the VLAN and the domain. A failure is clearer here than on most platforms: the method list shows which method failed.</p>
+<p><strong>A printer.</strong> Same command, method <code>mab</code>. Time it from link up. Around 30 seconds with the template.</p>
+<p><strong>The phone.</strong> <code>show access-session interface &lt;EDGE-PORT&gt;</code> should list two sessions, one in the VOICE domain. If the phone sits in DATA, ClearPass didn't send <code>device-traffic-class=voice</code>. <code>show lldp neighbors &lt;EDGE-PORT&gt; detail</code> for a non Cisco phone's LLDP-MED view.</p>
+<p><strong>The fallbacks.</strong> Block 1812 to all four nodes and bounce a test port: the session should show <code>CRITICAL_DATA</code> as an activated template. Give a test MAC no endpoint record: <code>QUARANTINE</code>, and it should stay there until ClearPass says otherwise.</p>
+<p><strong>CoA.</strong> <code>show aaa server radius dynamic-author</code> should name all four clients and port 3799. Send a reauthenticate from Access Tracker and check the session restarted. If ClearPass says it sent and the switch shows no request, look at the port before you look at the key.</p>
+<p><strong>TACACS.</strong> Log in over SSH as a TACACS user, check you land at the privilege level you meant, then check accounting arrived in Access Tracker before you go near step two.</p>
+<p>A Catalyst does most things right out of the box and this one thing wrong for ClearPass. One line moves CoA to where ClearPass sends it; without it, every change of authorization fails and nothing reports it.</p></div>
       
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>ClearPass, properly <span class="meta">part 1 of 3</span></h3><div class="ser-steps"><a class="ser-step here" href="saml-login-validates-and-still-fails.html"><span class="ser-n">1</span><span class="ser-t">Your ClearPass SAML Login Validates and Still Fails</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="clearpass-intune-eap-tls-lab.html"><span class="ser-n">2</span><span class="ser-t">Your ClearPass Intune Integration Probably Authenticates Nothing</span><span class="ser-tag">Next</span></a><a class="ser-step" href="which-clearpass-node-polls-your-switch.html"><span class="ser-n">3</span><span class="ser-t">Which ClearPass Node Is Actually Polling Your Switch</span></a></div></section>
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>ClearPass at the Edge <span class="meta">part 2 of 3</span></h3><div class="ser-steps"><a class="ser-step" href="cx-counts-a-reject-as-alive.html"><span class="ser-n">1</span><span class="ser-t">Your CX Switch Counts a Reject as Proof ClearPass Is Alive</span></a><a class="ser-step here" href="ibns-coa-wrong-port.html"><span class="ser-n">2</span><span class="ser-t">IBNS 2.0 Listens for CoA on the Wrong Port Until You Tell It Otherwise</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="junos-dot1x-first-timeout.html"><span class="ser-n">3</span><span class="ser-t">Junos 802.1X With ClearPass: Plan for the First Timeout</span><span class="ser-tag">Next</span></a></div></section>
     <section class="readmark g-card" data-rise><label class="rm-label"><input type="checkbox" id="readmark-box"><span>Mark as read</span></label><span class="rm-say" id="readmark-say"></span></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="saml-login-validates-and-still-fails" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="ibns-coa-wrong-port" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -1631,7 +1803,7 @@ Entra enterprise app
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="when-the-docs-disagree.html"><span class="eyebrow">Older</span>When the Docs Disagree With Themselves, Somebody Has to Decide</a><a class="pn g-card" href="one-pilot-ap-converts-all-of-them.html"><span class="eyebrow">Newer</span>One Pilot AP Converts All Hundred of Them</a></div>
+      <div class="postnav"><a class="pn g-card" href="cx-counts-a-reject-as-alive.html"><span class="eyebrow">Older</span>Your CX Switch Counts a Reject as Proof ClearPass Is Alive</a><a class="pn g-card" href="junos-dot1x-first-timeout.html"><span class="eyebrow">Newer</span>Junos 802.1X With ClearPass: Plan for the First Timeout</a></div>
     </section>
   </article>
 </div>
