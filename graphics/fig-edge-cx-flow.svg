@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 390" role="img" aria-label="AOS-CX 10.18 edge port timeline: Laptop, supplicant, about 3 s; Printer, no supplicant, about 10 s with initial-auth-response-timeout 10.  Critical path: 802.1X times out, then MAC auth times out, then critical-role CRITICAL. Reject path: 802.1X or MAC auth, then Server-Reject, then reject-role QUARANTINE.">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="20" y="28" class="t hd" font-size="12" fill="#fff">One port, four outcomes, link up to authorized.</text>
+  <text x="20" y="56" class="m" font-size="11" fill="#8BA2AE">TO SCALE, SECONDS FROM LINK UP</text>
+  <path d="M190 64 L190 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="190" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">0 s</text>
+  <path d="M305 64 L305 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="305" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">30 s</text>
+  <path d="M420 64 L420 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="420" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">60 s</text>
+  <path d="M535 64 L535 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="535" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">90 s</text>
+  <path d="M650 64 L650 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="650" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">120 s</text>
+  <path d="M765 64 L765 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="765" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">150 s</text>
+  <path d="M880 64 L880 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="880" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">180 s</text>
+  <text x="20" y="91" class="t" font-size="12" fill="#EAF2F6" font-weight="600">Laptop, supplicant</text>
+  <rect x="190" y="72" width="11.5" height="26" rx="5" fill="#5ED2DA" fill-opacity="0.25" stroke="#5ED2DA" stroke-width="1"/>
+  <rect x="201.5" y="72" width="678.5" height="26" rx="5" fill="#8CE05E" stroke="#8CE05E" stroke-width="1"/>
+  <text x="211.5" y="89.5" class="t" font-size="12" fill="#06202A" font-weight="700">authorized</text>
+  <text x="870" y="89.5" class="t" font-size="11" fill="#06202A" text-anchor="end">about 3 s</text>
+  <text x="20" y="153" class="t" font-size="12" fill="#EAF2F6" font-weight="600">Printer, no supplicant</text>
+  <rect x="190" y="134" width="38.3333" height="26" rx="5" fill="#8BA2AE" fill-opacity="0.25" stroke="#8BA2AE" stroke-width="1"/>
+  <rect x="228.333" y="134" width="11.5" height="26" rx="5" fill="#4FBDEA" fill-opacity="0.25" stroke="#4FBDEA" stroke-width="1"/>
+  <rect x="239.833" y="134" width="640.167" height="26" rx="5" fill="#8CE05E" stroke="#8CE05E" stroke-width="1"/>
+  <text x="249.833" y="151.5" class="t" font-size="12" fill="#06202A" font-weight="700">authorized</text>
+  <text x="870" y="151.5" class="t" font-size="11" fill="#06202A" text-anchor="end">about 10 s with initial-auth-response-timeout 10</text>
+  <path d="M190 164 L190 168 L822.5 168 L822.5 164" stroke="#8BA2AE" stroke-width="1.3" fill="none" stroke-dasharray="4 4"/>
+  <text x="830.5" y="172" class="t" font-size="11" fill="#8BA2AE">defaults: about 165 s</text>
+  <text x="20" y="244" class="m" font-size="11" fill="#8BA2AE">SEQUENCE</text>
+  <text x="20" y="274" class="t" font-size="12" fill="#EAF2F6" font-weight="600">All servers down</text>
+  <rect x="190" y="252" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.3"/>
+  <text x="295" y="274" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">802.1X times out</text>
+  <path d="M402 269 L425 269" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#at)"/>
+  <rect x="428" y="252" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.3"/>
+  <text x="533" y="274" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">MAC auth times out</text>
+  <path d="M640 269 L663 269" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#at)"/>
+  <rect x="666" y="252" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="771" y="274" class="t" font-size="12" fill="#EAF2F6" text-anchor="middle" font-weight="700">critical-role CRITICAL</text>
+  <text x="880" y="304" class="t" font-size="11" fill="#8BA2AE" text-anchor="end">--|c|-|s, Authentication Failed, Server-Timeout</text>
+  <text x="20" y="334" class="t" font-size="12" fill="#EAF2F6" font-weight="600">Rejected</text>
+  <rect x="190" y="312" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.3"/>
+  <text x="295" y="334" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">802.1X or MAC auth</text>
+  <path d="M402 329 L425 329" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#at)"/>
+  <rect x="428" y="312" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.3"/>
+  <text x="533" y="334" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">Server-Reject</text>
+  <path d="M640 329 L663 329" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#at)"/>
+  <rect x="666" y="312" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="#8BA2AE" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <text x="771" y="334" class="t" font-size="12" fill="#EAF2F6" text-anchor="middle" font-weight="700">reject-role QUARANTINE</text>
+  <text x="880" y="364" class="t" font-size="11" fill="#8BA2AE" text-anchor="end">the switch never says why: read Access Tracker</text>
+  <text x="20" y="382" class="t" font-size="11" fill="#8BA2AE">Bench: CX 10.18.1002 with ClearPass 6.11.1, September 2026.</text>
+</svg>

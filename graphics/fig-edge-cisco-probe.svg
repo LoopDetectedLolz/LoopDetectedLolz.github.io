@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-label="Catalyst 9300: how the switch decides a ClearPass node is dead and how it comes back. Marked dead: real client requests time out (5 s and 3 tries). The client pays. Back in service: automate-tester probe-on gets any reply, even a Reject. No password is configured.">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="20" y="28" class="t hd" font-size="12" fill="#fff">Real requests mark a node dead. The tester brings it back.</text>
+  <rect x="20" y="60" width="270" height="176" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <text x="40" y="92" class="t" font-size="15" fill="#EAF2F6" font-weight="700">Catalyst 9300</text>
+  <text x="40" y="112" class="t" font-size="12" fill="#B0C4CF">IOS-XE 17.9+, IBNS 2.0</text>
+  <text x="40" y="150" class="m" font-size="11" fill="#8BA2AE">HOW IT KNOWS</text>
+  <text x="40" y="172" class="t" font-size="12" fill="#5ED2DA">dead-criteria time 5 tries 3</text>
+  <path d="M292 118 L548 92" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="470" y="92.9219" class="t" font-size="11" fill="#5ED2DA" text-anchor="middle">real request</text>
+  <rect x="552" y="74" width="328" height="36" rx="8" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="568" y="97" class="t" font-size="13" fill="#EAF2F6" font-weight="700">CPPM 1</text>
+  <text x="650" y="97" class="t" font-size="12" fill="#B0C4CF">Access-Accept</text>
+  <text x="866" y="97" class="t" font-size="12" fill="#8CE05E" text-anchor="end" font-weight="700">alive</text>
+  <path d="M292 138 L548 134" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="470" y="128.219" class="t" font-size="11" fill="#5ED2DA" text-anchor="middle">real request</text>
+  <rect x="552" y="116" width="328" height="36" rx="8" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="568" y="139" class="t" font-size="13" fill="#EAF2F6" font-weight="700">CPPM 2</text>
+  <text x="650" y="139" class="t" font-size="12" fill="#B0C4CF">Access-Accept</text>
+  <text x="866" y="139" class="t" font-size="12" fill="#8CE05E" text-anchor="end" font-weight="700">alive</text>
+  <path d="M292 158 L548 176" stroke="#8BA2AE" stroke-width="1.6" fill="none" stroke-dasharray="5 4" marker-end="url(#am)"/>
+  <text x="470" y="163.516" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">3 timeouts in 5 s</text>
+  <rect x="552" y="158" width="328" height="36" rx="8" fill="none" stroke="#8BA2AE" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <text x="568" y="181" class="t" font-size="13" fill="#B0C4CF" font-weight="700">CPPM 3</text>
+  <text x="650" y="181" class="t" font-size="12" fill="#8BA2AE">no reply</text>
+  <text x="866" y="181" class="t" font-size="12" fill="#8BA2AE" text-anchor="end" font-weight="700">DEAD</text>
+  <path d="M292 178 L548 218" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="470" y="198.812" class="t" font-size="11" fill="#5ED2DA" text-anchor="middle">tester probe</text>
+  <rect x="552" y="200" width="328" height="36" rx="8" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="568" y="223" class="t" font-size="13" fill="#EAF2F6" font-weight="700">CPPM 4</text>
+  <text x="650" y="223" class="t" font-size="12" fill="#B0C4CF">Access-Reject</text>
+  <text x="866" y="223" class="t" font-size="12" fill="#8CE05E" text-anchor="end" font-weight="700">alive again</text>
+  <rect x="20" y="250" width="860" height="66" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10" stroke-width="1"/>
+  <text x="36" y="276" class="t" font-size="12" fill="#B0C4CF">Marked dead: real client requests time out (5 s and 3 tries). The client pays.</text>
+  <text x="36" y="300" class="t" font-size="12" fill="#B0C4CF">Back in service: automate-tester probe-on gets any reply, even a Reject. No password is configured.</text>
+</svg>

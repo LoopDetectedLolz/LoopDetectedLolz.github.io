@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Your ClearPass SAML Login Validates and Still Fails</title>
-<meta name="description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
-<link rel="canonical" href="https://networkfieldnotes.com/p/saml-login-validates-and-still-fails.html">
+<title>Your CX Switch Counts a Reject as Proof ClearPass Is Alive</title>
+<meta name="description" content="RADIUS tracking on AOS-CX 10.18 marks a ClearPass node reachable even when ClearPass rejects the probe, so the health check works with no account at all. Here&#x27;s why I build the probe account and its own service anyway, and the rest of an edge port template for a four node cluster.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/cx-counts-a-reject-as-alive.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="Your ClearPass SAML Login Validates and Still Fails">
-<meta property="og:description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
-<meta property="og:url" content="https://networkfieldnotes.com/p/saml-login-validates-and-still-fails.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/saml-login-validates-and-still-fails.png">
+<meta property="og:title" content="Your CX Switch Counts a Reject as Proof ClearPass Is Alive">
+<meta property="og:description" content="RADIUS tracking on AOS-CX 10.18 marks a ClearPass node reachable even when ClearPass rejects the probe, so the health check works with no account at all. Here&#x27;s why I build the probe account and its own service anyway, and the rest of an edge port template for a four node cluster.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/cx-counts-a-reject-as-alive.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/cx-counts-a-reject-as-alive.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Your ClearPass SAML Login Validates and Still Fails">
-<meta name="twitter:description" content="Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/saml-login-validates-and-still-fails.png">
-<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-05"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your ClearPass SAML Login Validates and Still Fails", "description": "Admin MFA on ClearPass means SAML to your IdP, and every guide you find is about Onboard instead. Here are the three places an admin login fails silently, in the order to check them.", "datePublished": "2026-09-05", "image": "https://networkfieldnotes.com/og/saml-login-validates-and-still-fails.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/saml-login-validates-and-still-fails.html", "keywords": "ClearPass, Security, Entra ID, SAML"}</script>
+<meta name="twitter:title" content="Your CX Switch Counts a Reject as Proof ClearPass Is Alive">
+<meta name="twitter:description" content="RADIUS tracking on AOS-CX 10.18 marks a ClearPass node reachable even when ClearPass rejects the probe, so the health check works with no account at all. Here&#x27;s why I build the probe account and its own service anyway, and the rest of an edge port template for a four node cluster.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/cx-counts-a-reject-as-alive.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-10-02"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Your CX Switch Counts a Reject as Proof ClearPass Is Alive", "description": "RADIUS tracking on AOS-CX 10.18 marks a ClearPass node reachable even when ClearPass rejects the probe, so the health check works with no account at all. Here's why I build the probe account and its own service anyway, and the rest of an edge port template for a four node cluster.", "datePublished": "2026-10-02", "image": "https://networkfieldnotes.com/og/cx-counts-a-reject-as-alive.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/cx-counts-a-reject-as-alive.html", "keywords": "ClearPass, AOS-CX, 802.1X, Security"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -636,7 +636,7 @@ body.acad .readmark,body.acad .changed-note{--rm:var(--orange);--rm-soft:rgba(24
 .cn-text p{margin:4px 0 0;font-size:14.5px;line-height:1.55;color:var(--text-dim)}
 .cn-text .cn-what{color:var(--text)}
 .prog-items [data-nfn-read][hidden]{display:none}
-</style><script>window.NFN_CFG={"api": "https://api.networkfieldnotes.com", "sitekey": "0x4AAAAAAE0IseyiQ4X9zk6r", "slug": "saml-login-validates-and-still-fails"};</script><script>/* Network Field Notes: the Academy progress core.
+</style><script>window.NFN_CFG={"api": "https://api.networkfieldnotes.com", "sitekey": "0x4AAAAAAE0IseyiQ4X9zk6r", "slug": "cx-counts-a-reject-as-alive"};</script><script>/* Network Field Notes: the Academy progress core.
  *
  * Pure functions: no DOM, no storage, no network. theme/progress.js uses it in the page,
  * comments/worker.js uses it on the server, progresstest.js tests it. The page and the Worker run
@@ -1319,159 +1319,360 @@ body.acad .readmark,body.acad .changed-note{--rm:var(--orange);--rm-soft:rgba(24
   <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
   <article>
     <header class="post-head g-hero cat-NAC" data-view="zoom">
-      <div class="row" style="margin:0"><a class="tag c-blue" href="../index.html#cat=NAC" title="All NAC posts">NAC</a><span class="meta">Sep 5, 2026 &#183; 7 min</span></div>
-      <h1 class="h-hero">Your ClearPass SAML Login Validates and Still Fails</h1>
+      <div class="row" style="margin:0"><a class="tag c-blue" href="../index.html#cat=NAC" title="All NAC posts">NAC</a><span class="meta">Oct 2, 2026 &#183; 16 min</span></div>
+      <h1 class="h-hero">Your CX Switch Counts a Reject as Proof ClearPass Is Alive</h1>
     </header>
     
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Three places a ClearPass admin SAML login fails silently">
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="An AOS-CX switch sends a RADIUS tracking probe to a ClearPass node with a user ClearPass does not know. ClearPass answers Access-Reject, and the switch marks the server reachable.">
   <defs><style>
-    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:11px}.big{fill:#fff;font-size:20px;font-weight:700}
-    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:10px;fill:#8CE05E}
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
   </style>
-  <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#B0C4CF"/></marker></defs>
-  <text x="30" y="36" class="t eyebrow">"SSO IS SET UP AND LOGIN FAILS"</text>
-  <text x="30" y="66" class="t big">Trust is half the job. The other half hands out the privilege.</text>
-  <g class="t">
-    <!-- admin -->
-    <rect x="20" y="150" width="70" height="60" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="55" y="185" text-anchor="middle" fill="#EAF2F6" font-size="13">Admin</text>
-    <line x1="90" y1="180" x2="115" y2="180" stroke="#B0C4CF" stroke-width="2" marker-end="url(#arr3)"/>
-    <!-- gate 1 -->
-    <rect x="120" y="110" width="230" height="140" rx="10" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA"/>
-    <text x="235" y="136" text-anchor="middle" fill="#5ED2DA" font-size="13" font-weight="700">Gate 1 · redirect at all?</text>
-    <text x="235" y="160" text-anchor="middle" fill="#EAF2F6" font-size="12">Single Sign-On page</text>
-    <text x="235" y="180" text-anchor="middle" class="lbl">Enable SSO for: Policy Manager ticked?</text>
-    <text x="235" y="200" text-anchor="middle" class="lbl">IdP URL set?</text>
-    <text x="235" y="232" text-anchor="middle" class="mono">Configuration › Identity › Single Sign-On</text>
-    <line x1="350" y1="180" x2="378" y2="180" stroke="#B0C4CF" stroke-width="2" marker-end="url(#arr3)"/>
-    <!-- gate 2 -->
-    <rect x="383" y="110" width="240" height="140" rx="10" fill="rgba(3,10,16,0.55)" stroke="#4FBDEA"/>
-    <text x="503" y="136" text-anchor="middle" fill="#4FBDEA" font-size="13" font-weight="700">Gate 2 · assertion valid?</text>
-    <text x="503" y="160" text-anchor="middle" fill="#EAF2F6" font-size="12">Entra ⇄ ClearPass trust</text>
-    <text x="503" y="180" text-anchor="middle" class="lbl">IdP signing cert required, in CTL first</text>
-    <text x="503" y="200" text-anchor="middle" class="lbl">Entity ID + Reply URL = SP metadata</text>
-    <text x="503" y="232" text-anchor="middle" class="mono">Name ID defaults to UPN</text>
-    <line x1="623" y1="180" x2="651" y2="180" stroke="#B0C4CF" stroke-width="2" marker-end="url(#arr3)"/>
-    <!-- gate 3 -->
-    <rect x="656" y="110" width="224" height="140" rx="10" fill="rgba(3,10,16,0.55)" stroke="#8CE05E"/>
-    <text x="768" y="136" text-anchor="middle" fill="#8CE05E" font-size="13" font-weight="700">Gate 3 · any privilege?</text>
-    <text x="768" y="160" text-anchor="middle" fill="#EAF2F6" font-size="12">Admin SSO Login service</text>
-    <text x="768" y="180" text-anchor="middle" class="lbl">Aruba Application Authorization</text>
-    <text x="768" y="200" text-anchor="middle" class="lbl">enforcement → admin privilege</text>
-    <text x="768" y="232" text-anchor="middle" class="mono">Service Templates &amp; Wizards</text>
-  </g>
-  <rect x="30" y="272" width="840" height="44" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
-  <text x="450" y="290" text-anchor="middle" class="t lbl">All three fail the same way from the login page. Authenticated with no role looks exactly like a failed login.</text>
-  <text x="450" y="308" text-anchor="middle" class="t" fill="#8CE05E" font-size="12">SAML everywhere you can. RADIUS and TACACS+ where you must.</text>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="30" y="36" class="t eb" font-size="12" fill="#8CE05E">RADIUS TRACKING ON AOS-CX 10.18</text>
+  <text x="30" y="66" class="t big" font-size="12" fill="#fff">A reject is all the proof of life the switch needs.</text>
+  <rect x="30" y="110" width="220" height="160" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <text x="140" y="170" class="t" font-size="16" fill="#EAF2F6" text-anchor="middle" font-weight="700">AOS-CX</text>
+  <text x="140" y="192" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">edge switch</text>
+  <rect x="72" y="216" width="136" height="30" rx="15" fill="#8CE05E" stroke="#8CE05E" stroke-width="1"/>
+  <text x="140" y="236" class="t" font-size="13" fill="#06202A" text-anchor="middle" font-weight="700">reachable</text>
+  <rect x="650" y="110" width="220" height="160" rx="10" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="760" y="170" class="t" font-size="16" fill="#EAF2F6" text-anchor="middle" font-weight="700">ClearPass</text>
+  <text x="760" y="192" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">node 3 of 4</text>
+  <text x="760" y="230" class="m" font-size="12" fill="#8BA2AE" text-anchor="middle">user not found</text>
+  <path d="M254 150 L644 150" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="449" y="140" class="t" font-size="12" fill="#5ED2DA" text-anchor="middle">Access-Request, a user ClearPass never heard of</text>
+  <path d="M646 232 L256 232" stroke="#8CE05E" stroke-width="2.4" fill="none" marker-end="url(#ag)"/>
+  <text x="449" y="222" class="t" font-size="13" fill="#8CE05E" text-anchor="middle" font-weight="700">Access-Reject</text>
+  <text x="449" y="256" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">an answer is an answer</text>
+  <text x="30" y="320" class="t cap" font-size="12" fill="#8BA2AE">Bench: CX 10.18.1002 and ClearPass 6.11.1, 2026-09-26. Event 2304 on every interval.</text>
 </svg></div>
       
-      <div class="callout origin"><span class="eyebrow">Where this came from</span>A year-old Airheads thread about admin MFA, revived by someone who had &quot;set up SSO&quot; and couldn&#x27;t log in</div>
-      <div class="prose"><h2>Why I'm writing this</h2>
-<p>Every ClearPass deployment I touch now gets the same question from the security team within a week: can we put MFA on the admin GUI? The answer is yes, and the way you do it is SAML to whatever identity provider already has MFA in front of it, which these days is usually Entra ID.</p>
-<p>That's the easy part. The part that generates forum threads is what happens next. You configure single sign-on, the login page redirects to Microsoft, you authenticate, you get bounced back to ClearPass, and it says no. No error worth reading. Just no.</p>
-<p>Someone hit exactly this on the forums and asked what they'd missed. Turns out there are three different things you can miss, and they all fail the same way from the login page, so here they are in the order to check them.</p>
-<h2>The two halves nobody explains together</h2>
-<p>ClearPass admin SSO is two separate jobs, and the documentation treats them as two separate pages, which is why people finish one and think they're done.</p>
-<p><strong>The trust half</strong> lives under Configuration, Identity, Single Sign-On. That's where you tell ClearPass who the IdP is, what certificate to trust, and which applications should use SSO at all. When this half is right, the SAML assertion comes back and validates.</p>
-<p><strong>The privilege half</strong> is a service. ClearPass doesn't hand out admin rights because Microsoft said you're a real person. It hands them out because a service ran, matched you, and an enforcement profile said Super Administrator or Read-only Administrator or whatever the role is. If that service doesn't exist, you're authenticated and you have nothing, and authenticated with nothing looks exactly like a failed login.</p>
-<p>Most "SSO is set up but login fails" threads are people who built the trust half and never built the service half.</p>
-<h2>Gate 1: does it redirect at all?</h2>
-<p>On the Single Sign-On page there's a field called Enable SSO for, and it's a list of applications (Policy Manager, Guest, Insight, Onboard, and the Guest operator login). Policy Manager has to be ticked. If it isn't, the admin login page never redirects to your IdP in the first place, and you'll sit there wondering why your carefully built Entra app never sees a request.</p>
-<p>While you're on that page, confirm the IdP URL is the actual sign-on endpoint from the Entra enterprise app, not the tenant login page.</p>
-<h2>Gate 2: does the assertion validate?</h2>
-<p>The Identity Provider Signing Certificate field is required, and there's a step before it: the cert has to be in the Certificate Trust List first, or it won't appear in that dropdown. Download the signing cert from the Entra app (Base64), import it under Administration, Certificates, Trust List with the Usage set to SAML, then come back and select it. It shows up with a CN of Microsoft Azure Federated SSO. Miss that and the assertion arrives, fails signature validation, and you get the same silent no.</p>
-<p>Two more things have to agree between the two sides. The Entity ID and the Reply URL in the Entra app need to match what ClearPass publishes in its SP metadata, which you can download from the same page. They're of the form <code>https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp</code> and <code>https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp/acs</code>. Copy them out of the metadata rather than typing them; a trailing slash is enough to break it.</p>
-<p>If you run a cluster, that FQDN is per node. Every node has its own ACS URL, and the Entra app has to carry all of them as Reply URLs, or SSO works against the publisher and fails against everything else. HPE's own Okta write-up makes the same point with Okta's "requestable SSO URLs," and it applies just as much to Entra.</p>
-<p>And one that isn't on either page: NTP. ClearPass's own SSO doc says flatly that if the clocks are out of sync, SAML will not function. Assertions carry validity windows measured in minutes. Check <code>show ntp</code> or the Server Configuration page before you touch anything else. Call it gate zero.</p>
-<h2>Gate 3: does anybody get a privilege?</h2>
-<p>This is the one the original thread was missing. Go to Configuration, Service Templates and Wizards, and use the Policy Manager Admin SSO Login (SAML SP Service) template. It was called ClearPass Admin SSO Login in 6.8 and earlier, which is why half the guides you'll find use the old name. It builds the service and the enforcement policy that actually maps a user to an admin privilege level. You can hand-build the same thing, and if you do, the service type is Aruba Application Authorization. The user guide describes that type as providing authorization for users of Aruba applications, sending a Generic Application Enforcement profile to grant the privilege. So: service type Aruba Application Authorization, enforcement policy type Application, enforcement profile Generic Application Enforcement pointed at Super Administrator or Read-only Administrator or whichever level you mean. I had Authentication in an earlier draft of this. HPE's own Entra write-up says Authorization, and so does the user guide.</p>
-<p>One more thing that isn't obvious until you try group-based roles. Entra sends its group and tenant claims with long schema-style attribute names that aren't in the ClearPass SSO dictionary out of the box. To match on them you export the SSO dictionary under Administration, Dictionaries, Applications, add the attributes, and import it back. Until you do, the group claim is in the assertion (a SAML tracer will show it) and ClearPass just can't see it.</p>
-<p>Then check what the service is matching on. Entra sends the user principal name as the Name ID by default. If your enforcement conditions or your authorization source lookup expect sAMAccountName, nothing matches, nobody gets a role, same silent failure. Either change the Entra claim to send the attribute ClearPass expects, or change the ClearPass side to look up by UPN. Pick one and write it down.</p>
-<pre><code>Configuration &gt; Identity &gt; Single Sign-On
-  Enable SSO for: [x] Policy Manager
-  IdP URL: https://login.microsoftonline.com/&lt;TENANT-ID&gt;/saml2
-  IdP Signing Certificate: &lt;cert already in Trust List&gt;
-
-Configuration &gt; Service Templates &amp; Wizards &gt; Policy Manager Admin SSO Login (SAML SP Service)
-  Service type:             Aruba Application Authorization
-  Enforcement policy type:  Application
-  Enforcement profile:      Generic Application Enforcement -&gt; admin privilege level
-                            (Super Administrator, Read-only Administrator, ...)
-
-Administration &gt; Certificates &gt; Trust List
-  Entra signing cert, Usage: SAML
-
-Entra enterprise app
-  Identifier (Entity ID): https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp
-  Reply URL (ACS):        https://&lt;clearpass-fqdn&gt;/networkservices/saml2/sp/acs   (one per cluster node)
-  Name ID:                user.userprincipalname (default)
-</code></pre>
-<h2>Where to look when it still fails</h2>
-<p>Access Tracker. A SAML admin login that reaches the service shows up there as an Application Auth request (HPE's own SSO write-ups show exactly that), and the reject reason tells you which gate you're stuck at. If there's nothing in Access Tracker at all, you're at gate 1 or gate 2: the request never got far enough to hit a service. A SAML tracer extension in the browser shows you the assertion itself, which is the fastest way to see whether a claim is actually being sent.</p>
-<p>And a bit of sequencing advice straight from HPE support: enable SSO for Guest or Insight first, prove the round trip works, then tick Policy Manager. A broken SSO build on Policy Manager is a lockout, and you'd rather find gate 3 on the Insight login page.</p>
-<p>One more setting worth knowing on the SSO page while you're building this for MFA: Force Authentication, off by default. Turn it on and ClearPass makes the IdP re-authenticate even when the admin already has a live session with Microsoft, which is usually what the security team meant when they asked for MFA on the GUI.</p>
-<h2>Checklist</h2>
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Built while writing deployment templates for a four node ClearPass cluster</div>
+      <div class="prose"><p>I pointed RADIUS tracking at a ClearPass node with a username that didn't exist. Access Tracker filled up with rejects, one per interval. The switch logged the server as reachable every time.</p>
+<p>That's not a bug. A reject is an answer, and an answer is all tracking wants. HPE's own guide says it in as many words: tracking can still be performed with a user that isn't configured on the server, because an authentication failure confirms the server is reachable. It does mean the health check works whether or not you ever build the account, and that changes what the account is for.</p>
+<p>This is the first of three posts that build the same edge port against the same four node ClearPass cluster on three switch platforms, in the same order, so you can read them side by side. This one is AOS-CX 10.18 on a 6200F or 6300M. Cisco IOS-XE and Junos follow.</p>
+<h2>Bottom line</h2>
+<ul>
+<li><strong>Turn on RADIUS tracking and give it its own account and service.</strong> The switch only needs a reply to call a node alive; the account and service are there so Access Tracker stays readable and the reply means what you think it means.</li>
+<li><strong>Set <code>initial-auth-response-timeout 10</code> on every port that mixes printers and laptops.</strong> With the defaults on my bench, a silent printer waited about 165 seconds for MAC auth. With it, about 10.</li>
+<li><strong>Give each port a critical role and a reject role.</strong> Without them a ClearPass outage or a reject leaves the port with nothing.</li>
+<li><strong>CoA needs two lines, not one.</strong> <code>radius dyn-authorization enable</code> plus a <code>radius dyn-authorization client</code> line per ClearPass node. Without the client line the request is dropped and only shows up as a counter.</li>
+</ul>
+<h2>Four ClearPass nodes and how the switch decides one is dead</h2>
+<p>Four nodes go in one server group, and the switch walks the group in order. What decides whether it skips a node is reachability, and AOS-CX has two ways to learn it: a real request times out, or tracking finds out first.</p>
+<p>Tracking is the one you want. With <code>radius-server tracking</code> set and <code>tracking enable</code> on each host, the switch sends its own Access-Request to every node on a timer and marks the node reachable or unreachable from the result. A client never has to wait out a dead node to discover it.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-label="AOS-CX 10.18: how the switch decides a ClearPass node is dead and how it comes back. Marked dead: a tracking probe gets no reply. No client has to fail first. Back in service: the next probe that gets any reply, an Accept or a Reject.">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="20" y="28" class="t hd" font-size="12" fill="#fff">Any reply means alive. Only silence means dead.</text>
+  <rect x="20" y="60" width="270" height="176" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <text x="40" y="92" class="t" font-size="15" fill="#EAF2F6" font-weight="700">AOS-CX 10.18</text>
+  <text x="40" y="112" class="t" font-size="12" fill="#B0C4CF">6200F / 6300M</text>
+  <text x="40" y="150" class="m" font-size="11" fill="#8BA2AE">HOW IT KNOWS</text>
+  <text x="40" y="172" class="t" font-size="12" fill="#5ED2DA">radius-server tracking, every 300 s</text>
+  <path d="M292 118 L548 92" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="470" y="92.9219" class="t" font-size="11" fill="#5ED2DA" text-anchor="middle">probe</text>
+  <rect x="552" y="74" width="328" height="36" rx="8" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="568" y="97" class="t" font-size="13" fill="#EAF2F6" font-weight="700">CPPM 1</text>
+  <text x="650" y="97" class="t" font-size="12" fill="#B0C4CF">Access-Accept</text>
+  <text x="866" y="97" class="t" font-size="12" fill="#8CE05E" text-anchor="end" font-weight="700">reachable</text>
+  <path d="M292 138 L548 134" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="470" y="128.219" class="t" font-size="11" fill="#5ED2DA" text-anchor="middle">probe</text>
+  <rect x="552" y="116" width="328" height="36" rx="8" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="568" y="139" class="t" font-size="13" fill="#EAF2F6" font-weight="700">CPPM 2</text>
+  <text x="650" y="139" class="t" font-size="12" fill="#B0C4CF">Access-Accept</text>
+  <text x="866" y="139" class="t" font-size="12" fill="#8CE05E" text-anchor="end" font-weight="700">reachable</text>
+  <path d="M292 158 L548 176" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="470" y="163.516" class="t" font-size="11" fill="#5ED2DA" text-anchor="middle">probe</text>
+  <rect x="552" y="158" width="328" height="36" rx="8" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="568" y="181" class="t" font-size="13" fill="#EAF2F6" font-weight="700">CPPM 3</text>
+  <text x="650" y="181" class="t" font-size="12" fill="#B0C4CF">Access-Reject</text>
+  <text x="866" y="181" class="t" font-size="12" fill="#8CE05E" text-anchor="end" font-weight="700">reachable</text>
+  <path d="M292 178 L548 218" stroke="#8BA2AE" stroke-width="1.6" fill="none" stroke-dasharray="5 4" marker-end="url(#am)"/>
+  <text x="470" y="198.812" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">probe</text>
+  <rect x="552" y="200" width="328" height="36" rx="8" fill="none" stroke="#8BA2AE" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <text x="568" y="223" class="t" font-size="13" fill="#B0C4CF" font-weight="700">CPPM 4</text>
+  <text x="650" y="223" class="t" font-size="12" fill="#8BA2AE">no reply</text>
+  <text x="866" y="223" class="t" font-size="12" fill="#8BA2AE" text-anchor="end" font-weight="700">unreachable</text>
+  <rect x="20" y="250" width="860" height="66" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10" stroke-width="1"/>
+  <text x="36" y="276" class="t" font-size="12" fill="#B0C4CF">Marked dead: a tracking probe gets no reply. No client has to fail first.</text>
+  <text x="36" y="300" class="t" font-size="12" fill="#B0C4CF">Back in service: the next probe that gets any reply, an Accept or a Reject.</text>
+</svg><figcaption>Tracking sends one probe per node per interval. Any reply marks the node reachable, an Accept or a Reject. Only silence marks it down.</figcaption></figure>
+<p>Here's the part I didn't expect. On my bench (CX 10.18.1002 against ClearPass 6.11.1, 2026-09-26) I pointed tracking at a username ClearPass had never heard of. Every probe came back Access-Reject, and every one logged the server as reachable (event 2304). So tracking works with no account and no service on the ClearPass side. A Reject proves the node is up just as well as an Accept. If you set nothing, the switch probes as <code>radius-tracking-user</code> with an empty password, and every one of those is a reject.</p>
+<p>So why build them? Two reasons.</p>
+<p>First, noise. Every probe is an authentication in Access Tracker. Four nodes, one switch, a 60 second interval is 5,760 entries a day from that one switch, and if they're rejects they sit in the same filter you use to find real failures. At 300 seconds it's 1,152, which is plenty to catch a dead node in a four node cluster.</p>
+<p>Second, a clean answer. If the probe lands in your 802.1X service, or worse in no service at all, a reject tells you the node's alive but tells you nothing about whether its policy engine works. A probe that's accepted by a service built for it is a positive answer: the node is up, the service matched, the local repository answered.</p>
+<h3>The probe service</h3>
+<p>Build it once and every switch in the NAD group uses it.</p>
+<ol>
+<li><strong>A local user.</strong> Configuration, Identity, Local Users. Something like <code>svc-radius-probe</code>, a long random password, any throwaway role. Not an AD account: a lockout or a password expiry would make every switch decide every node is dead at once.</li>
+<li><strong>A service, placed first.</strong> RADIUS Enforcement (Generic). Rules: <code>Radius:IETF:User-Name EQUALS svc-radius-probe</code> AND <code>Connection:NAD-IP-Address BELONGS_TO_GROUP &lt;SWITCH-NAD-GROUP&gt;</code>. Authentication method <code>[PAP]</code>, source <code>[Local User Repository]</code>, enforcement <code>[Allow Access Profile]</code> and nothing else. No VLAN, no role.</li>
+<li><strong>Open one probe in Access Tracker</strong> and read the Input tab. Build any extra match rules from what your switch actually sends. I didn't capture the full attribute list of a CX tracking probe, so don't take my rules as complete.</li>
+</ol>
+<p>Why not let it fall into the 802.1X service? The probe is plain PAP, not EAP. A typical dot1x service matches on things like NAS-Port-Type Ethernet and Service-Type Framed-User, so the probe often matches nothing and lands as "Service Categorization failed". And a MAC auth service expects the User-Name to be a MAC address. Its own service, first in the order, avoids both.</p>
+<h2>802.1X, then MAC auth, then the fallbacks</h2>
+<p>The default order on a CX port is 802.1X first, then MAC auth. That's the right order, and the defaults around it are wrong for a port where a printer might be plugged in.</p>
+<p>On my bench, with <code>auth-precedence dot1x mac-auth</code> and every dot1x timer left alone, a silent client (no supplicant at all) waited <strong>about 165 seconds</strong> before the switch gave up on 802.1X and tried MAC auth. A printer that waits three minutes for its DHCP lease usually gives up first.</p>
+<p><code>initial-auth-response-timeout 10</code> under the port's dot1x authenticator cut that to <strong>about 10 seconds</strong>. It's the timer for the very first EAPOL response. A device that never answers is moved on quickly, and a laptop that answers is unaffected.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 390" role="img" aria-label="AOS-CX 10.18 edge port timeline: Laptop, supplicant, about 3 s; Printer, no supplicant, about 10 s with initial-auth-response-timeout 10.  Critical path: 802.1X times out, then MAC auth times out, then critical-role CRITICAL. Reject path: 802.1X or MAC auth, then Server-Reject, then reject-role QUARANTINE.">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="20" y="28" class="t hd" font-size="12" fill="#fff">One port, four outcomes, link up to authorized.</text>
+  <text x="20" y="56" class="m" font-size="11" fill="#8BA2AE">TO SCALE, SECONDS FROM LINK UP</text>
+  <path d="M190 64 L190 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="190" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">0 s</text>
+  <path d="M305 64 L305 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="305" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">30 s</text>
+  <path d="M420 64 L420 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="420" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">60 s</text>
+  <path d="M535 64 L535 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="535" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">90 s</text>
+  <path d="M650 64 L650 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="650" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">120 s</text>
+  <path d="M765 64 L765 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="765" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">150 s</text>
+  <path d="M880 64 L880 196" stroke="#ffffff" stroke-opacity="0.07"/>
+  <text x="880" y="210" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">180 s</text>
+  <text x="20" y="91" class="t" font-size="12" fill="#EAF2F6" font-weight="600">Laptop, supplicant</text>
+  <rect x="190" y="72" width="11.5" height="26" rx="5" fill="#5ED2DA" fill-opacity="0.25" stroke="#5ED2DA" stroke-width="1"/>
+  <rect x="201.5" y="72" width="678.5" height="26" rx="5" fill="#8CE05E" stroke="#8CE05E" stroke-width="1"/>
+  <text x="211.5" y="89.5" class="t" font-size="12" fill="#06202A" font-weight="700">authorized</text>
+  <text x="870" y="89.5" class="t" font-size="11" fill="#06202A" text-anchor="end">about 3 s</text>
+  <text x="20" y="153" class="t" font-size="12" fill="#EAF2F6" font-weight="600">Printer, no supplicant</text>
+  <rect x="190" y="134" width="38.3333" height="26" rx="5" fill="#8BA2AE" fill-opacity="0.25" stroke="#8BA2AE" stroke-width="1"/>
+  <rect x="228.333" y="134" width="11.5" height="26" rx="5" fill="#4FBDEA" fill-opacity="0.25" stroke="#4FBDEA" stroke-width="1"/>
+  <rect x="239.833" y="134" width="640.167" height="26" rx="5" fill="#8CE05E" stroke="#8CE05E" stroke-width="1"/>
+  <text x="249.833" y="151.5" class="t" font-size="12" fill="#06202A" font-weight="700">authorized</text>
+  <text x="870" y="151.5" class="t" font-size="11" fill="#06202A" text-anchor="end">about 10 s with initial-auth-response-timeout 10</text>
+  <path d="M190 164 L190 168 L822.5 168 L822.5 164" stroke="#8BA2AE" stroke-width="1.3" fill="none" stroke-dasharray="4 4"/>
+  <text x="830.5" y="172" class="t" font-size="11" fill="#8BA2AE">defaults: about 165 s</text>
+  <text x="20" y="244" class="m" font-size="11" fill="#8BA2AE">SEQUENCE</text>
+  <text x="20" y="274" class="t" font-size="12" fill="#EAF2F6" font-weight="600">All servers down</text>
+  <rect x="190" y="252" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.3"/>
+  <text x="295" y="274" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">802.1X times out</text>
+  <path d="M402 269 L425 269" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#at)"/>
+  <rect x="428" y="252" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.3"/>
+  <text x="533" y="274" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">MAC auth times out</text>
+  <path d="M640 269 L663 269" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#at)"/>
+  <rect x="666" y="252" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="771" y="274" class="t" font-size="12" fill="#EAF2F6" text-anchor="middle" font-weight="700">critical-role CRITICAL</text>
+  <text x="880" y="304" class="t" font-size="11" fill="#8BA2AE" text-anchor="end">--|c|-|s, Authentication Failed, Server-Timeout</text>
+  <text x="20" y="334" class="t" font-size="12" fill="#EAF2F6" font-weight="600">Rejected</text>
+  <rect x="190" y="312" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.3"/>
+  <text x="295" y="334" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">802.1X or MAC auth</text>
+  <path d="M402 329 L425 329" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#at)"/>
+  <rect x="428" y="312" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.3"/>
+  <text x="533" y="334" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">Server-Reject</text>
+  <path d="M640 329 L663 329" stroke="#5ED2DA" stroke-width="1.6" fill="none" marker-end="url(#at)"/>
+  <rect x="666" y="312" width="210" height="34" rx="8" fill="rgba(3,10,16,0.55)" stroke="#8BA2AE" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <text x="771" y="334" class="t" font-size="12" fill="#EAF2F6" text-anchor="middle" font-weight="700">reject-role QUARANTINE</text>
+  <text x="880" y="364" class="t" font-size="11" fill="#8BA2AE" text-anchor="end">the switch never says why: read Access Tracker</text>
+  <text x="20" y="382" class="t" font-size="11" fill="#8BA2AE">Bench: CX 10.18.1002 with ClearPass 6.11.1, September 2026.</text>
+</svg><figcaption>One port, four outcomes. A supplicant is authorized in a couple of seconds, a silent printer reaches MAC auth in about 10, a dead cluster gives the critical role, and a reject gives quarantine.</figcaption></figure>
+<p>What that timer doesn't cover is a supplicant that starts EAP and then stalls, which is what a laptop with a broken PEAP profile does. It answered the first request, so the initial timer is already satisfied. <code>eapol-timeout 10</code> brought that case to about 122 seconds on my bench, and adding <code>max-eapol-requests 1</code> brought it to about 42.</p>
+<p>You'll see <code>auth-precedence mac-auth dot1x</code> suggested to get printers on faster. It does: under 3 seconds. But a MAC auth accept ends the conversation, so a laptop whose MAC ClearPass knows never tries 802.1X at all. Leave dot1x first and fix the timers.</p>
+<p>The two fallbacks:</p>
+<ul>
+<li><strong>All servers down.</strong> dot1x times out, MAC auth times out, and <code>critical-role</code> applies. On my bench the client showed role <code>CRITICAL, Critical</code>, flags <code>--|c|-|s</code>, and the reason "Authentication Failed, Server-Timeout".</li>
+<li><strong>Rejected.</strong> <code>reject-role</code> applies. I put it in a quarantine VLAN.</li>
+</ul>
+<p>The switch only ever says <strong>Server-Reject</strong>. Never why. The reason lives in Access Tracker:</p>
 <table>
 <thead>
 <tr>
-<th>Check</th>
-<th>Where</th>
+<th>What happened</th>
+<th>Access Tracker</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Clocks in sync</td>
-<td>NTP on every node</td>
+<td>Wrong PEAP password</td>
+<td>REJECT, error 216 "User authentication failed", alert "MSCHAP: Authentication failed"</td>
 </tr>
 <tr>
-<td>Policy Manager ticked under Enable SSO for</td>
-<td>Configuration, Identity, Single Sign-On</td>
+<td>Unknown MAC under [MAC AUTH]</td>
+<td>REJECT, error 216, "[Endpoints Repository] localhost: User not found"</td>
 </tr>
 <tr>
-<td>IdP signing cert imported to the Trust List, then selected</td>
-<td>Same page, after Certificate Trust List</td>
-</tr>
-<tr>
-<td>Entity ID and Reply URL copied from SP metadata</td>
-<td>Entra enterprise app</td>
-</tr>
-<tr>
-<td>Every cluster node's ACS URL is a Reply URL in Entra</td>
-<td>Entra enterprise app</td>
-</tr>
-<tr>
-<td>Policy Manager Admin SSO Login service exists, type Aruba Application Authorization</td>
-<td>Service Templates and Wizards</td>
-</tr>
-<tr>
-<td>Generic Application Enforcement profile maps to a real admin privilege level</td>
-<td>The service's enforcement policy</td>
-</tr>
-<tr>
-<td>Group claim attributes added to the SSO dictionary, if you map roles on groups</td>
-<td>Administration, Dictionaries, Applications</td>
-</tr>
-<tr>
-<td>Force Authentication on, if MFA every time is the requirement</td>
-<td>Single Sign-On page</td>
-</tr>
-<tr>
-<td>Name ID attribute matches what the service looks up</td>
-<td>Entra claims vs ClearPass conditions</td>
-</tr>
-<tr>
-<td>Request visible in Access Tracker</td>
-<td>Monitoring</td>
+<td>Supplicant didn't answer the retry</td>
+<td>TIMEOUT, error 9002 "Request timed out", "Client did not complete EAP transaction"</td>
 </tr>
 </tbody>
 </table>
-<h2>Bottom line</h2>
-<p>SAML everywhere you can, RADIUS and TACACS+ where you must. That was the consensus on the thread and I agree with it. Just know that on ClearPass, SAML is two builds, not one, and the second one is the one that gives you a role.</p></div>
+<p>One more trap. If ClearPass returns an <code>Aruba-User-Role</code> the switch doesn't have, the client authenticates and is never authorized. No fallback, no log line on 10.18.1002. Role names are case sensitive and must match exactly.</p>
+<h2>Phone and PC on one port</h2>
+<p><code>aaa authentication port-access auth-mode multi-domain</code> gives the port one voice device and one data device. The voice device is whoever holds a role with <code>device-traffic-class voice</code>, so ClearPass decides which one is the phone by which role it returns.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-label="AOS-CX 10.18 phone and PC on one port. The phone is in the voice domain, tagged in the voice VLAN, because ClearPass returns a role with device-traffic-class voice. The PC is in the data domain with the VLAN from its own authorization.">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="20" y="28" class="t hd" font-size="12" fill="#fff">Two sessions on one port. Each gets its VLAN from its own authorization.</text>
+  <rect x="20" y="150" width="120" height="60" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <text x="80" y="178" class="t" font-size="14" fill="#EAF2F6" text-anchor="middle" font-weight="700">PC</text>
+  <text x="80" y="197" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">data device</text>
+  <path d="M142 180 L182 180" stroke="#B0C4CF" stroke-width="1.6" fill="none" marker-end="url(#am)"/>
+  <rect x="186" y="150" width="130" height="60" rx="10" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="251" y="178" class="t" font-size="14" fill="#EAF2F6" text-anchor="middle" font-weight="700">IP phone</text>
+  <text x="251" y="197" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">voice device</text>
+  <path d="M318 180 L360 180" stroke="#B0C4CF" stroke-width="1.6" fill="none" marker-end="url(#am)"/>
+  <rect x="364" y="120" width="150" height="120" rx="10" fill="rgba(3,10,16,0.55)" stroke="#4FBDEA" stroke-width="1.5"/>
+  <text x="439" y="150" class="m" font-size="11" fill="#8BA2AE" text-anchor="middle">EDGE PORT</text>
+  <text x="439" y="176" class="t" font-size="13" fill="#EAF2F6" text-anchor="middle" font-weight="700">AOS-CX 10.18</text>
+  <text x="439" y="200" class="m" font-size="11" fill="#4FBDEA" text-anchor="middle">auth-mode multi-domain</text>
+  <path d="M380 116 C 340 80, 290 90, 262 146" stroke="#8CE05E" stroke-width="1.8" fill="none" marker-end="url(#ag)"/>
+  <text x="200" y="82" class="t" font-size="12" fill="#8CE05E">LLDP-MED: VOICE, tagged</text>
+  <rect x="548" y="60" width="332" height="110" rx="10" fill="rgba(3,10,16,0.55)" stroke="#8CE05E" stroke-width="1.4"/>
+  <text x="566" y="86" class="m" font-size="11" fill="#8CE05E">VOICE DOMAIN</text>
+  <text x="566" y="110" class="t" font-size="14" fill="#EAF2F6" font-weight="700">VOICE VLAN, tagged</text>
+  <text x="566" y="134" class="t" font-size="12" fill="#B0C4CF">ClearPass returns a role with</text>
+  <text x="566" y="154" class="m" font-size="12" fill="#5ED2DA">device-traffic-class voice</text>
+  <rect x="548" y="184" width="332" height="110" rx="10" fill="rgba(3,10,16,0.55)" stroke="#4FBDEA" stroke-width="1.4"/>
+  <text x="566" y="210" class="m" font-size="11" fill="#4FBDEA">DATA DOMAIN</text>
+  <text x="566" y="234" class="t" font-size="14" fill="#EAF2F6" font-weight="700">DATA VLAN, untagged</text>
+  <text x="566" y="258" class="t" font-size="12" fill="#B0C4CF">ClearPass returns EMPLOYEE,</text>
+  <text x="566" y="278" class="t" font-size="12" fill="#B0C4CF">PRINTERS or QUARANTINE</text>
+  <path d="M516 160 L544 120" stroke="#8CE05E" stroke-width="1.6" fill="none" marker-end="url(#ag)"/>
+  <path d="M516 200 L544 238" stroke="#4FBDEA" stroke-width="1.6" fill="none" marker-end="url(#ab)"/>
+  <text x="20" y="318" class="t" font-size="11" fill="#B0C4CF">allow-lldp-bpdu on the port, or an unauthenticated phone&#x27;s LLDP is dropped and it never learns the voice VLAN.</text>
+</svg><figcaption>Two sessions on one port. The phone's role adds the tagged voice VLAN and nothing else; the PC's VLAN comes from its own authorization.</figcaption></figure>
+<p>Three things I'd get right first time:</p>
+<ol>
+<li><strong><code>allow-lldp-bpdu</code> on the port.</strong> A port-access port drops LLDP from a client that hasn't authenticated. Without it, a phone that needs LLDP-MED to learn its voice VLAN never hears it.</li>
+<li><strong>The phone's role only adds the voice VLAN.</strong> <code>vlan trunk allowed &lt;VOICE-VLAN&gt;</code> and <code>device-traffic-class voice</code>. Don't pin <code>vlan trunk native</code> in it. The native VLAN is the data device's business, and a printer or a quarantined PC behind the phone should still land where its own authorization says.</li>
+<li><strong>Mark the voice VLAN with <code>voice</code>.</strong> That's what makes LLDP-MED advertise it as the voice network policy.</li>
+</ol>
+<p>And one thing I'd avoid: an LLDP-MED device profile as a way to get phones on without ClearPass. On a secured port that's an open door, because any device can send the TIA OUI <code>00-12-BB</code> in an LLDP-MED frame and land in the phone role. If what you're worried about is an outage, <code>critical-voice-role</code> is the tool: HPE documents it for a multi-domain port whose servers go unreachable at reauthentication, so a phone that was working keeps its voice VLAN.</p>
+<h2>CoA, accounting and TACACS</h2>
+<p>Three conversations, three ports, two directions. The one that trips people is CoA, because it's the only one ClearPass starts.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-label="AOS-CX 10.18 and ClearPass: the switch sends RADIUS on 1812, accounting on 1813 and TACACS+ on TCP 49; ClearPass sends CoA to the switch on UDP 3799. The trap: aaa authorization commands ssh group CPPM-TAC none Every command goes to ClearPass. A user it doesn&#x27;t know can&#x27;t run anything, local admin included. Turn it on last, from a TACACS admin session, with checkpoint auto.">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="20" y="28" class="t hd" font-size="12" fill="#fff">Who starts each conversation.</text>
+  <rect x="20" y="60" width="150" height="236" rx="10" fill="rgba(3,10,16,0.55)" stroke="#4FBDEA" stroke-width="1.3"/>
+  <text x="95" y="172" class="t" font-size="13" fill="#EAF2F6" text-anchor="middle" font-weight="700">AOS-CX 10.18</text>
+  <text x="95" y="192" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">switch</text>
+  <rect x="430" y="60" width="150" height="236" rx="10" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="505" y="164" class="t" font-size="14" fill="#EAF2F6" text-anchor="middle" font-weight="700">ClearPass</text>
+  <text x="505" y="184" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">four nodes</text>
+  <path d="M172 92 L426 92" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="186" y="84" class="m" font-size="12" fill="#5ED2DA" font-weight="700">UDP 1812</text>
+  <text x="414" y="84" class="t" font-size="12" fill="#B0C4CF" text-anchor="end">RADIUS auth</text>
+  <path d="M172 142 L426 142" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="186" y="134" class="m" font-size="12" fill="#5ED2DA" font-weight="700">UDP 1813</text>
+  <text x="414" y="134" class="t" font-size="12" fill="#B0C4CF" text-anchor="end">accounting</text>
+  <path d="M172 192 L426 192" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="186" y="184" class="m" font-size="12" fill="#5ED2DA" font-weight="700">TCP 49</text>
+  <text x="414" y="184" class="t" font-size="12" fill="#B0C4CF" text-anchor="end">TACACS+</text>
+  <path d="M428 254 L174 254" stroke="#8CE05E" stroke-width="2.2" fill="none" marker-end="url(#ag)"/>
+  <text x="186" y="246" class="m" font-size="12" fill="#8CE05E" font-weight="700">UDP 3799</text>
+  <text x="414" y="246" class="t" font-size="12" fill="#B0C4CF" text-anchor="end">CoA, ClearPass starts it</text>
+  <text x="300" y="274" class="t" font-size="11" fill="#8BA2AE" text-anchor="middle">radius dyn-authorization client, per node</text>
+  <rect x="606" y="60" width="274" height="236" rx="10" fill="rgba(3,10,16,0.55)" stroke="#F5A524" stroke-width="1.5"/>
+  <text x="624" y="86" class="m" font-size="11" fill="#F5A524" font-weight="700">THE TRAP</text>
+  <text x="624" y="112" class="m" font-size="11.5" fill="#F5A524">aaa authorization commands ssh</text>
+  <text x="624" y="131" class="m" font-size="11.5" fill="#F5A524">group CPPM-TAC none</text>
+  <text x="624" y="160" class="t" font-size="12" fill="#B0C4CF">Every command goes to ClearPass.</text>
+  <text x="624" y="179" class="t" font-size="12" fill="#B0C4CF">A user it doesn&#x27;t know can&#x27;t run</text>
+  <text x="624" y="198" class="t" font-size="12" fill="#B0C4CF">anything, local admin included.</text>
+  <text x="624" y="227" class="t" font-size="12" fill="#B0C4CF">Turn it on last, from a TACACS</text>
+  <text x="624" y="246" class="t" font-size="12" fill="#B0C4CF">admin session, with checkpoint auto.</text>
+  <text x="20" y="318" class="t" font-size="11" fill="#8BA2AE">1812, 1813 and 49 start at the switch. Only CoA starts at ClearPass, so only CoA needs the switch to be listening.</text>
+</svg><figcaption>Who starts each conversation. The switch talks to ClearPass on 1812, 1813 and 49; ClearPass talks to the switch on 3799. The trap is command authorization turned on before ClearPass has a policy.</figcaption></figure>
+<p><strong>CoA.</strong> <code>radius dyn-authorization enable</code> turns on the listener on UDP 3799. It still drops everything until each ClearPass node is named with <code>radius dyn-authorization client &lt;CPPMn-IP&gt; secret-key ... vrf &lt;MGMT-VRF&gt;</code>. Without that line the request isn't refused, it's discarded and counted as an invalid client address in <code>show radius dyn-authorization</code>, which is easy to miss.</p>
+<p>Pick the right enforcement profile on the ClearPass side. On my bench the switch's default strict mode NAKed a request that carried only Calling-Station-Id (Error-Cause Missing-Attribute). The ArubaOS Wireless Terminate Session profile sends exactly that and fails. The AOS-CX Disconnect profile worked (Disconnect-ACK), and the AOS-CX Bounce Switch Port profile was the only one the switch counted as a CoA. Bounce is the one to avoid on a phone port.</p>
+<p><strong>Accounting.</strong> <code>aaa accounting port-access start-stop interim 30 group CPPM</code>. ClearPass files the records against the session of the service that authenticated the client. It doesn't run a service's enforcement from accounting, so don't build policy that expects it to.</p>
+<p><strong>TACACS.</strong> The ClearPass TACACS profile header has a Privilege Level field. On my bench that alone got me "Permission denied" on the switch while Access Tracker showed ACCEPT. Add Shell <code>priv-lvl</code> (15 or 1) or a custom Shell attribute <code>Aruba-Admin-Role</code> (administrators, operators, auditors). If both are there, Aruba-Admin-Role wins. Every session asks for service <code>Aruba:common</code> before <code>shell</code>, so "Tacacs service=Aruba:common not enabled" in Access Tracker is harmless.</p>
+<p>The trap is command authorization. <code>aaa authorization commands ssh group CPPM-TAC none</code> sends every command to ClearPass, and a user ClearPass doesn't know can't run anything, the local admin included ("Cannot execute command"). The <code>none</code> fallback only applies when every server is unreachable, not when one answers no. Turn it on last, from a TACACS admin session, with a rollback timer armed. And leave <code>aaa authentication allow-fail-through</code> off: it lets a login ClearPass rejected fall through to the local database, which is not what break glass is supposed to mean.</p>
+<p>If you use downloadable roles, the switch needs the CA that signed ClearPass's HTTPS certificate as a <code>crypto pki ta-profile</code>. The factory self signed certificate is refused as a trust anchor. That's a post of its own.</p>
+<h2>Edge hardening checklist</h2>
+<ul>
+<li>Four ClearPass nodes in one RADIUS group and one TACACS group, all in the management VRF.</li>
+<li>Tracking on every host, its own account and service, 300 second interval.</li>
+<li><code>critical-role</code>, <code>critical-voice-role</code> and <code>reject-role</code> on every port.</li>
+<li>A <code>radius dyn-authorization client</code> line for every node, not just the one you tested from.</li>
+<li>Port access accounting with an interim interval.</li>
+<li>TACACS login with <code>local</code> after the group, so local only works when every server is unreachable. Console stays local.</li>
+<li>Command authorization last, and only after the ClearPass TACACS policy is proven.</li>
+<li><code>spanning-tree bpdu-guard</code> and <code>admin-edge</code> on every edge port, plus <code>loop-protect</code> for the unmanaged switch under a desk. On 10.18 <code>show interface brief</code> leaves the Reason column empty for a BPDU guard trip; <code>show spanning-tree</code> says Bpdu-Error. Recover with shutdown then no shutdown, or set <code>spanning-tree bpdu-guard timeout</code>.</li>
+<li>DHCP snooping on the user VLANs and <code>ipv4 source-lockdown</code> on the ports. Dynamic ARP inspection is a hardware feature on the 6200 and 6300; the Switch Simulator I validate against doesn't carry it, so check the exact syntax for your platform in HPE's security guide before you paste it.</li>
+<li>An SSH allow-list, as its own step: enabling it restarts SSH on every VRF and drops live sessions.</li>
+<li>Banner, a 15 minute CLI idle timeout, two NTP servers (802.1X logs and certificates both care what time it is), syslog.</li>
+<li><code>checkpoint auto</code> before any AAA change.</li>
+</ul>
+<h2>The config</h2>
+<p>Everything in angle brackets is yours to fill in. I keep management, RADIUS and TACACS in the management VRF; on 10.18 that also means <code>ssh server vrf</code> and <code>https-server vrf</code> for that VRF, or you can't log in over it.</p>
+<p>Arm a rollback first. <code>checkpoint auto 10</code> rolls the config back after 10 minutes unless you confirm, and it rolls back as soon as the session that armed it ends unless you've run <code>checkpoint auto confirm</code>. That's exactly what you want around AAA: if your change locks you out, your session ends and the switch puts it back.</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div><pre><code><span class="ln"><span class="pr">edge-sw# </span>checkpoint auto 10</span><span class="ln"><span class="pr">edge-sw# </span>configure terminal</span><span class="ln"> </span><span class="ln">hostname &lt;SWITCH-NAME&gt;</span><span class="ln">banner motd ^</span><span class="ln">Authorized use only. Activity is logged.</span><span class="ln">^</span><span class="ln">ntp server &lt;NTP1-IP&gt; iburst</span><span class="ln">ntp server &lt;NTP2-IP&gt; iburst</span><span class="ln">ntp enable</span><span class="ln">ntp vrf &lt;MGMT-VRF&gt;</span><span class="ln">logging &lt;SYSLOG-IP&gt; vrf &lt;MGMT-VRF&gt; severity info</span><span class="ln">cli-session</span><span class="ln">    timeout 15</span><span class="ln">ssh server vrf &lt;MGMT-VRF&gt;</span><span class="ln">https-server vrf &lt;MGMT-VRF&gt;</span><span class="ln">system serviceos password-prompt</span><span class="ln"> </span><span class="ln">! RADIUS: four nodes, tracked</span><span class="ln">radius-server tracking user-name svc-radius-probe password plaintext &lt;PROBE-PASSWORD&gt;</span><span class="ln">radius-server tracking interval 300</span><span class="ln">radius-server host &lt;CPPM1-IP&gt; key plaintext &lt;RADIUS-KEY&gt; vrf &lt;MGMT-VRF&gt; tracking enable</span><span class="ln">radius-server host &lt;CPPM2-IP&gt; key plaintext &lt;RADIUS-KEY&gt; vrf &lt;MGMT-VRF&gt; tracking enable</span><span class="ln">radius-server host &lt;CPPM3-IP&gt; key plaintext &lt;RADIUS-KEY&gt; vrf &lt;MGMT-VRF&gt; tracking enable</span><span class="ln">radius-server host &lt;CPPM4-IP&gt; key plaintext &lt;RADIUS-KEY&gt; vrf &lt;MGMT-VRF&gt; tracking enable</span><span class="ln">aaa group server radius CPPM</span><span class="ln">    server &lt;CPPM1-IP&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">    server &lt;CPPM2-IP&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">    server &lt;CPPM3-IP&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">    server &lt;CPPM4-IP&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln"> </span><span class="ln">! CoA: enable, then name every node</span><span class="ln">radius dyn-authorization enable</span><span class="ln">radius dyn-authorization client &lt;CPPM1-IP&gt; secret-key plaintext &lt;RADIUS-KEY&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">radius dyn-authorization client &lt;CPPM2-IP&gt; secret-key plaintext &lt;RADIUS-KEY&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">radius dyn-authorization client &lt;CPPM3-IP&gt; secret-key plaintext &lt;RADIUS-KEY&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">radius dyn-authorization client &lt;CPPM4-IP&gt; secret-key plaintext &lt;RADIUS-KEY&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln"> </span><span class="ln">! TACACS: login and accounting. Command authorization is step 2, below.</span><span class="ln">tacacs-server host &lt;CPPM1-IP&gt; key plaintext &lt;TACACS-KEY&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">tacacs-server host &lt;CPPM2-IP&gt; key plaintext &lt;TACACS-KEY&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">tacacs-server host &lt;CPPM3-IP&gt; key plaintext &lt;TACACS-KEY&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">tacacs-server host &lt;CPPM4-IP&gt; key plaintext &lt;TACACS-KEY&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">aaa group server tacacs CPPM-TAC</span><span class="ln">    server &lt;CPPM1-IP&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">    server &lt;CPPM2-IP&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">    server &lt;CPPM3-IP&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">    server &lt;CPPM4-IP&gt; vrf &lt;MGMT-VRF&gt;</span><span class="ln">aaa authentication login ssh group CPPM-TAC local</span><span class="ln">aaa authentication login https-server group CPPM-TAC local</span><span class="ln">aaa authentication login console local</span><span class="ln">aaa accounting all-mgmt default start-stop group CPPM-TAC local</span><span class="ln">aaa accounting port-access start-stop interim 30 group CPPM</span><span class="ln"> </span><span class="ln">! VLANs and roles</span><span class="ln">vlan &lt;DATA-VLAN&gt;</span><span class="ln">    name DATA</span><span class="ln">    dhcpv4-snooping</span><span class="ln">vlan &lt;VOICE-VLAN&gt;</span><span class="ln">    name VOICE</span><span class="ln">    voice</span><span class="ln">    dhcpv4-snooping</span><span class="ln">vlan &lt;PRINTER-VLAN&gt;</span><span class="ln">    name Printers</span><span class="ln">    dhcpv4-snooping</span><span class="ln">vlan &lt;QUAR-VLAN&gt;</span><span class="ln">    name QUARANTINE</span><span class="ln">    dhcpv4-snooping</span><span class="ln">dhcpv4-snooping</span><span class="ln">port-access role EMPLOYEE</span><span class="ln">    vlan access &lt;DATA-VLAN&gt;</span><span class="ln">port-access role PRINTERS</span><span class="ln">    vlan access &lt;PRINTER-VLAN&gt;</span><span class="ln">port-access role PHONE</span><span class="ln">    device-traffic-class voice</span><span class="ln">    vlan trunk allowed &lt;VOICE-VLAN&gt;</span><span class="ln">port-access role QUARANTINE</span><span class="ln">    vlan access &lt;QUAR-VLAN&gt;</span><span class="ln">port-access role CRITICAL</span><span class="ln">    vlan access &lt;DATA-VLAN&gt;</span><span class="ln">port-access role CRITICAL-VOICE</span><span class="ln">    device-traffic-class voice</span><span class="ln">    vlan trunk allowed &lt;VOICE-VLAN&gt;</span><span class="ln">aaa authentication port-access dot1x authenticator</span><span class="ln">    radius server-group CPPM</span><span class="ln">    enable</span><span class="ln">aaa authentication port-access mac-auth</span><span class="ln">    radius server-group CPPM</span><span class="ln">    enable</span><span class="ln">spanning-tree</span><span class="ln">spanning-tree bpdu-guard timeout 300</span><span class="ln"> </span><span class="ln">! One edge port. Repeat or use a range.</span><span class="ln">interface &lt;EDGE-PORT&gt;</span><span class="ln">    no shutdown</span><span class="ln">    no routing</span><span class="ln">    vlan access &lt;DATA-VLAN&gt;</span><span class="ln">    spanning-tree bpdu-guard</span><span class="ln">    spanning-tree port-type admin-edge</span><span class="ln">    loop-protect</span><span class="ln">    ipv4 source-lockdown</span><span class="ln">    aaa authentication port-access auth-mode multi-domain</span><span class="ln">    aaa authentication port-access allow-lldp-bpdu</span><span class="ln">    aaa authentication port-access critical-role CRITICAL</span><span class="ln">    aaa authentication port-access critical-voice-role CRITICAL-VOICE</span><span class="ln">    aaa authentication port-access reject-role QUARANTINE</span><span class="ln">    aaa authentication port-access dot1x authenticator</span><span class="ln">        initial-auth-response-timeout 10</span><span class="ln">        eapol-timeout 10</span><span class="ln">        max-eapol-requests 1</span><span class="ln">        reauth</span><span class="ln">        enable</span><span class="ln">    aaa authentication port-access mac-auth</span><span class="ln">        enable</span><span class="ln"> </span><span class="ln">! Uplink trusts DHCP</span><span class="ln">interface &lt;UPLINK-PORT&gt;</span><span class="ln">    dhcpv4-snooping trust</span><span class="ln"> </span><span class="ln">end</span><span class="ln"><span class="pr">edge-sw# </span>checkpoint auto confirm</span></code></pre></div>
+<p>Then two separate steps, each with its own <code>checkpoint auto</code>, each confirmed from a fresh session before you close the old one:</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div><pre><code><span class="ln">! Step 2: only after a TACACS admin login works and ClearPass returns Aruba-Admin-Role</span><span class="ln">aaa authorization commands ssh group CPPM-TAC none</span><span class="ln"> </span><span class="ln">! Step 3: drops every SSH session on the switch when it applies</span><span class="ln">ssh server allow-list</span><span class="ln">    ip &lt;MGMT-SUBNET&gt;</span><span class="ln">    enable</span></code></pre></div>
+<p>On the ClearPass side, each switch is a network device with the RADIUS key, the TACACS key, the Aruba vendor, and CoA on port 3799, in the NAD group the probe service matches. I return <code>Aruba-User-Role</code> with one of the role names above, spelled exactly the same.</p>
+<h2>How to prove it works</h2>
+<p><strong>Tracking.</strong> <code>show radius-server</code> puts a star in front of a server the switch has marked unreachable. <code>show radius-server detail</code> gives tracking per server. <code>show events -e 2304</code> is the reachable log. Then stop the RADIUS service on one node and watch it get a star within one interval, without a client having to fail first.</p>
+<p><strong>A laptop.</strong> <code>show port-access clients</code> should show <code>1x|c|-|s</code> with the role ClearPass returned. <code>show aaa authentication port-access interface all client-status</code> shows the full authentication and authorization blocks if it doesn't.</p>
+<p><strong>A printer.</strong> Same command, <code>ma</code> in the first flag. Time it from link up. With the template it should be around 10 seconds, not three minutes.</p>
+<p><strong>The phone.</strong> <code>show lldp neighbor-info &lt;EDGE-PORT&gt;</code> should show its LLDP-MED class and the voice network policy. <code>show port-access clients</code> should list two clients on the port, one with the voice device type.</p>
+<p><strong>The fallbacks.</strong> Block UDP 1812 to all four nodes from a test switch and bounce a port: <code>CRITICAL, Critical</code> with <code>--|c|-|s</code>. Put a bad password on a test laptop: <code>QUARANTINE</code>, and the reason in Access Tracker, not on the switch.</p>
+<p><strong>CoA.</strong> Send a disconnect from Access Tracker using the AOS-CX Disconnect profile. <code>show radius dyn-authorization</code> should count a Disconnect-ACK for that node. If the invalid client address counter moved instead, that node is missing its client line.</p>
+<p><strong>Accounting and TACACS.</strong> <code>show radius-server statistics authentication</code> for counters per server, and the Accounting tab of the session in Access Tracker. Log in over SSH as a TACACS user and check that you land as the role you meant before you go anywhere near step 2.</p>
+<p>Tracking doesn't prove ClearPass will say yes. It proves ClearPass will answer. Build the probe account and its service so the answer it gets is one you'd actually want to read.</p></div>
       
     </div>
-    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>ClearPass, properly <span class="meta">part 1 of 3</span></h3><div class="ser-steps"><a class="ser-step here" href="saml-login-validates-and-still-fails.html"><span class="ser-n">1</span><span class="ser-t">Your ClearPass SAML Login Validates and Still Fails</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="clearpass-intune-eap-tls-lab.html"><span class="ser-n">2</span><span class="ser-t">Your ClearPass Intune Integration Probably Authenticates Nothing</span><span class="ser-tag">Next</span></a><a class="ser-step" href="which-clearpass-node-polls-your-switch.html"><span class="ser-n">3</span><span class="ser-t">Which ClearPass Node Is Actually Polling Your Switch</span></a></div></section>
+    <section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>ClearPass at the Edge <span class="meta">part 1 of 3</span></h3><div class="ser-steps"><a class="ser-step here" href="cx-counts-a-reject-as-alive.html"><span class="ser-n">1</span><span class="ser-t">Your CX Switch Counts a Reject as Proof ClearPass Is Alive</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="ibns-coa-wrong-port.html"><span class="ser-n">2</span><span class="ser-t">IBNS 2.0 Listens for CoA on the Wrong Port Until You Tell It Otherwise</span><span class="ser-tag">Next</span></a><a class="ser-step" href="junos-dot1x-first-timeout.html"><span class="ser-n">3</span><span class="ser-t">Junos 802.1X With ClearPass: Plan for the First Timeout</span></a></div></section>
     <section class="readmark g-card" data-rise><label class="rm-label"><input type="checkbox" id="readmark-box"><span>Mark as read</span></label><span class="rm-say" id="readmark-say"></span></section>
-    <section class="c-wrap g-card" id="comments" data-rise data-slug="saml-login-validates-and-still-fails" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="cx-counts-a-reject-as-alive" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
   <style>
   .c-wrap{padding:var(--s5);margin-top:var(--s5)}
   .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
@@ -1631,7 +1832,7 @@ Entra enterprise app
 
     <section class="end g-card" data-rise>
       <h3>More field notes</h3>
-      <div class="postnav"><a class="pn g-card" href="when-the-docs-disagree.html"><span class="eyebrow">Older</span>When the Docs Disagree With Themselves, Somebody Has to Decide</a><a class="pn g-card" href="one-pilot-ap-converts-all-of-them.html"><span class="eyebrow">Newer</span>One Pilot AP Converts All Hundred of Them</a></div>
+      <div class="postnav"><a class="pn g-card" href="mlo-isnt-a-speed-feature.html"><span class="eyebrow">Older</span>Wi-Fi 7 MLO Isn&#x27;t a Speed Feature. Walk Around and You&#x27;ll See Why.</a><a class="pn g-card" href="ibns-coa-wrong-port.html"><span class="eyebrow">Newer</span>IBNS 2.0 Listens for CoA on the Wrong Port Until You Tell It Otherwise</a></div>
     </section>
   </article>
 </div>
