@@ -40,9 +40,11 @@ https://claude.ai/code/session_01NMUYmeMDFLNA979QC6UcNS
 
 ## The CX Sandbox (live since 2026-09-25; the rebuild went live 2026-09-28)
 
-- **Built 2026-10-05, not pushed yet**: the fake ClearPass panel (Access Tracker rows, Change Status, TACACS profiles) and four labs from the 2026-09-29 bench, `sc-11-timers` (sandbox clock), `sc-12-coa`, `sc-13-tacacs`, `sc-14-ckauto`; usage events now count a start only for the lab a reader opens. Phase 3 (VSX, routing, automation) waits on labbing them on the QEMU bench first.
+- **Built 2026-10-05, live with PR #2**: the fake ClearPass panel (Access Tracker rows, Change Status, TACACS profiles) and four labs from the 2026-09-29 bench, `sc-11-timers` (sandbox clock), `sc-12-coa`, `sc-13-tacacs`, `sc-14-ckauto`; usage events now count a start only for the lab a reader opens. The three ClearPass at the Edge posts (CX, Cisco 9300, Junos EX) are held on `claude/clearpass-edge-posts` (PR #3) until they are reviewed and get real dates.
 
-- **Live**: `sandbox.html`, a modelled AOS-CX switch with a fake ClearPass, eighteen labs plus free
+- **Phase 3, decided 2026-10-06**: VSX first, then EVPN/VXLAN, then REST. The 6300 does VSF, not VSX, so the VSX labs need a new modelled box, an 8360. The bench test comes before any sandbox work: four simulator VMs on loopback UDP (two VSX peers with ISL LAG and a keepalive in its own VRF, one downstream switch on a multi-chassis LAG, one spare for a remote VTEP later), proving the VSX state, MCLAG, split brain with ISL and keepalive failures, `vsx-sync`, `active-gateway`, and a `list` capture of the new contexts on all four releases.
+
+- **Live**: `sandbox.html`, a modelled AOS-CX switch with a fake ClearPass, twenty-two labs plus free
   play, `{{cxsim: <lab>}}` for posts, and four pages around it: `cx-notes.html`, `cx-check.html`,
   `cx-build.html`, `cx-guide.html`. Usage events are flowing (`sandbox_events` has rows since
   2026-09-25), so the Worker and the table are deployed.
