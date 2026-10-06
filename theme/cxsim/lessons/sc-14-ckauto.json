@@ -1,0 +1,62 @@
+{
+ "id": "sc-14-ckauto",
+ "title": "Scenario 14: a change that undoes itself",
+ "track": "Scenarios",
+ "number": 14,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "mgmt": {
+  "lease": "192.0.2.15/24"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF"
+ ],
+ "task": "You manage this switch over SSH at its DHCP address, 192.0.2.15. The change ticket: give the management port the static address 192.0.2.51/24 with gateway 192.0.2.1, and add VLAN 60 named CAMERAS. Arm `checkpoint auto` before you touch the management port, make the change over SSH and watch what happens to your session. Then get the address change in the way that works, make the VLAN change under checkpoint auto, confirm it, and save.",
+ "hints": [
+  "`checkpoint auto 5`, then `interface mgmt`, `ip static 192.0.2.51/24`, `default-gateway 192.0.2.1`. The moment the address changes your SSH session goes, and the session that armed checkpoint auto is the one you just cut.",
+  "That rollback is the feature working: on my bench it ran about 5 s after the session ended and the switch answered again about 16 s after the cut. Over SSH a management address change under checkpoint auto always comes back.",
+  "Make the address change from the console: `sim console`, then the same `interface mgmt` lines. The console doesn't care what the management port's address is.",
+  "`checkpoint auto 5`, `vlan 60` with `name CAMERAS`, check it, `checkpoint auto confirm`, then `write memory`. `show checkpoint` keeps auto-checkpoint-start-backup either way."
+ ],
+ "devices": [],
+ "checks": [
+  {
+   "desc": "checkpoint auto rolled a change back at least once",
+   "ckauto": {
+    "rollbacks": 1
+   }
+  },
+  {
+   "desc": "The management port is static 192.0.2.51/24",
+   "mgmt": {
+    "ip": "192.0.2.51/24"
+   }
+  },
+  {
+   "desc": "VLAN 60 is CAMERAS",
+   "vlan": {
+    "id": 60,
+    "name": "CAMERAS"
+   }
+  },
+  {
+   "desc": "Nothing is left waiting for a confirm",
+   "ckauto": {
+    "pending": false
+   }
+  },
+  {
+   "desc": "The running config is saved",
+   "saved": true
+  }
+ ]
+}

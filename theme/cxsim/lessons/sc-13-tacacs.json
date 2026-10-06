@@ -1,0 +1,112 @@
+{
+ "id": "sc-13-tacacs",
+ "title": "Scenario 13: ClearPass says ACCEPT, the switch says no",
+ "track": "Scenarios",
+ "number": 13,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "localUsers": [
+  "admin"
+ ],
+ "clearpass": {
+  "services": {
+   "tacacs": "Lab Device Admin"
+  }
+ },
+ "tacacs": {
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-tac-key",
+  "users": {
+   "tac-admins": {
+    "profile": "Lab-Admins",
+    "role": "Lab TAC admins"
+   },
+   "tac-helpdesk": {
+    "profile": "Lab-Helpdesk",
+    "role": "Lab TAC helpdesk"
+   }
+  },
+  "profiles": {
+   "Lab-Admins": {
+    "header": 15,
+    "attrs": {},
+    "cmds": "all"
+   },
+   "Lab-Helpdesk": {
+    "header": 1,
+    "attrs": {},
+    "cmds": [
+     "show",
+     "exit",
+     "end",
+     "no"
+    ]
+   }
+  }
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF"
+ ],
+ "task": "Admins should log in over SSH with their ClearPass accounts (TACACS at 192.0.2.10, key cppm-tac-key), with the switch's own admin account only when ClearPass is down. Set that up and log in as tac-admins with `sim ssh tac-admins`. ClearPass logs ACCEPT and the switch still says no: find out why and fix the profile in the ClearPass panel. Get tac-admins in as an administrator and tac-helpdesk in read-only. Then turn on command authorization for SSH through ClearPass, see what it does to the switch's own admin account, and take it back out.",
+ "hints": [
+  "`tacacs-server host 192.0.2.10 key plaintext cppm-tac-key`, `aaa group server tacacs CPPM-TAC` with `server 192.0.2.10`, then `aaa authentication login ssh group CPPM-TAC local`.",
+  "`sim ssh tac-admins`: Permission denied, while the ClearPass panel shows ACCEPT. The profile sets only the Privilege Level in its header, and the switch needs a Shell attribute to know which group the user belongs in.",
+  "In the ClearPass panel give Lab-Admins Shell priv-lvl 15 or Aruba-Admin-Role administrators, and Lab-Helpdesk Shell priv-lvl 1 or Aruba-Admin-Role operators. When a profile sends both, Aruba-Admin-Role wins.",
+  "Stay in the terminal you started in: it is the switch's own admin, logged in over SSH before any of this. `aaa authorization commands ssh group CPPM-TAC none` asks y/n first, and after it that session can't run even `show clock`, because ClearPass doesn't know admin. `sim ssh tac-admins` (or `sim console`), then `no aaa authorization commands ssh`.",
+  "`sim ssh admin` is refused once TACACS answers: ClearPass rejects admin as unknown and, without allow-fail-through, the switch never tries the local password. That is the safe setting. The console is the way in when you need the local account."
+ ],
+ "devices": [],
+ "checks": [
+  {
+   "desc": "The TACACS server is configured with its key",
+   "config": {
+    "has": "^tacacs-server host 192\\.0\\.2\\.10 key"
+   }
+  },
+  {
+   "desc": "SSH logins try a TACACS group first and local after it",
+   "config": {
+    "has": "^aaa authentication login ssh group \\S+ local$"
+   }
+  },
+  {
+   "desc": "tac-admins logs in as an administrator",
+   "login": {
+    "user": "tac-admins",
+    "group": "administrators"
+   }
+  },
+  {
+   "desc": "tac-helpdesk logs in read-only (operators)",
+   "login": {
+    "user": "tac-helpdesk",
+    "group": "operators"
+   }
+  },
+  {
+   "desc": "Command authorization is back out, so the local admin can work again",
+   "config": {
+    "has": "^aaa authorization commands",
+    "absent": true
+   }
+  },
+  {
+   "desc": "No allow-fail-through: a ClearPass reject is a no, not a try at the local password",
+   "config": {
+    "has": "^aaa authentication allow-fail-through",
+    "absent": true
+   }
+  }
+ ]
+}

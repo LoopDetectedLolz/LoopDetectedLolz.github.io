@@ -120,7 +120,17 @@
     this.devices = {};                      // devId -> {connected}
     this.errdisabled = {};
     this.log = [];
-    (this.lesson.devices || []).forEach(function (d) { self.devices[d.id] = { connected: !!d.connected }; });
+    // the fake ClearPass's own side: Access Tracker rows, and the TACACS profiles a lab lets the reader edit
+    this.cppm = { log: [], seq: 0, sig: {}, prof: JSON.parse(JSON.stringify(((this.lesson.tacacs || {}).profiles) || {})) };
+    // TACACS+ on the switch: servers, groups, and the login, command-authorization and accounting lists per channel
+    this.tac = { servers: [], groups: {}, login: {}, authz: {}, acct: {}, failThrough: false, last: {} };
+    // the management port and the reader's own SSH session to it (checkpoint auto lab); mgmt.fixed false = DHCP
+    var mg = this.lesson.mgmt || {};
+    this.mgmt = { dhcp: true, ip: "", gw: "", shut: false, lease: mg.lease || "192.0.2.15/24" };
+    this.session = { addr: (mg.lease || "192.0.2.15/24").split("/")[0], up: true, console: false, user: "admin", via: "local", group: "administrators", priv: 15 };
+    this.ckAuto = null;                     // {at, mins, cfg} while checkpoint auto waits for its confirm
+    this.ckAutoRuns = 0;                    // rollbacks checkpoint auto has done (for the lab's check)
+    (this.lesson.devices || []).forEach(function (d) { self.devices[d.id] = { connected: !!d.connected, since: 0 }; });
   };
 
   // a local user role: an access VLAN, or a native and allowed trunk list, plus what 10.18 lets a role carry
@@ -132,7 +142,8 @@
       macAuth: false, dot1x: false, critRole: "", rejectRole: "", adminEdge: false, bpduGuard: false, loopProtect: false,
       ip: null, ospf: null, mtu: 1500,
       authMode: "", mdLimit: 0, allowLldp: false, lldpTx: true, lldpRx: true, medPolicy: true, medCaps: true,
-      speed: null, fallbackRole: "", dpBlock: false };
+      speed: null, fallbackRole: "", dpBlock: false,
+      iart: 0, eapolTo: 0, maxEapol: 0, reauth1x: false, reauthMac: false };
   };
 
   Switch.prototype.now = function () { return Date.now() + this.tick * 1000; };
@@ -194,8 +205,13 @@
     var self = this, o = [];
     o.push("Current configuration:", "!", "!Version AOS-CX " + this.version, "!export-password: default", "hostname " + this.hostname);
     o.push("user admin group administrators password ciphertext <hidden>", "!", "!", "!", "!");
+    // tacacs-server lines print before radius-server lines (the lab switch's running config, 2026-09-29)
+    this.tac.servers.forEach(function (t) { o.push("tacacs-server host " + t.host + (t.key ? (showKeys ? " key plaintext " + t.key : " key ciphertext <hidden>") : "") + (t.vrf ? " vrf " + t.vrf : "")); });
     this.radius.forEach(function (r) { o.push("radius-server host " + r.host + (r.key ? (showKeys ? " key plaintext " + r.key : " key ciphertext <hidden>") : "") + (r.vrf ? " vrf " + r.vrf : "")); });
     o.push("!", "!");
+    // TACACS groups, then the box's own `tacacs` group holding every tacacs-server, as it printed them
+    Object.keys(this.tac.groups).forEach(function (g) { o.push("aaa group server tacacs " + g); self.tac.groups[g].servers.forEach(function (sv) { o.push("    server " + sv); }); if (!showKeys) o.push("!"); });
+    if (this.tac.servers.length && !showKeys) { o.push("aaa group server tacacs tacacs"); this.tac.servers.forEach(function (t) { o.push("    server " + t.host); }); o.push("!"); }
     // 10.16 added server priority in a group and started printing the built-in `radius` group; 10.15 printed
     // neither (same config pushed to 10.15.1060, 10.16.1060 and 10.17.1030 on 2026-09-28)
     var prio = this.atLeast("10.16");
@@ -210,6 +226,13 @@
     if (this.pa.dynAuth) o.push("radius dyn-authorization enable");
     var dyn = Object.keys(this.pa.dynClients);
     if (dyn.length) { if (!showKeys) o.push("!"); dyn.forEach(function (ip) { o.push("radius dyn-authorization client " + ip + " secret-key " + (showKeys ? "plaintext " + self.pa.dynClients[ip].key : "ciphertext <hidden>")); }); }
+    // management AAA. Where these sit among the other global lines was not printed in full on the lab switch;
+    // the lines themselves are the ones it took (2026-09-29)
+    function methods(l) { var g = l.filter(function (m) { return m !== "local"; }); return ((g.length ? "group " + g.join(" ") : "") + (l.indexOf("local") >= 0 ? (g.length ? " " : "") + "local" : "")); }
+    ["default", "ssh", "console", "https-server"].forEach(function (ch) { var l = self.tac.login[ch]; if (l) o.push("aaa authentication login " + ch + " " + methods(l)); });
+    if (this.tac.failThrough) o.push("aaa authentication allow-fail-through");
+    ["default", "ssh", "console"].forEach(function (ch) { var z = self.tac.authz[ch]; if (z) o.push("aaa authorization commands " + ch + " " + (z.groups.length ? "group " + z.groups.join(" ") + (z.none ? " none" : "") : (z.none ? "none" : "local"))); });
+    ["default", "ssh", "console", "https-server"].forEach(function (ch) { var c = self.tac.acct[ch]; if (c) o.push("aaa accounting all-mgmt " + ch + " start-stop " + (c.groups.length ? "group " + c.groups.join(" ") + (c.local ? " local" : "") : "local")); });
     if (!showKeys) o.push("ssh server vrf mgmt");
     Object.keys(this.vlans).map(Number).sort(function (x, y) { return x - y; }).forEach(function (v) {
       o.push("vlan " + v);
@@ -218,7 +241,11 @@
       if (self.vlans[v].voice) o.push("    voice");
     });
     if (this.stp.enable) { o.push("spanning-tree"); if (this.stp.mode !== "mstp") o.push("spanning-tree mode " + this.stp.mode); if (this.stp.priority !== 8) o.push("spanning-tree priority " + this.stp.priority); }
-    if (!showKeys) o.push("interface mgmt", "    no shutdown", "    ip dhcp");
+    // the management port as configured; the parser-readable form carries it only once it differs from DHCP
+    if (!showKeys || !this.mgmt.dhcp || this.mgmt.shut) {
+      o.push("interface mgmt", this.mgmt.shut ? "    shutdown" : "    no shutdown");
+      if (this.mgmt.dhcp) o.push("    ip dhcp"); else { if (this.mgmt.ip) o.push("    ip static " + this.mgmt.ip); if (this.mgmt.gw) o.push("    default-gateway " + this.mgmt.gw); }
+    }
     // UBT, LLDP groups, roles and device profiles, in the order the lab printed them (captures of 2026-09-28);
     // roles come out sorted by name, and an LLDP group's rules sit five spaces in, as the box has them
     if (this.ubt.clientVlan) o.push("ubt-client-vlan " + this.ubt.clientVlan);
@@ -302,8 +329,14 @@
       if (i.allowLldp) o.push("    aaa authentication port-access allow-lldp-bpdu");
       if (i.critRole) o.push("    aaa authentication port-access critical-role " + i.critRole);
       if (i.rejectRole) o.push("    aaa authentication port-access reject-role " + i.rejectRole);
-      if (i.dot1x) o.push("    aaa authentication port-access dot1x authenticator", "        enable");
-      if (i.macAuth) o.push("    aaa authentication port-access mac-auth", "        enable");
+      // timers print under the method before enable (lab: eapol-timeout 10, max-eapol-requests 1, enable)
+      var dx = [];
+      if (i.eapolTo) dx.push("        eapol-timeout " + i.eapolTo);
+      if (i.iart) dx.push("        initial-auth-response-timeout " + i.iart);
+      if (i.maxEapol) dx.push("        max-eapol-requests " + i.maxEapol);
+      if (i.reauth1x) dx.push("        reauth");
+      if (i.dot1x || dx.length) o.push.apply(o, ["    aaa authentication port-access dot1x authenticator"].concat(dx, i.dot1x ? ["        enable"] : []));
+      if (i.macAuth || i.reauthMac) o.push.apply(o, ["    aaa authentication port-access mac-auth"].concat(i.reauthMac ? ["        reauth"] : [], i.macAuth ? ["        enable"] : []));
       if (i.precedence) o.push("    aaa authentication port-access auth-precedence " + i.precedence.join(" "));
     });
     Object.keys(this.svis).map(Number).sort(function (x, y) { return x - y; }).forEach(function (v) {
@@ -367,7 +400,8 @@
 
   Switch.prototype.save = function () {
     var self = this;
-    return { config: this.configLines(), devices: this.devices, clients: this.clients, errdisabled: this.errdisabled, checkpoints: this.checkpoints, startup: this.startup, release: this.release };
+    return { config: this.configLines(), devices: this.devices, clients: this.clients, errdisabled: this.errdisabled, checkpoints: this.checkpoints, startup: this.startup, release: this.release,
+      tick: this.tick, cppm: this.cppm, session: this.session, ckAuto: this.ckAuto, ckAutoRuns: this.ckAutoRuns, tacLast: this.tac.last, dyn: Object.keys(this.pa.dynClients).reduce(function (o, k) { o[k] = self.pa.dynClients[k].st || null; return o; }, {}) };
   };
   Switch.prototype.load = function (s) {
     var self = this;
@@ -376,6 +410,13 @@
     Object.keys(s.devices || {}).forEach(function (k) { if (self.devices[k]) self.devices[k] = s.devices[k]; });
     this.errdisabled = s.errdisabled || {};
     this.checkpoints = s.checkpoints || [];
+    if (s.tick) this.tick = s.tick;
+    if (s.cppm) this.cppm = s.cppm;
+    if (s.session) this.session = s.session;
+    if (s.ckAuto !== undefined) this.ckAuto = s.ckAuto;
+    this.ckAutoRuns = s.ckAutoRuns || 0;
+    if (s.tacLast) this.tac.last = s.tacLast;
+    Object.keys(s.dyn || {}).forEach(function (k) { if (self.pa.dynClients[k] && s.dyn[k]) self.pa.dynClients[k].st = s.dyn[k]; });
     this.reauthAll();
     if (s.startup) this.startup = s.startup;
   };
@@ -403,6 +444,12 @@
     "clients": "Authenticated and failed clients", "client-status": "Per-client authentication status", "server-groups": "Configured server groups", "statistics": "Counters", "list": "List entries", "arp": "ARP table", "rollback": "Restore a checkpoint",
     "page": "Page long output (the sandbox never pages)", "log-off": "Log off port-access clients", "client": "Port-access clients", "reauthenticate": "Re-authenticate the clients on an interface",
     "mac": "By MAC address", "secret-key": "Shared secret for this client", "configuration": "Configuration", "local": "Roles defined on the switch",
+    "tacacs-server": "TACACS+ server settings", "tacacs": "TACACS+", "login": "Login authentication for a channel", "authorization": "Authorization settings", "commands": "Command authorization",
+    "accounting": "Accounting settings", "all-mgmt": "Logins and commands on a management channel", "start-stop": "Record the start and the end", "allow-fail-through": "Let a reject try the next method",
+    "initial-auth-response-timeout": "Seconds to wait for a first EAP answer", "eapol-timeout": "Seconds to wait for each EAP reply", "max-eapol-requests": "EAP requests sent before giving up", "reauth": "Re-authenticate on the Session-Timeout",
+    "mgmt": "The management port", "static": "A static address", "default-gateway": "Default gateway of the management port", "auto": "Roll back unless confirmed", "confirm": "Keep the change",
+    "wait": "Let sandbox time pass", "ssh": "Log this terminal in over SSH as a user", "console": "Put this terminal on the console port", "cppm": "The fake ClearPass", "change-status": "Send a RADIUS dynamic authorization from Access Tracker",
+    "user": "The current user", "information": "Details",
     "repetitions": "Number of echo requests", "connect": "Plug a device into its port", "disconnect": "Unplug a device", "coa": "Send a change of authorization from the fake RADIUS server", "status": "What is plugged in and how it authenticated", "reset": "Put the lab back to its starting state", "help": "How the sandbox commands work"
   };
   var PH = {
@@ -431,7 +478,11 @@
     "<1-5>": ["1 to 5", function (t) { return /^[1-5]$/.test(t); }],
     "<SPEED>": ["A speed to offer: 10m, 100m, 1g, 2.5g, 5g, 10g, 25g or 50g", function (t) { return ["10m", "100m", "1g", "2.5g", "5g", "10g", "25g", "50g"].indexOf(t.toLowerCase()) >= 0; }],
     "<FIXED>": ["A fixed speed: 10-full, 10-half, 100-full, 100-half, 1000-full, 10g, 25g", function (t) { return ["10-full", "10-half", "100-full", "100-half", "1000-full", "10g", "25g", "50g"].indexOf(t.toLowerCase()) >= 0; }],
-    "<DEV>": ["Device id from the Devices panel", function (t) { return /^\S+$/.test(t); }]
+    "<DEV>": ["Device id from the Devices panel", function (t) { return /^\S+$/.test(t); }],
+    "<SECS>": ["Seconds", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 65535; }],
+    "<1-60>": ["Minutes, 1 to 60", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 60; }],
+    "<WAIT>": ["Seconds to let pass, 1 to 3600", function (t) { return /^\d+$/.test(t) && +t >= 1 && +t <= 3600; }],
+    "<CHAN>": ["Channel: default, ssh, console or https-server", function (t) { return ["default", "ssh", "console", "https-server"].indexOf(t) >= 0; }]
   };
 
   var CMDS = {};                       // ctx -> [cmd]
@@ -473,7 +524,8 @@
     if (this.pending) return this.pending.q;
     var c = this.ctx(), h = this.hostname;
     switch (c.ctx) {
-      case "exec": return h + "# ";
+      // the session's group decides the exec prompt: operators get "core1>", auditors "auditor>" (lab, 10.18.1002, 2026-09-29)
+      case "exec": return this.session && this.session.group === "auditors" ? "auditor> " : (this.session && this.session.group === "operators" ? h + "> " : h + "# ");
       case "config": return h + "(config)# ";
       case "if": return h + "(config-if" + (c.ifs.length > 1 ? "-<" + c.ifs[0] + "-" + c.ifs[c.ifs.length - 1] + ">" : "") + ")# ";
       case "lag": return h + "(config-lag-if)# ";
@@ -490,6 +542,8 @@
       case "lldpg": return h + "(config-lldp-group)# ";
       case "dprof": return h + "(config-device-profile)# ";
       case "ubtz": return h + "(config-ubt-" + c.id + ")# ";
+      case "sgtac": return h + "(config-sg)# ";
+      case "mgmt": return h + "(config-if-mgmt)# ";
     }
     return h + "# ";
   };
@@ -507,7 +561,19 @@
 
   // A line may carry output filters after a pipe, the way the box takes them: `show running-config | include vlan`.
   // Filters run on what a show printed; a line whose command failed keeps its own error.
+  // The reader's session wraps every line: a lost SSH session takes only sim commands, a change made under checkpoint
+  // auto gets the box's WARNING, and an unconfirmed checkpoint auto whose time ran out puts the old config back.
   Switch.prototype.run = function (line, quiet) {
+    var tl = String(line || "").trim(), simCmd = /^sim(\s|$)/i.test(tl), hooks = !this.applying && !this.pending;
+    if (hooks && tl && !simCmd && !this.session.up && !this.session.console) { this.tick++; return { out: "(sandbox: your SSH session is gone. sim console puts you on the console port.)", prompt: this.prompt() }; }
+    if (hooks && tl && !simCmd) { var deny = this.authorize(tl); if (deny) { this.tick++; return { out: deny, prompt: this.prompt() }; } }
+    var before = hooks && this.ckAuto && !simCmd ? this.runningConfig(true) : null;
+    var r = this.runInner(line, quiet);
+    if (before !== null && this.ckAuto && this.runningConfig(true) !== before) r.out = (r.out ? r.out + "\n" : "") + "WARNING\t Please \"checkpoint auto confirm\" within " + this.ckAutoLeft() + " minutes";
+    if (hooks && this.ckAuto && this.tick >= this.ckAuto.at + this.ckAuto.mins * 60) { r.out = (r.out ? r.out + "\n" : "") + this.ckAutoRollback("timer"); r.prompt = this.prompt(); }
+    return r;
+  };
+  Switch.prototype.runInner = function (line, quiet) {
     if (this.pending) {
       var q = this.pending, ans = String(line || "").trim().toLowerCase(); this.pending = null; this.tick++;
       return { out: (/^y/.test(ans) ? q.yes() : q.no()) || "", prompt: this.prompt() };
@@ -593,6 +659,7 @@
         case "lldpg": ok = !!self.pa.lldpGroups[c.id]; break;
         case "dprof": ok = !!self.pa.profiles[c.id]; break;
         case "ubtz": ok = !!self.ubt.zones[c.id]; break;
+        case "sgtac": ok = !!self.tac.groups[c.id]; break;
       }
       if (ok) keep.push(c); else alive = false;
     });
@@ -721,7 +788,7 @@
     return acc;
   }
   var CORPUS_CTX = { exec: "exec", config: "config", "if": "if", lag: "lag", vlan: "vlan", svi: "svi", role: "pa-role", dot1x: "dot1x", macauth: "macauth",
-    "dot1x-if": "if-dot1x", "macauth-if": "if-macauth", sg: "sg", ospf: "ospf", lldpg: "lldp-group", dprof: "device-profile", ubtz: "ubt-zone" };
+    "dot1x-if": "if-dot1x", "macauth-if": "if-macauth", sg: "sg", sgtac: "sg", ospf: "ospf", lldpg: "lldp-group", dprof: "device-profile", ubtz: "ubt-zone" };
   // the corpus contexts a line can come from, nearest first; show works from any context on the box
   Switch.prototype.realCtxs = function (toks) {
     var self = this, out = [], cur = this.ctx().ctx;
@@ -957,18 +1024,48 @@
   cmd("*", "checkpoint rollback <WORD>", function (a) {
     var cfg = a[2] === "startup-config" ? (this.startupKeys || this.startup) : (this.checkpoints.filter(function (c) { return c.name === a[2]; })[0] || {}).config;
     if (!cfg) return "Checkpoint " + a[2] + " doesn't exist";
-    // the built-in `radius` group is the box's own and its lines go with it
-    var skip = false, lines = cfg.split("\n").filter(function (l) {
-      if (/^aaa group server radius radius$/.test(l)) { skip = true; return false; }
-      if (skip && /^\s/.test(l)) return false;
-      skip = false;
-      return l && l[0] !== "!" && !/^Current configuration|^user admin|^https-server|^ssh server|^interface mgmt|^    ip dhcp/.test(l);
-    }).map(function (l) { return l.trim(); });
-    // a rollback replaces the configuration, not the checkpoint store or what is plugged in
-    var devs = this.devices, cps = this.checkpoints, dbg = this.dbg, diag = this.diag; this.reset(); this.devices = devs; this.checkpoints = cps; this.dbg = dbg; this.diag = diag; this.apply(lines); this.reauthAll();
-    this.stack = [{ ctx: "exec" }];
+    this.restoreConfig(cfg);
     return "Copying configuration: [Success]";
   });
+  // A rollback replaces the configuration, not the checkpoint store, what is plugged in, the ClearPass log or the
+  // reader's session. Checkpoints hold the parser-readable form, which carries the mgmt port only once it differs.
+  Switch.prototype.restoreConfig = function (cfg) {
+    // the built-in `radius` and `tacacs` groups are the box's own and their lines go with them
+    var skip = false, lines = cfg.split("\n").filter(function (l) {
+      if (/^aaa group server (radius radius|tacacs tacacs)$/.test(l)) { skip = true; return false; }
+      if (skip && /^\s/.test(l)) return false;
+      skip = false;
+      return l && l[0] !== "!" && !/^Current configuration|^user admin|^https-server|^ssh server/.test(l);
+    }).map(function (l) { return l.trim(); });
+    var keep = { devices: this.devices, checkpoints: this.checkpoints, dbg: this.dbg, diag: this.diag, cppm: this.cppm, session: this.session, ckAutoRuns: this.ckAutoRuns }, last = this.tac.last;
+    this.reset(); for (var k in keep) this[k] = keep[k]; this.tac.last = last;
+    this.apply(lines); this.reauthAll();
+    this.stack = [{ ctx: "exec" }];
+  };
+  // checkpoint auto <minutes>: a copy of the running config now; without `checkpoint auto confirm` the switch puts
+  // it back when the session that armed it ends or when the time runs out. Wording from the lab switch (10.18.1002,
+  // 2026-09-28 and 09-29): the armed line, the WARNING after a change, the auto-checkpoint-start-backup entry. The
+  // box's reply to the confirm itself was not captured; the sandbox prints nothing for it.
+  cmd("*", "checkpoint auto <1-60>", function (a) {
+    var mins = +a[2], cfg = this.runningConfig(true);
+    this.ckAuto = { at: this.tick, mins: mins, cfg: cfg, warned: false };
+    this.checkpoints = this.checkpoints.filter(function (c) { return c.name !== "auto-checkpoint-start-backup"; });
+    this.checkpoints.push({ name: "auto-checkpoint-start-backup", config: cfg, at: this.now(), writer: "confirm" });
+    return "Copying configuration: [Success]\nAuto checkpoint mode expires in " + mins + " minute(s)";
+  });
+  cmd("*", "checkpoint auto confirm", function () { if (!this.ckAuto) return "(sandbox: no checkpoint auto is waiting for a confirm.)"; this.ckAuto = null; return ""; });
+  Switch.prototype.ckAutoLeft = function () { return this.ckAuto ? Math.max(0, Math.ceil((this.ckAuto.at + this.ckAuto.mins * 60 - this.tick) / 60)) : 0; };
+  Switch.prototype.ckAutoRollback = function (why) {
+    var ck = this.ckAuto; if (!ck) return "";
+    this.ckAuto = null; this.ckAutoRuns++;
+    this.tick += 5;
+    this.restoreConfig(ck.cfg);
+    var back = this.mgmtAddr() === this.session.addr;
+    if (back) this.session.up = true;
+    return "(sandbox: " + (why === "session" ? "about 5 seconds after the session that armed checkpoint auto ended" : "checkpoint auto ran out of time without a confirm") +
+      ", the switch copied checkpoint TEMPAUTOCHECK back to running-config (Event 6801)." + (why === "session" ? (back ? " The management port is back at " + this.session.addr + " and you are logged in again." : "") : "") + ")";
+  };
+
   // `checkpoint diff <from> <to>`: each side is running-config, startup-config or checkpoint <name> (a bare name
   // works too). The box prints a unified diff of the two configurations without the "Current configuration:"
   // line, three lines of context, or "No difference in configs." (lab switch, 10.18, 2026-09-28).
@@ -1030,8 +1127,11 @@
   // clearing a session. 10.18 has no `clear port-access clients`; it logs a client off or re-authenticates a port.
   Switch.prototype.logOff = function (pick) {
     var self = this, hit = 0;
-    Object.keys(this.clients).forEach(function (k) { var c = self.clients[k]; if (c.method !== "none" && pick(c)) { delete self.clients[k]; hit++; } });
-    this.tick++; this.reauthAll();
+    Object.keys(this.clients).forEach(function (k) { var c = self.clients[k]; if (c.method !== "none" && pick(c)) { delete self.clients[k]; delete self.cppm.sig[k]; hit++; } });
+    this.tick++;
+    // the clients start over: a fresh attempt, a fresh wait when the sandbox clock is on, and new Access Tracker rows
+    Object.keys(this.devices).forEach(function (k) { var d = self.dev(k); if (d && !self.clients[k] && self.devices[k].connected) self.devices[k].since = self.tick; });
+    this.reauthAll();
     return "";
   };
   cmd("*", "port-access log-off client mac <MAC>", function (a) { var m = macCx(a[4]); return this.logOff(function (c) { return c.mac === m; }); });
@@ -1076,7 +1176,8 @@
   cmd("config", "radius dyn-authorization disable", function () { this.pa.dynAuth = false; });
   // 10.18 only answers CoA from a configured client (seen 2026-09-26: ClearPass's requests were counted as
   // invalid client addresses and dropped until this line went in)
-  cmd("config", "radius dyn-authorization client <A.B.C.D> secret-key plaintext <WORD>", function (a) { this.pa.dynClients[a[3]] = { key: a[6] }; });
+  cmd("config", "radius dyn-authorization client <A.B.C.D> secret-key plaintext <WORD>", function (a) { this.pa.dynClients[a[3]] = { key: a[6], vrf: "" }; });
+  cmd("config", "radius dyn-authorization client <A.B.C.D> secret-key plaintext <WORD> vrf <WORD>", function (a) { this.pa.dynClients[a[3]] = { key: a[6], vrf: a[8] }; });
   cmd("config", "no radius dyn-authorization client <A.B.C.D>", function (a) { delete this.pa.dynClients[a[4]]; });
   cmd("config", "aaa group server radius <WORD>", function (a) { if (a[4] === "radius") return "The group name `radius` is reserved for the built-in group of every configured server."; if (!this.groups[a[4]]) this.groups[a[4]] = { servers: [] }; this.push({ ctx: "sg", id: a[4] }); });
   cmd("config", "no aaa group server radius <WORD>", function (a) { delete this.groups[a[5]]; if (this.pa.dot1xGroup === a[5]) this.pa.dot1xGroup = ""; if (this.pa.macAuthGroup === a[5]) this.pa.macAuthGroup = ""; this.reauthAll(); });
@@ -1178,6 +1279,211 @@
   cmd("macauth-if", "enable", function () { this.stack.pop(); this.eachIf(function (i) { i.macAuth = true; }); this.stack.push({ ctx: "macauth-if" }); this.reauthAll(); });
   cmd("macauth-if", "no enable", function () { this.stack.pop(); this.eachIf(function (i) { i.macAuth = false; }); this.stack.push({ ctx: "macauth-if" }); this.reauthAll(); });
   cmd("macauth-if", "disable", function () { this.stack.pop(); this.eachIf(function (i) { i.macAuth = false; }); this.stack.push({ ctx: "macauth-if" }); this.reauthAll(); });
+
+  // Per-port 802.1X timers and reauth. What they do to how long a port waits is modelled only in labs that turn
+  // the sandbox clock on (lesson.timers); elsewhere they are configuration the box would take.
+  function ifSet(sw, fn) { var c = sw.stack.pop(); sw.eachIf(fn); sw.stack.push(c); }
+  cmd("dot1x-if", "initial-auth-response-timeout <SECS>", function (a) { ifSet(this, function (i) { i.iart = +a[1]; }); this.reauthAll(); });
+  cmd("dot1x-if", "no initial-auth-response-timeout", function () { ifSet(this, function (i) { i.iart = 0; }); this.reauthAll(); });
+  cmd("dot1x-if", "eapol-timeout <SECS>", function (a) { ifSet(this, function (i) { i.eapolTo = +a[1]; }); this.reauthAll(); });
+  cmd("dot1x-if", "no eapol-timeout", function () { ifSet(this, function (i) { i.eapolTo = 0; }); this.reauthAll(); });
+  cmd("dot1x-if", "max-eapol-requests <1-10>", function (a) { ifSet(this, function (i) { i.maxEapol = +a[1]; }); this.reauthAll(); });
+  cmd("dot1x-if", "no max-eapol-requests", function () { ifSet(this, function (i) { i.maxEapol = 0; }); this.reauthAll(); });
+  cmd("dot1x-if", "reauth", function () { ifSet(this, function (i) { i.reauth1x = true; }); });
+  cmd("dot1x-if", "no reauth", function () { ifSet(this, function (i) { i.reauth1x = false; }); });
+  cmd("macauth-if", "reauth", function () { ifSet(this, function (i) { i.reauthMac = true; }); });
+  cmd("macauth-if", "no reauth", function () { ifSet(this, function (i) { i.reauthMac = false; }); });
+
+  // ── TACACS+ for management logins ───────────────────────────────────────
+  // Servers, groups and the per-channel login, command-authorization and accounting lists the lab switch took
+  // on 10.18.1002 (2026-09-29). The fake ClearPass answers per the lesson's tacacs block; `sim ssh <user>` logs in.
+  Switch.prototype.addTac = function (host, key, vrf) {
+    var t = this.tac.servers.filter(function (x) { return x.host === host; })[0];
+    if (!t) { t = { host: host, key: "", vrf: "" }; this.tac.servers.push(t); }
+    if (key) t.key = key; if (vrf) t.vrf = vrf;
+  };
+  cmd("config", "tacacs-server host <A.B.C.D> key plaintext <WORD>", function (a) { this.addTac(a[2], a[5], ""); });
+  cmd("config", "tacacs-server host <A.B.C.D> key plaintext <WORD> vrf <WORD>", function (a) { this.addTac(a[2], a[5], a[7]); });
+  cmd("config", "tacacs-server host <A.B.C.D> vrf <WORD>", function (a) { this.addTac(a[2], "", a[4]); });
+  cmd("config", "tacacs-server host <A.B.C.D>", function (a) { this.addTac(a[2], "", ""); });
+  cmd("config", "no tacacs-server host <A.B.C.D>", function (a) { var self = this; this.tac.servers = this.tac.servers.filter(function (t) { return t.host !== a[3]; }); Object.keys(this.tac.groups).forEach(function (g) { self.tac.groups[g].servers = self.tac.groups[g].servers.filter(function (x) { return x !== a[3]; }); }); });
+  cmd("config", "aaa group server tacacs <WORD>", function (a) { if (a[4] === "tacacs") return "Group tacacs is the switch's own and holds every tacacs-server; name yours something else."; if (!this.tac.groups[a[4]]) this.tac.groups[a[4]] = { servers: [] }; this.push({ ctx: "sgtac", id: a[4] }); });
+  cmd("config", "no aaa group server tacacs <WORD>", function (a) { delete this.tac.groups[a[5]]; var self = this; ["login", "authz", "acct"].forEach(function (k) { Object.keys(self.tac[k]).forEach(function (ch) { var v = self.tac[k][ch], list = Array.isArray(v) ? v : v.groups; if (list.indexOf(a[5]) >= 0) delete self.tac[k][ch]; }); }); });
+  cmd("sgtac", "server <A.B.C.D>", function (a) { if (!this.tac.servers.some(function (t) { return t.host === a[1]; })) return "TACACS server " + a[1] + " is not configured. Add it with `tacacs-server host " + a[1] + " key plaintext <key>` first."; var g = this.tac.groups[this.ctx().id]; if (g.servers.indexOf(a[1]) < 0) g.servers.push(a[1]); });
+  cmd("sgtac", "server <A.B.C.D> vrf <WORD>", function (a) { return CMDS.sgtac[0].fn.call(this, [a[0], a[1]]); });
+  cmd("sgtac", "no server <A.B.C.D>", function (a) { var g = this.tac.groups[this.ctx().id]; g.servers = g.servers.filter(function (x) { return x !== a[2]; }); });
+  // a list of methods: group <g> [<g>...] [local], or local on its own
+  Switch.prototype.methodList = function (toks, allowNone) {
+    var out = [], none = false, i = 0;
+    if (toks[0] === "group") { i = 1; while (i < toks.length && toks[i] !== "local" && toks[i] !== "none") { var g = toks[i]; if (g !== "tacacs" && g !== "radius" && !this.tac.groups[g] && !this.groups[g]) return { error: "Server group " + g + " does not exist." }; out.push(g); i++; } }
+    for (; i < toks.length; i++) { if (toks[i] === "local") out.push("local"); else if (toks[i] === "none" && allowNone) none = true; else return { error: "Invalid input: " + toks[i] }; }
+    if (!out.length && !none) return { error: "% Command incomplete." };
+    return { list: out, none: none };
+  };
+  cmd("config", "aaa authentication login <CHAN> <LINE>", function (a) { var m = this.methodList(tokens(a[4])); if (m.error) return m.error; this.tac.login[a[3]] = m.list; });
+  cmd("config", "no aaa authentication login <CHAN>", function (a) { delete this.tac.login[a[4]]; });
+  cmd("config", "aaa authentication allow-fail-through", function () { this.tac.failThrough = true; });
+  cmd("config", "no aaa authentication allow-fail-through", function () { this.tac.failThrough = false; });
+  // The box asks before it turns on command authorization against a group (lab, 10.18.1002, 2026-09-29).
+  cmd("config", "aaa authorization commands <CHAN> <LINE>", function (a) {
+    var self = this, t = tokens(a[4]), m = t[0] === "local" ? { list: [], none: false, local: true } : (t[0] === "none" ? { list: [], none: true } : this.methodList(t, true)); if (m.error) return m.error;
+    var set = function () { self.tac.authz[a[3]] = { groups: m.list.filter(function (x) { return x !== "local"; }), none: !!m.none }; };
+    if (!m.list.length) { set(); return; }
+    return this.confirm("All commands will fail if none of the servers in the group list are reachable.", function () { set(); return ""; }, function () { return ""; });
+  });
+  cmd("config", "no aaa authorization commands <CHAN>", function (a) { delete this.tac.authz[a[4]]; });
+  cmd("config", "aaa accounting all-mgmt <CHAN> start-stop <LINE>", function (a) { var m = this.methodList(tokens(a[5])); if (m.error) return m.error; this.tac.acct[a[3]] = { groups: m.list.filter(function (x) { return x !== "local"; }), local: m.list.indexOf("local") >= 0 }; });
+  cmd("config", "no aaa accounting all-mgmt <CHAN>", function (a) { delete this.tac.acct[a[4]]; });
+
+  // The fake ClearPass on the TACACS side. A lesson's tacacs block names the servers that answer, the key, the users
+  // and the enforcement profile each one gets; the reader can edit the profiles in the ClearPass panel. What the switch
+  // makes of each answer is the lab switch's own behaviour on 10.18.1002 (2026-09-29): a profile that only sets the
+  // Privilege Level in its header gives "Permission denied" although ClearPass logs ACCEPT; Shell priv-lvl 15 or 1 maps
+  // to administrators or operators; any other priv-lvl logs in as a group of that number that can run nothing;
+  // Aruba-Admin-Role names the group and wins over priv-lvl.
+  var TAC_GROUPS = { administrators: 15, operators: 1, auditors: 19 };
+  Switch.prototype.tacServersOf = function (g) {
+    var self = this; if (g === "tacacs") return this.tac.servers.slice();
+    var grp = this.tac.groups[g]; if (!grp) return [];
+    return grp.servers.map(function (h) { return self.tac.servers.filter(function (t) { return t.host === h; })[0]; }).filter(Boolean);
+  };
+  // the first server in a group that answers, or null when every one of them times out
+  Switch.prototype.tacReach = function (g) {
+    var T = this.lesson.tacacs || {}, list = this.tacServersOf(g);
+    for (var i = 0; i < list.length; i++) if ((T.servers || []).indexOf(list[i].host) >= 0 && list[i].key && list[i].key === T.key) return list[i];
+    return null;
+  };
+  Switch.prototype.tacLog = function (user, status, extra) {
+    var cp = this.lesson.clearpass || {}, e = { id: ++this.cppm.seq, at: this.now(), src: "TACACS", user: user, nas: this.nasIp(), service: (cp.services || {}).tacacs || "Lab Device Admin",
+      status: status, code: "", cat: "", msg: "", alerts: [], roles: [], profiles: [], attrs: [], authz: [] };
+    for (var k in extra) e[k] = extra[k];
+    this.cppm.log.push(e); if (this.cppm.log.length > 60) this.cppm.log = this.cppm.log.slice(-60);
+    return e;
+  };
+  // what one TACACS user's login comes to: {ok, group, priv, why}
+  Switch.prototype.tacResult = function (user) {
+    var T = this.lesson.tacacs || {}, u = (T.users || {})[user];
+    if (!u) return null;
+    var pr = this.cppm.prof[u.profile] || {}, at = pr.attrs || {}, role = at["Aruba-Admin-Role"], lvl = at["priv-lvl"];
+    var e = { roles: [u.role || "[Other]"], profiles: [u.profile], attrs: [], authz: ["Aruba:common : Fail", "shell exec : Pass"], alerts: ["Tacacs service=Aruba:common not enabled"] };
+    e.attrs.push("Privilege Level (profile header) = " + (pr.header || 0));
+    if (lvl) e.attrs.push("Shell priv-lvl = " + lvl);
+    if (role) e.attrs.push("Shell Aruba-Admin-Role = " + role);
+    this.tacLog(user, "ACCEPT", e);
+    if (role) return { ok: true, group: role, priv: TAC_GROUPS[role] || "N/A" };
+    if (lvl) return +lvl === 15 ? { ok: true, group: "administrators", priv: 15 } : (+lvl === 1 ? { ok: true, group: "operators", priv: 1 } : { ok: true, group: String(lvl), priv: "N/A" });
+    return { ok: false, why: "header" };
+  };
+  // An SSH login through the channel's method list: each group's servers in order, then the next method when they all
+  // time out, or when ClearPass says no and allow-fail-through is on.
+  Switch.prototype.sshLogin = function (user) {
+    var methods = this.tac.login.ssh || this.tac.login["default"] || ["local"], local = (this.lesson.localUsers || ["admin"]).indexOf(user) >= 0, tried = [];
+    for (var i = 0; i < methods.length; i++) {
+      var m = methods[i];
+      if (m === "local") { if (local) return { ok: true, via: "local", group: "administrators", priv: 15, tried: tried }; return { ok: false, why: "local", tried: tried }; }
+      var sv = this.tacReach(m);
+      if (!sv) { tried.push(m + ": no TACACS server in the group answered"); continue; }
+      var res = this.tacResult(user);
+      if (!res) {
+        this.tacLog(user, "REJECT", { cat: "Authentication failure", code: "User not found", alerts: ["User '" + user + "' not present in [Local User Repository](localhost).", "Failed to authenticate user=" + user] });
+        if (this.tac.failThrough) { tried.push(m + ": ClearPass rejected " + user + ", fail-through goes on"); continue; }
+        return { ok: false, why: "reject", tried: tried };
+      }
+      res.via = "TACACS"; res.tried = tried; return res;
+    }
+    return { ok: false, why: "none", tried: tried };
+  };
+  // Each line the reader's session sends: the group the session landed in decides what it may run, and command
+  // authorization through a TACACS group asks ClearPass first (for a user ClearPass does not know, that is a no).
+  Switch.prototype.authorize = function (line) {
+    var S = this.session, first = tokens(line)[0] || "", show = "show".indexOf(first.toLowerCase()) === 0 && first.length > 1;
+    var ctxNow = this.ctx().ctx, inConfig = ctxNow !== "exec";
+    if (S.group === "operators" || S.group === "auditors") {
+      if (!show && !/^(exit|end)$/i.test(first) || (S.group === "auditors" && /^(end)$/i.test(first))) return "Invalid input: " + first;
+    } else if (S.group !== "administrators") {
+      if (!/^show user/i.test(line.trim())) return "Cannot execute command. Command not allowed.";
+    }
+    var ch = S.console ? "console" : "ssh", z = this.tac.authz[ch] || this.tac.authz["default"];
+    if (!z || !z.groups.length || /^show user/i.test(line.trim())) return "";
+    var T = this.lesson.tacacs || {}, answered = false;
+    for (var i = 0; i < z.groups.length; i++) { if (this.tacReach(z.groups[i])) { answered = true; break; } }
+    if (!answered) return z.none ? "" : "Cannot execute command. Command not allowed.";
+    var u = S.via === "TACACS" ? (T.users || {})[S.user] : null;
+    if (!u) return "Cannot execute command. Command not allowed.";
+    var pr = this.cppm.prof[u.profile] || {}, cmds = pr.cmds || "all";
+    if (cmds === "all") return "";
+    var word = (inConfig ? "configure" : first).toLowerCase();
+    return cmds.some(function (c) { return c.indexOf(word) === 0 || word.indexOf(c) === 0; }) ? "" : "Cannot execute command. Command not allowed.";
+  };
+  Switch.prototype.userInfo = function () {
+    var S = this.session;
+    if (S.via !== "TACACS") return "(sandbox: you are the switch's own admin user, logged in with its local password over " + (S.console ? "the console" : "SSH") + ".)";
+    return ["Username             : " + S.user, "Authentication type  : TACACS", "User group           : " + S.group, "User privilege level : " + S.priv, "User login session   : " + (S.console ? "console" : "ssh")].join("\n");
+  };
+  cmd("*", "show user information", function () { return this.userInfo(); });
+  cmd("*", "sim ssh", function () { return "This terminal is " + this.session.user + " over " + (this.session.console ? "the console" : "SSH to " + this.session.addr) + " (" + this.session.via + ", " + this.session.group + ").\nsim ssh <user> logs this terminal in again as that user; the fake ClearPass answers TACACS."; });
+  cmd("*", "sim ssh <WORD>", function (a) {
+    var user = a[2], r = this.sshLogin(user), lines = ["(sandbox: ssh " + user + "@" + this.session.addr + ")"];
+    (r.tried || []).forEach(function (t) { lines.push("(sandbox: " + t + ")"); });
+    if (!r.ok) {
+      this.tac.last[user] = { ok: false, why: r.why };
+      lines.push(user + "@" + this.session.addr + ": Permission denied (publickey,password).");
+      lines.push("(sandbox: " + (r.why === "header" ? "ClearPass accepted " + user + ", but its profile sets only the Privilege Level in the header and sends no Shell attribute, so the switch has no group to put the user in." :
+        r.why === "reject" ? "ClearPass rejected " + user + " and fail-through is off, so the switch never tried local." : r.why === "local" ? user + " is not a local user on the switch." : "no method in the ssh login list let " + user + " in.") + " This terminal is still " + this.session.user + ".)");
+      return lines.join("\n");
+    }
+    this.tac.last[user] = { ok: true, group: r.group, via: r.via };
+    this.session.user = user; this.session.via = r.via; this.session.group = r.group; this.session.priv = r.priv; this.session.console = false; this.session.up = true;
+    this.stack = [{ ctx: "exec" }];
+    lines.push(this.userInfo());
+    return lines.join("\n");
+  });
+  cmd("*", "sim console", function () {
+    var was = this.session.up; this.session.console = true; this.session.up = true; this.session.user = "admin"; this.session.via = "local"; this.session.group = "administrators"; this.session.priv = 15;
+    return "(sandbox: you are on the console port now, logged in as admin with the local password" + (was ? "" : "; the SSH session stays down until the management address answers again") + ".)";
+  });
+  cmd("*", "sim wait <WAIT>", function (a) {
+    var self = this, before = {}; Object.keys(this.clients).forEach(function (k) { before[k] = self.clients[k].status + "|" + (self.clients[k].role || ""); });
+    this.tick += +a[2] - 1; this.reauthAll();
+    var moved = Object.keys(this.clients).filter(function (k) { return before[k] !== self.clients[k].status + "|" + (self.clients[k].role || ""); }).map(function (k) { var c = self.clients[k], d = self.dev(k); return d.name + ": " + c.method + " " + c.status.toLowerCase() + (c.role ? ", role " + c.role : ""); });
+    return "(sandbox: " + a[2] + " seconds pass." + (moved.length ? " " + moved.join("; ") + "." : "") + ")";
+  });
+  cmd("*", "sim cppm", function () {
+    var L = this.cppm.log.slice(-12).reverse();
+    if (!L.length) return "Access Tracker is empty: nothing has reached ClearPass yet. No row at all means the request never arrived (the address, the VRF or the shared secret).";
+    return table(["Id", "Source", "User", "Service", "Status", "Error"], L.map(function (e) { return [String(e.id), e.src, e.user, e.service, e.status, e.code ? e.code + " " + e.msg : ""]; }));
+  });
+  cmd("*", "sim cppm change-status <1-4294967295> <WORD>", function (a) { return this.changeStatus(a[3], a[4]); });
+  cmd("*", "sim cppm tacacs <WORD> <WORD> <WORD>", function (a) {
+    var pr = this.cppm.prof[a[3]], attr = a[4], v = a[5];
+    if (!pr) return "No TACACS profile " + a[3] + ". Profiles: " + Object.keys(this.cppm.prof).join(", ") + ".";
+    if (["priv-lvl", "Aruba-Admin-Role"].indexOf(attr) < 0) return "Attributes: priv-lvl, Aruba-Admin-Role.";
+    pr.attrs = pr.attrs || {};
+    if (v === "off") delete pr.attrs[attr]; else pr.attrs[attr] = attr === "priv-lvl" ? String(+v || 0) : v;
+    return "ClearPass: profile " + a[3] + " now sends " + (Object.keys(pr.attrs).length ? Object.keys(pr.attrs).map(function (k) { return "Shell " + k + " = " + pr.attrs[k]; }).join(", ") : "no Shell attributes (header Privilege Level " + (pr.header || 0) + " only)") + ".";
+  });
+
+  // ── the management port ─────────────────────────────────────────────────
+  // DHCP by default. The reader's own session is an SSH to the DHCP lease; change the address under it and the
+  // session goes, which is what checkpoint auto is for (lab, 10.18.1002, 2026-09-29).
+  cmd("config", "interface mgmt", function () { this.push({ ctx: "mgmt" }); });
+  cmd("mgmt", "ip static <A.B.C.D/M>", function (a) { this.mgmt.dhcp = false; this.mgmt.ip = a[2]; return this.mgmtChanged(); });
+  cmd("mgmt", "no ip static", function () { this.mgmt.ip = ""; return this.mgmtChanged(); });
+  cmd("mgmt", "ip dhcp", function () { this.mgmt.dhcp = true; this.mgmt.ip = ""; this.mgmt.gw = ""; return this.mgmtChanged(); });
+  cmd("mgmt", "default-gateway <A.B.C.D>", function (a) { this.mgmt.gw = a[1]; });
+  cmd("mgmt", "no default-gateway", function () { this.mgmt.gw = ""; });
+  cmd("mgmt", "shutdown", function () { this.mgmt.shut = true; return this.mgmtChanged(); });
+  cmd("mgmt", "no shutdown", function () { this.mgmt.shut = false; return this.mgmtChanged(); });
+  Switch.prototype.mgmtAddr = function () { if (this.mgmt.shut) return ""; return this.mgmt.dhcp ? this.mgmt.lease.split("/")[0] : (this.mgmt.ip || "").split("/")[0]; };
+  // the reader is on SSH to session.addr; when the port stops answering there, the session ends
+  Switch.prototype.mgmtChanged = function () {
+    if (this.applying || this.session.console || !this.session.up) return "";
+    if (this.mgmtAddr() === this.session.addr) return "";
+    this.session.up = false;
+    var msg = "Connection to " + this.session.addr + " closed by remote host.\n(sandbox: you were on SSH to " + this.session.addr + ", and the management port no longer answers there.)";
+    if (this.ckAuto) return msg + "\n" + this.ckAutoRollback("session");
+    return msg + "\n(sandbox: you are locked out. On a real switch someone now walks to the console; here, sim console puts you on it.)";
+  };
 
   // ── global dot1x / mac-auth ─────────────────────────────────────────────
   cmd("dot1x", "enable", function () { this.pa.dot1x = true; this.reauthAll(); });
@@ -1489,12 +1795,26 @@
       // history and per-method states are what 10.18 prints in `show port-access clients detail`.
       var order = iface.precedence || ["dot1x", "mac-auth"];
       var methods = order.filter(function (m) { return m === "dot1x" ? nac.dot1x : nac.mac; });
-      var hist = [], prec = {}, rec = null, last = null, speaks = !!(d.auth && d.auth.dot1x);
+      var hist = [], prec = {}, rec = null, last = null, speaks = !!(d.auth && d.auth.dot1x), stall = !!(speaks && d.auth.dot1x.stall), exch = [];
       methods.forEach(function (m) { prec[m] = "Not attempted"; });
+      var elapsed = self.tick - (st.since || 0), clocked = !!self.lesson.timers;
       for (var i = 0; i < methods.length; i++) {
         var m = methods[i];
+        // With the sandbox clock on, the first method takes its time: a device with no supplicant, or one that stalls
+        // mid-EAP, holds the port in 802.1X until the timers run out; MAC auth answers in about 2 s.
+        if (clocked && i === 0) {
+          var need = m === "dot1x" && (!speaks || stall) ? self.dot1xWait(iface, stall) : (m === "mac-auth" ? 2 : 0);
+          if (elapsed < need) { prec[m] = "Authenticating"; rec = { dev: d.id, port: port, mac: macCx(d.mac), method: m, status: "In-Progress", outcome: "pending", role: "", vlan: 0, server: "", tried: [], at: self.now() - elapsed * 1000, user: speaks ? (d.user || "") : "",
+            reason: m + " is still waiting (" + elapsed + " of about " + need + " s)", wait: need, elapsed: elapsed }; last = rec; break; }
+        }
+        if (m === "dot1x" && stall) {
+          var sr = self.radiusReach(self.groupServers(self.pa.dot1xGroup));
+          if (sr.server) exch.push({ method: "dot1x", outcome: "stall", server: sr.server.host, user: d.user || "" });
+          hist.unshift({ m: "dot1x", ok: false, why: "Supplicant-Timeout" }); prec.dot1x = "Unauthenticated"; last = { outcome: "noeap" }; continue;
+        }
         if (m === "dot1x" && !speaks) { hist.unshift({ m: "dot1x", ok: false, why: "Supplicant-Timeout" }); prec.dot1x = "Unauthenticated"; last = { outcome: "noeap" }; continue; }
         var r = self.authenticate(d, m), authed = r.outcome === "accept" || r.outcome === "authz";
+        exch.push(r);
         hist.unshift({ m: m, ok: authed, why: r.outcome === "reject" ? "Server-Reject" : (r.outcome === "timeout" ? "Server-Timeout" : "") });
         prec[m] = authed ? "Authenticated" : (r.outcome === "reject" && m === "mac-auth" ? "Held" : "Unauthenticated");
         rec = r; last = r;
@@ -1506,7 +1826,7 @@
       // Nothing authenticated: a matching device profile applies its role. The lab's phone: dot1x timed out,
       // mac-auth was rejected and held, then "Bypass role is set ... to role VOICE" and dp|m|v|s. It only
       // matches if the switch can hear the phone's LLDP, which on a port-access port takes allow-lldp-bpdu.
-      if (rec.outcome !== "accept" && rec.outcome !== "authz") {
+      if (rec.outcome !== "accept" && rec.outcome !== "authz" && rec.outcome !== "pending") {
         var dp = self.lldpHeard(d, port, false) ? self.profileFor(d) : null;
         if (dp) rec = self.dpRecord(d, port, dp, mode, hist, prec, methods);
         else self.applyFallback(rec, iface, last && last.outcome === "timeout" ? "critical" : "reject");
@@ -1525,6 +1845,7 @@
       if (rec.status === "Success") count[key] = (count[key] || 0) + 1;
       if (count[key] > lim) rec ={ dev: d.id, port: port, mac: macCx(d.mac), method: "none", status: "Failed", role: "", vlan: 0, reason: "Client limit " + lim + " reached on " + port, at: self.now(), user: "", mode: mode };
       after[d.id] = rec;
+      self.atRecord(d, exch);
     });
     this.clients = after;
     this.dbgClients(before, after);
@@ -1551,7 +1872,7 @@
     var self = this, d = this.dev(id); if (!d) return "No device called " + id + " in this lab.";
     var ports = d.ports || [d.port], missing = ports.filter(function (p) { return !self.ifaces[p]; });
     if (missing.length) return d.name + " is cabled to " + missing[0] + ", which does not exist on this switch.";
-    this.devices[id].connected = true; this.tick++;
+    this.devices[id].connected = true; this.tick++; this.devices[id].since = this.tick;
     this.recheckL2(); this.reauthAll(); this.lldpEvents();
     var where = ports.join(" and ");
     if (ports.every(function (p) { return self.ifaces[p].shutdown; })) return d.name + " plugged into " + where + ". The port is shut down, so nothing happens.";
@@ -1565,7 +1886,7 @@
   };
   Switch.prototype.disconnect = function (id) {
     var d = this.dev(id); if (!d) return "No device called " + id + " in this lab.";
-    this.devices[id].connected = false; delete this.clients[id]; delete this.coaRoles[id]; this.tick++;
+    this.devices[id].connected = false; delete this.clients[id]; delete this.coaRoles[id]; delete this.cppm.sig[id]; this.tick++;
     this.recheckL2(); this.reauthAll();
     return d.name + " unplugged from " + (d.ports || [d.port]).join(" and ") + ".";
   };
@@ -1577,11 +1898,107 @@
     var client = this.pa.dynClients[from];
     if (!client) { st.badCoa++; return "No reply: " + from + " is not a dynamic authorization client on this switch (radius dyn-authorization client), so the request is dropped and counted as an invalid client address."; }
     if (client.key !== (this.lesson.radius || {}).key) { st.badCoa++; return "No reply: the secret-key for " + from + " does not match ClearPass, so the switch drops the request."; }
-    st.coaReq++;
-    if (!this.pa.roles[role]) { st.coaNak++; return "CoA-NAK: role " + role + " is not defined on the switch."; }
-    st.coaAck++;
+    var cs = this.dynCounters(from); cs.coaReq++;
+    if (!this.pa.roles[role]) { cs.coaNak++; return "CoA-NAK: role " + role + " is not defined on the switch."; }
+    cs.coaAck++;
     this.coaRoles[id] = role; this.setRecRole(c, role, this.ifaces[c.port], "CoA applied"); c.at = this.now();
     return "CoA-ACK: " + d.name + " moved to role " + role + ", VLAN " + c.vlan + ".";
+  };
+
+  Switch.prototype.dynCounters = function (ip) {
+    var c = this.pa.dynClients[ip]; if (!c) return null;
+    return c.st || (c.st = { discReq: 0, discAck: 0, discNak: 0, coaReq: 0, coaAck: 0, coaNak: 0 });
+  };
+
+  // How long the first 802.1X attempt holds a port before the switch moves on, with the sandbox clock on. These are
+  // the lab switch's own measurements on 10.18.1002 against ClearPass 6.11.1 (2026-09-29): a device with no
+  // supplicant waited about 165 s on the defaults and 10 s with initial-auth-response-timeout 10; a supplicant that
+  // stalls mid-PEAP took about 164 s on the defaults, 122 s with eapol-timeout 10, and 42 s with eapol-timeout 10 plus
+  // max-eapol-requests 1, and initial-auth-response-timeout did not help it. 2 + 4 x eapol x requests (13.5 s and 3
+  // when unset) passes through all three stall figures; other combinations are that fit, not a measurement.
+  Switch.prototype.dot1xWait = function (iface, stall) {
+    if (!stall) return iface.iart || 165;
+    var e = iface.eapolTo || 13.5, n = iface.maxEapol || 3;
+    return Math.round(2 + 4 * e * n);
+  };
+
+  // ── the fake ClearPass's Access Tracker ─────────────────────────────────
+  // One row per request that reached ClearPass. A request that never arrived (no server at that address, the wrong
+  // shared secret, a VRF that does not lead there) leaves no row at all, which is the point. Wording from Access
+  // Tracker on ClearPass 6.11.1 (lab, 2026-09-29): 216 "User authentication failed" with the MSCHAP retry alert for a
+  // wrong PEAP password, 216 with "User not found" for an unknown MAC under [MAC AUTH], 9002 "Request timed out" with
+  // "Client did not complete EAP transaction" for a stalled supplicant. 206 "Access denied by policy" for a known
+  // endpoint the policy denies follows the Policy Manager guide; the lab never produced one.
+  Switch.prototype.nasIp = function () {
+    var r = this.lesson.radius || {}; if (r.nas) return r.nas;
+    var sv = Object.keys(this.svis).map(function (k) { return this.svis[k]; }, this).filter(function (x) { return x.ip; })[0];
+    return sv ? sv.ip.split("/")[0] : "192.0.2.3";
+  };
+  Switch.prototype.atRecord = function (d, exch) {
+    var reached = exch.filter(function (r) { return r.server && r.outcome !== "timeout"; });
+    var sig = reached.map(function (r) { var ans = (d.auth || {})[r.method] || {}; return r.method + ":" + (r.outcome === "authz" ? "accept" : r.outcome) + ":" + (ans.role || ans.vlan || "") + ":" + r.server; }).join("|");
+    if (!sig || sig === this.cppm.sig[d.id]) { if (!sig) delete this.cppm.sig[d.id]; return; }
+    this.cppm.sig[d.id] = sig;
+    var self = this;
+    reached.forEach(function (r) { self.cppm.log.push(self.atEntry(d, r)); });
+    if (this.cppm.log.length > 60) this.cppm.log = this.cppm.log.slice(-60);
+  };
+  Switch.prototype.atEntry = function (d, r) {
+    var cp = this.lesson.clearpass || {}, svc = cp.services || {}, ans = (d.auth || {})[r.method] || null, dot1x = r.method === "dot1x";
+    var mac = macCx(d.mac).replace(/:/g, "");
+    var e = { id: ++this.cppm.seq, at: this.now(), src: "RADIUS", dev: d.id, user: dot1x ? (d.user || r.user || mac) : mac, mac: macCx(d.mac), nas: this.nasIp(), nasPort: d.port, server: r.server,
+      service: svc[r.method] || (dot1x ? "Lab Wired 802.1X" : "Lab Wired MAC Auth"),
+      method: dot1x ? ((ans && ans.eap) || "EAP-PEAP,EAP-MSCHAPv2") : "MAC-AUTH",
+      source: dot1x ? ((ans && ans.source) || "Local:localhost") : "[Endpoints Repository]",
+      status: "", code: "", cat: "", msg: "", alerts: [], roles: [], profiles: [], attrs: [] };
+    if (r.outcome === "accept" || r.outcome === "authz") {
+      e.status = "ACCEPT"; e.roles = (ans && ans.cppmRoles) || ["[User Authenticated]"];
+      if (ans && ans.role) { e.profiles = [(ans && ans.profile) || "Return role " + ans.role]; e.attrs = ["Radius:Aruba:Aruba-User-Role = " + ans.role]; }
+      else if (ans && ans.vlan) { e.profiles = [(ans && ans.profile) || "Return VLAN " + ans.vlan]; e.attrs = ["Radius:IETF:Tunnel-Type = VLAN (13)", "Radius:IETF:Tunnel-Medium-Type = IEEE-802 (6)", "Radius:IETF:Tunnel-Private-Group-Id = " + ans.vlan]; }
+      else e.profiles = ["[Allow Access Profile]"];
+    } else if (r.outcome === "stall") {
+      e.status = "TIMEOUT"; e.code = "9002"; e.cat = "Authentication failure"; e.msg = "Request timed out"; e.alerts = ["Client did not complete EAP transaction"];
+    } else {
+      e.status = "REJECT"; e.profiles = ["[Deny Access Profile]"]; e.cat = "Authentication failure";
+      var unknown = !ans || (!dot1x && /unknown|not found/i.test(ans.why || ""));
+      if (unknown) { e.code = "216"; e.msg = "User authentication failed"; e.alerts = dot1x ? ["User not found"] : ["[Endpoints Repository] - localhost: User not found.", "MAC-AUTH: MAC Authentication attempted by unknown client"]; e.roles = []; }
+      else if (dot1x) { e.code = "216"; e.msg = "User authentication failed"; e.alerts = ans.alert ? [ans.alert] : (/password/i.test(ans.why || "") || !ans.why ? ["MSCHAP: Authentication failed. will re-try based on config"] : ["(sandbox: " + ans.why + ")"]); }
+      else { e.code = ans.code || "206"; e.msg = ans.msg || "Access denied by policy"; e.cat = ans.cat || "Authorization failure"; e.alerts = ans.alert ? [ans.alert] : []; }
+    }
+    return e;
+  };
+  // Change Status on an Access Tracker row: the RADIUS Dynamic Authorization profiles ClearPass 6.11.1 offers for a
+  // NAD of vendor Aruba, and what the lab switch did with each (2026-09-29): the two ArubaOS Wireless profiles carry
+  // only Calling-Station-Id and are refused with Missing-Attribute, AOS-CX Disconnect ends the session, AOS-CX Bounce
+  // Switch Port is the one counted as a CoA and flaps the port. The dialog wording is the sandbox's own.
+  var CPPM_COA = {
+    "aw-terminate": { name: "[ArubaOS Wireless - Terminate Session]", kind: "disc", ok: false },
+    "aw-bounce": { name: "[ArubaOS Wireless - Bounce Switch Port]", kind: "disc", ok: false },
+    "cx-disconnect": { name: "[AOS-CX - Disconnect]", kind: "disc", ok: true },
+    "cx-bounce": { name: "[AOS-CX - Bounce Switch Port]", kind: "coa", ok: true }
+  };
+  Switch.prototype.changeStatus = function (id, key) {
+    var e = this.cppm.log.filter(function (x) { return x.id === +id; })[0], p = CPPM_COA[key];
+    if (!p) return "Profiles: " + Object.keys(CPPM_COA).map(function (k) { return k + " " + CPPM_COA[k].name; }).join(", ") + ".";
+    if (!e) return "No Access Tracker row " + id + ".";
+    if (e.src !== "RADIUS" || e.status !== "ACCEPT") return "Change Status works on an accepted RADIUS session; row " + id + " is " + e.src + " " + e.status + ".";
+    var c = this.clients[e.dev], d = this.dev(e.dev), mac = macCx(e.mac).toUpperCase().replace(/:/g, "-");
+    var fail = "ClearPass: Radius " + p.name + " failed for client " + mac;
+    if (!c || c.status !== "Success" || !d) return "ClearPass: the session for " + e.user + " has ended, so there is nothing to change.";
+    if (!this.pa.dynAuth) return fail + "\n(sandbox: the switch is not listening for dynamic authorization; radius dyn-authorization enable is off.)";
+    var client = this.pa.dynClients[e.server], gst = this.pa.dynStats;
+    if (!client) { if (p.kind === "coa") gst.badCoa++; else gst.badDisc++; return fail + "\n(sandbox: " + e.server + " is not a radius dyn-authorization client, so the switch dropped the request and counted an invalid client address.)"; }
+    if (client.key !== (this.lesson.radius || {}).key) return fail + "\n(sandbox: the secret-key for " + e.server + " does not match ClearPass, so the switch dropped the request.)";
+    var cs = this.dynCounters(e.server);
+    if (!p.ok) { cs.discReq++; cs.discNak++; return fail + ", user " + e.user + ". Missing-Attribute.\n(sandbox: the switch answered Disconnect-NAK. In strict mode it wants NAS-IP-Address or NAS-Identifier, and this profile sends only Calling-Station-Id.)"; }
+    if (p.kind === "disc") cs.discReq++, cs.discAck++; else cs.coaReq++, cs.coaAck++;
+    // the session ends; the device is still plugged in, so it authenticates again and Access Tracker gets new rows
+    delete this.clients[e.dev]; delete this.cppm.sig[e.dev]; delete this.coaRoles[e.dev]; this.tick++; this.devices[e.dev].since = this.tick;
+    this.reauthAll();
+    var again = this.clients[e.dev];
+    return "ClearPass: " + p.name + " sent to " + this.nasIp() + " for " + e.user + ": " + (p.kind === "disc" ? "Disconnect-ACK" : "CoA-ACK") + "." +
+      (p.kind === "coa" ? "\n(sandbox: the switch flapped " + d.port + " as part of the CoA request, Event 10522.)" : "") +
+      "\n(sandbox: " + d.name + " is still plugged in and authenticated again: " + (again ? again.method + " " + again.status.toLowerCase() + (again.role ? ", role " + again.role : "") : "no session") + ".)";
   };
 
   // ── L2 neighbours: LAG partner, BPDUs, loops ────────────────────────────
@@ -1704,6 +2121,7 @@
   cmd("*", "show running-config", function () { return this.runningConfig(); });
   cmd("*", "show running-config interface <PORT>", function (a) { var s = this.configSection("interface " + a[3]); return s ? s.join("\n") : "Interface " + a[3] + " does not exist on this switch."; });
   cmd("*", "show running-config interface lag <1-256>", function (a) { var s = this.configSection("interface lag " + a[4]); return s ? s.join("\n") : "LAG " + a[4] + " does not exist."; });
+  cmd("*", "show running-config interface mgmt", function () { var s = this.configSection("interface mgmt"); return s ? s.join("\n") : ""; });
   cmd("*", "show running-config interface vlan <1-4094>", function (a) { var s = this.configSection("interface vlan " + a[4]); return s ? s.join("\n") : "Interface vlan " + a[4] + " does not exist."; });
   cmd("*", "show startup-config", function () { return this.startup; });
   cmd("*", "show version", function () {
@@ -2060,9 +2478,11 @@
     if (!ips.length) return o.concat(["No RADIUS dynamic authorization client configured"]).join("\n");
     o.push("", "Dynamic Authorization Client Information", "=========================================");
     ips.forEach(function (ip) {
-      o.push("", "IP Address               : " + ip, "VRF                      : default", "TLS Enabled              : No", "Replay Protection        : Disabled", "Time Window              : 300 seconds ",
-        "rfc5176-enforcement-mode : strict", "Disconnect Requests      : 0", "Disconnect ACKs          : 0", "Disconnect NAKs          : 0", "CoA Requests             : " + st.coaReq,
-        "CoA ACKs                 : " + st.coaAck, "CoA NAKs                 : " + st.coaNak, "Shared-Secret            : <ciphertext>");
+      o.push("", "IP Address               : " + ip, "VRF                      : " + (self.pa.dynClients[ip].vrf || "default"), "TLS Enabled              : No", "Replay Protection        : Disabled", "Time Window              : 300 seconds ",
+        "rfc5176-enforcement-mode : strict");
+      var cs = self.dynCounters(ip);
+      o.push("Disconnect Requests      : " + cs.discReq, "Disconnect ACKs          : " + cs.discAck, "Disconnect NAKs          : " + cs.discNak, "CoA Requests             : " + cs.coaReq,
+        "CoA ACKs                 : " + cs.coaAck, "CoA NAKs                 : " + cs.coaNak, "Shared-Secret            : <ciphertext>");
     });
     return o.join("\n");
   });
@@ -2070,7 +2490,37 @@
     var self = this, rows = [];
     Object.keys(this.groups).forEach(function (g) { var gp = self.groups[g].prio || {}; self.groups[g].servers.forEach(function (sv, i) { rows.push(pad(g, 32) + "| " + pad(sv, 45) + "| " + pad("", 5) + "| " + pad("1812", 5) + "| " + pad("default", 32) + "| " + (gp[sv] || (i + 1))); rows.push(RS_RULE); }); });
     this.radius.forEach(function (r, i) { rows.push(pad("radius", 32) + "| " + pad(r.host, 45) + "| " + pad("", 5) + "| " + pad("1812", 5) + "| " + pad("default", 32) + "| " + (i + 1) + "       "); rows.push(RS_RULE); });
-    return ["******* AAA Mechanism TACACS+ *******", RS_RULE, "GROUP NAME                      | SERVER NAME                                  | PORT | VRF                             | PRIORITY", RS_RULE, "******* AAA Mechanism RADIUS *******", RS_RULE, "GROUP NAME                      | SERVER NAME                                  | TLS  | PORT | VRF                             | PRIORITY", RS_RULE].concat(rows).join("\n");
+    return this.tacGroupRows().concat(["******* AAA Mechanism RADIUS *******", RS_RULE, "GROUP NAME                      | SERVER NAME                                  | TLS  | PORT | VRF                             | PRIORITY", RS_RULE]).concat(rows).join("\n");
+  });
+  // the TACACS+ half, groups first then the box's own `tacacs` group (lab, 10.18.1002, 2026-09-29)
+  Switch.prototype.tacGroupRows = function () {
+    var self = this, o = ["******* AAA Mechanism TACACS+ *******", RS_RULE, "GROUP NAME                      | SERVER NAME                                  | PORT | VRF                             | PRIORITY", RS_RULE];
+    var vrfOf = function (h) { var t = self.tac.servers.filter(function (x) { return x.host === h; })[0]; return (t && t.vrf) || "default"; };
+    Object.keys(this.tac.groups).forEach(function (g) { self.tac.groups[g].servers.forEach(function (sv, i) { o.push(pad(g, 32) + "| " + pad(sv, 45) + "| " + pad("49", 5) + "| " + pad(vrfOf(sv), 32) + "| " + (i + 1)); o.push(RS_RULE); }); });
+    this.tac.servers.forEach(function (t, i) { o.push(pad("tacacs", 32) + "| " + pad(t.host, 45) + "| " + pad("49", 5) + "| " + pad(t.vrf || "default", 32) + "| " + (i + 1) + "       "); o.push(RS_RULE); });
+    return o;
+  };
+  cmd("*", "show aaa server-groups tacacs", function () { return this.tacGroupRows().join("\n"); });
+  // show aaa authentication and show aaa authorization in 10.18.1002's layout, tabs and all (lab, 2026-09-29)
+  var AAA_RULE = pad("", 140).replace(/ /g, "-");
+  function aaaTable(title, list) {
+    var o = [title, AAA_RULE, "GROUP NAME                       | GROUP PRIORITY", AAA_RULE];
+    list.forEach(function (g, i) { o.push(pad(g, 33) + "| " + pad(String(i), 14)); });
+    o.push(AAA_RULE); return o;
+  }
+  cmd("*", "show aaa authentication", function () {
+    var self = this, o = ["AAA Authentication:", "  Fail-through\t\t\t\t: " + (this.tac.failThrough ? "Enabled" : "Disabled"), "  Limit Login Attempts\t\t\t: Not set", "  Lockout Time\t\t\t\t: 300",
+      "  Console Login Attempts\t\t: Not set", "  Console Lockout Time\t\t\t: 300"];
+    o = o.concat(aaaTable("Authentication for default channel:", this.tac.login["default"] || ["local"]));
+    ["console", "ssh", "https-server"].forEach(function (ch) { if (self.tac.login[ch]) o = o.concat(aaaTable("Authentication for " + ch + " channel:", self.tac.login[ch])); });
+    return o.join("\n");
+  });
+  cmd("*", "show aaa authorization", function () {
+    var self = this, o = ["******* Command authorization *******", "Fail-through                     : " + (this.tac.failThrough ? "Enabled" : "Disabled")];
+    var list = function (z) { return z ? z.groups.concat(z.none ? ["none"] : []) : ["local"]; };
+    o = o.concat(aaaTable("Authorization for default channel:", list(this.tac.authz["default"])));
+    ["console", "ssh"].forEach(function (ch) { if (self.tac.authz[ch]) o = o.concat(aaaTable("Authorization for " + ch + " channel:", list(self.tac.authz[ch]))); });
+    return o.join("\n");
   });
   // ── port-access clients, in 10.18.1002's own layout ─────────────────────
   // Table, detail and client-status views checked against the lab switch on 2026-09-26 and 2026-09-28
@@ -2098,10 +2548,11 @@
     // a trunk role reads (u)native,(t)tagged when one VLAN is tagged beside the native, and multi when more are
     // (lab: VOICE native 10 allowed 30 showed (u)10,(t)30; UPLINK-TRUNK native 1 allowed 1,10,20 showed multi)
     var tagged = (c.trunk || []).filter(function (v) { return v !== c.native; }), vcol = !ok ? "" : (c.trunk ? (tagged.length === 1 ? "(u)" + (c.native || c.vlan) + ",(t)" + tagged[0] : "multi") : "(u)" + c.vlan);
+    var pend = c.outcome === "pending";   // the lab's silent client mid-802.1X: Status Authenticating, flags --|c|-|p
     return {
-      name: name, flags: meth + "|" + mode + "|" + dtype + "|" + (ok ? "s" : "f"), vlan: vcol,
+      name: name, flags: meth + "|" + mode + "|" + dtype + "|" + (ok ? "s" : (pend ? "p" : "f")), vlan: vcol,
       role: ok ? (c.role ? c.role + (fb ? ", " + fb : "") : "") : "", roleDetail: ok && c.role ? c.role + (fb ? ", " + fb + " role" : "") : "",
-      status: c.method === "fallback" ? "Unauthenticated" : (authed ? c.method + " Authenticated" : "Authentication Failed, " + why),
+      status: pend ? "Authenticating" : (c.method === "fallback" ? "Unauthenticated" : (authed ? c.method + " Authenticated" : "Authentication Failed, " + why)),
       authz: c.outcome === "authz" ? "Invalid" : (ok ? "Applied" : ""), devType: mode === "m" ? (c.voice ? "voice" : "data") : ""
     };
   };
@@ -2547,10 +2998,10 @@
   cmd("*", "show checkpoint", function () {
     // every entry is TYPE checkpoint and the startup config sits among them by date, newest first, as the lab's
     // listing did; the box also keeps system checkpoints (CPC...) after each change, which the sandbox does not
-    var self = this, all = this.checkpoints.map(function (c) { return { name: c.name, type: "checkpoint", at: c.at }; });
+    var self = this, all = this.checkpoints.map(function (c) { return { name: c.name, type: "checkpoint", at: c.at, writer: c.writer || "User" }; });
     all.push({ name: "startup-config", type: "startup", at: this.startupAt || this.boot });
     return [pad("NAME", 34) + pad("TYPE", 12) + pad("WRITER", 8) + pad("DATE(YYYY/MM/DD)", 22) + "IMAGE VERSION"].concat(all.sort(function (a, b) { return b.at - a.at; }).map(function (c) {
-      return pad(c.name, 34) + pad(c.type, 12) + pad("User", 8) + pad(new Date(c.at).toISOString().replace(/\.\d+Z$/, "Z"), 22) + self.version;
+      return pad(c.name, 34) + pad(c.type, 12) + pad(c.writer || "User", 8) + pad(new Date(c.at).toISOString().replace(/\.\d+Z$/, "Z"), 22) + self.version;
     })).join("\n");
   });
   cmd("*", "show checkpoint <WORD>", function (a) {
@@ -2617,6 +3068,13 @@
         else if (c.debug) { pass = self.dbgOn(c.debug.module, c.debug.sub || "all"); if (!pass) why = "debug " + c.debug.module + " " + (c.debug.sub || "all") + " is not on"; }
         else if (c.rest) { pass = self.restLog.some(function (r) { return r.m === c.rest.method.toUpperCase() && new RegExp(c.rest.path).test(r.path) && r.code >= 200 && r.code < 300; }); if (!pass) why = "no successful " + c.rest.method.toUpperCase() + " to that path yet"; }
         else if (c.shut) { var si = self.ifaces[c.shut.port]; pass = !!si && si.shutdown === (c.shut.is !== false); if (!pass) why = si ? (si.shutdown ? "shut down" : "still enabled") : "no such port"; }
+        else if (c.waitmax) { var wd = self.dev(c.waitmax.dev), wi = wd && self.ifaces[wd.port], spk = !!(wd && wd.auth && wd.auth.dot1x), stl = !!(spk && wd.auth.dot1x.stall);
+          var first = wi && (wi.precedence || ["dot1x", "mac-auth"])[0], w = !wi ? 0 : (first === "dot1x" ? self.dot1xWait(wi, stl) : 2); pass = !!wi && w <= c.waitmax.max && (!c.waitmax.first || first === c.waitmax.first);
+          if (!pass) why = !wi ? "no such device" : (c.waitmax.first && first !== c.waitmax.first ? "the port tries " + first + " first" : "the port still holds it for about " + w + " s"); }
+        else if (c.dyn) { var dc = self.pa.dynClients[c.dyn.client] ? self.dynCounters(c.dyn.client) : null; pass = !!dc && dc[c.dyn.counter] >= (c.dyn.min || 1); if (!pass) why = dc ? c.dyn.counter + " is " + dc[c.dyn.counter] : c.dyn.client + " is not a dynamic authorization client"; }
+        else if (c.login) { var lg = self.tac.last[c.login.user]; pass = !!lg && lg.ok && (!c.login.group || lg.group === c.login.group); if (!pass) why = lg ? (lg.ok ? "logged in as " + lg.group : "last login was refused") : c.login.user + " has not logged in yet"; }
+        else if (c.ckauto) { pass = (c.ckauto.rollbacks === undefined || self.ckAutoRuns >= c.ckauto.rollbacks) && (c.ckauto.pending === undefined || !!self.ckAuto === c.ckauto.pending); if (!pass) why = self.ckAuto ? "a checkpoint auto is still waiting for its confirm" : (self.ckAutoRuns ? "" : "checkpoint auto has not rolled anything back yet"); }
+        else if (c.mgmt) { pass = (!c.mgmt.dhcp || self.mgmt.dhcp) && (!c.mgmt.ip || self.mgmt.ip === c.mgmt.ip) && (c.mgmt.session === undefined || self.session.up === c.mgmt.session); if (!pass) why = self.mgmt.dhcp ? "the management port is on DHCP" : "the management port is " + (self.mgmt.ip || "unaddressed"); }
       } catch (e) { why = "check error: " + e.message; }
       return { desc: c.desc, pass: pass, why: why };
     });
@@ -2654,7 +3112,11 @@
         check: function () { return sw.check(); },
         save: function () { return sw.save(); },
         devices: function () { return (lesson && lesson.devices || []).map(function (d) { var st = sw.devices[d.id], c = sw.clients[d.id]; return { id: d.id, name: d.name, kind: d.kind, port: (d.ports || [d.port]).join(", "), connected: !!(st && st.connected), auth: c || null, linkUp: (d.ports || [d.port]).some(function (p) { return sw.linkUp(p); }), errdisabled: sw.errdisabled[d.port] || "" }; }); },
-        history: function () { return sw.history; }
+        history: function () { return sw.history; },
+        // the fake ClearPass: Access Tracker rows newest last, the TACACS profiles a lab lets the reader edit, and
+        // the Change Status profiles offered for an accepted session
+        cppm: function () { return { log: sw.cppm.log.slice(), prof: sw.cppm.prof, coa: Object.keys(CPPM_COA).map(function (k) { return { key: k, name: CPPM_COA[k].name }; }), live: function (id) { var c = sw.clients[id]; return !!(c && c.status === "Success"); } }; },
+        session: function () { return sw.session; }
       };
     }
   };

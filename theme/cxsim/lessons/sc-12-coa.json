@@ -1,0 +1,123 @@
+{
+ "id": "sc-12-coa",
+ "title": "Scenario 12: the disconnect ClearPass cannot send",
+ "track": "Scenarios",
+ "number": 12,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "clearpass": {
+  "services": {
+   "dot1x": "Lab Wired 802.1X",
+   "mac-auth": "Lab Wired MAC Auth"
+  }
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "radius-server host 192.0.2.10 key plaintext cppm-lab-key",
+  "aaa group server radius CLEARPASS",
+  "server 192.0.2.10",
+  "exit",
+  "aaa authentication port-access dot1x authenticator",
+  "radius server-group CLEARPASS",
+  "enable",
+  "exit",
+  "aaa authentication port-access mac-auth",
+  "radius server-group CLEARPASS",
+  "enable",
+  "exit",
+  "port-access role EMPLOYEE",
+  "vlan access 10",
+  "exit",
+  "port-access role PRINTERS",
+  "vlan access 20",
+  "exit",
+  "port-access role KIOSK",
+  "vlan access 10",
+  "exit",
+  "interface 1/1/1-1/1/8",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "aaa authentication port-access dot1x authenticator",
+  "enable",
+  "exit",
+  "aaa authentication port-access mac-auth",
+  "enable",
+  "exit",
+  "exit",
+  "radius dyn-authorization enable"
+ ],
+ "task": "Security wants employee.user off the network now, from ClearPass. Open the laptop's row in the ClearPass panel and use Change Status. Make the switch take a disconnect from ClearPass (192.0.2.10, shared secret cppm-lab-key), then find the profile that actually ends the session. The ClearPass side only tells you so much; the switch's counters say the rest.",
+ "hints": [
+  "The first Change Status fails with no reason on the ClearPass side. `show radius dyn-authorization`: an invalid client address, because 192.0.2.10 is not a dynamic authorization client yet.",
+  "`radius dyn-authorization client 192.0.2.10 secret-key plaintext cppm-lab-key`. Enabling dynamic authorization is only half of it.",
+  "Now the default profile, ArubaOS Wireless Terminate Session, gets Disconnect-NAK with Missing-Attribute. It sends only Calling-Station-Id, and the switch's default strict mode wants NAS-IP-Address or NAS-Identifier. Pick AOS-CX Disconnect.",
+  "AOS-CX Bounce Switch Port is the one the switch counts as a CoA. It flaps the port, which on a phone port drops the phone and the PC behind it."
+ ],
+ "devices": [
+  {
+   "id": "laptop",
+   "name": "Laptop (employee.user)",
+   "kind": "laptop",
+   "port": "1/1/1",
+   "mac": "00:00:5e:00:53:41",
+   "user": "employee.user",
+   "connected": true,
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE"
+    }
+   }
+  },
+  {
+   "id": "printer",
+   "name": "Printer (HP LaserJet)",
+   "kind": "printer",
+   "port": "1/1/5",
+   "mac": "00:00:5e:00:53:45",
+   "connected": true,
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "PRINTERS"
+    }
+   }
+  }
+ ],
+ "checks": [
+  {
+   "desc": "192.0.2.10 is a dynamic authorization client with the right secret",
+   "config": {
+    "has": "^radius dyn-authorization client 192\\.0\\.2\\.10 "
+   }
+  },
+  {
+   "desc": "You saw the default profile refused (a Disconnect-NAK)",
+   "dyn": {
+    "client": "192.0.2.10",
+    "counter": "discNak",
+    "min": 1
+   }
+  },
+  {
+   "desc": "A disconnect from ClearPass was acknowledged by the switch",
+   "dyn": {
+    "client": "192.0.2.10",
+    "counter": "discAck",
+    "min": 1
+   }
+  }
+ ]
+}
