@@ -265,7 +265,7 @@ def parse_post(path):
     meta["bot"] = bot_for(meta)
     return meta
 
-posts = sorted((parse_post(p) for p in glob.glob(os.path.join(ROOT, "posts", "*.md"))),
+posts = sorted((parse_post(p) for p in sorted(glob.glob(os.path.join(ROOT, "posts", "*.md")))),
                key=lambda m: (m["date_obj"], int(m.get("academy") or 0)), reverse=True)
 if not posts:
     sys.exit("no posts")
