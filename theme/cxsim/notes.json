@@ -8,6 +8,7 @@
   "Spanning tree",
   "LLDP",
   "RADIUS",
+  "Management access",
   "Port access",
   "Tunneling",
   "Device profiles",
@@ -342,6 +343,57 @@
     "checkpoint rollback <WORD>",
     "show checkpoint"
    ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "checkpoint auto confirm",
+   "c": "*",
+   "g": "Basics",
+   "t": "Keep the change",
+   "w": "Ends a checkpoint auto with the change in place. I didn't capture what the box prints for it; the sandbox prints nothing. show checkpoint keeps auto-checkpoint-start-backup either way.",
+   "ex": [
+    [
+     "checkpoint auto 5",
+     "checkpoint auto confirm"
+    ]
+   ],
+   "see": [
+    "checkpoint auto <minutes>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "checkpoint auto <minutes>",
+   "c": "*",
+   "g": "Basics",
+   "t": "A change that undoes itself",
+   "w": "Saves the running config now, and unless checkpoint auto confirm comes in time the switch puts it back. On my bench it rolled back about 5 s after the session that armed it ended, not only at the timer, so a change that cuts your SSH session comes straight back. Every change made meanwhile gets a WARNING asking for the confirm.",
+   "ex": [
+    [
+     "checkpoint auto 5",
+     "configure terminal",
+     "vlan 60",
+     "name CAMERAS",
+     "end",
+     "checkpoint auto confirm"
+    ]
+   ],
+   "see": [
+    "checkpoint auto confirm",
+    "checkpoint rollback <WORD>",
+    "show checkpoint"
+   ],
+   "tip": "Arm it before anything that touches how you reach the switch: the management address, an ACL on the management VRF, the login list. A management address change made over SSH always comes back under it; make that one from the console.",
    "rel": [
     "10.15",
     "10.16",
@@ -1217,6 +1269,30 @@
    ]
   },
   {
+   "k": "show aaa server-groups",
+   "c": "*",
+   "g": "RADIUS",
+   "t": "Every server group, RADIUS and TACACS",
+   "w": "Each group with its servers, port, VRF and priority, TACACS+ first and RADIUS after it. The switch's own groups, radius and tacacs, sit at the bottom of each half and hold every server you configured. show aaa server-groups tacacs prints only the TACACS half.",
+   "ex": [
+    [
+     "show aaa server-groups"
+    ],
+    [
+     "show aaa server-groups tacacs"
+    ]
+   ],
+   "see": [
+    "aaa group server tacacs <name>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
    "k": "aaa authentication port-access dot1x authenticator",
    "c": "config",
    "g": "Port access",
@@ -1663,6 +1739,81 @@
    ]
   },
   {
+   "k": "initial-auth-response-timeout <seconds>",
+   "c": "if",
+   "g": "Port access",
+   "t": "How long a port waits for a first EAP answer",
+   "w": "Under the port's dot1x authenticator. A device with no 802.1X client (a printer, a camera, a phone without a certificate) never answers, so this is how long the port waits before it moves on to MAC auth. On my bench the 10.18 defaults made a silent printer wait about 165 seconds, and 10 here got it on in about 10. A client that answers and then stalls ignores it.",
+   "ex": [
+    [
+     "interface 1/1/3",
+     "aaa authentication port-access dot1x authenticator",
+     "initial-auth-response-timeout 10"
+    ]
+   ],
+   "see": [
+    "eapol-timeout <seconds>",
+    "aaa authentication port-access auth-precedence <order>"
+   ],
+   "tip": "Set it wherever something without a supplicant can land. It costs a real laptop nothing: a supplicant answers inside a second.",
+   "fake": "The wait itself plays out only in labs with the sandbox clock (sim wait); elsewhere the line is just taken.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "eapol-timeout <seconds>",
+   "c": "if",
+   "g": "Port access",
+   "t": "How long to wait for each EAP reply",
+   "w": "Under the port's dot1x authenticator, with max-eapol-requests beside it. This is the one for a supplicant that starts 802.1X and then goes quiet halfway. On my bench a stalled PEAP client held the port about 164 s on the defaults, 122 s with eapol-timeout 10, and 42 s with eapol-timeout 10 plus max-eapol-requests 1.",
+   "ex": [
+    [
+     "interface 1/1/4",
+     "aaa authentication port-access dot1x authenticator",
+     "eapol-timeout 10",
+     "max-eapol-requests 1"
+    ]
+   ],
+   "see": [
+    "max-eapol-requests <1-10>",
+    "initial-auth-response-timeout <seconds>"
+   ],
+   "fake": "The sandbox's times are those three measurements and a line fitted through them; other combinations are the fit, not a measurement.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "max-eapol-requests <1-10>",
+   "c": "if",
+   "g": "Port access",
+   "t": "How many times to ask before giving up",
+   "w": "How many EAP requests the port sends to a client that has gone quiet before it calls 802.1X failed and moves on. Down to 1 beside eapol-timeout 10 took a stalled client from about 164 s to about 42 s on the lab switch.",
+   "ex": [
+    [
+     "interface 1/1/4",
+     "aaa authentication port-access dot1x authenticator",
+     "max-eapol-requests 1"
+    ]
+   ],
+   "see": [
+    "eapol-timeout <seconds>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
    "k": "ubt-client-vlan <1-4094>",
    "c": "config",
    "g": "Tunneling",
@@ -1978,6 +2129,301 @@
     ]
    ],
    "rel": "sandbox"
+  },
+  {
+   "k": "sim wait <seconds>",
+   "c": "*",
+   "g": "Sandbox",
+   "t": "Let time pass",
+   "w": "The sandbox clock. Lets that many seconds pass in labs where timers matter, then says who got on.",
+   "ex": [
+    [
+     "sim wait 30"
+    ]
+   ],
+   "rel": "sandbox"
+  },
+  {
+   "k": "sim ssh <user>",
+   "c": "*",
+   "g": "Sandbox",
+   "t": "Log this terminal in as someone else",
+   "w": "Logs this terminal in again over SSH as that user. The fake ClearPass answers TACACS for the lab's users, and its profiles are in the ClearPass panel. sim ssh on its own says who the terminal is now.",
+   "ex": [
+    [
+     "sim ssh"
+    ]
+   ],
+   "rel": "sandbox"
+  },
+  {
+   "k": "sim console",
+   "c": "*",
+   "g": "Sandbox",
+   "t": "Walk over to the console port",
+   "w": "Puts this terminal on the console as the local admin. The console uses its own login list, local unless you changed it, and doesn't care what the management port's address is.",
+   "ex": [
+    [
+     "sim console"
+    ]
+   ],
+   "rel": "sandbox"
+  },
+  {
+   "k": "sim cppm",
+   "c": "*",
+   "g": "Sandbox",
+   "t": "Access Tracker in the terminal",
+   "w": "The fake ClearPass's Access Tracker as a table, newest first. The ClearPass panel shows the same rows with their detail and Change Status. No row at all means the request never reached ClearPass.",
+   "ex": [
+    [
+     "sim cppm"
+    ]
+   ],
+   "rel": "sandbox"
+  },
+  {
+   "k": "tacacs-server host <A.B.C.D> key plaintext <key>",
+   "c": "config",
+   "g": "Management access",
+   "t": "A TACACS+ server for admin logins",
+   "w": "One line per ClearPass node, with the shared secret the network device has in ClearPass. The servers go into a group, and the group goes into a channel's login list. tacacs-server lines print above radius-server lines in the running config.",
+   "ex": [
+    [
+     "tacacs-server host 192.0.2.10 key plaintext cppm-tac-key",
+     "tacacs-server host 192.0.2.11 key plaintext cppm-tac-key vrf mgmt"
+    ]
+   ],
+   "see": [
+    "aaa group server tacacs <name>",
+    "aaa authentication login <default|ssh|console|https-server> <methods>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa group server tacacs <name>",
+   "c": "config",
+   "g": "Management access",
+   "t": "The TACACS servers a login list asks",
+   "w": "The servers in the order they are asked. The switch keeps a group called tacacs of its own with every tacacs-server in it, the way it keeps one called radius; name yours something else.",
+   "ex": [
+    [
+     "tacacs-server host 192.0.2.10 key plaintext cppm-tac-key",
+     "aaa group server tacacs CPPM-TAC",
+     "server 192.0.2.10"
+    ]
+   ],
+   "see": [
+    "tacacs-server host <A.B.C.D> key plaintext <key>",
+    "show aaa server-groups"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa authentication login <default|ssh|console|https-server> <methods>",
+   "c": "config",
+   "g": "Management access",
+   "t": "How admins log in, per channel",
+   "w": "The methods a channel tries, in order: group <name> for TACACS, then local. Local is used when every server in the groups times out. When ClearPass answers no, that is the answer, unless allow-fail-through is on. Leave console on local so there is always a way in.",
+   "ex": [
+    [
+     "tacacs-server host 192.0.2.10 key plaintext cppm-tac-key",
+     "aaa group server tacacs CPPM-TAC",
+     "server 192.0.2.10",
+     "exit",
+     "aaa authentication login ssh group CPPM-TAC local"
+    ],
+    [
+     "aaa authentication login console local"
+    ]
+   ],
+   "see": [
+    "aaa authentication allow-fail-through",
+    "show aaa authentication"
+   ],
+   "tip": "The ClearPass profile needs a Shell attribute, priv-lvl (15 or 1) or Aruba-Admin-Role. A Privilege Level in the profile header alone gave Permission denied on my bench while Access Tracker logged ACCEPT.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa authentication allow-fail-through",
+   "c": "config",
+   "g": "Management access",
+   "t": "Let a reject try the next method",
+   "w": "A reject from ClearPass falls through to the next method, local. On my bench that is what let the switch's own admin in over SSH while ClearPass was up. It also means the local password works whenever ClearPass says no, so I leave it off and use the console for the local account.",
+   "ex": [
+    [
+     "aaa authentication allow-fail-through",
+     "no aaa authentication allow-fail-through"
+    ]
+   ],
+   "see": [
+    "aaa authentication login <default|ssh|console|https-server> <methods>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa authorization commands <default|ssh|console> <methods>",
+   "c": "config",
+   "g": "Management access",
+   "t": "Ask ClearPass before every command",
+   "w": "Every command a session runs is asked of ClearPass first, and the switch asks y/n before it turns this on. On my bench a user ClearPass didn't know, the local admin included, then couldn't run anything, show clock included, and it came back out from a TACACS administrator's session. none on the end lets commands run when no server answers at all.",
+   "ex": [
+    [
+     "tacacs-server host 192.0.2.10 key plaintext cppm-tac-key",
+     "aaa group server tacacs CPPM-TAC",
+     "server 192.0.2.10",
+     "exit",
+     "aaa authorization commands ssh group CPPM-TAC none"
+    ],
+    [
+     "no aaa authorization commands ssh"
+    ]
+   ],
+   "see": [
+    "show aaa authorization",
+    "aaa authentication login <default|ssh|console|https-server> <methods>"
+   ],
+   "tip": "Turn it on last, from a TACACS session, once ClearPass has command rules for everyone who logs in. Keep a second session open while you do.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "aaa accounting all-mgmt <default|ssh|console|https-server> start-stop <methods>",
+   "c": "config",
+   "g": "Management access",
+   "t": "A record of who logged in and what they ran",
+   "w": "Sends logins and commands to the TACACS group, and with local on the end keeps a copy on the switch too, so the record survives ClearPass being down (CIS 1.5.4.1).",
+   "ex": [
+    [
+     "tacacs-server host 192.0.2.10 key plaintext cppm-tac-key",
+     "aaa group server tacacs CPPM-TAC",
+     "server 192.0.2.10",
+     "exit",
+     "aaa accounting all-mgmt ssh start-stop group CPPM-TAC local"
+    ]
+   ],
+   "see": [
+    "aaa authentication login <default|ssh|console|https-server> <methods>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show aaa authentication",
+   "c": "*",
+   "g": "Management access",
+   "t": "The login lists, per channel",
+   "w": "Fail-through and each channel's methods in priority order, 0 asked first. The default channel stays local unless you change it, and a channel with nothing of its own uses default.",
+   "ex": [
+    [
+     "show aaa authentication"
+    ]
+   ],
+   "see": [
+    "aaa authentication login <default|ssh|console|https-server> <methods>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show aaa authorization",
+   "c": "*",
+   "g": "Management access",
+   "t": "Who decides what a session may run",
+   "w": "Command authorization per channel. local on its own is the switch's own rules for the group a user landed in; a TACACS group means ClearPass is asked for every command.",
+   "ex": [
+    [
+     "show aaa authorization"
+    ]
+   ],
+   "see": [
+    "aaa authorization commands <default|ssh|console> <methods>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "show user information",
+   "c": "*",
+   "g": "Management access",
+   "t": "Who this session is",
+   "w": "The user, how they authenticated, the group the switch put them in and the privilege level. On my bench TACACS users landed in administrators at 15, operators at 1, auditors at 19, and a priv-lvl the switch has no group for came out as a group of that number with privilege N/A that could run nothing.",
+   "ex": [
+    [
+     "show user information"
+    ]
+   ],
+   "see": [
+    "aaa authentication login <default|ssh|console|https-server> <methods>"
+   ],
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
+  },
+  {
+   "k": "interface mgmt",
+   "c": "config",
+   "g": "Management access",
+   "t": "The out-of-band management port",
+   "w": "ip dhcp by default, or ip static with default-gateway. Change the address from your own SSH session to it and the session goes with it, which is what checkpoint auto is for and why I make this change from the console.",
+   "ex": [
+    [
+     "sim console",
+     "configure terminal",
+     "interface mgmt",
+     "ip static 192.0.2.51/24",
+     "default-gateway 192.0.2.1"
+    ]
+   ],
+   "see": [
+    "checkpoint auto <minutes>"
+   ],
+   "fake": "The sandbox models one SSH session, yours, to the DHCP address; sim console is the console port.",
+   "rel": [
+    "10.15",
+    "10.16",
+    "10.17",
+    "10.18"
+   ]
   }
  ]
 }

@@ -1,0 +1,138 @@
+{
+ "id": "sc-11-timers",
+ "title": "Scenario 11: the printer that takes three minutes",
+ "track": "Scenarios",
+ "number": 11,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "timers": true,
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "clearpass": {
+  "services": {
+   "dot1x": "Lab Wired 802.1X",
+   "mac-auth": "Lab Wired MAC Auth"
+  }
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "radius-server host 192.0.2.10 key plaintext cppm-lab-key",
+  "aaa group server radius CLEARPASS",
+  "server 192.0.2.10",
+  "exit",
+  "aaa authentication port-access dot1x authenticator",
+  "radius server-group CLEARPASS",
+  "enable",
+  "exit",
+  "aaa authentication port-access mac-auth",
+  "radius server-group CLEARPASS",
+  "enable",
+  "exit",
+  "port-access role EMPLOYEE",
+  "vlan access 10",
+  "exit",
+  "port-access role PRINTERS",
+  "vlan access 20",
+  "exit",
+  "port-access role KIOSK",
+  "vlan access 10",
+  "exit",
+  "interface 1/1/1-1/1/8",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "aaa authentication port-access dot1x authenticator",
+  "enable",
+  "exit",
+  "aaa authentication port-access mac-auth",
+  "enable",
+  "exit",
+  "exit"
+ ],
+ "task": "The printer on 1/1/3 takes almost three minutes to get on every time it powers up, and the kiosk PC on 1/1/4, whose 802.1X client hangs halfway through, holds its port about as long. Plug both in and let the clock run with `sim wait` while `show port-access clients detail` says where each one is. Get the printer on in about 10 seconds without putting MAC auth first on the port, and make the kiosk's 802.1X attempt give up inside a minute. Re-authenticate both ports and time them again.",
+ "hints": [
+  "`show port-access clients detail`: Status Authenticating, `dot1x - Authenticating, mac-auth - Not attempted`. The printer has no 802.1X client, so the port waits for an answer that never comes before it tries MAC auth.",
+  "`initial-auth-response-timeout 10` under `aaa authentication port-access dot1x authenticator` on 1/1/3 is how long the port waits for that first answer. On my bench the printer went from 165 s to about 10 s.",
+  "The kiosk does answer and then stalls, so that timer does nothing for it. `eapol-timeout 10` and `max-eapol-requests 1` under the same block on 1/1/4 took a stalled client from about 164 s to about 42 s on the lab switch.",
+  "`port-access reauthenticate interface 1/1/3` starts a fresh attempt so you can time it, then `sim wait 15`. Putting `auth-precedence mac-auth dot1x` on the port is faster still, but then a MAC-auth accept ends it and a laptop on that port never tries 802.1X."
+ ],
+ "devices": [
+  {
+   "id": "printer",
+   "name": "Printer (HP LaserJet)",
+   "kind": "printer",
+   "port": "1/1/3",
+   "mac": "00:00:5e:00:53:33",
+   "auth": {
+    "mac-auth": {
+     "accept": true,
+     "role": "PRINTERS"
+    }
+   }
+  },
+  {
+   "id": "kiosk",
+   "name": "Kiosk PC (802.1X client hangs)",
+   "kind": "laptop",
+   "port": "1/1/4",
+   "mac": "00:00:5e:00:53:34",
+   "user": "kiosk01",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE",
+     "stall": true
+    },
+    "mac-auth": {
+     "accept": true,
+     "role": "KIOSK"
+    }
+   }
+  }
+ ],
+ "checks": [
+  {
+   "desc": "The printer's port gives up on 802.1X in 15 s or less, and still tries 802.1X first",
+   "waitmax": {
+    "dev": "printer",
+    "max": 15,
+    "first": "dot1x"
+   }
+  },
+  {
+   "desc": "The kiosk's port gives up on its stalled 802.1X inside a minute",
+   "waitmax": {
+    "dev": "kiosk",
+    "max": 60,
+    "first": "dot1x"
+   }
+  },
+  {
+   "desc": "The printer is on in role PRINTERS by MAC auth",
+   "client": {
+    "dev": "printer",
+    "status": "Success",
+    "role": "PRINTERS",
+    "method": "mac-auth"
+   }
+  },
+  {
+   "desc": "The kiosk got on in role KIOSK once 802.1X gave up",
+   "client": {
+    "dev": "kiosk",
+    "status": "Success",
+    "role": "KIOSK",
+    "method": "mac-auth"
+   }
+  }
+ ]
+}

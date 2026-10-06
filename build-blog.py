@@ -591,7 +591,7 @@ acad += f'''{progress_scripts()}
 <section class="band g-card" data-rise>
   <div>
     <h3>Type on a switch first</h3>
-    <p>The CX Sandbox is a modeled AOS-CX switch in the page: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, device profiles, voice VLANs, tunneling, a LAG, spanning tree, an SVI and OSPF. Eighteen labs with checks, or a blank switch to poke at.</p>
+    <p>The CX Sandbox is a modeled AOS-CX switch in the page: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, device profiles, voice VLANs, tunneling, a LAG, spanning tree, an SVI and OSPF, 802.1X timers, CoA from ClearPass, TACACS admin logins and checkpoint auto. Twenty-two labs with checks, or a blank switch to poke at.</p>
     <span class="meta" id="acad-labs" data-labs="__SANDBOX_LABS__" hidden></span>
   </div>
   <a class="btn" href="sandbox.html" data-origin="zoom">Open the sandbox</a>
@@ -758,7 +758,7 @@ CX_UI_JS = r'''<script>
 
 # ── CX Sandbox page: every lab, one picker ──────────────────────────────────
 SANDBOX_LABS = ["sandbox", "nac-01-bench", "nac-02-discovery", "nac-03-mac-auth", "nac-04-dot1x", "nac-05-roles", "nac-06-precedence", "l2-01-uplink", "l3-01-routing",
-                "sc-01-lldp-med", "sc-02-device-profiles", "sc-03-multi-domain", "sc-04-ubt", "sc-05-multigig", "sc-06-lacp", "sc-07-debug", "sc-08-pipes", "sc-09-rest", "sc-10-cable"]
+                "sc-01-lldp-med", "sc-02-device-profiles", "sc-03-multi-domain", "sc-04-ubt", "sc-05-multigig", "sc-06-lacp", "sc-07-debug", "sc-08-pipes", "sc-09-rest", "sc-10-cable", "sc-11-timers", "sc-12-coa", "sc-13-tacacs", "sc-14-ckauto"]
 # the picker, in groups: the blank switch, the Zero to NAC track, switching and routing, the ten scenarios
 SANDBOX_GROUPS = [("Free play", ["sandbox"]), ("Zero to NAC", [l for l in SANDBOX_LABS if l.startswith("nac-")]),
                   ("Switching and routing", ["l2-01-uplink", "l3-01-routing"]), ("Scenarios", [l for l in SANDBOX_LABS if l.startswith("sc-")])]
@@ -776,13 +776,14 @@ sb_pills = "".join('<div class="sb-grp"><span class="eyebrow">%s</span>%s</div>'
     '<button class="sb-pill%s" type="button" data-lab="%s" data-q="%s"><b>%s</b><small>%s</small></button>' % (
         " on" if lid == "sandbox" else "", E(lid), E((_lab_meta(lid)["title"] + " " + _lab_meta(lid)["task"]).lower()), E(_pill_label(lid)), E(_lab_topic(lid))) for lid in labs))
     for g, labs in SANDBOX_GROUPS)
-sb_labs = "".join('<div class="sb-lab" data-lab="%s"%s>%s</div>' % (E(lid), "" if i == 0 else ' hidden', cxsim('<p>{{cxsim: %s}}</p>' % lid)) for i, lid in enumerate(SANDBOX_LABS))
-sb = head("CX Sandbox · " + SITE["name"], "A modeled HPE Aruba Networking CX switch you can type on: VLANs, MAC auth, 802.1X, roles and device profiles against a fake ClearPass, voice VLANs, tunneling, LACP, REST and cable tests. Eighteen labs with checks and a blank switch.", BASE_URL + "/sandbox.html", BASE_URL + "/og/sandbox.png", active="tools")
+# every lab starts hidden; the picker reveals one, so the widget counts a start only for the lab a reader opens
+sb_labs = "".join('<div class="sb-lab" data-lab="%s" hidden>%s</div>' % (E(lid), cxsim('<p>{{cxsim: %s}}</p>' % lid)) for lid in SANDBOX_LABS)
+sb = head("CX Sandbox · " + SITE["name"], "A modeled HPE Aruba Networking CX switch you can type on: VLANs, MAC auth, 802.1X, roles and device profiles against a fake ClearPass, voice VLANs, tunneling, LACP, REST, cable tests, 802.1X timers, CoA, TACACS logins and checkpoint auto. Twenty-two labs with checks and a blank switch.", BASE_URL + "/sandbox.html", BASE_URL + "/og/sandbox.png", active="tools")
 sb += f'''{progress_scripts()}
 <section class="sim-intro">
   <span class="tag c-blue"><span class="dot"></span>CX Sandbox</span>
   <h1 class="h-hero">A switch you can type on</h1>
-  <p class="lede">A modeled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes were checked line by line against AOS-CX 10.18.1002 running on my own bench, last on September 28, 2026, and the wording where it differs is mine. The command lists of 10.15 through 10.18 sit behind it, so a real command it doesn't model says so, a line the box would refuse gets the box's own error, and the picker in the corner of the terminal switches which release's syntax you get. Pipes work too: <code>include</code>, <code>exclude</code>, <code>begin</code> and <code>count</code>. Where it fakes hardware (link speed, PoE, the cable tester, a gateway to tunnel to) it says so on the screen.</p>
+  <p class="lede">A modeled AOS-CX access switch, in the page, with a fake ClearPass behind it. It answers <code>?</code> and Tab the way the box does, keeps a running config, and the devices on the bench authenticate or fail against whatever you configured. Pick a lab and it sets the bench up and checks your work; Free play is a blank 6200F. It is a model, not the real switch: the output shapes were checked line by line against AOS-CX 10.18.1002 running on my own bench, last on September 28, 2026, and the wording where it differs is mine. The command lists of 10.15 through 10.18 sit behind it, so a real command it doesn't model says so, a line the box would refuse gets the box's own error, and the picker in the corner of the terminal switches which release's syntax you get. Pipes work too: <code>include</code>, <code>exclude</code>, <code>begin</code> and <code>count</code>. Where it fakes hardware (link speed, PoE, the cable tester, a gateway to tunnel to) it says so on the screen. The ClearPass panel beside the terminal is the other half of every login: one Access Tracker row per request that reached ClearPass, with the error codes and alerts my own ClearPass gave on the bench, Change Status for CoA, and the TACACS profiles in the labs that need them.</p>
 </section>
 {CX_TOOLS_CSS}{cx_tools("sandbox")}
 <style>
@@ -821,7 +822,7 @@ sb += f'''{progress_scripts()}
 (function(){{
   var pills=[].slice.call(document.querySelectorAll('.sb-pill')),labs=document.querySelectorAll('.sb-lab'),cur=document.getElementById('sb-cur'),menu=document.getElementById('sb-menu'),find=document.getElementById('sb-find'),at='sandbox';
   function open(v){{menu.hidden=!v;cur.setAttribute('aria-expanded',v?'true':'false');if(v){{find.value='';filt();setTimeout(function(){{find.focus();}},0);}}}}
-  function show(id){{var found=false;labs.forEach(function(l){{var on=l.getAttribute('data-lab')===id;l.hidden=!on;if(on)found=true;}});if(!found)return show('sandbox');at=id;
+  function show(id){{var found=false;labs.forEach(function(l){{var on=l.getAttribute('data-lab')===id;l.hidden=!on;if(on){{found=true;var r=l.querySelector('.cxsim');if(r&&r._cxsim&&r._cxsim.shown)r._cxsim.shown();}}}});if(!found)return show('sandbox');at=id;
     pills.forEach(function(p,i){{var on=p.getAttribute('data-lab')===id;p.classList.toggle('on',on);if(on){{document.getElementById('sb-cur-t').textContent=p.querySelector('b').textContent;
       document.getElementById('sb-cur-g').textContent=p.parentNode.querySelector('.eyebrow').textContent;document.getElementById('sb-cur-n').textContent=(i+1)+' of '+pills.length;}}}});}}
   function pick(id){{show(id);open(false);try{{history.replaceState(null,'','#lab='+id);}}catch(e){{}}}}
@@ -832,7 +833,7 @@ sb += f'''{progress_scripts()}
   pills.forEach(function(p){{p.addEventListener('click',function(){{pick(p.getAttribute('data-lab'));}});}});
   function step(d){{var i=pills.findIndex(function(p){{return p.getAttribute('data-lab')===at;}});pick(pills[(i+d+pills.length)%pills.length].getAttribute('data-lab'));}}
   document.getElementById('sb-prev').addEventListener('click',function(){{step(-1);}});document.getElementById('sb-next').addEventListener('click',function(){{step(1);}});
-  show('sandbox');var m=/[#&]lab=([a-z0-9-]+)/.exec(location.hash);if(m)show(m[1]);
+  var m=/[#&]lab=([a-z0-9-]+)/.exec(location.hash);show(m?m[1]:'sandbox');
   window.addEventListener('hashchange',function(){{var m=/[#&]lab=([a-z0-9-]+)/.exec(location.hash);if(m)show(m[1]);}});
 }})();
 </script>
@@ -1447,7 +1448,7 @@ tools += f'''
   <h2>The CX Sandbox and its tools</h2>
   <p>A modeled AOS-CX switch you can type on, with a fake ClearPass behind it, and four pages that work beside it. All five run in your browser; nothing you type or paste leaves the page.</p>
   <nav class="cx-strip-l" aria-label="CX Sandbox pages">
-    <a href="sandbox.html"><b>CX Sandbox</b><span>Eighteen labs with checks, or a blank switch</span></a>
+    <a href="sandbox.html"><b>CX Sandbox</b><span>Twenty-two labs with checks, or a blank switch</span></a>
     <a href="cx-notes.html"><b>Command notes</b><span>One note per command, with examples to type</span></a>
     <a href="cx-check.html"><b>Config checker</b><span>Paste a running config, get findings back</span></a>
     <a href="cx-build.html"><b>Script builder</b><span>Answer a few questions, get a paste-ready config</span></a>

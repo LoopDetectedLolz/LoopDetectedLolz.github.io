@@ -64,6 +64,33 @@ body.acad .cx-line .pr{color:#ffd28a}
 .cx-devs button:hover{background:rgba(255,255,255,0.12)}
 .cx-foot{display:flex;flex-wrap:wrap;gap:6px 14px;padding:var(--s2) var(--s5);border-top:1px solid var(--line);font-size:12px;color:var(--text-muted)}
 .cx-foot span{max-width:100%}
+.cx-cp summary{cursor:pointer;list-style:none;min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cx-cp summary::-webkit-details-marker{display:none}
+.cx-cp summary .eyebrow{margin-bottom:0}
+.cx-cp summary small{font:11px var(--mono);color:var(--text-muted)}
+.cx-at{list-style:none;margin:6px 0 0;padding:0}
+.cx-at>li{border-top:1px solid var(--line)}
+.cx-at>li:first-child{border-top:0}
+.cx-at .row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 8px;align-items:center;width:100%;min-height:40px;padding:6px 0;background:none;border:0;color:var(--text);font:12.5px var(--sans);text-align:left;cursor:pointer}
+.cx-at .row .t{font:11px var(--mono);color:var(--text-muted)}
+.cx-at .row .u{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cx-at .row .u small{display:block;color:var(--text-muted);font-size:11.5px}
+.cx-at .st{font:700 10.5px var(--mono);letter-spacing:0.06em;border-radius:var(--r-pill);padding:3px 8px;border:1px solid var(--line);color:var(--text-dim)}
+.cx-at .st.ACCEPT{color:#bdf29c;border-color:rgba(140,224,94,0.5)}
+.cx-at .st.REJECT{color:#ffd28a;border-color:rgba(245,165,36,0.6)}
+.cx-at .st.TIMEOUT{color:var(--teal);border-color:rgba(94,210,218,0.5)}
+.cx-at dl{display:grid;grid-template-columns:minmax(0,1fr);gap:0;margin:0 0 8px;font-size:12px;line-height:1.45}
+.cx-at dt{margin-top:5px}
+.cx-at dt{color:var(--text-muted);font:11.5px var(--mono)}
+.cx-at dd{margin:0;color:var(--text);overflow-wrap:anywhere;white-space:pre-line}
+.cx-at .cs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+.cx-at .cs select{width:100%}
+.cx-at .cs select,.cx-tp select{font:12px var(--mono);color:var(--text);background:rgba(3,10,16,0.6);border:1px solid var(--line);border-radius:8px;min-height:38px;padding:0 8px;max-width:100%}
+.cx-at .cs button{font:600 12px var(--sans);color:var(--text);background:rgba(255,255,255,0.07);border:1px solid var(--line);border-radius:var(--r-pill);min-height:38px;padding:0 12px;cursor:pointer}
+.cx-tp{margin:6px 0 4px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,0.03);font-size:12.5px}
+.cx-tp b{display:block;color:var(--text);margin-bottom:4px}
+.cx-tp label{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--text-dim);font:11.5px var(--mono);margin-top:4px}
+.cx-cp .none,.cx-cp .src{color:var(--text-muted);font-size:12px;line-height:1.5;margin:6px 0 0}
 .cx-about{border-top:1px solid var(--line);border-bottom:0}
 .cx-about summary{cursor:pointer;list-style:none;min-height:38px;display:flex;align-items:center}
 .cx-about .cx-cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0 var(--s5);margin-top:4px}
@@ -221,6 +248,17 @@ body.acad .cx-line .pr{color:#ffd28a}
     var devPanel = el("div", "cx-panel"), devList = el("ul", "cx-devs");
     if (lesson.devices && lesson.devices.length) { devPanel.appendChild(el("span", "eyebrow", "Devices on the bench")); devPanel.appendChild(devList); side.appendChild(devPanel); }
 
+    // ── the fake ClearPass: Access Tracker, Change Status, the TACACS profiles a lab lets you edit ──
+    var cpPanel = null, cpList = null, cpCount = null, cpProf = null, cpOpen = {};
+    if (lesson.radius || lesson.tacacs) {
+      cpPanel = el("details", "cx-panel cx-cp"); var cpSum = el("summary");
+      cpSum.appendChild(el("span", "eyebrow", "ClearPass: Access Tracker")); cpCount = el("small", "", ""); cpSum.appendChild(cpCount); cpPanel.appendChild(cpSum);
+      cpProf = el("div"); cpList = el("ul", "cx-at"); cpPanel.appendChild(cpProf); cpPanel.appendChild(cpList);
+      cpPanel.appendChild(el("p", "src", "The fake ClearPass behind this switch. Codes 216 and 9002, the alert text and the TACACS answers are the ones ClearPass 6.11.1 gave on my bench; the layout is the sandbox's."));
+      try { cpPanel.open = !!lesson.tacacs || /coa|timers/.test(lesson.id) ? !window.matchMedia("(max-width:760px)").matches : false; } catch (e) {}
+      side.appendChild(cpPanel);
+    }
+
     // ── about this command ───────────────────────────────────────────────
     // theme/cxsim/notes.json, inlined by the build: the note for whatever is being typed, or was run last.
     // An example is typed in for the reader one line at a time; Enter runs it and the next line follows.
@@ -323,13 +361,13 @@ body.acad .cx-line .pr{color:#ffd28a}
       if (/^sim connect /.test(cmd.trim())) track(lesson.id, "connect", { cmd: cmd.trim().split(/\s+/)[2] || "" });
       write(r.out, /^sim /.test(cmd.trim()) ? "sys" : classify(r.out));
       if (relSel) relSel.value = sim.sw.release;
-      refreshPrompt(); renderDevices(); if (checks.childNodes.length) renderChecks(); persist();
+      refreshPrompt(); renderDevices(); renderCppm(); if (checks.childNodes.length) renderChecks(); persist();
     }
     function reset() {
       var keepRel = sim.sw.release;   // the release is the reader's choice, not part of the lab
       track(lesson.id, "reset"); store(skey, null); saved = null; boot(false); sim.sw.setRelease(keepRel); out.innerHTML = ""; history = []; hi = 0; hintN = 0; hintBox.innerHTML = ""; checks.innerHTML = ""; score.textContent = ""; queue = []; showQueue();
       write("Lab reset. " + (lesson.startConfig ? "The starting configuration is back." : "The switch is back to its factory state."), "sys");
-      refreshPrompt(); renderDevices(); persist();
+      refreshPrompt(); renderDevices(); renderCppm(); persist();
     }
     function key(which) {
       var v = inp.value;
@@ -378,13 +416,59 @@ body.acad .cx-line .pr{color:#ffd28a}
         if (d.connected) {
           if (d.errdisabled) { li.className = "fail"; state = "port error-disabled"; }
           else if (!d.linkUp) { li.className = "warn"; state = "port down"; }
-          else if (d.auth) { if (d.auth.status === "Success") { li.className = "on"; state = d.auth.method + " ok, " + (d.auth.role || "no role") + ", VLAN " + d.auth.vlan; } else if (d.auth.status === "Open") { li.className = "warn"; state = "no NAC, VLAN " + d.auth.vlan; } else { li.className = "fail"; state = d.auth.method + " failed"; } }
+          else if (d.auth) { if (d.auth.status === "In-Progress") { li.className = "warn"; state = d.auth.method + " authenticating, " + (d.auth.elapsed || 0) + " of about " + d.auth.wait + " s"; } else if (d.auth.status === "Success") { li.className = "on"; state = d.auth.method + " ok, " + (d.auth.role || "no role") + ", VLAN " + d.auth.vlan; } else if (d.auth.status === "Open") { li.className = "warn"; state = "no NAC, VLAN " + d.auth.vlan; } else { li.className = "fail"; state = d.auth.method + " failed"; } }
           else { li.className = "on"; state = "link up"; }
         } else state = "unplugged";
         nm.appendChild(document.createTextNode(d.name));
         nm.appendChild(el("small", "", d.port + " · " + state));
         btn.addEventListener("click", function () { exec("sim " + (d.connected ? "disconnect " : "connect ") + d.id); });
         li.appendChild(dot); li.appendChild(nm); li.appendChild(btn); devList.appendChild(li);
+      });
+    }
+
+    function fmtT(ms) { var d = new Date(ms); return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2); }
+    function renderCppm() {
+      if (!cpPanel || !sim.cppm) return;
+      var cp = sim.cppm(), rows = cp.log.slice(-15).reverse();
+      cpCount.textContent = cp.log.length ? cp.log.length + " request" + (cp.log.length > 1 ? "s" : "") : "empty";
+      cpProf.innerHTML = "";
+      Object.keys(cp.prof || {}).forEach(function (name) {
+        var pr = cp.prof[name], box = el("div", "cx-tp"), at = pr.attrs || {};
+        box.appendChild(el("b", "", "TACACS profile " + name));
+        box.appendChild(el("div", "", "Header Privilege Level " + (pr.header || 0) + (pr.cmds && pr.cmds !== "all" ? "; commands: " + pr.cmds.join(", ") : "; commands: all")));
+        [["priv-lvl", ["off", "1", "14", "15"]], ["Aruba-Admin-Role", ["off", "administrators", "operators", "auditors"]]].forEach(function (a) {
+          var lab = el("label", "", "Shell " + a[0]), sel = el("select"); sel.setAttribute("aria-label", "Shell " + a[0] + " in profile " + name);
+          a[1].forEach(function (v) { var o = el("option", "", v === "off" ? "not sent" : v); o.value = v; sel.appendChild(o); });
+          sel.value = at[a[0]] || "off";
+          sel.addEventListener("change", function () { exec("sim cppm tacacs " + name + " " + a[0] + " " + sel.value); });
+          lab.appendChild(sel); box.appendChild(lab);
+        });
+        cpProf.appendChild(box);
+      });
+      cpList.innerHTML = "";
+      if (!rows.length) { cpList.appendChild(el("p", "none", "Nothing has reached ClearPass yet. No row at all means the request never arrived: the address, the VRF or the shared secret.")); return; }
+      rows.forEach(function (e) {
+        var li = el("li"), row = el("button", "row"); row.type = "button"; row.setAttribute("aria-expanded", cpOpen[e.id] ? "true" : "false");
+        row.appendChild(el("span", "t", fmtT(e.at)));
+        var u = el("span", "u", e.user); u.appendChild(el("small", "", e.src + " · " + e.service)); row.appendChild(u);
+        row.appendChild(el("span", "st " + e.status, e.status));
+        li.appendChild(row);
+        if (cpOpen[e.id]) {
+          var dl = el("dl");
+          function kv(k, v) { if (v == null || v === "" || (v.join && !v.length)) return; dl.appendChild(el("dt", "", k)); dl.appendChild(el("dd", "", v.join ? v.join("\n") : v)); }
+          kv("Login Status", e.status); kv("Username", e.user); kv("NAS IP Address", e.nas + (e.nasPort ? " (" + e.nasPort + ")" : "")); kv("Service", e.service);
+          if (e.src === "RADIUS") { kv("Authentication Method", e.method); kv("Authentication Source", e.source); }
+          kv("Roles", e.roles); kv("Enforcement Profiles", e.profiles); kv("Error Code", e.code); kv("Error Category", e.cat); kv("Error Message", e.msg); kv("Alerts", e.alerts); kv("Authorizations", e.authz); kv(e.src === "RADIUS" ? "Output Attributes" : "Attributes", e.attrs);
+          li.appendChild(dl);
+          if (e.src === "RADIUS" && e.status === "ACCEPT" && cp.live(e.dev)) {
+            var cs = el("div", "cs"), sel = el("select"), go = el("button", "", "Change Status"); go.type = "button"; sel.setAttribute("aria-label", "RADIUS dynamic authorization profile");
+            cp.coa.forEach(function (c) { var o = el("option", "", c.name); o.value = c.key; sel.appendChild(o); });
+            go.addEventListener("click", function () { exec("sim cppm change-status " + e.id + " " + sel.value); });
+            cs.appendChild(sel); cs.appendChild(go); li.appendChild(cs);
+          }
+        }
+        row.addEventListener("click", function () { cpOpen[e.id] = !cpOpen[e.id]; renderCppm(); });
+        cpList.appendChild(li);
       });
     }
 
@@ -403,7 +487,7 @@ body.acad .cx-line .pr{color:#ffd28a}
     // ── restore ──────────────────────────────────────────────────────────
     if (saved && saved.lines) { saved.lines.forEach(function (l) { var s = el("span", l.c, l.t); out.appendChild(s); }); history = saved.history || []; hi = history.length; hintN = saved.hintN || 0; if (hintN && hintBtn && lesson.hints.length) { var d = el("div", "cx-hint"); d.appendChild(inlineCode(lesson.hints[(hintN - 1) % lesson.hints.length])); hintBox.appendChild(d); } out.scrollTop = out.scrollHeight; write("(picked up where you left off)", "sys"); }
     else { write((lesson.hostname || "switch") + " (modeled " + (CXSim.MODELS[lesson.model || "6200F-12"] || {}).name + ", " + (sim.sw && sim.sw.version || CXSim.VERSION) + ")", "sys"); write("Type ? for what is available here. sim help explains the sandbox commands.", "sys"); }
-    refreshPrompt(); renderDevices();
+    refreshPrompt(); renderDevices(); renderCppm();
     if (imp) {
       var cfgLines = String(imp.config).split("\n").filter(function (l) { return l.trim(); }), inBanner = "", skipDeeper = -1;
       write("Pasting the script builder's config: " + cfgLines.length + " lines on a " + (CXSim.MODELS[lesson.model] || {}).name + ", " + sim.sw.version + ". The shared secret was swapped for the bench ClearPass's own.", "sys");
@@ -421,8 +505,12 @@ body.acad .cx-line .pr{color:#ffd28a}
       write("Done. show running-config shows what took; lines the sandbox does not model said so above, and their blocks were skipped.", "sys");
       try { window.history.replaceState(null, "", location.pathname + "#lab=sandbox"); } catch (e) {}   // `history` here is the command history
     }
-    track(lesson.id, "start", { n: saved ? 1 : 0 });
-    root._cxsim = { sim: sim, exec: exec, reset: reset };
+    // A start counts only for a lab a reader can see. sandbox.html carries every lab with all but one
+    // hidden, so the picker calls shown() when it reveals one; an embed in a post is visible from the start.
+    var started = false;
+    function shown() { if (started) return; started = true; track(lesson.id, "start", { n: saved ? 1 : 0 }); }
+    if (!root.closest("[hidden]")) shown();
+    root._cxsim = { sim: sim, exec: exec, reset: reset, shown: shown };
   });
 })();
 </script>

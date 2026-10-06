@@ -769,5 +769,101 @@ PRACT.forEach(function (p) { ok(p.t && p.w && !/[—–]| - /.test(p.t + p.w), "
 var FEAT = JSON.parse(fs.readFileSync(path.join(__dirname, "theme", "cxsim", "features.json"), "utf8"));
 ok(FEAT.features.length > 100 && FEAT.features.every(function (f) { return f.type && f.name && (f["6200"] || f["6300"]); }), "the Feature Navigator rows are whole");
 
+// ── the bench labs: timers, CoA profiles, TACACS, checkpoint auto, and the fake Access Tracker ──
+section = "bench";
+// 11: the sandbox clock. Defaults hold a silent printer about 165 s; initial-auth-response-timeout fixes it, a stalled
+// supplicant needs eapol-timeout and max-eapol-requests, and mac-auth first is the wrong fix the lab names.
+var t11 = CX.create(lesson("sc-11-timers"));
+run(t11, ["sim connect printer", "sim connect kiosk"]);
+has(t11.exec("show port-access clients").out, "--|c|-|p", "11: a silent client is in progress");
+has(t11.exec("show port-access clients interface 1/1/3 detail").out, "dot1x - Authenticating, mac-auth - Not attempted", "11: the lab switch's precedence line mid-wait");
+run(t11, ["sim wait 100"]); eq(t11.sw.clients.printer.status, "In-Progress", "11: still waiting at about 100 s on the defaults");
+run(t11, ["sim wait 70"]); eq(t11.sw.clients.printer.role, "PRINTERS", "11: on by MAC auth after about 165 s");
+notSolved(t11, "11: waiting it out does not solve the lab");
+var t11b = CX.create(lesson("sc-11-timers"));
+run(t11b, ["configure terminal", "interface 1/1/3", "aaa authentication port-access auth-precedence mac-auth dot1x", "end", "sim connect printer", "sim wait 5"]);
+eq(t11b.sw.clients.printer.role, "PRINTERS", "11: mac-auth first gets the printer on fast");
+ok(!t11b.check()[0].pass, "11: but the check wants 802.1X still tried first");
+run(t11, ["configure terminal", "interface 1/1/3", "aaa authentication port-access dot1x authenticator", "initial-auth-response-timeout 10", "end", "port-access reauthenticate interface 1/1/3", "sim wait 5"]);
+eq(t11.sw.clients.printer.status, "In-Progress", "11: about 10 s with the timer, not instant");
+run(t11, ["sim wait 7"]); eq(t11.sw.clients.printer.role, "PRINTERS", "11: on after about 10 s");
+run(t11, ["configure terminal", "interface 1/1/4", "aaa authentication port-access dot1x authenticator", "eapol-timeout 10", "end"]);
+eq(t11.sw.dot1xWait(t11.sw.ifaces["1/1/4"], true), 122, "11: eapol-timeout 10 alone is the bench's 122 s");
+run(t11, ["configure terminal", "interface 1/1/4", "aaa authentication port-access dot1x authenticator", "max-eapol-requests 1", "end", "port-access reauthenticate interface 1/1/4", "sim wait 45"]);
+eq(t11.sw.dot1xWait(t11.sw.ifaces["1/1/4"], true), 42, "11: plus max-eapol-requests 1 is the bench's 42 s");
+eq(t11.sw.dot1xWait(t11.sw.ifaces["1/1/5"], true), 164, "11: a stalled client on the defaults is the bench's 164 s");
+allPass(t11, "11 solved");
+has(t11.exec("show running-config interface 1/1/4").out, "        eapol-timeout 10\n        max-eapol-requests 1\n        enable", "11: timers print before enable, as the lab switch did");
+ok(t11.cppm().log.some(function (e) { return e.status === "TIMEOUT" && e.code === "9002" && e.alerts[0] === "Client did not complete EAP transaction"; }), "11: the stalled kiosk is a 9002 TIMEOUT in Access Tracker");
+var t11r = CX.create(lesson("sc-11-timers"), t11.save()); eq(t11r.sw.clients.printer.role, "PRINTERS", "11: survives save and load"); allPass(t11r, "11 solved after reload");
+
+// 12: CoA from the ClearPass side. No client line: dropped and counted; the default profile: Missing-Attribute NAK;
+// AOS-CX Disconnect: ACK; AOS-CX Bounce: the one counted as a CoA.
+var t12 = CX.create(lesson("sc-12-coa")), row = t12.cppm().log.filter(function (e) { return e.user === "employee.user"; })[0];
+ok(!!row && row.status === "ACCEPT" && row.attrs[0] === "Radius:Aruba:Aruba-User-Role = EMPLOYEE", "12: the laptop's ACCEPT row carries its role");
+has(t12.exec("sim cppm change-status " + row.id + " cx-disconnect").out, "failed for client 00-00-5E-00-53-41", "12: no client line, ClearPass sees only a failure");
+has(t12.exec("show radius dyn-authorization").out, "Invalid Client Addresses in Disconnect Requests: 1", "12: the switch counted the invalid client");
+run(t12, ["configure terminal", "radius dyn-authorization client 192.0.2.10 secret-key plaintext cppm-lab-key", "end"]);
+has(t12.exec("sim cppm change-status " + row.id + " aw-terminate").out, "Missing-Attribute", "12: the default profile is NAK'd for Missing-Attribute");
+notSolved(t12, "12: a NAK alone does not solve it");
+has(t12.exec("sim cppm change-status " + row.id + " cx-bounce").out, "CoA-ACK", "12: AOS-CX Bounce is a CoA");
+has(t12.exec("sim cppm change-status " + row.id + " cx-disconnect").out, "Disconnect-ACK", "12: AOS-CX Disconnect is acknowledged");
+has(t12.exec("show radius dyn-authorization").out, "Disconnect Requests      : 2\nDisconnect ACKs          : 1\nDisconnect NAKs          : 1\nCoA Requests             : 1\nCoA ACKs                 : 1", "12: per-client counters");
+allPass(t12, "12 solved");
+
+// 13: TACACS. Header-only profile: ClearPass ACCEPT, switch Permission denied; Shell attributes fix it; Aruba-Admin-Role
+// wins; command authorization locks the local admin out; fail-through off keeps a ClearPass no a no.
+var t13 = CX.create(lesson("sc-13-tacacs"));
+var TACCFG = ["configure terminal", "tacacs-server host 192.0.2.10 key plaintext cppm-tac-key", "aaa group server tacacs CPPM-TAC", "server 192.0.2.10", "exit", "aaa authentication login ssh group CPPM-TAC local", "end"];
+run(t13, TACCFG);
+has(t13.exec("sim ssh tac-admins").out, "Permission denied (publickey,password).", "13: header-only profile is refused");
+eq(t13.cppm().log.slice(-1)[0].status, "ACCEPT", "13: while ClearPass logs ACCEPT");
+has(t13.exec("show aaa authentication").out, "Authentication for ssh channel:", "13: the ssh channel's list");
+has(t13.exec("show aaa server-groups tacacs").out, "tacacs                          | 192.0.2.10", "13: the box's own tacacs group");
+run(t13, ["sim cppm tacacs Lab-Admins priv-lvl 1", "sim cppm tacacs Lab-Admins Aruba-Admin-Role administrators"]);
+has(t13.exec("sim ssh tac-admins").out, "User group           : administrators\nUser privilege level : 15", "13: Aruba-Admin-Role wins over priv-lvl 1");
+run(t13, ["sim cppm tacacs Lab-Helpdesk priv-lvl 14"]);
+has(t13.exec("sim ssh tac-helpdesk").out, "User group           : 14\nUser privilege level : N/A", "13: priv-lvl 14 is a group of that number");
+eq(t13.exec("show vlan").out, "Cannot execute command. Command not allowed.", "13: which can run nothing");
+run(t13, ["sim cppm tacacs Lab-Helpdesk priv-lvl 1", "sim ssh tac-helpdesk"]);
+eq(t13.exec("configure terminal").out, "Invalid input: configure", "13: operators cannot configure");
+has(t13.exec("sim ssh admin").out, "Permission denied", "13: the local admin is refused over SSH while ClearPass answers");
+run(t13, ["sim console", "configure terminal", "aaa authorization commands ssh group CPPM-TAC none"]);
+eq(t13.sw.pending ? "asked" : "not asked", "asked", "13: the switch asks before command authorization");
+run(t13, ["y", "end", "sim ssh tac-admins", "configure terminal", "aaa authentication allow-fail-through", "end", "sim ssh admin"]);
+eq(t13.exec("show clock").out, "Cannot execute command. Command not allowed.", "13: command authorization locks the local admin out");
+notSolved(t13, "13: authorization still on");
+run(t13, ["sim ssh tac-admins", "configure terminal", "no aaa authorization commands ssh", "no aaa authentication allow-fail-through", "end"]);
+allPass(t13, "13 solved");
+
+// 14: checkpoint auto. A management change over SSH comes back when the session ends; from the console it sticks.
+var t14 = CX.create(lesson("sc-14-ckauto"));
+eq(t14.exec("checkpoint auto 5").out, "Copying configuration: [Success]\nAuto checkpoint mode expires in 5 minute(s)", "14: the lab switch's armed line");
+var cut = run(t14, ["configure terminal", "interface mgmt", "ip static 192.0.2.51/24"]).out;
+has(cut, "Connection to 192.0.2.15 closed", "14: the SSH session goes");
+has(cut, "TEMPAUTOCHECK back to running-config", "14: and the change comes back");
+eq(t14.sw.mgmt.dhcp, true, "14: on DHCP again");
+has(t14.exec("show checkpoint").out, "auto-checkpoint-start-backup      checkpoint  confirm", "14: the auto checkpoint, writer confirm");
+var t14b = CX.create(lesson("sc-14-ckauto"));
+has(run(t14b, ["configure terminal", "interface mgmt", "ip static 192.0.2.51/24"]).out, "locked out", "14: without checkpoint auto you are locked out");
+has(t14b.exec("show vlan").out, "your SSH session is gone", "14: and only sim commands work");
+run(t14, ["sim console", "configure terminal", "interface mgmt", "ip static 192.0.2.51/24", "default-gateway 192.0.2.1", "end", "checkpoint auto 5", "configure terminal", "vlan 60"]);
+has(t14.exec("name CAMERAS").out, "WARNING\t Please \"checkpoint auto confirm\" within 5 minutes", "14: the WARNING under checkpoint auto");
+run(t14, ["end"]); notSolved(t14, "14: unconfirmed");
+var t14c = CX.create(lesson("sc-14-ckauto"), t14.save());
+run(t14c, ["sim wait 301"]); ok(!t14c.sw.vlans[60], "14: an unconfirmed change goes when the time runs out");
+run(t14, ["checkpoint auto confirm", "write memory"]);
+has(t14.exec("show running-config interface mgmt").out, "    ip static 192.0.2.51/24\n    default-gateway 192.0.2.1", "14: the static address stuck");
+allPass(t14, "14 solved");
+
+// the Access Tracker reads the bench's own wording in the older labs too
+var at = CX.create(lesson("nac-04-dot1x"));
+run(at, ["configure terminal", "aaa authentication port-access dot1x authenticator", "radius server-group CLEARPASS", "enable", "exit", "port-access role EMPLOYEE", "vlan access 10", "exit", "interface 1/1/1-1/1/2", "aaa authentication port-access dot1x authenticator", "enable", "end", "sim connect laptop", "sim connect contractor"]);
+var rej = at.cppm().log.filter(function (e) { return e.user === "j.contractor"; })[0];
+ok(!!rej && rej.code === "216" && rej.msg === "User authentication failed" && rej.alerts[0] === "MSCHAP: Authentication failed. will re-try based on config", "AT: a wrong PEAP password is 216 with the MSCHAP alert");
+var n0 = at.cppm().log.length; run(at, ["configure terminal", "vlan 30", "end"]); eq(at.cppm().log.length, n0, "AT: a config change that changes nothing for ClearPass adds no rows");
+var wrong = CX.create(lesson("nac-04-dot1x")); run(wrong, ["configure terminal", "radius-server host 192.0.2.10 key plaintext wrong-key", "aaa authentication port-access dot1x authenticator", "radius server-group CLEARPASS", "enable", "exit", "interface 1/1/1", "aaa authentication port-access dot1x authenticator", "enable", "end", "sim connect laptop"]);
+ok(!wrong.cppm().log.some(function (e) { return e.user === "employee.user"; }), "AT: a wrong shared secret leaves no row at all");
+
 console.log((fail ? "FAILED " + fail + " of " : "passed ") + (pass + fail) + " checks");
 process.exit(fail ? 1 : 0);
