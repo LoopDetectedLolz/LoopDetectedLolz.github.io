@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="An AOS-CX switch sends a RADIUS tracking probe to a ClearPass node with a user ClearPass does not know. ClearPass answers Access-Reject, and the switch marks the server reachable.">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eb{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .cap{fill:#8BA2AE;font-size:11px}
+  </style>
+  <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8CE05E"/></marker>
+  <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5ED2DA"/></marker>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FBDEA"/></marker>
+  <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8BA2AE"/></marker>
+  </defs>
+  <text x="30" y="36" class="t eb" font-size="12" fill="#8CE05E">RADIUS TRACKING ON AOS-CX 10.18</text>
+  <text x="30" y="66" class="t big" font-size="12" fill="#fff">A reject is all the proof of life the switch needs.</text>
+  <rect x="30" y="110" width="220" height="160" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <text x="140" y="170" class="t" font-size="16" fill="#EAF2F6" text-anchor="middle" font-weight="700">AOS-CX</text>
+  <text x="140" y="192" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">edge switch</text>
+  <rect x="72" y="216" width="136" height="30" rx="15" fill="#8CE05E" stroke="#8CE05E" stroke-width="1"/>
+  <text x="140" y="236" class="t" font-size="13" fill="#06202A" text-anchor="middle" font-weight="700">reachable</text>
+  <rect x="650" y="110" width="220" height="160" rx="10" fill="rgba(3,10,16,0.55)" stroke="#5ED2DA" stroke-width="1.3"/>
+  <text x="760" y="170" class="t" font-size="16" fill="#EAF2F6" text-anchor="middle" font-weight="700">ClearPass</text>
+  <text x="760" y="192" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">node 3 of 4</text>
+  <text x="760" y="230" class="m" font-size="12" fill="#8BA2AE" text-anchor="middle">user not found</text>
+  <path d="M254 150 L644 150" stroke="#5ED2DA" stroke-width="2" fill="none" marker-end="url(#at)"/>
+  <text x="449" y="140" class="t" font-size="12" fill="#5ED2DA" text-anchor="middle">Access-Request, a user ClearPass never heard of</text>
+  <path d="M646 232 L256 232" stroke="#8CE05E" stroke-width="2.4" fill="none" marker-end="url(#ag)"/>
+  <text x="449" y="222" class="t" font-size="13" fill="#8CE05E" text-anchor="middle" font-weight="700">Access-Reject</text>
+  <text x="449" y="256" class="t" font-size="12" fill="#B0C4CF" text-anchor="middle">an answer is an answer</text>
+  <text x="30" y="320" class="t cap" font-size="12" fill="#8BA2AE">Bench: CX 10.18.1002 and ClearPass 6.11.1, 2026-09-26. Event 2304 on every interval.</text>
+</svg>
