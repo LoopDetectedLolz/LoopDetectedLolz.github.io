@@ -22,7 +22,7 @@
  * only ever travel in POST bodies, so they stay out of URLs and logs.
  *
  * The Cowork Q&A monitor writes to `comments` with plain SQL. The columns and values it relies on (kind, state,
- * parent_id, code_hash; visible always equal to state = 'live') are a contract: CLAUDE.md, "Comments", lists them.
+ * parent_id, code_hash; visible always equal to state = 'live') are a contract: dev/comments-and-progress.md, "The monitor contract", lists them.
  *
  * Secrets: TURNSTILE_SECRET, ADMIN_TOKEN, IP_SALT, CODE_SALT.  Var: ALLOWED_ORIGIN.  Binding: DB.
  */

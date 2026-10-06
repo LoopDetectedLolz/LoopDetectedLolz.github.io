@@ -111,7 +111,7 @@ python3 comments.py reply --to 42 --body "..."        # answer it; that also put
 python3 comments.py approve 42                        # or put it up without an answer yet
 ```
 
-The daily Cowork monitor does the same with SQL; CLAUDE.md, "Comments", has the statements it relies on.
+The daily Cowork monitor does the same with SQL; dev/comments-and-progress.md, "The monitor contract", has the statements it relies on.
 
 Testing locally, never against the live Worker:
 
