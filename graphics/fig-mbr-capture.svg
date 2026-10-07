@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-label="Capture route on a Mac: tcpdump monitor mode returns zero frames while associated; Wireless Diagnostics Sniffer on channel 149 writes a pcap to /var/tmp; tshark filters beacons for the SSID and prints the rate and rate set; the output line is annotated field by field">
+<defs><style>text{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}</style></defs>
+<text x="30" y="30" fill="#8CE05E" font-size="11" font-weight="700" letter-spacing="2">HOW THE BEACON GETS INTO A TERMINAL</text>
+<rect x="30" y="50" width="250" height="70" rx="12" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="5 4"/>
+<text x="155" y="76" fill="#8BA2AE" font-size="13" text-anchor="middle" class="m">sudo tcpdump -I -i en0</text>
+<text x="155" y="98" fill="#F5A524" font-size="11" text-anchor="middle">0 frames while associated, Apple silicon</text>
+<text x="155" y="140" fill="#8BA2AE" font-size="11" text-anchor="middle">not this one</text>
+<rect x="325" y="50" width="250" height="70" rx="12" fill="rgba(3,10,16,0.55)" stroke="#8CE05E"/>
+<text x="450" y="76" fill="#EAF2F6" font-size="13" text-anchor="middle" font-weight="600">Wireless Diagnostics</text>
+<text x="450" y="98" fill="#B0C4CF" font-size="11" text-anchor="middle">Window &gt; Sniffer, ch 149, 80 MHz, 10 s</text>
+<path d="M575 85 L612 85" stroke="#8CE05E" stroke-width="2"/><path d="M605 79 L612 85 L605 91" fill="none" stroke="#8CE05E" stroke-width="2"/>
+<rect x="620" y="50" width="250" height="70" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="745" y="76" fill="#EAF2F6" font-size="13" text-anchor="middle" class="m">/var/tmp/*.pcap</text>
+<text x="745" y="98" fill="#B0C4CF" font-size="11" text-anchor="middle">every frame on the channel</text>
+<path d="M745 120 L745 150" stroke="#8CE05E" stroke-width="2"/><path d="M739 143 L745 150 L751 143" fill="none" stroke="#8CE05E" stroke-width="2"/>
+<rect x="30" y="156" width="840" height="60" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="50" y="180" fill="#EAF2F6" font-size="12" class="m">tshark -r capture.pcap -Y 'wlan.fc.type_subtype==8 &amp;&amp; wlan.ssid=="NetFieldNotes"'</text>
+<text x="50" y="202" fill="#EAF2F6" font-size="12" class="m">  -T fields -e wlan_radio.data_rate -e wlan.ds.current_channel -e wlan.supported_rates | sort | uniq -c</text>
+<text x="50" y="250" fill="#8CE05E" font-size="20" class="m" font-weight="700">590   24   149   0xb0,0x48,0x60,0x6c</text>
+<g font-size="11">
+<path d="M66 258 L66 276" stroke="#5ED2DA"/><text x="66" y="292" fill="#5ED2DA" text-anchor="middle">beacons</text>
+<path d="M150 258 L150 276" stroke="#5ED2DA"/><text x="150" y="308" fill="#5ED2DA" text-anchor="middle">sent at, Mb/s</text>
+<path d="M232 258 L232 276" stroke="#5ED2DA"/><text x="232" y="292" fill="#5ED2DA" text-anchor="middle">channel</text>
+<path d="M400 258 L400 276" stroke="#5ED2DA"/><text x="400" y="292" fill="#5ED2DA" text-anchor="middle">Supported Rates, hex, high bit = basic</text>
+</g>
+<text x="560" y="244" fill="#B0C4CF" font-size="12" class="m">0xb0 = 0x80 | 0x30 = basic 24</text><text x="560" y="262" fill="#B0C4CF" font-size="12" class="m">0x48 = 36   0x60 = 48   0x6c = 54</text>
+<text x="300" y="322" fill="#8BA2AE" font-size="11">Units of 500 kb/s; mask the high bit, halve the rest. Before: eight entries, 6, 12 and 24 basic.</text>
+</svg>

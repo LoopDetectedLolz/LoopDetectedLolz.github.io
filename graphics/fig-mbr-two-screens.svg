@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" role="img" aria-label="Two Central screens, the WLAN Advanced Settings and the radio profile, each with rate pickers; the WLAN's Legacy minimum writes a-min-tx-rate, which trims the rate set and so sets the beacon rate">
+<defs><style>text{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}</style></defs>
+<rect x="30" y="24" width="400" height="200" rx="14" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="50" y="52" fill="#8CE05E" font-size="11" font-weight="700" letter-spacing="2">WLAN PAGE</text>
+<text x="50" y="74" fill="#EAF2F6" font-size="14" font-weight="700">General &gt; Advanced Settings</text>
+<rect x="50" y="90" width="360" height="40" rx="8" fill="rgba(140,224,94,0.14)" stroke="#8CE05E"/>
+<text x="62" y="108" fill="#EAF2F6" font-size="12" font-weight="600">Transmit Rates (Legacy Only)</text>
+<text x="62" y="124" fill="#B0C4CF" font-size="11">5 GHz  Min 6 &#8594; 24   Max 54</text>
+<rect x="50" y="140" width="360" height="30" rx="8" fill="none" stroke="rgba(255,255,255,0.12)"/>
+<text x="62" y="159" fill="#8BA2AE" font-size="11">Transmit Rates (New)  basic and tx chips, untouched</text>
+<rect x="50" y="178" width="360" height="30" rx="8" fill="none" stroke="rgba(255,255,255,0.12)"/>
+<text x="62" y="197" fill="#8BA2AE" font-size="11">Beacon Rate  untouched</text>
+<rect x="470" y="24" width="400" height="200" rx="14" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="490" y="52" fill="#5ED2DA" font-size="11" font-weight="700" letter-spacing="2">RADIO PROFILE</text>
+<text x="490" y="74" fill="#EAF2F6" font-size="14" font-weight="700">Config &gt; Radios &gt; Show advanced</text>
+<rect x="490" y="90" width="360" height="30" rx="8" fill="none" stroke="rgba(255,255,255,0.12)"/>
+<text x="502" y="109" fill="#8BA2AE" font-size="11">Transmit Rates  Not Applicable on 2.4 and 5 GHz</text>
+<rect x="490" y="128" width="360" height="30" rx="8" fill="none" stroke="rgba(255,255,255,0.12)"/>
+<text x="502" y="147" fill="#8BA2AE" font-size="11">Basic Rates  Not Applicable on 2.4 and 5 GHz</text>
+<rect x="490" y="166" width="360" height="30" rx="8" fill="none" stroke="rgba(255,255,255,0.12)"/>
+<text x="502" y="185" fill="#8BA2AE" font-size="11">Beacon Rate  Not Applicable; pickers exist for 6 GHz only</text>
+<path d="M230 224 L230 262" stroke="#8CE05E" stroke-width="2"/>
+<path d="M224 254 L230 262 L236 254" fill="none" stroke="#8CE05E" stroke-width="2"/>
+<rect x="30" y="266" width="400" height="36" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="50" y="289" fill="#EAF2F6" font-size="13" class="m">wlan ssid-profile NetFieldNotes / a-min-tx-rate 24</text>
+<path d="M430 284 L660 284" stroke="#8CE05E" stroke-width="2"/>
+<path d="M652 278 L660 284 L652 290" fill="none" stroke="#8CE05E" stroke-width="2"/>
+<rect x="660" y="266" width="210" height="36" rx="8" fill="#8CE05E"/>
+<text x="767" y="289" fill="#06202A" font-size="12" font-weight="700" text-anchor="middle">rate set trimmed to 24 to 54</text>
+<text x="870" y="326" fill="#5ED2DA" font-size="12" text-anchor="end">beacon rides the lowest basic rate left: 24</text>
+<text x="30" y="344" fill="#8BA2AE" font-size="11">The radio profile only owns rates on 6 GHz. For 2.4 and 5 GHz the WLAN page is the whole story.</text>
+</svg>

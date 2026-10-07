@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="The 5 GHz rate set before and after raising the minimum transmit rate to 24: eight rates with 6, 12 and 24 basic and the beacon at 6, then four rates with only 24 basic and the beacon at 24">
+<defs><style>text{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}</style></defs>
+<text x="40" y="36" fill="#8CE05E" font-size="12" font-weight="700" letter-spacing="2">MINIMUM TRANSMIT RATE, 5 GHZ, AOS 10</text>
+<text x="40" y="66" fill="#EAF2F6" font-size="22" font-weight="700">One box moved the floor. The beacon moved with it.</text>
+<text x="40" y="112" fill="#B0C4CF" font-size="12">Before, minimum 6</text>
+<text x="860" y="112" fill="#8BA2AE" font-size="11" text-anchor="end">basic = filled, beacon rides the lowest basic</text>
+<g class="m" font-size="13" text-anchor="middle">
+<rect x="40" y="124" width="92" height="40" rx="8" fill="#8CE05E"/><text x="86" y="149" fill="#06202A" font-weight="700">6</text>
+<rect x="142" y="124" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="188" y="149" fill="#EAF2F6">9</text>
+<rect x="244" y="124" width="92" height="40" rx="8" fill="#8CE05E"/><text x="290" y="149" fill="#06202A" font-weight="700">12</text>
+<rect x="346" y="124" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="392" y="149" fill="#EAF2F6">18</text>
+<rect x="448" y="124" width="92" height="40" rx="8" fill="#8CE05E"/><text x="494" y="149" fill="#06202A" font-weight="700">24</text>
+<rect x="550" y="124" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="596" y="149" fill="#EAF2F6">36</text>
+<rect x="652" y="124" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="698" y="149" fill="#EAF2F6">48</text>
+<rect x="754" y="124" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="800" y="149" fill="#EAF2F6">54</text>
+</g>
+<path d="M86 172 l0 14" stroke="#5ED2DA" stroke-width="2"/><text x="86" y="200" fill="#5ED2DA" font-size="11" text-anchor="middle">beacon 6 Mb/s, 396 us</text>
+<text x="40" y="236" fill="#B0C4CF" font-size="12">After, minimum 24</text>
+<text x="860" y="236" fill="#8BA2AE" font-size="11" text-anchor="end" class="m">a-min-tx-rate 24</text>
+<g class="m" font-size="13" text-anchor="middle">
+<rect x="40" y="248" width="92" height="40" rx="8" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/><text x="86" y="273" fill="#8BA2AE">6</text>
+<rect x="142" y="248" width="92" height="40" rx="8" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/><text x="188" y="273" fill="#8BA2AE">9</text>
+<rect x="244" y="248" width="92" height="40" rx="8" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/><text x="290" y="273" fill="#8BA2AE">12</text>
+<rect x="346" y="248" width="92" height="40" rx="8" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/><text x="392" y="273" fill="#8BA2AE">18</text>
+<rect x="448" y="248" width="92" height="40" rx="8" fill="#8CE05E"/><text x="494" y="273" fill="#06202A" font-weight="700">24</text>
+<rect x="550" y="248" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="596" y="273" fill="#EAF2F6">36</text>
+<rect x="652" y="248" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="698" y="273" fill="#EAF2F6">48</text>
+<rect x="754" y="248" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="800" y="273" fill="#EAF2F6">54</text>
+</g>
+<path d="M494 296 l0 10" stroke="#5ED2DA" stroke-width="2"/><text x="494" y="320" fill="#5ED2DA" font-size="11" text-anchor="middle">beacon 24 Mb/s, 116 us</text>
+<text x="40" y="320" fill="#8BA2AE" font-size="11">Capture: 0xb0, 0x48, 0x60, 0x6c. Four entries, one basic.</text>
+</svg>

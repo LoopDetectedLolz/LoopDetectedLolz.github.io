@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" role="img" aria-label="The 5 GHz OFDM rate ladder from 6 to 54 megabits with the bottom four rungs greyed out after a 24 megabit minimum; a laptop near the AP and a scanner and a printer at the cell edge show who still has a rung to stand on">
+<defs><style>text{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}</style></defs>
+<text x="30" y="30" fill="#8CE05E" font-size="11" font-weight="700" letter-spacing="2">WHO STILL SEES THE SSID</text>
+<g class="m" font-size="12">
+<text x="60" y="68" fill="#EAF2F6" text-anchor="end">54</text><rect x="80" y="56" width="560" height="14" rx="4" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="60" y="96" fill="#EAF2F6" text-anchor="end">48</text><rect x="80" y="84" width="560" height="14" rx="4" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="60" y="124" fill="#EAF2F6" text-anchor="end">36</text><rect x="80" y="112" width="560" height="14" rx="4" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="60" y="152" fill="#EAF2F6" text-anchor="end" font-weight="700">24</text><rect x="80" y="140" width="560" height="14" rx="4" fill="#8CE05E"/>
+<text x="60" y="180" fill="#8BA2AE" text-anchor="end">18</text><rect x="80" y="168" width="560" height="14" rx="4" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/>
+<text x="60" y="208" fill="#8BA2AE" text-anchor="end">12</text><rect x="80" y="196" width="560" height="14" rx="4" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/>
+<text x="60" y="236" fill="#8BA2AE" text-anchor="end">9</text><rect x="80" y="224" width="560" height="14" rx="4" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/>
+<text x="60" y="264" fill="#8BA2AE" text-anchor="end">6</text><rect x="80" y="252" width="560" height="14" rx="4" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/>
+</g>
+<text x="652" y="152" fill="#8CE05E" font-size="12" font-weight="700">the new floor, beacon here</text>
+<text x="652" y="216" fill="#8BA2AE" font-size="12">gone from the rate set</text>
+<rect x="80" y="276" width="560" height="4" fill="rgba(255,255,255,0.12)"/>
+<text x="80" y="300" fill="#B0C4CF" font-size="11">near the AP</text>
+<text x="640" y="300" fill="#B0C4CF" font-size="11" text-anchor="end">cell edge</text>
+<g font-size="12">
+<circle cx="160" cy="63" r="7" fill="#4FBDEA"/><text x="174" y="67" fill="#EAF2F6" font-weight="600">laptop at 54, fine</text>
+<circle cx="440" cy="147" r="7" fill="#4FBDEA" stroke="#06202A" stroke-width="2"/><text x="454" y="151" fill="#06202A" font-weight="700">phone holding 24</text>
+<circle cx="600" cy="259" r="7" fill="none" stroke="#F5A524" stroke-width="2"/><text x="520" y="330" fill="#F5A524" font-size="12">scanner that lived at 6: no SSID now</text>
+<path d="M600 266 L600 316" stroke="#F5A524" stroke-width="1.5" stroke-dasharray="3 3"/>
+<circle cx="560" cy="203" r="7" fill="none" stroke="#F5A524" stroke-width="2"/><text x="300" y="330" fill="#F5A524" font-size="12">printer that lived at 12: same</text>
+<path d="M560 210 L560 316" stroke="#F5A524" stroke-width="1.5" stroke-dasharray="3 3"/>
+</g>
+<text x="30" y="352" fill="#8BA2AE" font-size="11">Every 802.11a radio can decode 24. The ones that lived below it were living at the edge, and the edge moved.</text>
+</svg>
