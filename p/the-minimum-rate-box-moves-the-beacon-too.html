@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wireless Academy · Network Field Notes</title>
-<meta name="description" content="Twelve lessons on wireless fundamentals, each with a lab you can run on Aruba and Mist gear.">
-<link rel="canonical" href="https://networkfieldnotes.com/academy.html">
+<title>The Minimum Rate Box Moves the Beacon Too</title>
+<meta name="description" content="The standard says a beacon goes out at a basic rate, and every vendor picks the lowest one. Central has a box that says minimum transmit rate. I had an AP, a sniffer and a question about whether those two sentences are about the same thing. They are, and the proof is four hex bytes long.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/the-minimum-rate-box-moves-the-beacon-too.html">
 <link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
 <link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
 <meta property="og:site_name" content="Network Field Notes">
-<meta property="og:title" content="Wireless Academy · Network Field Notes">
-<meta property="og:description" content="Twelve lessons on wireless fundamentals, each with a lab you can run on Aruba and Mist gear.">
-<meta property="og:url" content="https://networkfieldnotes.com/academy.html">
-<meta property="og:image" content="https://networkfieldnotes.com/og/academy.png">
+<meta property="og:title" content="The Minimum Rate Box Moves the Beacon Too">
+<meta property="og:description" content="The standard says a beacon goes out at a basic rate, and every vendor picks the lowest one. Central has a box that says minimum transmit rate. I had an AP, a sniffer and a question about whether those two sentences are about the same thing. They are, and the proof is four hex bytes long.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/the-minimum-rate-box-moves-the-beacon-too.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/the-minimum-rate-box-moves-the-beacon-too.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Wireless Academy · Network Field Notes">
-<meta name="twitter:description" content="Twelve lessons on wireless fundamentals, each with a lab you can run on Aruba and Mist gear.">
-<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy.png">
-
+<meta name="twitter:title" content="The Minimum Rate Box Moves the Beacon Too">
+<meta name="twitter:description" content="The standard says a beacon goes out at a basic rate, and every vendor picks the lowest one. Central has a box that says minimum transmit rate. I had an AP, a sniffer and a question about whether those two sentences are about the same thing. They are, and the proof is four hex bytes long.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/the-minimum-rate-box-moves-the-beacon-too.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-10-07"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "The Minimum Rate Box Moves the Beacon Too", "description": "The standard says a beacon goes out at a basic rate, and every vendor picks the lowest one. Central has a box that says minimum transmit rate. I had an AP, a sniffer and a question about whether those two sentences are about the same thing. They are, and the proof is four hex bytes long.", "datePublished": "2026-10-07", "image": "https://networkfieldnotes.com/og/the-minimum-rate-box-moves-the-beacon-too.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/the-minimum-rate-box-moves-the-beacon-too.html", "keywords": "Wireless, AOS-10, Central, Design"}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
 :root{
@@ -537,18 +537,19 @@ body.acad .callout.origin .eyebrow{color:#ffd28a}
 html.qam-fs,html.qam-fs body{overflow:hidden}
 html.qam-fs .rig{display:none}
 </style></head>
-<body class="acad">
+<body>
 <div class="ground"></div>
 <canvas id="nfn-fx" aria-hidden="true"></canvas>
 <div class="gx-pane" aria-hidden="true"></div>
 <div class="gx-grain" aria-hidden="true"></div>
 <div class="page">
 <header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
-  <a class="brand" href="/"><span class="mk"><img src="logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
-  <nav class="nav"><a class="pill" href="/">Posts</a><a class="pill on" href="academy.html">Academy</a><a class="pill" href="tools.html">Tools</a><a class="pill" href="about.html">About</a><a class="pill outline" href="index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  <a class="brand" href="../"><span class="mk"><img src="../logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
+  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill" href="../academy.html">Academy</a><a class="pill" href="../tools.html">Tools</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
   
 </div></div></header>
-<main class="wrap"><style>/* Academy progress, save codes, the self-check, and the read mark every post carries. Inlined by build-blog.py
+<main class="wrap">
+<div class="narrow"><style>/* Academy progress, save codes, the self-check, and the read mark every post carries. Inlined by build-blog.py
    (progress_scripts) on every post and lesson, academy.html and sandbox.html. Kit tokens only; orange is the Academy's accent. */
 
 /* the progress card at the end of a lesson */
@@ -635,7 +636,7 @@ body.acad .readmark,body.acad .changed-note{--rm:var(--orange);--rm-soft:rgba(24
 .cn-text p{margin:4px 0 0;font-size:14.5px;line-height:1.55;color:var(--text-dim)}
 .cn-text .cn-what{color:var(--text)}
 .prog-items [data-nfn-read][hidden]{display:none}
-</style><script>window.NFN_CFG={"api": "https://api.networkfieldnotes.com", "sitekey": "0x4AAAAAAE0IseyiQ4X9zk6r"};</script><script>/* Network Field Notes: the Academy progress core.
+</style><script>window.NFN_CFG={"api": "https://api.networkfieldnotes.com", "sitekey": "0x4AAAAAAE0IseyiQ4X9zk6r", "slug": "the-minimum-rate-box-moves-the-beacon-too"};</script><script>/* Network Field Notes: the Academy progress core.
  *
  * Pure functions: no DOM, no storage, no network. theme/progress.js uses it in the page,
  * comments/worker.js uses it on the server, progresstest.js tests it. The page and the Worker run
@@ -1315,34 +1316,388 @@ body.acad .readmark,body.acad .changed-note{--rm:var(--orange);--rm-soft:rgba(24
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();
 </script>
-<section class="hero g-hero rise acad-hero" data-view="pop">
-  <div class="sheen"></div><div class="glow"></div>
-  <span class="tag c-orange"><span class="dot"></span>Wireless Academy</span>
-  <h1 class="h-hero">The theory, and the lab that proves it</h1>
-  <p class="lede">Twelve lessons on how Wi-Fi actually works, pitched at the engineer who runs a network but never got taught why. Each one ends with something you can go and measure on an Aruba AP, a Mist AP, and a Sidekick, because a number you measured yourself is the only kind that sticks.</p>
-  <div class="row">
-    <a class="btn cta" href="p/academy-01-what-a-radio-actually-sends.html" data-origin="zoom">Start with lesson 1</a>
-    <span class="meta">12 of 12 published</span><span class="meta" id="acad-read" data-total="12" hidden></span>
-  </div>
+  <div class="backbar"><a class="btn" href="../"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;All posts</a></div>
+  <article>
+    <header class="post-head g-hero cat-Wireless" data-view="zoom">
+      <div class="row" style="margin:0"><a class="tag c-green" href="../index.html#cat=Wireless" title="All Wireless posts">Wireless</a><span class="meta">Oct 7, 2026 &#183; 11 min</span></div>
+      <h1 class="h-hero">The Minimum Rate Box Moves the Beacon Too</h1>
+    </header>
+    
+    <div class="post-body g-card" data-rise>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="The 5 GHz rate set before and after raising the minimum transmit rate to 24: eight rates with 6, 12 and 24 basic and the beacon at 6, then four rates with only 24 basic and the beacon at 24">
+<defs><style>text{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}</style></defs>
+<text x="40" y="36" fill="#8CE05E" font-size="12" font-weight="700" letter-spacing="2">MINIMUM TRANSMIT RATE, 5 GHZ, AOS 10</text>
+<text x="40" y="66" fill="#EAF2F6" font-size="22" font-weight="700">One box moved the floor. The beacon moved with it.</text>
+<text x="40" y="112" fill="#B0C4CF" font-size="12">Before, minimum 6</text>
+<text x="860" y="112" fill="#8BA2AE" font-size="11" text-anchor="end">basic = filled, beacon rides the lowest basic</text>
+<g class="m" font-size="13" text-anchor="middle">
+<rect x="40" y="124" width="92" height="40" rx="8" fill="#8CE05E"/><text x="86" y="149" fill="#06202A" font-weight="700">6</text>
+<rect x="142" y="124" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="188" y="149" fill="#EAF2F6">9</text>
+<rect x="244" y="124" width="92" height="40" rx="8" fill="#8CE05E"/><text x="290" y="149" fill="#06202A" font-weight="700">12</text>
+<rect x="346" y="124" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="392" y="149" fill="#EAF2F6">18</text>
+<rect x="448" y="124" width="92" height="40" rx="8" fill="#8CE05E"/><text x="494" y="149" fill="#06202A" font-weight="700">24</text>
+<rect x="550" y="124" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="596" y="149" fill="#EAF2F6">36</text>
+<rect x="652" y="124" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="698" y="149" fill="#EAF2F6">48</text>
+<rect x="754" y="124" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="800" y="149" fill="#EAF2F6">54</text>
+</g>
+<path d="M86 172 l0 14" stroke="#5ED2DA" stroke-width="2"/><text x="86" y="200" fill="#5ED2DA" font-size="11" text-anchor="middle">beacon 6 Mb/s, 396 us</text>
+<text x="40" y="236" fill="#B0C4CF" font-size="12">After, minimum 24</text>
+<text x="860" y="236" fill="#8BA2AE" font-size="11" text-anchor="end" class="m">a-min-tx-rate 24</text>
+<g class="m" font-size="13" text-anchor="middle">
+<rect x="40" y="248" width="92" height="40" rx="8" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/><text x="86" y="273" fill="#8BA2AE">6</text>
+<rect x="142" y="248" width="92" height="40" rx="8" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/><text x="188" y="273" fill="#8BA2AE">9</text>
+<rect x="244" y="248" width="92" height="40" rx="8" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/><text x="290" y="273" fill="#8BA2AE">12</text>
+<rect x="346" y="248" width="92" height="40" rx="8" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/><text x="392" y="273" fill="#8BA2AE">18</text>
+<rect x="448" y="248" width="92" height="40" rx="8" fill="#8CE05E"/><text x="494" y="273" fill="#06202A" font-weight="700">24</text>
+<rect x="550" y="248" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="596" y="273" fill="#EAF2F6">36</text>
+<rect x="652" y="248" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="698" y="273" fill="#EAF2F6">48</text>
+<rect x="754" y="248" width="92" height="40" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/><text x="800" y="273" fill="#EAF2F6">54</text>
+</g>
+<path d="M494 296 l0 10" stroke="#5ED2DA" stroke-width="2"/><text x="494" y="320" fill="#5ED2DA" font-size="11" text-anchor="middle">beacon 24 Mb/s, 116 us</text>
+<text x="40" y="320" fill="#8BA2AE" font-size="11">Capture: 0xb0, 0x48, 0x60, 0x6c. Four entries, one basic.</text>
+</svg></div>
+      
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>CWNE study, the basic rate set, and an AP-735 that was in the room when I got curious</div>
+      <div class="prose"><p>I'm starting the CWNE push. Four exams, the essays, the endorsements, the whole thing, and it starts with going back through the CWNA material that explains what a beacon is as if I've never seen one. Which is fine. It turns out I had seen plenty of beacons and read almost none of them.</p>
+<p>The idea that stopped me is an old one. Every BSS advertises a rate set, a subset of it is flagged basic, and the standard says group-addressed management frames, which includes the beacon, go out at one of the basic rates. Every vendor I've ever touched picks the lowest. I know that. Everyone knows that. And then I thought about the screen I've clicked through on a hundred Central tenants, the one with a box called Transmit Rates (Legacy Only), minimum and maximum per band, and I realized I could not tell you, under oath, whether that box changes the beacon. I had a story about it. I did not have a capture.</p>
+<p>So I got a capture. The AP-735 was on the shelf, the Mac was on the desk, and CWNE study is supposed to involve a packet or two.</p>
+<h2>The question, stated properly</h2>
+<p>Central shows you rates in two places, and the study material only talks about one of them.</p>
+<p>The WLAN page, General &gt; Advanced Settings, has Transmit Rates (Legacy Only) with a minimum and maximum per band. That's the one everybody finds, and it's the one I'd always treated as a data floor.</p>
+<figure>
+<img src="../media/mbr-central-legacy.png" alt="Aruba Central WLAN Advanced Settings with Transmit Rates (Legacy Only) expanded: 2.4 GHz Min 1 Max 54, 5 GHz Min 6 Max 54" width="1400" height="357" loading="lazy">
+<figcaption>The box. Minimum and maximum per band, defaults 1 to 54 and 6 to 54, on the WLAN's own page. Nothing on it says beacon.</figcaption>
+</figure>
+
+<p>Scroll down the same page and there's a second section, Transmit Rates (New), with the basic rates and transmit rates as chips per band, and under that a Beacon Rate picker. So the WLAN page carries all three ideas from the textbook on one screen, and they look independent.</p>
+<figure>
+<img src="../media/mbr-central-new-beacon.png" alt="The same page further down: Transmit Rates (New) with 5 GHz basic rates 6, 12 and 24 filled, all eight 5 GHz transmit rates filled, and a Beacon Rate picker per band set to default" width="1400" height="669" loading="lazy">
+<figcaption>Same page, further down. 5 GHz basic rates 6, 12 and 24, every transmit rate on, and the beacon on default. This is the stock state of the SSID before I touched anything.</figcaption>
+</figure>
+
+<p>Then there's the radio profile, Devices &gt; Access Points &gt; Config &gt; Radios &gt; Show advanced settings, which I had filed in my head as the place that really owns basic rates and the beacon, the way the RF profile does on a controller. I'll come back to that screen, because it had a surprise of its own.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" role="img" aria-label="Two Central screens, the WLAN Advanced Settings and the radio profile, each with rate pickers; the WLAN's Legacy minimum writes a-min-tx-rate, which trims the rate set and so sets the beacon rate">
+<defs><style>text{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}</style></defs>
+<rect x="30" y="24" width="400" height="200" rx="14" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="50" y="52" fill="#8CE05E" font-size="11" font-weight="700" letter-spacing="2">WLAN PAGE</text>
+<text x="50" y="74" fill="#EAF2F6" font-size="14" font-weight="700">General &gt; Advanced Settings</text>
+<rect x="50" y="90" width="360" height="40" rx="8" fill="rgba(140,224,94,0.14)" stroke="#8CE05E"/>
+<text x="62" y="108" fill="#EAF2F6" font-size="12" font-weight="600">Transmit Rates (Legacy Only)</text>
+<text x="62" y="124" fill="#B0C4CF" font-size="11">5 GHz  Min 6 &#8594; 24   Max 54</text>
+<rect x="50" y="140" width="360" height="30" rx="8" fill="none" stroke="rgba(255,255,255,0.12)"/>
+<text x="62" y="159" fill="#8BA2AE" font-size="11">Transmit Rates (New)  basic and tx chips, untouched</text>
+<rect x="50" y="178" width="360" height="30" rx="8" fill="none" stroke="rgba(255,255,255,0.12)"/>
+<text x="62" y="197" fill="#8BA2AE" font-size="11">Beacon Rate  untouched</text>
+<rect x="470" y="24" width="400" height="200" rx="14" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="490" y="52" fill="#5ED2DA" font-size="11" font-weight="700" letter-spacing="2">RADIO PROFILE</text>
+<text x="490" y="74" fill="#EAF2F6" font-size="14" font-weight="700">Config &gt; Radios &gt; Show advanced</text>
+<rect x="490" y="90" width="360" height="30" rx="8" fill="none" stroke="rgba(255,255,255,0.12)"/>
+<text x="502" y="109" fill="#8BA2AE" font-size="11">Transmit Rates  Not Applicable on 2.4 and 5 GHz</text>
+<rect x="490" y="128" width="360" height="30" rx="8" fill="none" stroke="rgba(255,255,255,0.12)"/>
+<text x="502" y="147" fill="#8BA2AE" font-size="11">Basic Rates  Not Applicable on 2.4 and 5 GHz</text>
+<rect x="490" y="166" width="360" height="30" rx="8" fill="none" stroke="rgba(255,255,255,0.12)"/>
+<text x="502" y="185" fill="#8BA2AE" font-size="11">Beacon Rate  Not Applicable; pickers exist for 6 GHz only</text>
+<path d="M230 224 L230 262" stroke="#8CE05E" stroke-width="2"/>
+<path d="M224 254 L230 262 L236 254" fill="none" stroke="#8CE05E" stroke-width="2"/>
+<rect x="30" y="266" width="400" height="36" rx="8" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="50" y="289" fill="#EAF2F6" font-size="13" class="m">wlan ssid-profile NetFieldNotes / a-min-tx-rate 24</text>
+<path d="M430 284 L660 284" stroke="#8CE05E" stroke-width="2"/>
+<path d="M652 278 L660 284 L652 290" fill="none" stroke="#8CE05E" stroke-width="2"/>
+<rect x="660" y="266" width="210" height="36" rx="8" fill="#8CE05E"/>
+<text x="767" y="289" fill="#06202A" font-size="12" font-weight="700" text-anchor="middle">rate set trimmed to 24 to 54</text>
+<text x="870" y="326" fill="#5ED2DA" font-size="12" text-anchor="end">beacon rides the lowest basic rate left: 24</text>
+<text x="30" y="344" fill="#8BA2AE" font-size="11">The radio profile only owns rates on 6 GHz. For 2.4 and 5 GHz the WLAN page is the whole story.</text>
+</svg><figcaption>Two screens in Central that look like they both own the rate set. One of them turns out to be for a band this test never touched.</figcaption></figure>
+<p>The textbook model is three separate things. There's the rate set the BSS advertises, there's the subset of it flagged basic, which every client has to support to join, and there's the beacon, which goes out at a basic rate, the lowest one in practice. A box labelled minimum transmit rate sounds like it belongs to a fourth thing, the floor on data frames, which the textbook doesn't give a name to because the standard leaves it to the vendor. My guess going in: the box is the data floor, and the beacon doesn't care.</p>
+<p>Place your bets.</p>
+<h2>What one line in the config did</h2>
+<p>I set the 5 GHz minimum from 6 to 24 on the test SSID, my AP-735 on AOS 10.8.1.0, and pulled the running config through Tools &gt; Commands. One line changed in the SSID profile: <code>a-min-tx-rate 24</code>. Nothing in the radio profile moved. Basic rates, beacon rate, untouched. So far the config agrees with my guess.</p>
+<p>Then the sniffer.</p>
+<div class="term"><div class="term-bar"><i></i><i></i><i></i><b>what the box said</b></div><pre><code><span class="ln"><span class="pr">$ </span>tshark -r capture.pcap -Y &#x27;wlan.fc.type_subtype==8 &amp;&amp; wlan.ssid==&quot;NetFieldNotes&quot;&#x27; \</span><span class="ln">    -T fields -e wlan_radio.data_rate -e wlan.ds.current_channel \</span><span class="ln">    -e wlan.supported_rates -e wlan.extended_supported_rates | sort | uniq -c</span><span class="ln hot">    590   24   149   0xb0,0x48,0x60,0x6c</span></code></pre></div>
+<p>Five hundred and ninety beacons, every one of them sent at 24 Mb/s on channel 149, and a Supported Rates element four entries long. The hex is straight out of the Supported Rates element definition: units of 500 kb/s, high bit set means basic. <code>0xb0</code> is 24 with the basic flag. <code>0x48</code>, <code>0x60</code> and <code>0x6c</code> are 36, 48 and 54. No Extended Supported Rates element at all, because four rates fit in the first one with room to spare.</p>
+<p>So 6, 9, 12 and 18 are not disabled. They're gone. The SSID no longer has them, the way it no longer has 11 Mb/s. And with 6 and 12 gone, the beacon rides the lowest basic rate left, exactly as the standard and the study guide say it should. The book was right, my guess was wrong, and the box is better than its label.</p>
+<h2>Two screens, one knob</h2>
+<p>What the capture says is that the Legacy minimum isn't a data floor sitting beside the basic rates. It trims the SSID's rate set from the bottom. Everything under the minimum leaves the Supported Rates element, the basic flags on the survivors stay where they were, and the beacon follows.</p>
+<p>And the radio profile, the screen I'd have gone to first on a controller? Here's what it shows for Transmit Rates, Basic Rates and Beacon Rate on this tenant.</p>
+<figure>
+<img src="../media/mbr-central-radio-profile.png" alt="Aruba Central radio profile advanced settings: Transmit Rates, Basic Rates and Beacon Rate read Not Applicable in the 5 GHz column, while the 6 GHz column shows rate chips and a beacon rate picker" width="1400" height="338" loading="lazy">
+<figcaption>The radio profile, 5 GHz column on the left, 6 GHz on the right. For 2.4 and 5 GHz all three rate rows read Not Applicable. The pickers only exist for 6 GHz, which has no legacy rates for the WLAN page to cover.</figcaption>
+</figure>
+
+<p>Not Applicable, for both 2.4 and 5 GHz. The radio profile's rate pickers exist only in the 6 GHz column, where there's no Legacy row on the WLAN page to do the job. So for the two bands with a legacy rate set, there was never a second screen. The WLAN page is the only knob, and the Legacy minimum on it is the one that moves the beacon. I'd been carrying a controller-era mental map onto a product that doesn't use it.</p>
+<p>On the CLI side this is the Instant lineage showing through. Instant's <code>wlan ssid-profile</code> carries <code>a-basic-rates</code>, <code>a-tx-rates</code>, <code>a-beacon-rate</code> and the <code>a-min-tx-rate</code> and <code>a-max-tx-rate</code> pair, defaults 6 and 54. AOS 10 kept the pair, and Central's Legacy boxes are a front end for it. AOS 8 under a controller has the basic and tx rate lists in the same profile but no min and max pair, so the equivalent change there is editing <code>a-basic-rates</code> and <code>a-tx-rates</code> by hand. If you came up on controllers, the AOS 10 box is doing both of those edits for you in one move, and not telling you.</p>
+<h2>What it costs, and what it buys</h2>
+<p>The reason the study material cares about the beacon rate is airtime, and this is where the box earns its keep. A beacon is a management frame with a 250 byte body on this SSID, 278 bytes once the 802.11 header and FCS are on it. At 6 Mb/s that's 396 microseconds on the air, ten times a second, per SSID, per radio, forever. At 24 Mb/s it's 116.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-label="Bars comparing beacon airtime: one beacon is 396 microseconds at 6 megabits and 116 at 24; six SSIDs on one radio cost 2.4 percent of the radio at 6 and 0.7 percent at 24">
+<defs><style>text{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}</style></defs>
+<text x="30" y="30" fill="#8CE05E" font-size="11" font-weight="700" letter-spacing="2">ONE BEACON, 278 BYTES ON THE AIR</text>
+<text x="30" y="66" fill="#B0C4CF" font-size="12">at 6 Mb/s</text>
+<rect x="130" y="50" width="720" height="24" rx="6" fill="#5ED2DA"/>
+<text x="840" y="67" fill="#06202A" font-size="12" font-weight="700" text-anchor="end" class="m">396 us</text>
+<text x="30" y="106" fill="#B0C4CF" font-size="12">at 24 Mb/s</text>
+<rect x="130" y="90" width="211" height="24" rx="6" fill="#8CE05E"/>
+<text x="331" y="107" fill="#06202A" font-size="12" font-weight="700" text-anchor="end" class="m">116 us</text>
+<text x="350" y="107" fill="#8BA2AE" font-size="11">20 us preamble plus 24 OFDM symbols, rounded up the way the radio does</text>
+<text x="30" y="160" fill="#8CE05E" font-size="11" font-weight="700" letter-spacing="2">SIX SSIDS ON ONE RADIO, TEN BEACONS A SECOND EACH</text>
+<text x="30" y="196" fill="#B0C4CF" font-size="12">at 6 Mb/s</text>
+<rect x="130" y="180" width="720" height="24" rx="6" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<rect x="130" y="180" width="173" height="24" rx="6" fill="#5ED2DA"/>
+<text x="312" y="197" fill="#EAF2F6" font-size="12" font-weight="700" class="m">2.4% of the radio before any client speaks</text>
+<text x="30" y="236" fill="#B0C4CF" font-size="12">at 24 Mb/s</text>
+<rect x="130" y="220" width="720" height="24" rx="6" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<rect x="130" y="220" width="50" height="24" rx="6" fill="#8CE05E"/>
+<text x="190" y="237" fill="#EAF2F6" font-size="12" font-weight="700" class="m">0.7%</text>
+<text x="30" y="270" fill="#B0C4CF" font-size="12">2.4 GHz</text><text x="30" y="284" fill="#B0C4CF" font-size="12">at 1 Mb/s</text>
+<rect x="130" y="260" width="720" height="24" rx="6" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<rect x="130" y="260" width="720" height="24" rx="6" fill="rgba(245,165,36,0.25)" stroke="#F5A524"/>
+<rect x="130" y="260" width="104" height="24" rx="6" fill="#F5A524"/>
+<text x="244" y="277" fill="#EAF2F6" font-size="12" font-weight="700" class="m">14.5%, the default nobody changes</text>
+<text x="30" y="316" fill="#8BA2AE" font-size="11">The full bar is one radio's airtime. Each beacon is 102.4 ms apart, so ten a second is a rounding.</text>
+</svg><figcaption>One beacon, then six SSIDs' worth. The beacon is the fixed cost of an SSID existing, and the minimum rate is the only thing that changes its size.</figcaption></figure>
+<p>On one SSID that's 0.4 percent of a radio down to 0.1, which nobody will notice. On a six-SSID AP it's 2.4 percent down to 0.7. On 2.4 GHz with 1 Mb/s still enabled, which is the default, six SSIDs spend a seventh of the channel saying their names before any client speaks. <a href="academy-10-capacity-not-coverage.html">Lesson 10</a> works that arithmetic in full. The point here is narrower: this box is the one that moves it, and the client page will never show you that it did.</p>
+<h2>Who still sees the SSID</h2>
+<p>Here's the part the study guide puts in a warning box, and it deserves one. A client can only join where it can decode a beacon, and a beacon at 24 needs about 8 dB more signal than one at 6. That's the cell shrinking, which is what you wanted. But a client that can't do 24 at all, not at any distance, stops seeing the SSID entirely. It doesn't fail to connect. The network isn't there.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" role="img" aria-label="The 5 GHz OFDM rate ladder from 6 to 54 megabits with the bottom four rungs greyed out after a 24 megabit minimum; a laptop near the AP and a scanner and a printer at the cell edge show who still has a rung to stand on">
+<defs><style>text{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}</style></defs>
+<text x="30" y="30" fill="#8CE05E" font-size="11" font-weight="700" letter-spacing="2">WHO STILL SEES THE SSID</text>
+<g class="m" font-size="12">
+<text x="60" y="68" fill="#EAF2F6" text-anchor="end">54</text><rect x="80" y="56" width="560" height="14" rx="4" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="60" y="96" fill="#EAF2F6" text-anchor="end">48</text><rect x="80" y="84" width="560" height="14" rx="4" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="60" y="124" fill="#EAF2F6" text-anchor="end">36</text><rect x="80" y="112" width="560" height="14" rx="4" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="60" y="152" fill="#EAF2F6" text-anchor="end" font-weight="700">24</text><rect x="80" y="140" width="560" height="14" rx="4" fill="#8CE05E"/>
+<text x="60" y="180" fill="#8BA2AE" text-anchor="end">18</text><rect x="80" y="168" width="560" height="14" rx="4" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/>
+<text x="60" y="208" fill="#8BA2AE" text-anchor="end">12</text><rect x="80" y="196" width="560" height="14" rx="4" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/>
+<text x="60" y="236" fill="#8BA2AE" text-anchor="end">9</text><rect x="80" y="224" width="560" height="14" rx="4" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/>
+<text x="60" y="264" fill="#8BA2AE" text-anchor="end">6</text><rect x="80" y="252" width="560" height="14" rx="4" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="4 4"/>
+</g>
+<text x="652" y="152" fill="#8CE05E" font-size="12" font-weight="700">the new floor, beacon here</text>
+<text x="652" y="216" fill="#8BA2AE" font-size="12">gone from the rate set</text>
+<rect x="80" y="276" width="560" height="4" fill="rgba(255,255,255,0.12)"/>
+<text x="80" y="300" fill="#B0C4CF" font-size="11">near the AP</text>
+<text x="640" y="300" fill="#B0C4CF" font-size="11" text-anchor="end">cell edge</text>
+<g font-size="12">
+<circle cx="160" cy="63" r="7" fill="#4FBDEA"/><text x="174" y="67" fill="#EAF2F6" font-weight="600">laptop at 54, fine</text>
+<circle cx="440" cy="147" r="7" fill="#4FBDEA" stroke="#06202A" stroke-width="2"/><text x="454" y="151" fill="#06202A" font-weight="700">phone holding 24</text>
+<circle cx="600" cy="259" r="7" fill="none" stroke="#F5A524" stroke-width="2"/><text x="520" y="330" fill="#F5A524" font-size="12">scanner that lived at 6: no SSID now</text>
+<path d="M600 266 L600 316" stroke="#F5A524" stroke-width="1.5" stroke-dasharray="3 3"/>
+<circle cx="560" cy="203" r="7" fill="none" stroke="#F5A524" stroke-width="2"/><text x="300" y="330" fill="#F5A524" font-size="12">printer that lived at 12: same</text>
+<path d="M560 210 L560 316" stroke="#F5A524" stroke-width="1.5" stroke-dasharray="3 3"/>
+</g>
+<text x="30" y="352" fill="#8BA2AE" font-size="11">Every 802.11a radio can decode 24. The ones that lived below it were living at the edge, and the edge moved.</text>
+</svg><figcaption>The OFDM rate ladder after the change. Anything that lived on the bottom four rungs has nowhere to stand.</figcaption></figure>
+<p>On 5 GHz with a 24 Mb/s floor, every 802.11a radio ever made can still join, because 24 is one of the three mandatory OFDM rates and 802.11a has always required it. So in theory nothing falls off. In practice the devices that live at the cell edge on 6 Mb/s are the ones with one antenna behind a metal bracket, and they will now hold on at 24 or not at all. The scanner that used to limp along at the far end of the warehouse at 6 Mb/s now has no SSID at the far end of the warehouse. It's always a scanner. Or a printer. And check the 2.4 GHz row before you touch it too, because the same box there can take 1, 2, 5.5 and 11 away, and there are still 802.11b-only radios in the world, mostly screwed to walls.</p>
+<h2>How to see it yourself</h2>
+<p>The client page shows data rates. The beacon rate shows up in exactly one place, which is a capture, and the capture turned out to be the hard part.</p>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-label="Capture route on a Mac: tcpdump monitor mode returns zero frames while associated; Wireless Diagnostics Sniffer on channel 149 writes a pcap to /var/tmp; tshark filters beacons for the SSID and prints the rate and rate set; the output line is annotated field by field">
+<defs><style>text{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}</style></defs>
+<text x="30" y="30" fill="#8CE05E" font-size="11" font-weight="700" letter-spacing="2">HOW THE BEACON GETS INTO A TERMINAL</text>
+<rect x="30" y="50" width="250" height="70" rx="12" fill="none" stroke="rgba(255,255,255,0.12)" stroke-dasharray="5 4"/>
+<text x="155" y="76" fill="#8BA2AE" font-size="13" text-anchor="middle" class="m">sudo tcpdump -I -i en0</text>
+<text x="155" y="98" fill="#F5A524" font-size="11" text-anchor="middle">0 frames while associated, Apple silicon</text>
+<text x="155" y="140" fill="#8BA2AE" font-size="11" text-anchor="middle">not this one</text>
+<rect x="325" y="50" width="250" height="70" rx="12" fill="rgba(3,10,16,0.55)" stroke="#8CE05E"/>
+<text x="450" y="76" fill="#EAF2F6" font-size="13" text-anchor="middle" font-weight="600">Wireless Diagnostics</text>
+<text x="450" y="98" fill="#B0C4CF" font-size="11" text-anchor="middle">Window &gt; Sniffer, ch 149, 80 MHz, 10 s</text>
+<path d="M575 85 L612 85" stroke="#8CE05E" stroke-width="2"/><path d="M605 79 L612 85 L605 91" fill="none" stroke="#8CE05E" stroke-width="2"/>
+<rect x="620" y="50" width="250" height="70" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="745" y="76" fill="#EAF2F6" font-size="13" text-anchor="middle" class="m">/var/tmp/*.pcap</text>
+<text x="745" y="98" fill="#B0C4CF" font-size="11" text-anchor="middle">every frame on the channel</text>
+<path d="M745 120 L745 150" stroke="#8CE05E" stroke-width="2"/><path d="M739 143 L745 150 L751 143" fill="none" stroke="#8CE05E" stroke-width="2"/>
+<rect x="30" y="156" width="840" height="60" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+<text x="50" y="180" fill="#EAF2F6" font-size="12" class="m">tshark -r capture.pcap -Y 'wlan.fc.type_subtype==8 &amp;&amp; wlan.ssid=="NetFieldNotes"'</text>
+<text x="50" y="202" fill="#EAF2F6" font-size="12" class="m">  -T fields -e wlan_radio.data_rate -e wlan.ds.current_channel -e wlan.supported_rates | sort | uniq -c</text>
+<text x="50" y="250" fill="#8CE05E" font-size="20" class="m" font-weight="700">590   24   149   0xb0,0x48,0x60,0x6c</text>
+<g font-size="11">
+<path d="M66 258 L66 276" stroke="#5ED2DA"/><text x="66" y="292" fill="#5ED2DA" text-anchor="middle">beacons</text>
+<path d="M150 258 L150 276" stroke="#5ED2DA"/><text x="150" y="308" fill="#5ED2DA" text-anchor="middle">sent at, Mb/s</text>
+<path d="M232 258 L232 276" stroke="#5ED2DA"/><text x="232" y="292" fill="#5ED2DA" text-anchor="middle">channel</text>
+<path d="M400 258 L400 276" stroke="#5ED2DA"/><text x="400" y="292" fill="#5ED2DA" text-anchor="middle">Supported Rates, hex, high bit = basic</text>
+</g>
+<text x="560" y="244" fill="#B0C4CF" font-size="12" class="m">0xb0 = 0x80 | 0x30 = basic 24</text><text x="560" y="262" fill="#B0C4CF" font-size="12" class="m">0x48 = 36   0x60 = 48   0x6c = 54</text>
+<text x="300" y="322" fill="#8BA2AE" font-size="11">Units of 500 kb/s; mask the high bit, halve the rest. Before: eight entries, 6, 12 and 24 basic.</text>
+</svg><figcaption>The capture route on a Mac. The obvious tool returns nothing; the one in the Wireless Diagnostics window works.</figcaption></figure>
+<p>On a Mac, <code>tcpdump -I</code> opens monitor mode without complaint and then delivers zero frames on Apple silicon while the Mac is associated. No error, just silence, which is the worst kind of error. Disassociating fixes it and also drops you off the network you're working from. The route that works is Wireless Diagnostics, which is behind Option-click on the Wi-Fi menu. Window &gt; Sniffer, pick the AP's channel and width, run it for ten seconds, and it writes a pcap into <code>/var/tmp</code>. Then the tshark line at the top of this post prints the rate and the rate set for every beacon from your SSID, and <code>uniq -c</code> collapses them into one line if the AP is consistent, which it was.</p>
+<p>Read the rate set as hex, high bit for basic. The default 5 GHz set on this AP was 6, 9, 12, 18, 24, 36, 48 and 54 with 6, 12 and 24 basic. Afterwards it was four entries. If you only ever read the Central client page, both states look identical.</p>
+<h2>What Mist does with the same knob</h2>
+<p>Since the exam doesn't care whose logo is on the AP, I checked the other one in the house. Mist puts it on the WLAN as a Data Rates block with four presets, and the presets say what they do.</p>
+<figure>
+<img src="../media/mbr-mist-data-rates.png" alt="Juniper Mist WLAN settings: Geofence with minimum client RSSI per band, and Data Rates with four options, Compatible (allow all connections) selected, No Legacy (2.4G, no 11b), High Density (disable all lower rates), Custom Rates" width="750" height="726" loading="lazy">
+<figcaption>Mist's version of the same knob on my lab WLAN, with Geofence above it because the two get confused for each other. Compatible is the default.</figcaption>
+</figure>
+<p>Compatible is everything enabled and a 1 Mb/s minimum. No Legacy drops 802.11b. High Density sets the minimum to 24 and disables everything below it, which is the same end state I got from the Aruba box, labelled honestly. Custom lets you mark each rate Disabled, Supported or Mandatory per band, and the lowest Mandatory is the beacon rate. The doc is careful to say this controls the AP's transmissions and that a client may still send at a rate you disabled.</p>
+<p>That's the difference, and it's a small one. Mist's picker is named for the outcome. Central's is named for one of the two things it changes.</p>
+<h2>Bottom line</h2>
+<p>The textbook sentence holds: the beacon goes out at a basic rate, and on every AP I've met, the lowest one. What the textbook can't tell you is which box in which vendor's UI decides what the lowest basic rate is, and on AOS 10 it's the one labelled minimum transmit rate, on the WLAN page, because for 2.4 and 5 GHz the radio profile doesn't have one. Beacons, basic rates, data, all of it, from one picker. That's a better outcome than the label promises, because the beacon is where the airtime goes. It also means the thing you did to tidy up data rates just rewrote the rate set for every client in the building, and anything that can't decode 24 won't see the SSID again. Capture before and after. The client page shows data rates. Only the beacon shows the beacon.</p></div>
+      
+    </div>
+    
+    <section class="readmark g-card" data-rise><label class="rm-label"><input type="checkbox" id="readmark-box"><span>Mark as read</span></label><span class="rm-say" id="readmark-say"></span></section>
+    <section class="c-wrap g-card" id="comments" data-rise data-slug="the-minimum-rate-box-moves-the-beacon-too" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+  <style>
+  .c-wrap{padding:var(--s5);margin-top:var(--s5)}
+  .c-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
+  .c-head h3{font-size:19px;letter-spacing:-0.02em}
+  .c-head .meta{font-family:var(--mono);font-size:12px;color:var(--text-muted)}
+  .c-list{list-style:none;margin:0 0 var(--s5);padding:0;display:flex;flex-direction:column;gap:var(--s3)}
+  .c-item{padding:var(--s4);border:1px solid var(--line);border-radius:var(--r-inner);background:var(--solid)}
+  .c-item.c-mine{border-color:rgba(140,224,94,0.35);background:rgba(140,224,94,0.06)}
+  .c-who{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .c-who b{font-size:14.5px}
+  .c-badge{font:600 10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;
+    border:1px solid rgba(140,224,94,0.45);color:var(--green)}
+  .c-when{font-family:var(--mono);font-size:11.5px;color:var(--text-muted)}
+  .c-body p{font-size:15px;line-height:1.7;color:var(--text-dim);margin:0 0 10px;overflow-wrap:anywhere}
+  .c-body p:last-child{margin-bottom:0}
+  .c-empty{font-size:14.5px;color:var(--text-muted);margin-bottom:var(--s5)}
+  .c-form{display:flex;flex-direction:column;gap:var(--s3)}
+  .c-form[hidden],.c-list[hidden]{display:none}   /* display:flex beats the hidden attribute without this */
+  .c-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
+  .c-f{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .c-f span{font:10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+  .c-wrap input[type=text],.c-wrap input[type=email],.c-wrap textarea{
+    width:100%;min-height:46px;font:15px var(--sans);color:var(--text);background:rgba(3,10,16,0.8);
+    border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .c-wrap textarea{min-height:120px;line-height:1.6;resize:vertical}
+  .c-wrap input:focus-visible,.c-wrap textarea:focus-visible,.c-wrap button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .c-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+  .c-actions{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+  .c-note{font-size:12.5px;line-height:1.6;color:var(--text-muted)}
+  .c-say{font-size:13.5px;line-height:1.6}
+  .c-say.c-ok{color:var(--green)}
+  .c-say.c-bad{color:var(--orange)}
+  .c-off{font-size:13.5px;color:var(--text-muted)}
+  @media (max-width:560px){.c-row{grid-template-columns:1fr}.c-wrap{padding:var(--s4)}}
+  </style>
+
+  <div class="c-head"><h3>Comments</h3><span class="meta" id="c-count"></span></div>
+  <ul class="c-list" id="c-list"></ul>
+  <p class="c-empty" id="c-empty" hidden>Nothing here yet. If you have run into this, or I have it wrong, say so.</p>
+
+  <form class="c-form" id="c-form" novalidate>
+    <div class="c-row">
+      <label class="c-f"><span>Name</span><input type="text" id="c-name" maxlength="60" autocomplete="name" placeholder="Optional"></label>
+      <label class="c-f"><span>Email, kept private</span><input type="email" id="c-email" maxlength="200" autocomplete="email" placeholder="Optional, never shown"></label>
+    </div>
+    <label class="c-f"><span>Comment</span><textarea id="c-body" maxlength="2000" required placeholder="What you saw, and on which version."></textarea></label>
+    <input class="c-hp" type="text" id="c-website" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="Leave this empty">
+    <div id="c-cap"></div>
+    <div class="c-actions">
+      <button class="btn cta" type="submit" id="c-send">Post comment</button>
+      <span class="c-say" id="c-say" role="status"></span>
+    </div>
+    <p class="c-note">Comments appear straight away. Your email, if you leave one, is stored so I can reply to you and is never shown on the page or passed to anyone. Anything abusive gets removed.</p>
+  </form>
+  <p class="c-off" id="c-offline" hidden>Comments are offline at the moment.</p>
+
+  <script>
+  (function () {
+    var root = document.getElementById("comments");
+    if (!root) return;
+    var API = root.dataset.api, SLUG = root.dataset.slug, KEY = root.dataset.sitekey;
+    var list = document.getElementById("c-list"), count = document.getElementById("c-count"),
+        empty = document.getElementById("c-empty"), form = document.getElementById("c-form"),
+        say = document.getElementById("c-say"), send = document.getElementById("c-send"),
+        cap = document.getElementById("c-cap"), offline = document.getElementById("c-offline");
+
+    function when(iso) {
+      var then = Date.parse(iso), mins = Math.round((Date.now() - then) / 60000);
+      if (isNaN(then)) return "";
+      if (mins < 1) return "just now";
+      if (mins < 60) return mins + (mins === 1 ? " minute ago" : " minutes ago");
+      var hrs = Math.round(mins / 60);
+      if (hrs < 24) return hrs + (hrs === 1 ? " hour ago" : " hours ago");
+      var days = Math.round(hrs / 24);
+      if (days < 8) return days + (days === 1 ? " day ago" : " days ago");
+      return new Date(then).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    }
+
+    function render(rows) {
+      list.textContent = "";
+      rows.forEach(function (c) {
+        var li = document.createElement("li");
+        li.className = "c-item" + (c.is_author ? " c-mine" : "");
+        var who = document.createElement("div"); who.className = "c-who";
+        var b = document.createElement("b"); b.textContent = c.name || "Anonymous"; who.appendChild(b);
+        if (c.is_author) { var tag = document.createElement("span"); tag.className = "c-badge"; tag.textContent = "Author"; who.appendChild(tag); }
+        var t = document.createElement("span"); t.className = "c-when"; t.textContent = when(c.created_at); who.appendChild(t);
+        li.appendChild(who);
+        var body = document.createElement("div"); body.className = "c-body";
+        String(c.body || "").split(/\n{2,}/).forEach(function (para) {
+          var p = document.createElement("p"); p.textContent = para;   // textContent, never innerHTML
+          body.appendChild(p);
+        });
+        li.appendChild(body);
+        list.appendChild(li);
+      });
+      count.textContent = rows.length ? rows.length + (rows.length === 1 ? " comment" : " comments") : "";
+      empty.hidden = rows.length > 0;
+    }
+
+    function load() {
+      return fetch(API + "/v1/comments?slug=" + encodeURIComponent(SLUG), { cache: "no-store" })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { render(d.comments || []); })
+        .catch(function () { form.hidden = true; empty.hidden = true; list.hidden = true; count.textContent = ""; offline.hidden = false; });
+    }
+
+    if (KEY) {
+      var box = document.createElement("div");
+      box.className = "cf-turnstile";
+      box.setAttribute("data-sitekey", KEY);
+      box.setAttribute("data-theme", "dark");
+      cap.appendChild(box);
+      var s = document.createElement("script");
+      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+      s.async = true; s.defer = true;
+      document.head.appendChild(s);
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var body = document.getElementById("c-body").value.trim();
+      if (body.length < 2) { say.className = "c-say c-bad"; say.textContent = "Write something first."; return; }
+      var token = (form.querySelector('[name="cf-turnstile-response"]') || {}).value || "";
+      if (KEY && !token) { say.className = "c-say c-bad"; say.textContent = "Wait for the spam check to finish, then post."; return; }
+      send.disabled = true; say.className = "c-say"; say.textContent = "Posting.";
+      fetch(API + "/v1/comments", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          slug: SLUG,
+          name: document.getElementById("c-name").value,
+          email: document.getElementById("c-email").value,
+          body: body,
+          website: document.getElementById("c-website").value,
+          token: token
+        })
+      }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          send.disabled = false;
+          if (!res.ok) { say.className = "c-say c-bad"; say.textContent = res.d.error || "That did not go through."; return; }
+          document.getElementById("c-body").value = "";
+          say.className = "c-say c-ok"; say.textContent = "Posted. Thanks.";
+          if (window.turnstile) { try { window.turnstile.reset(); } catch (err) {} }
+          load();
+        })
+        .catch(function () {
+          send.disabled = false; say.className = "c-say c-bad";
+          say.textContent = "Could not reach the comment service. Try again in a minute.";
+        });
+    });
+
+    load();
+  })();
+  </script>
 </section>
-<section class="acad-why g-card" data-rise>
-  <span class="eyebrow">Why orange</span>
-  <p>The color is a nod to the Airheads community. My first expert-level certification came out of an AOS 6 lab and a stack of forum posts by people who answered questions they didn't have to. This section is me paying that forward.</p>
-</section>
-<section>
-  <div class="lessons"><a class="lesson g-card live" href="p/academy-01-what-a-radio-actually-sends.html" data-origin="zoom" data-rise data-lesson="1" data-slug="academy-01-what-a-radio-actually-sends" data-check="0" data-game="0"><span class="ser-n">Lesson 1<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>What a Radio Actually Sends</b><p>Frequency, wavelength, and the dBm math you can do in your head. Then a lab where you walk away from an AP and watch the number fall exactly the way the formula says it will.</p><span class="lab"><span class="eyebrow">Lab</span>Read RSSI on an Aruba AP and a Mist AP, double the distance, watch it fall about 6 dB. Confirm on the Sidekick.</span><span class="meta">7 min</span></a><a class="lesson g-card live" href="p/academy-02-bands-channels-widths.html" data-origin="zoom" data-rise data-lesson="2" data-slug="academy-02-bands-channels-widths" data-check="0" data-game="1"><span class="ser-n">Lesson 2<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>Bands, Channels and Widths</b><p>A band is a stretch of spectrum, a channel is a slice of it, and width is how big a slice you take. Every doubling of width doubles the rate, halves how many cells you can have, and costs 3 dB. There is a game in here to prove the middle one.</p><span class="lab"><span class="eyebrow">Lab</span>Change channel width on both platforms and watch client PHY rates and airtime move.</span><span class="meta">9 min</span></a><a class="lesson g-card live" href="p/academy-03-the-link-budget.html" data-origin="zoom" data-rise data-lesson="3" data-slug="academy-03-the-link-budget" data-check="0" data-game="1"><span class="ser-n">Lesson 3<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>The Link Budget</b><p>Four numbers tell you how loud your signal will be when it arrives. I wrote the budget for my own lab, walked thirty-two feet, and came up fifteen decibels short with nothing in the way. The gap was real. It was hiding in the one term everybody sets to zero.</p><span class="lab"><span class="eyebrow">Lab</span>Predict RSSI at 10 m, measure it, explain the gap.</span><span class="meta">11 min</span></a><a class="lesson g-card live" href="p/academy-04-modulation-and-data-rates.html" data-origin="zoom" data-rise data-lesson="4" data-slug="academy-04-modulation-and-data-rates" data-check="0" data-game="1"><span class="ser-n">Lesson 4<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>Modulation and Data Rates</b><p>The speed of a Wi-Fi link isn&#x27;t a number, it&#x27;s a row in a table, and the radio picks a row for every transmission. Neither Central nor Mist will tell you which row. This is how to read it backwards from what they do show, then cap it on purpose and measure what it cost.</p><span class="lab"><span class="eyebrow">Lab</span>Read the PHY rate in the Central and Mist client views and work the MCS table backwards, force a lower rate, measure throughput.</span><span class="meta">11 min</span></a><a class="lesson g-card live" href="p/academy-05-airtime-is-the-only-resource.html" data-origin="zoom" data-rise data-lesson="5" data-slug="academy-05-airtime-is-the-only-resource" data-check="0" data-game="1"><span class="ser-n">Lesson 5<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>Airtime Is the Only Resource</b><p>Before a Wi-Fi radio starts a transmission, it waits for quiet, draws a random number and counts it down, and every other radio on the channel plays the same game. A laptop linked at 1201 Mb/s that sends one packet per turn moves 55 Mb/s. In the site&#x27;s model, one old 802.11a/g laptop downloading beside it takes its download from about 720 to about 480.</p><span class="lab"><span class="eyebrow">Lab</span>Count the beacon tax, run a slow laptop beside a fast one, then raise the floor and watch it leave.</span><span class="meta">14 min</span></a><a class="lesson g-card live" href="p/academy-06-interference-from-yourself.html" data-origin="zoom" data-rise data-lesson="6" data-slug="academy-06-interference-from-yourself" data-check="0" data-game="0"><span class="ser-n">Lesson 6<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>Interference From Yourself</b><p>A reader with twelve APs on one big floor asked whether adding APs makes the edge worse, and whether anything self-tunes. The answer is that AP count was never the variable. Channel width is, and the automation only moves the two knobs you let it.</p><span class="lab"><span class="eyebrow">Lab</span>Two APs on one channel. Count retries, watch airtime.</span><span class="meta">10 min</span></a><a class="lesson g-card live" href="p/academy-07-noise-snr-and-why-rssi-lies.html" data-origin="zoom" data-rise data-lesson="7" data-slug="academy-07-noise-snr-and-why-rssi-lies" data-check="0" data-game="0"><span class="ser-n">Lesson 7<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>Noise, SNR, and Why RSSI Lies</b><p>A client at -67 dBm can be flying or crawling and the RSSI number won&#x27;t tell you which. The noise floor will. Where the floor comes from, why a Wi-Fi card can&#x27;t see most of what raises it, and a lab where you raise it yourself with a microwave oven.</p><span class="lab"><span class="eyebrow">Lab</span>Spectrum view with a real interferer. RSSI stays put, SNR collapses.</span><span class="meta">10 min</span></a><a class="lesson g-card live" href="p/academy-08-joining-a-network.html" data-origin="zoom" data-rise data-lesson="8" data-slug="academy-08-joining-a-network" data-check="0" data-game="0"><span class="ser-n">Lesson 8<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>Joining a Network</b><p>A client doesn&#x27;t connect. It climbs a ladder of a dozen exchanges, and every rung is somewhere it can fall off. This is the ladder in order, what each platform shows you for each rung, and a lab that breaks it three ways so you learn which rung each failure lands on.</p><span class="lab"><span class="eyebrow">Lab</span>Capture a join on Mist and on Aruba, then read the same join in ClearPass Access Tracker.</span><span class="meta">11 min</span></a><a class="lesson g-card live" href="p/academy-09-roaming-the-client-decides.html" data-origin="zoom" data-rise data-lesson="9" data-slug="academy-09-roaming-the-client-decides" data-check="0" data-game="0"><span class="ser-n">Lesson 9<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>Roaming: the Client Decides</b><p>The AP never moves a client. It can tell the client who its neighbors are, suggest a better one, or throw it off and hope. What the client is actually doing when it decides, what 802.11k, v and r each change, and a walk test to watch it happen on Mist and Central.</p><span class="lab"><span class="eyebrow">Lab</span>A walk test with the Mist client timeline and the Central client events.</span><span class="meta">10 min</span></a><a class="lesson g-card live" href="p/academy-10-capacity-not-coverage.html" data-origin="zoom" data-rise data-lesson="10" data-slug="academy-10-capacity-not-coverage" data-check="0" data-game="0"><span class="ser-n">Lesson 10<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>Capacity, Not Coverage</b><p>Coverage asks whether everyone can hear the AP. Capacity asks whether everyone gets a turn. The cell isn&#x27;t drawn by power, it&#x27;s drawn by the slowest rate you allow, and raising that rate is the cheapest capacity you&#x27;ll ever buy.</p><span class="lab"><span class="eyebrow">Lab</span>Raise the minimum basic rate on both platforms and watch the cell shrink.</span><span class="meta">12 min</span></a><a class="lesson g-card live" href="p/academy-11-surveys-and-what-a-heatmap-cant-see.html" data-origin="zoom" data-rise data-lesson="11" data-slug="academy-11-surveys-and-what-a-heatmap-cant-see" data-check="0" data-game="0"><span class="ser-n">Lesson 11<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>Surveys and What a Heatmap Can&#x27;t See</b><p>A heatmap is a record of what one instrument heard, on the channels it was told to listen to, on the day. What each kind of survey proves, what the picture leaves out, and the habit of reading the AP&#x27;s real channel from the controller before you believe the map.</p><span class="lab"><span class="eyebrow">Lab</span>A one-room passive survey on the Sidekick, cross-checked against the AP&#x27;s real channel.</span><span class="meta">10 min</span></a><a class="lesson g-card live" href="p/academy-12-a-troubleshooting-method.html" data-origin="zoom" data-rise data-lesson="12" data-slug="academy-12-a-troubleshooting-method" data-check="0" data-game="0"><span class="ser-n">Lesson 12<span class="pips" hidden></span></span><span class="ans-badge" hidden>New answer</span><b>A Troubleshooting Method</b><p>Every Wi-Fi ticket lives in one of four layers, and every layer has a counter that proves it or clears it. This is the method the other eleven lessons were building, and a lab that breaks one AP three ways so you can practice finding each with the right tool.</p><span class="lab"><span class="eyebrow">Lab</span>Break it three ways and find each one with the right tool.</span><span class="meta">8 min</span></a></div>
-</section>
-<section class="codebox g-card" id="codebox" data-rise><div><h3>Continue on another device</h3><p>Your progress lives in this browser. A code copies it to my server so you can pick it up on another device. Codes nobody uses for a year get deleted.</p></div><div class="cb-ui"></div></section>
-<section class="band g-card" data-rise>
-  <div>
-    <h3>Type on a switch first</h3>
-    <p>The CX Sandbox is a modeled AOS-CX switch in the page: VLANs, MAC auth, 802.1X and roles against a fake ClearPass, device profiles, voice VLANs, tunneling, a LAG, spanning tree, an SVI and OSPF, 802.1X timers, CoA from ClearPass, TACACS admin logins and checkpoint auto. Twenty-two labs with checks, or a blank switch to poke at.</p>
-    <span class="meta" id="acad-labs" data-labs="nac-01-bench,nac-02-discovery,nac-03-mac-auth,nac-04-dot1x,nac-05-roles,nac-06-precedence,l2-01-uplink,l3-01-routing,sc-01-lldp-med,sc-02-device-profiles,sc-03-multi-domain,sc-04-ubt,sc-05-multigig,sc-06-lacp,sc-07-debug,sc-08-pipes,sc-09-rest,sc-10-cable,sc-11-timers,sc-12-coa,sc-13-tacacs,sc-14-ckauto" hidden></span>
-  </div>
-  <a class="btn" href="sandbox.html" data-origin="zoom">Open the sandbox</a>
-</section>
+
+    <section class="end g-card" data-rise>
+      <h3>More field notes</h3>
+      <div class="postnav"><a class="pn g-card" href="mlo-isnt-a-speed-feature.html"><span class="eyebrow">Older</span>Wi-Fi 7 MLO Isn&#x27;t a Speed Feature. Walk Around and You&#x27;ll See Why.</a></div>
+    </section>
+  </article>
+</div>
 </main>
-<a class="rig" href="socials.html" data-origin="genie" aria-label="Where else to find me"><img src="character/nfn-bot-think.svg" alt="" width="104" height="104"></a>
+<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-signal.svg" alt="" width="104" height="104"></a>
 <footer><div class="wrap">
   <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
   <span><a href="/rss.xml">RSS</a></span>
