@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 604" role="img" aria-label="Sequence diagram of 802.1X against ClearPass. The switch asks the laptop for its identity, relays EAP to ClearPass inside RADIUS Access-Requests on UDP 1812, the PEAP or EAP-TLS exchange runs laptop to ClearPass over several round trips, ClearPass answers Access-Accept carrying Aruba-User-Role EMPLOYEE, the switch sends EAP-Success and opens the port in that role's VLAN, and later ClearPass sends a CoA on UDP 3799 that the switch acknowledges. Two gotchas: a wrong shared secret looks like a timeout, and CoA needs a dyn-authorization client line.">
+  <defs>
+    <style>
+      .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+      .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+      .hd{fill:#fff;font-size:15px;font-weight:700}
+      .bx{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
+      .who{fill:#EAF2F6;font-size:14px;font-weight:700}
+      .sub{fill:#8BA2AE;font-size:11px}
+      .lbl{fill:#EAF2F6;font-size:12.5px}
+      .det{fill:#8BA2AE;font-size:11px}
+      .detT{fill:#5ED2DA;font-size:11px}
+      .detG{fill:#8CE05E;font-size:11.5px}
+      .note{fill:#B0C4CF;font-size:12px}
+      .life{stroke:#ffffff;stroke-opacity:0.16;stroke-dasharray:3 5}
+    </style>
+    <marker id="aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#B0C4CF"/></marker>
+    <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5ED2DA"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8CE05E"/></marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4FBDEA"/></marker>
+  </defs>
+
+  <text x="20" y="28" class="t hd">802.1X against ClearPass: who says what, in order</text>
+
+  <rect x="40" y="46" width="180" height="46" rx="10" class="bx"/>
+  <text x="130" y="66" class="t who" text-anchor="middle">Laptop</text>
+  <text x="130" y="83" class="t sub" text-anchor="middle">supplicant</text>
+  <rect x="360" y="46" width="180" height="46" rx="10" class="bx"/>
+  <text x="450" y="66" class="t who" text-anchor="middle">Switch 1/1/1</text>
+  <text x="450" y="83" class="t sub" text-anchor="middle">authenticator, relays only</text>
+  <rect x="680" y="46" width="180" height="46" rx="10" class="bx"/>
+  <text x="770" y="66" class="t who" text-anchor="middle">ClearPass</text>
+  <text x="770" y="83" class="t sub" text-anchor="middle">RADIUS server, decides</text>
+  <line x1="130" y1="94" x2="130" y2="530" class="life"/>
+  <line x1="450" y1="94" x2="450" y2="530" class="life"/>
+  <line x1="770" y1="94" x2="770" y2="530" class="life"/>
+
+  <line x1="442" y1="132" x2="138" y2="132" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <text x="290" y="123" class="t lbl" text-anchor="middle">EAP-Request, Identity</text>
+  <text x="290" y="149" class="m det" text-anchor="middle">EAPOL on the wire; link came up</text>
+
+  <line x1="138" y1="184" x2="442" y2="184" stroke="#B0C4CF" stroke-width="1.6" marker-end="url(#aw)"/>
+  <text x="290" y="175" class="t lbl" text-anchor="middle">EAP-Response, Identity</text>
+  <text x="290" y="201" class="m det" text-anchor="middle">the outer identity only</text>
+
+  <line x1="458" y1="236" x2="762" y2="236" stroke="#5ED2DA" stroke-width="1.6" marker-end="url(#at)"/>
+  <text x="610" y="227" class="t lbl" text-anchor="middle">RADIUS Access-Request</text>
+  <circle cx="695" cy="223" r="9" fill="#F5A524"/>
+  <text x="695" y="227" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <text x="610" y="253" class="m detT" text-anchor="middle">EAP inside, UDP 1812, shared secret</text>
+
+  <rect x="96" y="276" width="708" height="58" rx="10" fill="rgba(94,210,218,0.06)" stroke="#5ED2DA" stroke-opacity="0.55" stroke-dasharray="5 5"/>
+  <line x1="138" y1="296" x2="762" y2="296" stroke="#5ED2DA" stroke-opacity="0.5" stroke-width="1.2" marker-start="url(#at)" marker-end="url(#at)"/>
+  <text x="450" y="290" class="t lbl" text-anchor="middle">PEAP or EAP-TLS: Access-Challenge and Access-Request, several round trips</text>
+  <text x="450" y="318" class="t det" text-anchor="middle">the TLS tunnel runs from the laptop to ClearPass; the switch never sees inside it</text>
+
+  <line x1="762" y1="370" x2="458" y2="370" stroke="#8CE05E" stroke-width="1.8" marker-end="url(#ag)"/>
+  <text x="610" y="361" class="t lbl" text-anchor="middle">RADIUS Access-Accept</text>
+  <text x="610" y="388" class="m detG" text-anchor="middle">Aruba-User-Role = EMPLOYEE</text>
+
+  <line x1="442" y1="420" x2="138" y2="420" stroke="#8CE05E" stroke-width="1.8" marker-end="url(#ag)"/>
+  <text x="290" y="411" class="t lbl" text-anchor="middle">EAP-Success</text>
+  <text x="290" y="437" class="m det" text-anchor="middle">port opens in the role's VLAN</text>
+
+  <line x1="762" y1="470" x2="458" y2="470" stroke="#4FBDEA" stroke-width="1.6" marker-end="url(#ab)"/>
+  <text x="610" y="461" class="t lbl" text-anchor="middle">CoA-Request, UDP 3799</text>
+  <circle cx="695" cy="457" r="9" fill="#F5A524"/>
+  <text x="695" y="461" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <text x="610" y="487" class="m det" text-anchor="middle">new role, or end the session</text>
+  <line x1="458" y1="520" x2="762" y2="520" stroke="#4FBDEA" stroke-width="1.6" marker-end="url(#ab)"/>
+  <text x="610" y="512" class="t lbl" text-anchor="middle">CoA-ACK</text>
+
+  <circle cx="30" cy="556" r="9" fill="#F5A524"/>
+  <text x="30" y="560" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <text x="48" y="560" class="t note">A wrong shared secret looks like a dead server: ClearPass drops the request and the switch counts a timeout.</text>
+  <circle cx="30" cy="584" r="9" fill="#F5A524"/>
+  <text x="30" y="588" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <text x="48" y="588" class="t note">On 10.18 a CoA needs radius dyn-authorization client with that server's address, or it is dropped as invalid.</text>
+</svg>

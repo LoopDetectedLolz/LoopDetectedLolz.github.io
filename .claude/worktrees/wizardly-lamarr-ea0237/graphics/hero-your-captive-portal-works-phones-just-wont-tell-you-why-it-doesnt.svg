@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" width="900" height="340" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" role="img" aria-label="ClearPass guest login in four legs: the AP or gateway redirects the phone to ClearPass, ClearPass serves the form over cert A, the phone posts the login back to the AP portal name over cert B, and only then does the AP send RADIUS to ClearPass. Leg three, the post back, is dashed and dimmed because phones stop there.">
+  <defs>
+    <marker id="arGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8BA2AE"/></marker>
+    <marker id="arBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#5ED2DA"/></marker>
+    <marker id="arPass" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8CE05E"/></marker>
+  </defs>
+  <text x="40" y="36" fill="#8CE05E" font-size="12" font-weight="700" letter-spacing="2">CLEARPASS GUEST LOGIN, LEG BY LEG</text>
+  <text x="40" y="66" fill="#EAF2F6" font-size="20" font-weight="700">The page loads fine. Phones stop on the post back.</text>
+
+  <rect x="40" y="100" width="160" height="192" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+  <text x="120" y="128" fill="#EAF2F6" font-size="15" font-weight="700" text-anchor="middle">Phone</text>
+  <text x="120" y="146" fill="#8BA2AE" font-size="11" text-anchor="middle">captive portal popup</text>
+  <rect x="100" y="160" width="40" height="72" rx="7" fill="none" stroke="#8BA2AE" stroke-width="1.5"/>
+  <rect x="105" y="168" width="30" height="52" rx="2" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+  <rect x="109" y="176" width="22" height="5" rx="1" fill="rgba(255,255,255,0.12)"/>
+  <rect x="109" y="186" width="22" height="5" rx="1" fill="rgba(255,255,255,0.12)"/>
+  <rect x="109" y="200" width="22" height="9" rx="2" fill="#5ED2DA"/>
+  <circle cx="120" cy="226" r="2" fill="#8BA2AE"/>
+  <text x="120" y="258" fill="#EAF2F6" font-size="11" font-weight="700" text-anchor="middle">stuck in pre auth</text>
+  <text x="120" y="276" fill="#8BA2AE" font-size="11" text-anchor="middle">no RADIUS sent</text>
+
+  <rect x="700" y="100" width="160" height="88" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+  <text x="780" y="126" fill="#EAF2F6" font-size="15" font-weight="700" text-anchor="middle">ClearPass</text>
+  <text x="780" y="143" fill="#8BA2AE" font-size="11" text-anchor="middle">Guest Web Login</text>
+  <rect x="742" y="154" width="76" height="22" rx="11" fill="#5ED2DA" fill-opacity="0.12" stroke="#5ED2DA"/>
+  <text x="780" y="169" fill="#5ED2DA" font-size="11" font-weight="700" letter-spacing="1" text-anchor="middle">CERT A</text>
+
+  <rect x="390" y="204" width="180" height="88" rx="10" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+  <text x="480" y="230" fill="#EAF2F6" font-size="15" font-weight="700" text-anchor="middle">AP or gateway</text>
+  <text x="480" y="247" fill="#8BA2AE" font-size="11" text-anchor="middle">portal name, the NAS</text>
+  <rect x="442" y="258" width="76" height="22" rx="11" fill="#4FBDEA" fill-opacity="0.12" stroke="#4FBDEA"/>
+  <text x="480" y="273" fill="#4FBDEA" font-size="11" font-weight="700" letter-spacing="1" text-anchor="middle">CERT B</text>
+
+  <line x1="698" y1="140" x2="204" y2="140" stroke="#5ED2DA" stroke-width="2" marker-end="url(#arBlue)"/>
+  <text x="450" y="131" fill="#5ED2DA" font-size="12" text-anchor="middle">leg 2: form served over cert A</text>
+
+  <line x1="388" y1="222" x2="204" y2="222" stroke="#8BA2AE" stroke-width="2" marker-end="url(#arGrey)"/>
+  <text x="295" y="213" fill="#8BA2AE" font-size="11" text-anchor="middle">leg 1: redirect to ClearPass</text>
+
+  <line x1="202" y1="266" x2="386" y2="266" stroke="#8BA2AE" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arGrey)"/>
+  <text x="295" y="257" fill="#EAF2F6" font-size="11" font-weight="700" text-anchor="middle">leg 3: POST to portal name</text>
+  <rect x="243" y="276" width="104" height="20" rx="10" fill="none" stroke="#8BA2AE" stroke-dasharray="4 3"/>
+  <text x="295" y="290" fill="#B0C4CF" font-size="11" font-weight="700" text-anchor="middle">phones stop here</text>
+
+  <path d="M572 248 H780 V191" fill="none" stroke="#8CE05E" stroke-width="2" marker-end="url(#arPass)"/>
+  <text x="588" y="240" fill="#8CE05E" font-size="11">leg 4: RADIUS, role back</text>
+
+  <text x="860" y="290" fill="#8BA2AE" font-size="11" text-anchor="end">A and B: public CA, full chain, name in the SANs</text>
+  <text x="40" y="326" fill="#8BA2AE" font-size="12">The page loading proves cert A. Only leg 3 meets cert B, and the popup won't click past it.</text>
+</svg>

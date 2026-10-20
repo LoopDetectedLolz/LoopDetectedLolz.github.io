@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Fairground</name>
+<Placemark><name>Portal mast 5 m</name><Point><coordinates>-71.0600,42.3600,0</coordinates></Point></Placemark>
+<Placemark><name>North mast</name><Point><altitudeMode>relativeToGround</altitudeMode><coordinates>-71.0580,42.3615,4</coordinates></Point></Placemark>
+<Placemark><name>Main stage crowd 800</name><Point><coordinates>-71.0585,42.3605,0</coordinates></Point></Placemark>
+<Placemark><name>Barn</name><Polygon><extrude>1</extrude><altitudeMode>relativeToGround</altitudeMode><outerBoundaryIs><LinearRing><coordinates>
+-71.0592,42.3608,8 -71.0588,42.3608,8 -71.0588,42.3605,8 -71.0592,42.3605,8 -71.0592,42.3608,8</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark>
+<Placemark><name>Walk in</name><LineString><coordinates>-71.0600,42.3595,0 -71.0590,42.3600,0 -71.0580,42.3610,0</coordinates></LineString></Placemark>
+<GroundOverlay><name>Aerial</name><Icon><href>files/aerial.jpg</href></Icon><LatLonBox><north>42.3620</north><south>42.3590</south><east>-71.0570</east><west>-71.0610</west></LatLonBox></GroundOverlay>
+</Document></kml>

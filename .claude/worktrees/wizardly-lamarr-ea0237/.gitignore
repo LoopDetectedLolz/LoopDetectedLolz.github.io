@@ -1,0 +1,39 @@
+# working notes, not for publication
+audit
+audit/
+evidence
+evidence/
+verification-register.md
+
+# the local simulator workbench renders here; qam-lab.html itself is tracked
+lab.html
+
+# build scratch and one-off tooling
+data-url.txt
+preview-graphics.png
+patch-build.py
+_emitters.py
+_og_tmp.svg
+*.bak
+*.pre-multipage
+
+.DS_Store
+.preview/
+graphics/.pre-glass/
+theme/style.v1.css
+build-blog.py.preglass
+__pycache__/
+.qa/
+lab-qa-*.html
+
+# wrangler local state: caches the Cloudflare account id, keep it out of a public repo
+.wrangler/
+comments/.wrangler/
+node_modules/
+
+# editor backups
+.*.bak-*
+*.bak-*
+
+# local wrangler dev secrets for comments/qatest.mjs, test values only
+comments/.dev.vars

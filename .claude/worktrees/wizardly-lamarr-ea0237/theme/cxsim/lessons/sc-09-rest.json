@@ -1,0 +1,71 @@
+{
+ "id": "sc-09-rest",
+ "title": "Scenario 9: the same change through REST",
+ "track": "Scenarios",
+ "number": 9,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "interface 1/1/4",
+  "no shutdown",
+  "no routing",
+  "vlan access 10"
+ ],
+ "task": "Make two changes through the REST API instead of the CLI, then prove them from the CLI. Log in, create VLAN 40 named CAMERAS with a POST, set the description of 1/1/4 to `camera 4` with a PATCH, and run `show vlan` through AnyCLI (POST to /cli). Every answer tells you its CLI twin.",
+ "hints": [
+  "`sim rest post /rest/v10.18/login` first. Without a session every call is a 401, as on the box.",
+  "`sim rest post /rest/v10.18/system/vlans {\"id\":40,\"name\":\"CAMERAS\"}` answers 201. Then `show vlan 40`.",
+  "Interface names go in the URL encoded: 1/1/4 is 1%2F1%2F4. `sim rest patch /rest/v10.18/system/interfaces/1%2F1%2F4 {\"description\":\"camera 4\"}`.",
+  "AnyCLI runs only the exact commands `GET /rest/v10.18/cli/commands` lists: `show vlan` is on it, `show vlan 40` is not and answers 403."
+ ],
+ "devices": [],
+ "checks": [
+  {
+   "desc": "VLAN 40 is CAMERAS",
+   "vlan": {
+    "id": 40,
+    "name": "CAMERAS"
+   }
+  },
+  {
+   "desc": "It was created with a POST",
+   "rest": {
+    "method": "post",
+    "path": "/system/vlans$"
+   }
+  },
+  {
+   "desc": "1/1/4 is described camera 4",
+   "config": {
+    "context": "interface 1/1/4",
+    "has": "^description camera 4$"
+   }
+  },
+  {
+   "desc": "The description came through a PATCH",
+   "rest": {
+    "method": "patch",
+    "path": "/system/interfaces/1%2F1%2F4$"
+   }
+  },
+  {
+   "desc": "show vlan ran through AnyCLI",
+   "rest": {
+    "method": "post",
+    "path": "/cli$"
+   }
+  }
+ ]
+}

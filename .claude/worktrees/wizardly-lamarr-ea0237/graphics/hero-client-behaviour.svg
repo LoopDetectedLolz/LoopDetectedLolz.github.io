@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A phone standing under a healthy access point stays disconnected because two client side timers are still running">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .lbl{fill:#B0C4CF;font-size:11px}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:10.5px;fill:#5ED2DA}
+    .hd{font-size:13px;font-weight:700}
+  </style></defs>
+
+  <text x="30" y="36" class="t eyebrow">"THE WIRELESS WON'T LET IT BACK ON"</text>
+  <text x="30" y="66" class="t big">Full signal overhead, and the phone is still counting.</text>
+
+  <g class="t">
+    <!-- AP, healthy -->
+    <rect x="30" y="112" width="180" height="120" rx="12" fill="rgba(3,10,16,0.55)" stroke="#8CE05E"/>
+    <text x="48" y="138" class="lbl" fill="#8BA2AE">ACCESS POINT</text>
+    <text x="48" y="166" class="hd" fill="#8CE05E">Nothing wrong</text>
+    <text x="48" y="190" class="lbl">Beaconing, strong, idle,</text>
+    <text x="48" y="208" class="lbl">with no way to say "come here"</text>
+    <g stroke="#8CE05E" fill="none" opacity="0.5" stroke-width="1.6" stroke-linecap="round">
+      <path d="M218 158 A14 14 0 0 1 218 186"/>
+      <path d="M226 148 A24 24 0 0 1 226 196"/>
+      <path d="M234 138 A34 34 0 0 1 234 206"/>
+    </g>
+
+    <!-- the air -->
+    <line x1="270" y1="104" x2="270" y2="244" stroke="#ffffff" stroke-opacity="0.16" stroke-dasharray="4 6"/>
+    <text x="270" y="262" class="lbl" font-size="10.5" text-anchor="middle" fill="#8BA2AE">the air</text>
+
+    <!-- phone, deciding -->
+    <rect x="326" y="112" width="546" height="120" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.14)"/>
+    <text x="346" y="138" class="lbl" fill="#8BA2AE">CLIENT, HOLDING TWO TIMERS</text>
+
+    <rect x="346" y="152" width="246" height="62" rx="9" fill="#5ED2DA" fill-opacity="0.12" stroke="#5ED2DA" stroke-opacity="0.55"/>
+    <text x="362" y="176" class="hd" fill="#5ED2DA">Scan backoff</text>
+    <text x="362" y="198" class="t mono">20 → 40 → 80 → 160 s</text>
+
+    <rect x="608" y="152" width="246" height="62" rx="9" fill="#5ED2DA" fill-opacity="0.12" stroke="#5ED2DA" stroke-opacity="0.55"/>
+    <text x="624" y="176" class="hd" fill="#5ED2DA">Network disabled</text>
+    <text x="624" y="198" class="t mono">no internet, 10 minutes</text>
+  </g>
+
+  <text x="30" y="292" class="t lbl" fill="#8BA2AE">Neither timer is measuring signal strength, so no amount of RF design shortens them.</text>
+  <text x="30" y="314" class="t lbl" fill="#8BA2AE">Opening the Wi-Fi screen does not reset either one. It just supplies scan results sooner.</text>
+</svg>

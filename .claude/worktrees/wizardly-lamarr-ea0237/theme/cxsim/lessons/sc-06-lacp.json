@@ -1,0 +1,99 @@
+{
+ "id": "sc-06-lacp",
+ "title": "Scenario 6: a LAG that will not come up",
+ "track": "Scenarios",
+ "number": 6,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "interface lag 1",
+  "no shutdown",
+  "no routing",
+  "vlan trunk allowed 10,20",
+  "lacp mode passive",
+  "exit",
+  "interface 1/1/13-1/1/14",
+  "no shutdown",
+  "lag 1"
+ ],
+ "task": "lag1 to dist-01 is down although both cables are in and both ports are up. Find out why from the switch, fix it, then match the LACP rate the other end asks for.",
+ "hints": [
+  "`show lacp interfaces`: the actor state starts with P and the partner never shows up. Two passive ends both wait for the other to start.",
+  "`lacp mode active` in `interface lag 1`. One active end is enough.",
+  "Once it forms, the partner's state reads PSFNCD: S is a short timeout, LACPDUs every second. `lacp rate fast` in the LAG matches it."
+ ],
+ "devices": [
+  {
+   "id": "dist-01",
+   "name": "Distribution switch dist-01",
+   "kind": "switch",
+   "port": null,
+   "mac": "00:00:5e:00:53:e0",
+   "ports": [
+    "1/1/13",
+    "1/1/14"
+   ],
+   "lacp": {
+    "lag": "any",
+    "mode": "passive",
+    "rate": "fast",
+    "sysid": "00:00:5e:00:53:e0"
+   },
+   "bpdu": true,
+   "lldp": {
+    "sys": "dist-01",
+    "desc": "Lab distribution switch",
+    "port": [
+     "1/1/47",
+     "1/1/48"
+    ],
+    "chassis": "00:00:5e:00:53:e0",
+    "caps": "B,R",
+    "vlans": [
+     1,
+     10,
+     20
+    ]
+   },
+   "connected": true
+  }
+ ],
+ "checks": [
+  {
+   "desc": "lag1 is up with both members",
+   "lag": {
+    "id": 1,
+    "members": [
+     "1/1/13",
+     "1/1/14"
+    ]
+   }
+  },
+  {
+   "desc": "This end is active",
+   "config": {
+    "context": "interface lag 1",
+    "has": "^lacp mode active$"
+   }
+  },
+  {
+   "desc": "The rate matches the partner",
+   "config": {
+    "context": "interface lag 1",
+    "has": "^lacp rate fast$"
+   }
+  }
+ ]
+}

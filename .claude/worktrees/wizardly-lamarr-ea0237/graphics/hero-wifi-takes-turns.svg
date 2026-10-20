@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Two radios send the same 1500-byte packet, drawn to scale. A laptop at 1201 Mb/s takes a 218.5 microsecond turn, most of it waiting, with the packet itself taking 10 microseconds. An old laptop at 6 Mb/s takes 2,266.5 microseconds for the same packet. Taking strict turns one packet at a time, with no collisions, the old laptop holds 91 percent of the air and both end up at 4.8 Mb/s.">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .lbl{fill:#B0C4CF;font-size:11px}
+    .mut{fill:#8BA2AE;font-size:11px}
+    .big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#8CE05E;font-size:11px;letter-spacing:2px;font-weight:600}
+    .hd{fill:#EAF2F6;font-size:12.5px;font-weight:700}
+    .mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:11px;fill:#5ED2DA}
+    .monow{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:11px;fill:#EAF2F6}
+  </style></defs>
+
+  <text x="30" y="36" class="t eyebrow">EVERY RADIO WAITS ITS TURN</text>
+  <text x="30" y="66" class="t big">Same packet, same turn. One of them holds the air ten times longer.</text>
+
+  <g class="t">
+    <rect x="30" y="84" width="840" height="150" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+    <text x="46" y="106" class="lbl">One 1500-byte packet each, to scale: 0.36 pixels per microsecond</text>
+    <rect x="690" y="97" width="10" height="10" rx="2" fill="rgba(255,255,255,0.14)"/><text x="705" y="106" class="mut">waiting</text>
+    <rect x="757" y="97" width="10" height="10" rx="2" fill="#8CE05E"/><text x="772" y="106" class="mut">got it</text>
+
+    <!-- fast: 110.5 wait, 64 frame, 16 SIFS, 28 ACK = 218.5 us -->
+    <text x="46" y="132" class="hd">Laptop at 1201 Mb/s</text>
+    <rect x="46" y="140" width="40.0" height="24" rx="2" fill="rgba(255,255,255,0.14)"/>
+    <rect x="86.0" y="140" width="23.2" height="24" fill="#2FA8E0"/>
+    <rect x="115.0" y="140" width="10.1" height="24" fill="#8CE05E"/>
+    <text x="140" y="157" class="mono">218.5 us a turn. The packet's own bits are 10 of it.</text>
+
+    <!-- slow: 110.5 wait, 2096 frame, 16 SIFS, 44 ACK = 2266.5 us -->
+    <text x="46" y="190" class="hd">Old laptop at 6 Mb/s</text>
+    <rect x="46" y="198" width="40.0" height="24" rx="2" fill="rgba(255,255,255,0.14)"/>
+    <rect x="86.0" y="198" width="758.8" height="24" fill="rgba(139,162,174,0.22)" stroke="rgba(139,162,174,0.85)" stroke-dasharray="5 3"/>
+    <rect x="850.6" y="198" width="15.9" height="24" fill="#8CE05E"/>
+    <text x="100" y="215" class="monow">2,266.5 us for the same 1500 bytes</text>
+
+    <!-- taking turns -->
+    <rect x="30" y="246" width="840" height="58" rx="12" fill="rgba(3,10,16,0.55)" stroke="rgba(255,255,255,0.12)"/>
+    <text x="46" y="268" class="lbl">Taking strict turns, one packet each, no collisions: share of the air</text>
+    <rect x="46" y="278" width="72.3" height="16" fill="#2FA8E0"/>
+    <rect x="118.3" y="278" width="731.7" height="16" fill="rgba(139,162,174,0.22)" stroke="rgba(139,162,174,0.85)" stroke-dasharray="5 3"/>
+    <text x="52" y="290" class="t" font-size="10.5" font-weight="700" fill="#061019">9%</text>
+    <text x="128" y="290" class="monow">old laptop 91%. Both end up at 4.8 Mb/s.</text>
+  </g>
+
+  <text x="30" y="324" class="t mut">Model numbers: 5 GHz, best effort, one 1500-byte packet per turn, no bundling, no collisions.</text>
+</svg>

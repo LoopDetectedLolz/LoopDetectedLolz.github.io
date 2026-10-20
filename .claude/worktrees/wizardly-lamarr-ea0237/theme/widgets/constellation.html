@@ -1,0 +1,106 @@
+<section class="cst" id="constellation" data-rise>
+  <style>
+  .cst{--cst-line:rgba(255,255,255,0.12)}
+  .cst-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .cst-head h3{font-size:19px;letter-spacing:-0.02em}
+  .cst-tag{font:11px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--orange)}
+  .cst-goal{margin:0 0 14px;font-size:14px;line-height:1.65;color:var(--text-dim)}
+  .cst-knob>span{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+    font:10.5px var(--mono);letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase;margin-bottom:7px}
+  .cst-knob>span b{color:var(--teal);font-size:15px;letter-spacing:0;text-transform:none;white-space:nowrap}
+  .cst-knob input[type=range]{display:block;width:100%;margin:0;box-sizing:border-box;accent-color:var(--teal);min-height:38px}
+  .cst-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+  @media (max-width:640px){.cst-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .cst-cell{border:1px solid var(--cst-line);border-radius:12px;background:rgba(3,10,16,0.6);padding:10px;min-width:0}
+  .cst-cell canvas{display:block;width:100%;height:auto;border-radius:6px;background:rgba(0,0,0,0.35)}
+  .cst-cell .n{font:600 12.5px var(--sans);color:var(--text);margin:8px 0 2px;display:flex;justify-content:space-between;gap:6px}
+  .cst-cell .n i{font:10.5px var(--mono);color:var(--text-muted);font-style:normal}
+  .cst-cell .s{font:11px/1.6 var(--mono);color:var(--text-muted)}
+  .cst-cell .s b{font-weight:600;color:var(--green)}
+  .cst-cell.bad .s b{color:var(--orange)}
+  .cst-say{min-height:24px;font-size:13.5px;line-height:1.65;color:var(--text-dim);margin:14px 0 0}
+  .cst-say b{color:var(--orange)}
+  </style>
+
+  <div class="cst-head">
+    <span class="cst-tag">Lesson 4</span>
+    <h3>Where the bits live</h3>
+  </div>
+  <p class="cst-goal">One symbol on one subcarrier. Every dot is a transmitted point, drawn where the receiver actually saw it after the noise got to it. Drag the SNR down and watch the clouds grow until they touch, which is the moment the receiver starts guessing wrong.</p>
+
+  <label class="cst-knob"><span>SNR at the receiver <b id="cst-v">30 dB</b></span>
+    <input id="cst-snr" type="range" min="5" max="45" step="1" value="30"></label>
+
+  <div class="cst-grid" id="cst-grid"></div>
+  <p class="cst-say" id="cst-say"></p>
+
+  <script>
+  (function () {
+    var root = document.getElementById("constellation");
+    if (!root) return;
+    var $ = function (s) { return root.querySelector(s); };
+
+    /* Square M-QAM with unit average symbol energy. Noise is Gaussian per axis
+       with variance 1 / (2 * SNR). The floor quoted under each panel is the
+       lowest coding rate's figure from the same SNR array the site uses
+       (theme/sim/phy.js), so the number here matches the ladder in Be the Radio. */
+    var MODS = [
+      { name: "16-QAM", m: 16, bits: 4, floor: 12 },
+      { name: "64-QAM", m: 64, bits: 6, floor: 20 },
+      { name: "256-QAM", m: 256, bits: 8, floor: 29 },
+      { name: "1024-QAM", m: 1024, bits: 10, floor: 34 }
+    ];
+    var N = 600, seed = 7;
+    function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+    function gauss() { var u = rnd() || 1e-9, v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+
+    var html = "";
+    MODS.forEach(function (md, i) {
+      html += '<div class="cst-cell" id="cst-c' + i + '"><canvas width="220" height="220" aria-label="' + md.name + ' constellation"></canvas>' +
+              '<div class="n">' + md.name + '<i>' + md.bits + ' bits</i></div><div class="s">errors <b>0.0 %</b><br>wants about ' + md.floor + ' dB</div></div>';
+    });
+    $("#cst-grid").innerHTML = html;
+
+    function draw(snr) {
+      var lin = Math.pow(10, snr / 10), sigma = Math.sqrt(1 / (2 * lin)), worst = null;
+      seed = 7;
+      MODS.forEach(function (md, i) {
+        var cell = $("#cst-c" + i), cv = cell.querySelector("canvas"), ctx = cv.getContext("2d");
+        var L = Math.sqrt(md.m), levels = [], k, avg = 0;
+        for (k = 0; k < L; k++) levels.push(2 * k - (L - 1));
+        levels.forEach(function (a) { avg += a * a; }); avg = avg / L * 2;   /* E[x^2]+E[y^2] */
+        var scale = 1 / Math.sqrt(avg), W = cv.width, pad = 10, span = (W - 2 * pad) / (2 * (L - 1) * scale + 2 * scale);
+        ctx.clearRect(0, 0, W, W);
+        ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(W / 2, pad); ctx.lineTo(W / 2, W - pad); ctx.moveTo(pad, W / 2); ctx.lineTo(W - pad, W / 2); ctx.stroke();
+        var errs = 0, n;
+        for (n = 0; n < N; n++) {
+          var ix = Math.floor(rnd() * L), iy = Math.floor(rnd() * L);
+          var x = levels[ix] * scale + gauss() * sigma, y = levels[iy] * scale + gauss() * sigma;
+          var dx = Math.round((x / scale + (L - 1)) / 2), dy = Math.round((y / scale + (L - 1)) / 2);
+          dx = Math.max(0, Math.min(L - 1, dx)); dy = Math.max(0, Math.min(L - 1, dy));
+          var bad = dx !== ix || dy !== iy; if (bad) errs++;
+          ctx.fillStyle = bad ? "#F5A524" : "#5ED2DA";
+          ctx.globalAlpha = bad ? 0.95 : 0.75;
+          ctx.beginPath(); ctx.arc(W / 2 + x * span, W / 2 - y * span, md.m >= 256 ? 1.4 : 2.2, 0, 6.283); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        var pct = errs / N * 100;
+        cell.querySelector(".s b").textContent = pct.toFixed(1) + " %";
+        cell.classList.toggle("bad", pct >= 1);
+        if (pct >= 1 && worst === null) worst = md;
+      });
+      var say;
+      if (worst === null) say = "Every constellation is clean at " + snr + " dB. Even 1024-QAM has room, which is why a client sitting next to the AP shows the top rung.";
+      else if (worst.m === 16) say = "<b>Everything is failing.</b> At " + snr + " dB even 16-QAM is guessing. The radio is down at QPSK or BPSK now, which is the bottom of the ladder.";
+      else say = "<b>" + worst.name + " and above are guessing.</b> At " + snr + " dB the radio steps down to " + (worst.m === 64 ? "16-QAM" : worst.m === 256 ? "64-QAM" : "256-QAM") + ", which is fewer bits per symbol and a lower rung. Nothing broke. The noise just got closer than the neighbours.";
+      $("#cst-say").innerHTML = say;
+    }
+
+    var inp = $("#cst-snr");
+    function upd() { var s = +inp.value; $("#cst-v").textContent = s + " dB"; draw(s); }
+    inp.addEventListener("input", upd); inp.addEventListener("change", upd);
+    upd();
+  })();
+  </script>
+</section>

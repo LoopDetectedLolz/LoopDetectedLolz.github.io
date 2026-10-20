@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 7: Noise, SNR, and why RSSI lies. Two panels with the same client at -67 dBm RSSI on a dBm scale. Left, a quiet room with a -95 dBm noise floor: the gap is 28 dB of SNR, which buys MCS 7, 64-QAM 5/6, 86 Mb/s on 20 MHz one stream. Right, a microwave running and the floor at -80 dBm: the gap shrinks to 13 dB, MCS 3, 16-QAM 1/2, 34 Mb/s. Caption: the signal didn't move. The floor did, and the floor sets the rung.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .md { font-family: 'JetBrains Mono', monospace; font-size: 11px; fill: #B0C4CF; }
+      .mh { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: #8BA2AE; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 13px; fill: #F5A524; font-weight: 600; }
+      .mt { font-family: 'JetBrains Mono', monospace; font-size: 11px; fill: #5ED2DA; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 13px; fill: #8CE05E; font-weight: 600; }
+      .mw { font-family: 'JetBrains Mono', monospace; font-size: 13px; fill: #EAF2F6; font-weight: 600; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .grid { stroke: rgba(255,255,255,0.10); stroke-width: 1; }
+    </style>
+  </defs>
+
+  <text x="24" y="36" class="eb">LESSON 7: NOISE, SNR, AND WHY RSSI LIES</text>
+  <text x="24" y="66" class="hl">Same signal, two floors. The gap picks the rung, not the RSSI.</text>
+
+  <!-- left: quiet room -->
+  <rect x="24" y="86" width="412" height="210" rx="8" class="box"/>
+  <text x="40" y="106" class="t">Quiet room, 20 MHz</text>
+  <line x1="80" y1="118.0" x2="262" y2="118.0" class="grid"/>
+  <text x="76" y="122.0" text-anchor="end" class="mh">-50</text>
+  <line x1="80" y1="150.0" x2="262" y2="150.0" class="grid"/>
+  <text x="76" y="154.0" text-anchor="end" class="mh">-60</text>
+  <line x1="80" y1="182.0" x2="262" y2="182.0" class="grid"/>
+  <text x="76" y="186.0" text-anchor="end" class="mh">-70</text>
+  <line x1="80" y1="214.0" x2="262" y2="214.0" class="grid"/>
+  <text x="76" y="218.0" text-anchor="end" class="mh">-80</text>
+  <line x1="80" y1="246.0" x2="262" y2="246.0" class="grid"/>
+  <text x="76" y="250.0" text-anchor="end" class="mh">-90</text>
+  <line x1="80" y1="278.0" x2="262" y2="278.0" class="grid"/>
+  <text x="76" y="282.0" text-anchor="end" class="mh">-100</text>
+  <rect x="86" y="262.0" width="176" height="16.0" fill="rgba(139,162,174,0.22)" stroke="none"/>
+  <line x1="86" y1="262.0" x2="262" y2="262.0" stroke="#8BA2AE" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="174" y="277.0" text-anchor="middle" class="md">noise floor -95 dBm</text>
+  <rect x="86" y="168.4" width="176" height="8" rx="2" fill="#5ED2DA"/>
+  <text x="174" y="162.4" text-anchor="middle" class="mt">RSSI -67 dBm</text>
+  <line x1="276" y1="172.4" x2="276" y2="262.0" stroke="#F5A524" stroke-width="2"/>
+  <line x1="271" y1="172.4" x2="281" y2="172.4" stroke="#F5A524" stroke-width="2"/>
+  <line x1="271" y1="262.0" x2="281" y2="262.0" stroke="#F5A524" stroke-width="2"/>
+  <text x="288" y="180.4" class="mo">28 dB SNR</text>
+  <text x="288" y="198.4" class="mg">MCS 7</text>
+  <text x="288" y="214.4" class="ts">64-QAM 5/6</text>
+  <text x="288" y="230.4" class="ts">86 Mb/s, one stream</text>
+
+  <!-- right: oven on -->
+  <rect x="464" y="86" width="412" height="210" rx="8" class="box"/>
+  <text x="480" y="106" class="t">Microwave running, same AP, same spot</text>
+  <line x1="520" y1="118.0" x2="702" y2="118.0" class="grid"/>
+  <text x="516" y="122.0" text-anchor="end" class="mh">-50</text>
+  <line x1="520" y1="150.0" x2="702" y2="150.0" class="grid"/>
+  <text x="516" y="154.0" text-anchor="end" class="mh">-60</text>
+  <line x1="520" y1="182.0" x2="702" y2="182.0" class="grid"/>
+  <text x="516" y="186.0" text-anchor="end" class="mh">-70</text>
+  <line x1="520" y1="214.0" x2="702" y2="214.0" class="grid"/>
+  <text x="516" y="218.0" text-anchor="end" class="mh">-80</text>
+  <line x1="520" y1="246.0" x2="702" y2="246.0" class="grid"/>
+  <text x="516" y="250.0" text-anchor="end" class="mh">-90</text>
+  <line x1="520" y1="278.0" x2="702" y2="278.0" class="grid"/>
+  <text x="516" y="282.0" text-anchor="end" class="mh">-100</text>
+  <rect x="526" y="214.0" width="176" height="64.0" fill="rgba(139,162,174,0.22)" stroke="none"/>
+  <line x1="526" y1="214.0" x2="702" y2="214.0" stroke="#8BA2AE" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="614" y="229.0" text-anchor="middle" class="md">noise floor -80 dBm</text>
+  <rect x="526" y="168.4" width="176" height="8" rx="2" fill="#5ED2DA"/>
+  <text x="614" y="162.4" text-anchor="middle" class="mt">RSSI -67 dBm</text>
+  <line x1="716" y1="172.4" x2="716" y2="214.0" stroke="#F5A524" stroke-width="2"/>
+  <line x1="711" y1="172.4" x2="721" y2="172.4" stroke="#F5A524" stroke-width="2"/>
+  <line x1="711" y1="214.0" x2="721" y2="214.0" stroke="#F5A524" stroke-width="2"/>
+  <text x="728" y="180.4" class="mo">13 dB SNR</text>
+  <text x="728" y="198.4" class="mw">MCS 3</text>
+  <text x="728" y="214.4" class="ts">16-QAM 1/2</text>
+  <text x="728" y="230.4" class="ts">34 Mb/s, one stream</text>
+
+  <text x="24" y="320" class="cap">The signal didn't move. The floor did, and the floor sets the rung.</text>
+</svg>

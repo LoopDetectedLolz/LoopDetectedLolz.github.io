@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" role="img" aria-label="Bot working in the lab">
+  <defs>
+    <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#153A52"></stop><stop offset="1" stop-color="#0B2233"></stop>
+    </linearGradient>
+    <radialGradient id="eyeGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8CE05E" stop-opacity="0.55"></stop><stop offset="1" stop-color="#8CE05E" stop-opacity="0"></stop>
+    </radialGradient>
+  </defs>
+  <ellipse cx="80" cy="141" rx="40" ry="6" fill="#000" opacity="0.28"></ellipse>
+  <g>
+      <rect x="30" y="86" width="56" height="36" rx="4" fill="#08151F" stroke="#4FBDEA" stroke-width="3" transform="rotate(-6 58 104)"></rect>
+      <g transform="rotate(-6 58 104)">
+        <rect x="36" y="92" width="44" height="24" rx="2" fill="#0B2233"></rect>
+        <rect x="41" y="97" width="26" height="3" rx="1.5" fill="#8CE05E"></rect>
+        <rect x="41" y="103" width="16" height="3" rx="1.5" fill="#5ED2DA" opacity="0.8"></rect>
+        <rect x="41" y="109" width="21" height="3" rx="1.5" fill="#2FA8E0" opacity="0.6"></rect>
+      </g>
+    </g>
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <path d="M56 96 q-10 8 -6 16" stroke="#2FA8E0" stroke-width="7" fill="none" stroke-linecap="round"></path><path d="M106 96 q10 8 6 16" stroke="#2FA8E0" stroke-width="7" fill="none" stroke-linecap="round"></path>
+    <rect x="50" y="120" width="60" height="15" rx="7.5" fill="url(#shell)" stroke="#2FA8E0" stroke-width="3"></rect>
+    <circle cx="63" cy="127.5" r="3" fill="#5ED2DA"></circle><circle cx="97" cy="127.5" r="3" fill="#5ED2DA"></circle>
+    <rect x="52" y="78" width="56" height="44" rx="16" fill="url(#shell)" stroke="#2FA8E0" stroke-width="3"></rect>
+    <rect x="68" y="90" width="24" height="10" rx="5" fill="#8CE05E" opacity="0.9"></rect>
+    <rect x="68" y="106" width="16" height="5" rx="2.5" fill="#5ED2DA" opacity="0.7"></rect>
+    <path d="M80 28 V14" stroke="#4FBDEA" stroke-width="3.5"></path>
+    <circle cx="80" cy="10" r="4.5" fill="#8CE05E"></circle>
+    <rect x="44" y="30" width="72" height="48" rx="18" fill="url(#shell)" stroke="#4FBDEA" stroke-width="3"></rect>
+    <rect x="54" y="42" width="52" height="24" rx="12" fill="#061019" stroke="#2FA8E0" stroke-width="2"></rect>
+    <circle cx="68" cy="54" r="9" fill="url(#eyeGlow)"></circle><circle cx="92" cy="54" r="9" fill="url(#eyeGlow)"></circle>
+    <circle cx="68" cy="54" r="4.2" fill="#8CE05E"></circle><circle cx="92" cy="54" r="4.2" fill="#8CE05E"></circle>
+    <path d="M40 46 q-7 8 0 16" stroke="#2FA8E0" stroke-width="3" fill="none"></path>
+    <path d="M120 46 q7 8 0 16" stroke="#2FA8E0" stroke-width="3" fill="none"></path>
+  </g>
+  <g stroke-linecap="round" stroke-linejoin="round">
+      <path d="M28 124 h60 l8 12 H20 z" fill="#12384F" stroke="#4FBDEA" stroke-width="3"></path>
+      <path d="M119 108 q4 -7 0 -12 M129 108 q4 -7 0 -12" fill="none" stroke="#5ED2DA" stroke-width="2.5" opacity="0.75"></path>
+      <rect x="114" y="112" width="20" height="24" rx="3" fill="#0B2233" stroke="#2FA8E0" stroke-width="3"></rect>
+      <path d="M136 118 h6 a6 6 0 0 1 0 12 h-6" fill="none" stroke="#2FA8E0" stroke-width="3"></path>
+    </g>
+</svg>

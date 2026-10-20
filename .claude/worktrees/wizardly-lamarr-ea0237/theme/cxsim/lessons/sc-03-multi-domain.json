@@ -1,0 +1,151 @@
+{
+ "id": "sc-03-multi-domain",
+ "title": "Scenario 3: a phone and a PC on one port",
+ "track": "Scenarios",
+ "number": 3,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "vlan 30",
+  "name VOICE",
+  "voice",
+  "radius-server host 192.0.2.10 key plaintext cppm-lab-key",
+  "aaa group server radius CLEARPASS",
+  "server 192.0.2.10",
+  "exit",
+  "aaa authentication port-access dot1x authenticator",
+  "radius server-group CLEARPASS",
+  "enable",
+  "exit",
+  "aaa authentication port-access mac-auth",
+  "radius server-group CLEARPASS",
+  "enable",
+  "exit",
+  "port-access role EMPLOYEE",
+  "vlan access 10",
+  "exit",
+  "interface 1/1/6",
+  "no shutdown",
+  "no routing",
+  "vlan access 10",
+  "aaa authentication port-access dot1x authenticator",
+  "enable",
+  "exit",
+  "aaa authentication port-access mac-auth",
+  "enable"
+ ],
+ "task": "1/1/6 has a phone with a PC plugged into it. ClearPass does not know the phone and the phone has no supplicant, so it fails; the PC cannot even try, because the port takes one client. Make 1/1/6 a multi-domain port, give LLDP-MED phones a VOICE role through a device profile (voice VLAN 30 tagged, data VLAN 10 untagged), and get both devices on. This is the lab bench from 2026-09-28, and it has the same trap.",
+ "hints": [
+  "`aaa authentication port-access auth-mode multi-domain` on 1/1/6: one voice device and one data device.",
+  "`port-access lldp-group LLDP-MED-ENDPOINTS`, `match vendor-oui 0012bb type 1`: the TIA OUI every LLDP-MED device sends in its capabilities TLV.",
+  "`port-access role VOICE`: `device-traffic-class voice`, `vlan trunk native 10`, `vlan trunk allowed 30`. Then a device profile PHONES with the group, the role and `enable`.",
+  "Phone still nowhere? A port-access port drops LLDP from a client that has not authenticated. `aaa authentication port-access allow-lldp-bpdu` on 1/1/6 lets the switch hear it."
+ ],
+ "devices": [
+  {
+   "id": "phone",
+   "name": "Desk phone (LLDP-MED)",
+   "kind": "phone",
+   "port": "1/1/6",
+   "mac": "00:00:5e:00:53:03",
+   "lldp": {
+    "sys": "LAB-PHONE-0303",
+    "desc": "Lab SIP desk phone (LLDP-MED class III), fw 1.0",
+    "port": "00:00:5e:00:53:03",
+    "portDesc": "PC port bridge",
+    "caps": "B,T",
+    "med": {
+     "class": "III",
+     "poe": {
+      "w": 6.0,
+      "prio": "Low"
+     }
+    }
+   },
+   "connected": true,
+   "auth": {
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   }
+  },
+  {
+   "id": "pc",
+   "name": "PC behind the phone (employee.user)",
+   "kind": "laptop",
+   "port": "1/1/6",
+   "mac": "00:00:5e:00:53:66",
+   "user": "employee.user",
+   "auth": {
+    "dot1x": {
+     "accept": true,
+     "role": "EMPLOYEE"
+    },
+    "mac-auth": {
+     "accept": false,
+     "why": "unknown MAC"
+    }
+   },
+   "connected": true
+  }
+ ],
+ "checks": [
+  {
+   "desc": "1/1/6 is multi-domain",
+   "config": {
+    "context": "interface 1/1/6",
+    "has": "^aaa authentication port-access auth-mode multi-domain$"
+   }
+  },
+  {
+   "desc": "1/1/6 lets LLDP through before authentication",
+   "config": {
+    "context": "interface 1/1/6",
+    "has": "^aaa authentication port-access allow-lldp-bpdu$"
+   }
+  },
+  {
+   "desc": "The phone is the voice device, by device profile",
+   "client": {
+    "dev": "phone",
+    "status": "Success",
+    "method": "device-profile",
+    "role": "VOICE",
+    "mode": "m",
+    "voice": true
+   }
+  },
+  {
+   "desc": "The PC is the data device, by 802.1X",
+   "client": {
+    "dev": "pc",
+    "status": "Success",
+    "method": "dot1x",
+    "role": "EMPLOYEE",
+    "mode": "m",
+    "voice": false
+   }
+  },
+  {
+   "desc": "The phone took VLAN 30 from LLDP-MED",
+   "lldp": {
+    "dev": "phone",
+    "port": "1/1/6",
+    "policyVlan": 30
+   }
+  }
+ ]
+}

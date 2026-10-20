@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 6: Interference from yourself. The same twelve-AP floor drawn three times as a grid of squares labelled by channel. At 20 MHz there are 25 channels, reuse 2.1, every AP alone with 13 channels spare. At 40 MHz there are 12 channels, reuse 1.0, every AP alone with none spare. At 80 MHz there are 6 channels, reuse 0.5, so every colour appears twice and those two APs share one channel. Caption: at 80 MHz every colour appears twice; those two APs share one channel and each gets about half its airtime.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .pt { font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; fill: #EAF2F6; }
+      .m  { font-family: 'JetBrains Mono', monospace; font-size: 11px; fill: #EAF2F6; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mt { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #5ED2DA; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #8CE05E; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .sq { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+    </style>
+  </defs>
+
+  <text x="24" y="36" class="eb">LESSON 6: INTERFERENCE FROM YOURSELF</text>
+  <text x="24" y="66" class="hl">Same twelve APs. The width decides who shares.</text>
+  <rect x="24" y="86" width="270" height="216" rx="8" class="box"/>
+  <text x="40" y="108" class="pt">20 MHz</text>
+  <text x="278" y="108" text-anchor="end" class="mg">25 channels</text>
+  <rect x="67" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="87.0" y="144.0" text-anchor="middle" class="m">36</text>
+  <rect x="115" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="135.0" y="144.0" text-anchor="middle" class="m">40</text>
+  <rect x="163" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="183.0" y="144.0" text-anchor="middle" class="m">44</text>
+  <rect x="211" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="231.0" y="144.0" text-anchor="middle" class="m">48</text>
+  <rect x="67" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="87.0" y="192.0" text-anchor="middle" class="m">52</text>
+  <rect x="115" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="135.0" y="192.0" text-anchor="middle" class="m">56</text>
+  <rect x="163" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="183.0" y="192.0" text-anchor="middle" class="m">60</text>
+  <rect x="211" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="231.0" y="192.0" text-anchor="middle" class="m">64</text>
+  <rect x="67" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="87.0" y="240.0" text-anchor="middle" class="m">100</text>
+  <rect x="115" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="135.0" y="240.0" text-anchor="middle" class="m">104</text>
+  <rect x="163" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="183.0" y="240.0" text-anchor="middle" class="m">108</text>
+  <rect x="211" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="231.0" y="240.0" text-anchor="middle" class="m">112</text>
+  <text x="40" y="278" class="mg">reuse 25 / 12 = 2.1</text>
+  <text x="40" y="294" class="ts">every AP alone, 13 spare</text>
+  <rect x="315" y="86" width="270" height="216" rx="8" class="box"/>
+  <text x="331" y="108" class="pt">40 MHz</text>
+  <text x="569" y="108" text-anchor="end" class="mt">12 channels</text>
+  <rect x="358" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="378.0" y="144.0" text-anchor="middle" class="m">38</text>
+  <rect x="406" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="426.0" y="144.0" text-anchor="middle" class="m">46</text>
+  <rect x="454" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="474.0" y="144.0" text-anchor="middle" class="m">54</text>
+  <rect x="502" y="120" width="40" height="40" rx="4" class="sq"/>
+  <text x="522.0" y="144.0" text-anchor="middle" class="m">62</text>
+  <rect x="358" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="378.0" y="192.0" text-anchor="middle" class="m">102</text>
+  <rect x="406" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="426.0" y="192.0" text-anchor="middle" class="m">110</text>
+  <rect x="454" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="474.0" y="192.0" text-anchor="middle" class="m">118</text>
+  <rect x="502" y="168" width="40" height="40" rx="4" class="sq"/>
+  <text x="522.0" y="192.0" text-anchor="middle" class="m">126</text>
+  <rect x="358" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="378.0" y="240.0" text-anchor="middle" class="m">134</text>
+  <rect x="406" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="426.0" y="240.0" text-anchor="middle" class="m">142</text>
+  <rect x="454" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="474.0" y="240.0" text-anchor="middle" class="m">151</text>
+  <rect x="502" y="216" width="40" height="40" rx="4" class="sq"/>
+  <text x="522.0" y="240.0" text-anchor="middle" class="m">159</text>
+  <text x="331" y="278" class="mt">reuse 12 / 12 = 1.0</text>
+  <text x="331" y="294" class="ts">every AP alone, none spare</text>
+  <rect x="606" y="86" width="270" height="216" rx="8" class="box"/>
+  <text x="622" y="108" class="pt">80 MHz</text>
+  <text x="860" y="108" text-anchor="end" class="mo">6 channels</text>
+  <rect x="649" y="120" width="40" height="40" rx="4" fill="rgba(245,165,36,0.55)" stroke="#F5A524" stroke-width="1"/>
+  <text x="669.0" y="144.0" text-anchor="middle" class="m">42</text>
+  <rect x="697" y="120" width="40" height="40" rx="4" fill="rgba(140,224,94,0.55)" stroke="#8CE05E" stroke-width="1"/>
+  <text x="717.0" y="144.0" text-anchor="middle" class="m">58</text>
+  <rect x="745" y="120" width="40" height="40" rx="4" fill="rgba(94,210,218,0.55)" stroke="#5ED2DA" stroke-width="1"/>
+  <text x="765.0" y="144.0" text-anchor="middle" class="m">106</text>
+  <rect x="793" y="120" width="40" height="40" rx="4" fill="rgba(245,165,36,0.22)" stroke="#F5A524" stroke-width="1"/>
+  <text x="813.0" y="144.0" text-anchor="middle" class="m">122</text>
+  <rect x="649" y="168" width="40" height="40" rx="4" fill="rgba(140,224,94,0.22)" stroke="#8CE05E" stroke-width="1"/>
+  <text x="669.0" y="192.0" text-anchor="middle" class="m">138</text>
+  <rect x="697" y="168" width="40" height="40" rx="4" fill="rgba(94,210,218,0.22)" stroke="#5ED2DA" stroke-width="1"/>
+  <text x="717.0" y="192.0" text-anchor="middle" class="m">155</text>
+  <rect x="745" y="168" width="40" height="40" rx="4" fill="rgba(94,210,218,0.55)" stroke="#5ED2DA" stroke-width="1"/>
+  <text x="765.0" y="192.0" text-anchor="middle" class="m">106</text>
+  <rect x="793" y="168" width="40" height="40" rx="4" fill="rgba(245,165,36,0.55)" stroke="#F5A524" stroke-width="1"/>
+  <text x="813.0" y="192.0" text-anchor="middle" class="m">42</text>
+  <rect x="649" y="216" width="40" height="40" rx="4" fill="rgba(94,210,218,0.22)" stroke="#5ED2DA" stroke-width="1"/>
+  <text x="669.0" y="240.0" text-anchor="middle" class="m">155</text>
+  <rect x="697" y="216" width="40" height="40" rx="4" fill="rgba(140,224,94,0.55)" stroke="#8CE05E" stroke-width="1"/>
+  <text x="717.0" y="240.0" text-anchor="middle" class="m">58</text>
+  <rect x="745" y="216" width="40" height="40" rx="4" fill="rgba(245,165,36,0.22)" stroke="#F5A524" stroke-width="1"/>
+  <text x="765.0" y="240.0" text-anchor="middle" class="m">122</text>
+  <rect x="793" y="216" width="40" height="40" rx="4" fill="rgba(140,224,94,0.22)" stroke="#8CE05E" stroke-width="1"/>
+  <text x="813.0" y="240.0" text-anchor="middle" class="m">138</text>
+  <text x="622" y="278" class="mo">reuse 6 / 12 = 0.5</text>
+  <text x="622" y="294" class="ts">every channel carries two APs</text>
+  <text x="24" y="324" class="cap">At 80 MHz every colour appears twice. Those two APs share one channel, and each gets about half its airtime.</text>
+</svg>

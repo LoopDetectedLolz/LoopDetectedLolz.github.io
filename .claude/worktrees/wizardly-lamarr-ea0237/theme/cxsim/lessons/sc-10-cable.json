@@ -1,0 +1,92 @@
+{
+ "id": "sc-10-cable",
+ "title": "Scenario 10: the desk that will not link",
+ "track": "Scenarios",
+ "number": 10,
+ "model": "6200F-12",
+ "hostname": "access-01",
+ "radius": {
+  "name": "ClearPass (lab)",
+  "servers": [
+   "192.0.2.10"
+  ],
+  "key": "cppm-lab-key"
+ },
+ "startConfig": [
+  "hostname access-01",
+  "vlan 10",
+  "name STAFF",
+  "vlan 20",
+  "name PRINTERS",
+  "interface 1/1/7-1/1/8",
+  "no shutdown",
+  "no routing",
+  "vlan access 10"
+ ],
+ "task": "Desks 7 and 8 were cabled last week. Desk 8 works; desk 7 never links. Test the cable from the switch, then shut 1/1/7 and describe it with what you found (the pair and the distance) so the cabling contractor knows where to dig.",
+ "hints": [
+  "`show interface 1/1/7`: waiting for link, and nothing else to go on.",
+  "`diag cable-diagnostic test 1/1/7` asks before it runs: the test drops the link while it runs. Then `diag cable-diagnostic show 1/1/7`.",
+  "Open on one pair at a distance means a break or an unterminated pair that far out. 1000BASE-T needs all four pairs.",
+  "The TDR here is the sandbox faking the hardware: the Switch Simulator has no PHY and refuses the command. The command and its output layout are from HPE's diagnostics guide (10.11 and later)."
+ ],
+ "devices": [
+  {
+   "id": "desk7",
+   "name": "Desk 7 PC",
+   "kind": "laptop",
+   "port": "1/1/7",
+   "mac": "00:00:5e:00:53:77",
+   "cable": {
+    "len": 41,
+    "fault": {
+     "pairs": [
+      "3-6"
+     ],
+     "status": "open",
+     "at": 23
+    }
+   },
+   "connected": true
+  },
+  {
+   "id": "desk8",
+   "name": "Desk 8 PC",
+   "kind": "laptop",
+   "port": "1/1/8",
+   "mac": "00:00:5e:00:53:78",
+   "cable": {
+    "len": 18
+   },
+   "connected": true
+  }
+ ],
+ "checks": [
+  {
+   "desc": "A cable test ran on 1/1/7",
+   "diag": {
+    "port": "1/1/7"
+   }
+  },
+  {
+   "desc": "1/1/7 is shut",
+   "shut": {
+    "port": "1/1/7"
+   }
+  },
+  {
+   "desc": "The description names the fault",
+   "config": {
+    "context": "interface 1/1/7",
+    "has": "^description .*(3-6|23).*$"
+   }
+  },
+  {
+   "desc": "Desk 8 still links",
+   "speed": {
+    "port": "1/1/8",
+    "mb": 1000
+   }
+  }
+ ]
+}

@@ -1,0 +1,369 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 4: Modulation and data rates. Three constellation diagrams, BPSK, 16-QAM and 256-QAM, showing points packing closer together as bits per symbol rise, beside a table of six Wi-Fi 6 MCS rows with modulation, coding rate, data rate at 20 MHz one stream and 80 MHz two streams, and the IEEE minimum receiver sensitivity. Caption: neither Central nor Mist shows the MCS, they show the Mbps, so read the table backwards.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .m  { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #EAF2F6; }
+      .md { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #B0C4CF; }
+      .mh { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.5px; fill: #8BA2AE; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mt { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #5ED2DA; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .grid { stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .pt { fill: #5ED2DA; }
+      .pto { fill: #F5A524; }
+    </style>
+  </defs>
+
+  <text x="24" y="36" class="eb">LESSON 4: MODULATION AND DATA RATES</text>
+  <text x="24" y="66" class="hl">Speed is a table. The radio picks a row every frame.</text>
+
+  <!-- left: constellations -->
+  <rect x="24" y="86" width="256" height="210" rx="8" class="box"/>
+  <text x="40" y="106" class="t">One symbol on one subcarrier</text>
+
+  <!-- BPSK -->
+  <rect x="40" y="118" width="64" height="64" rx="4" class="box"/>
+  <line x1="72" y1="118" x2="72" y2="182" class="grid"/>
+  <line x1="40" y1="150" x2="104" y2="150" class="grid"/>
+  <circle cx="56" cy="150" r="4" class="pt"/>
+  <circle cx="88" cy="150" r="4" class="pt"/>
+  <text x="72" y="200" text-anchor="middle" class="m">BPSK</text>
+  <text x="72" y="214" text-anchor="middle" class="ts">1 bit</text>
+
+  <!-- 16-QAM -->
+  <rect x="120" y="118" width="64" height="64" rx="4" class="box"/>
+  <line x1="152" y1="118" x2="152" y2="182" class="grid"/>
+  <line x1="120" y1="150" x2="184" y2="150" class="grid"/>
+  <g class="pt">
+    <circle cx="128" cy="126" r="2.6"/><circle cx="144" cy="126" r="2.6"/><circle cx="160" cy="126" r="2.6"/><circle cx="176" cy="126" r="2.6"/>
+    <circle cx="128" cy="142" r="2.6"/><circle cx="144" cy="142" r="2.6"/><circle cx="160" cy="142" r="2.6"/><circle cx="176" cy="142" r="2.6"/>
+    <circle cx="128" cy="158" r="2.6"/><circle cx="144" cy="158" r="2.6"/><circle cx="160" cy="158" r="2.6"/><circle cx="176" cy="158" r="2.6"/>
+    <circle cx="128" cy="174" r="2.6"/><circle cx="144" cy="174" r="2.6"/><circle cx="160" cy="174" r="2.6"/><circle cx="176" cy="174" r="2.6"/>
+  </g>
+  <text x="152" y="200" text-anchor="middle" class="m">16-QAM</text>
+  <text x="152" y="214" text-anchor="middle" class="ts">4 bits</text>
+
+  <!-- 256-QAM: 16 x 16 grid of tiny points -->
+  <rect x="200" y="118" width="64" height="64" rx="4" class="box"/>
+  <line x1="232" y1="118" x2="232" y2="182" class="grid"/>
+  <line x1="200" y1="150" x2="264" y2="150" class="grid"/>
+  <g class="pto">
+    <circle cx="202" cy="120" r="0.9"/>
+    <circle cx="202" cy="124" r="0.9"/>
+    <circle cx="202" cy="128" r="0.9"/>
+    <circle cx="202" cy="132" r="0.9"/>
+    <circle cx="202" cy="136" r="0.9"/>
+    <circle cx="202" cy="140" r="0.9"/>
+    <circle cx="202" cy="144" r="0.9"/>
+    <circle cx="202" cy="148" r="0.9"/>
+    <circle cx="202" cy="152" r="0.9"/>
+    <circle cx="202" cy="156" r="0.9"/>
+    <circle cx="202" cy="160" r="0.9"/>
+    <circle cx="202" cy="164" r="0.9"/>
+    <circle cx="202" cy="168" r="0.9"/>
+    <circle cx="202" cy="172" r="0.9"/>
+    <circle cx="202" cy="176" r="0.9"/>
+    <circle cx="202" cy="180" r="0.9"/>
+    <circle cx="206" cy="120" r="0.9"/>
+    <circle cx="206" cy="124" r="0.9"/>
+    <circle cx="206" cy="128" r="0.9"/>
+    <circle cx="206" cy="132" r="0.9"/>
+    <circle cx="206" cy="136" r="0.9"/>
+    <circle cx="206" cy="140" r="0.9"/>
+    <circle cx="206" cy="144" r="0.9"/>
+    <circle cx="206" cy="148" r="0.9"/>
+    <circle cx="206" cy="152" r="0.9"/>
+    <circle cx="206" cy="156" r="0.9"/>
+    <circle cx="206" cy="160" r="0.9"/>
+    <circle cx="206" cy="164" r="0.9"/>
+    <circle cx="206" cy="168" r="0.9"/>
+    <circle cx="206" cy="172" r="0.9"/>
+    <circle cx="206" cy="176" r="0.9"/>
+    <circle cx="206" cy="180" r="0.9"/>
+    <circle cx="210" cy="120" r="0.9"/>
+    <circle cx="210" cy="124" r="0.9"/>
+    <circle cx="210" cy="128" r="0.9"/>
+    <circle cx="210" cy="132" r="0.9"/>
+    <circle cx="210" cy="136" r="0.9"/>
+    <circle cx="210" cy="140" r="0.9"/>
+    <circle cx="210" cy="144" r="0.9"/>
+    <circle cx="210" cy="148" r="0.9"/>
+    <circle cx="210" cy="152" r="0.9"/>
+    <circle cx="210" cy="156" r="0.9"/>
+    <circle cx="210" cy="160" r="0.9"/>
+    <circle cx="210" cy="164" r="0.9"/>
+    <circle cx="210" cy="168" r="0.9"/>
+    <circle cx="210" cy="172" r="0.9"/>
+    <circle cx="210" cy="176" r="0.9"/>
+    <circle cx="210" cy="180" r="0.9"/>
+    <circle cx="214" cy="120" r="0.9"/>
+    <circle cx="214" cy="124" r="0.9"/>
+    <circle cx="214" cy="128" r="0.9"/>
+    <circle cx="214" cy="132" r="0.9"/>
+    <circle cx="214" cy="136" r="0.9"/>
+    <circle cx="214" cy="140" r="0.9"/>
+    <circle cx="214" cy="144" r="0.9"/>
+    <circle cx="214" cy="148" r="0.9"/>
+    <circle cx="214" cy="152" r="0.9"/>
+    <circle cx="214" cy="156" r="0.9"/>
+    <circle cx="214" cy="160" r="0.9"/>
+    <circle cx="214" cy="164" r="0.9"/>
+    <circle cx="214" cy="168" r="0.9"/>
+    <circle cx="214" cy="172" r="0.9"/>
+    <circle cx="214" cy="176" r="0.9"/>
+    <circle cx="214" cy="180" r="0.9"/>
+    <circle cx="218" cy="120" r="0.9"/>
+    <circle cx="218" cy="124" r="0.9"/>
+    <circle cx="218" cy="128" r="0.9"/>
+    <circle cx="218" cy="132" r="0.9"/>
+    <circle cx="218" cy="136" r="0.9"/>
+    <circle cx="218" cy="140" r="0.9"/>
+    <circle cx="218" cy="144" r="0.9"/>
+    <circle cx="218" cy="148" r="0.9"/>
+    <circle cx="218" cy="152" r="0.9"/>
+    <circle cx="218" cy="156" r="0.9"/>
+    <circle cx="218" cy="160" r="0.9"/>
+    <circle cx="218" cy="164" r="0.9"/>
+    <circle cx="218" cy="168" r="0.9"/>
+    <circle cx="218" cy="172" r="0.9"/>
+    <circle cx="218" cy="176" r="0.9"/>
+    <circle cx="218" cy="180" r="0.9"/>
+    <circle cx="222" cy="120" r="0.9"/>
+    <circle cx="222" cy="124" r="0.9"/>
+    <circle cx="222" cy="128" r="0.9"/>
+    <circle cx="222" cy="132" r="0.9"/>
+    <circle cx="222" cy="136" r="0.9"/>
+    <circle cx="222" cy="140" r="0.9"/>
+    <circle cx="222" cy="144" r="0.9"/>
+    <circle cx="222" cy="148" r="0.9"/>
+    <circle cx="222" cy="152" r="0.9"/>
+    <circle cx="222" cy="156" r="0.9"/>
+    <circle cx="222" cy="160" r="0.9"/>
+    <circle cx="222" cy="164" r="0.9"/>
+    <circle cx="222" cy="168" r="0.9"/>
+    <circle cx="222" cy="172" r="0.9"/>
+    <circle cx="222" cy="176" r="0.9"/>
+    <circle cx="222" cy="180" r="0.9"/>
+    <circle cx="226" cy="120" r="0.9"/>
+    <circle cx="226" cy="124" r="0.9"/>
+    <circle cx="226" cy="128" r="0.9"/>
+    <circle cx="226" cy="132" r="0.9"/>
+    <circle cx="226" cy="136" r="0.9"/>
+    <circle cx="226" cy="140" r="0.9"/>
+    <circle cx="226" cy="144" r="0.9"/>
+    <circle cx="226" cy="148" r="0.9"/>
+    <circle cx="226" cy="152" r="0.9"/>
+    <circle cx="226" cy="156" r="0.9"/>
+    <circle cx="226" cy="160" r="0.9"/>
+    <circle cx="226" cy="164" r="0.9"/>
+    <circle cx="226" cy="168" r="0.9"/>
+    <circle cx="226" cy="172" r="0.9"/>
+    <circle cx="226" cy="176" r="0.9"/>
+    <circle cx="226" cy="180" r="0.9"/>
+    <circle cx="230" cy="120" r="0.9"/>
+    <circle cx="230" cy="124" r="0.9"/>
+    <circle cx="230" cy="128" r="0.9"/>
+    <circle cx="230" cy="132" r="0.9"/>
+    <circle cx="230" cy="136" r="0.9"/>
+    <circle cx="230" cy="140" r="0.9"/>
+    <circle cx="230" cy="144" r="0.9"/>
+    <circle cx="230" cy="148" r="0.9"/>
+    <circle cx="230" cy="152" r="0.9"/>
+    <circle cx="230" cy="156" r="0.9"/>
+    <circle cx="230" cy="160" r="0.9"/>
+    <circle cx="230" cy="164" r="0.9"/>
+    <circle cx="230" cy="168" r="0.9"/>
+    <circle cx="230" cy="172" r="0.9"/>
+    <circle cx="230" cy="176" r="0.9"/>
+    <circle cx="230" cy="180" r="0.9"/>
+    <circle cx="234" cy="120" r="0.9"/>
+    <circle cx="234" cy="124" r="0.9"/>
+    <circle cx="234" cy="128" r="0.9"/>
+    <circle cx="234" cy="132" r="0.9"/>
+    <circle cx="234" cy="136" r="0.9"/>
+    <circle cx="234" cy="140" r="0.9"/>
+    <circle cx="234" cy="144" r="0.9"/>
+    <circle cx="234" cy="148" r="0.9"/>
+    <circle cx="234" cy="152" r="0.9"/>
+    <circle cx="234" cy="156" r="0.9"/>
+    <circle cx="234" cy="160" r="0.9"/>
+    <circle cx="234" cy="164" r="0.9"/>
+    <circle cx="234" cy="168" r="0.9"/>
+    <circle cx="234" cy="172" r="0.9"/>
+    <circle cx="234" cy="176" r="0.9"/>
+    <circle cx="234" cy="180" r="0.9"/>
+    <circle cx="238" cy="120" r="0.9"/>
+    <circle cx="238" cy="124" r="0.9"/>
+    <circle cx="238" cy="128" r="0.9"/>
+    <circle cx="238" cy="132" r="0.9"/>
+    <circle cx="238" cy="136" r="0.9"/>
+    <circle cx="238" cy="140" r="0.9"/>
+    <circle cx="238" cy="144" r="0.9"/>
+    <circle cx="238" cy="148" r="0.9"/>
+    <circle cx="238" cy="152" r="0.9"/>
+    <circle cx="238" cy="156" r="0.9"/>
+    <circle cx="238" cy="160" r="0.9"/>
+    <circle cx="238" cy="164" r="0.9"/>
+    <circle cx="238" cy="168" r="0.9"/>
+    <circle cx="238" cy="172" r="0.9"/>
+    <circle cx="238" cy="176" r="0.9"/>
+    <circle cx="238" cy="180" r="0.9"/>
+    <circle cx="242" cy="120" r="0.9"/>
+    <circle cx="242" cy="124" r="0.9"/>
+    <circle cx="242" cy="128" r="0.9"/>
+    <circle cx="242" cy="132" r="0.9"/>
+    <circle cx="242" cy="136" r="0.9"/>
+    <circle cx="242" cy="140" r="0.9"/>
+    <circle cx="242" cy="144" r="0.9"/>
+    <circle cx="242" cy="148" r="0.9"/>
+    <circle cx="242" cy="152" r="0.9"/>
+    <circle cx="242" cy="156" r="0.9"/>
+    <circle cx="242" cy="160" r="0.9"/>
+    <circle cx="242" cy="164" r="0.9"/>
+    <circle cx="242" cy="168" r="0.9"/>
+    <circle cx="242" cy="172" r="0.9"/>
+    <circle cx="242" cy="176" r="0.9"/>
+    <circle cx="242" cy="180" r="0.9"/>
+    <circle cx="246" cy="120" r="0.9"/>
+    <circle cx="246" cy="124" r="0.9"/>
+    <circle cx="246" cy="128" r="0.9"/>
+    <circle cx="246" cy="132" r="0.9"/>
+    <circle cx="246" cy="136" r="0.9"/>
+    <circle cx="246" cy="140" r="0.9"/>
+    <circle cx="246" cy="144" r="0.9"/>
+    <circle cx="246" cy="148" r="0.9"/>
+    <circle cx="246" cy="152" r="0.9"/>
+    <circle cx="246" cy="156" r="0.9"/>
+    <circle cx="246" cy="160" r="0.9"/>
+    <circle cx="246" cy="164" r="0.9"/>
+    <circle cx="246" cy="168" r="0.9"/>
+    <circle cx="246" cy="172" r="0.9"/>
+    <circle cx="246" cy="176" r="0.9"/>
+    <circle cx="246" cy="180" r="0.9"/>
+    <circle cx="250" cy="120" r="0.9"/>
+    <circle cx="250" cy="124" r="0.9"/>
+    <circle cx="250" cy="128" r="0.9"/>
+    <circle cx="250" cy="132" r="0.9"/>
+    <circle cx="250" cy="136" r="0.9"/>
+    <circle cx="250" cy="140" r="0.9"/>
+    <circle cx="250" cy="144" r="0.9"/>
+    <circle cx="250" cy="148" r="0.9"/>
+    <circle cx="250" cy="152" r="0.9"/>
+    <circle cx="250" cy="156" r="0.9"/>
+    <circle cx="250" cy="160" r="0.9"/>
+    <circle cx="250" cy="164" r="0.9"/>
+    <circle cx="250" cy="168" r="0.9"/>
+    <circle cx="250" cy="172" r="0.9"/>
+    <circle cx="250" cy="176" r="0.9"/>
+    <circle cx="250" cy="180" r="0.9"/>
+    <circle cx="254" cy="120" r="0.9"/>
+    <circle cx="254" cy="124" r="0.9"/>
+    <circle cx="254" cy="128" r="0.9"/>
+    <circle cx="254" cy="132" r="0.9"/>
+    <circle cx="254" cy="136" r="0.9"/>
+    <circle cx="254" cy="140" r="0.9"/>
+    <circle cx="254" cy="144" r="0.9"/>
+    <circle cx="254" cy="148" r="0.9"/>
+    <circle cx="254" cy="152" r="0.9"/>
+    <circle cx="254" cy="156" r="0.9"/>
+    <circle cx="254" cy="160" r="0.9"/>
+    <circle cx="254" cy="164" r="0.9"/>
+    <circle cx="254" cy="168" r="0.9"/>
+    <circle cx="254" cy="172" r="0.9"/>
+    <circle cx="254" cy="176" r="0.9"/>
+    <circle cx="254" cy="180" r="0.9"/>
+    <circle cx="258" cy="120" r="0.9"/>
+    <circle cx="258" cy="124" r="0.9"/>
+    <circle cx="258" cy="128" r="0.9"/>
+    <circle cx="258" cy="132" r="0.9"/>
+    <circle cx="258" cy="136" r="0.9"/>
+    <circle cx="258" cy="140" r="0.9"/>
+    <circle cx="258" cy="144" r="0.9"/>
+    <circle cx="258" cy="148" r="0.9"/>
+    <circle cx="258" cy="152" r="0.9"/>
+    <circle cx="258" cy="156" r="0.9"/>
+    <circle cx="258" cy="160" r="0.9"/>
+    <circle cx="258" cy="164" r="0.9"/>
+    <circle cx="258" cy="168" r="0.9"/>
+    <circle cx="258" cy="172" r="0.9"/>
+    <circle cx="258" cy="176" r="0.9"/>
+    <circle cx="258" cy="180" r="0.9"/>
+    <circle cx="262" cy="120" r="0.9"/>
+    <circle cx="262" cy="124" r="0.9"/>
+    <circle cx="262" cy="128" r="0.9"/>
+    <circle cx="262" cy="132" r="0.9"/>
+    <circle cx="262" cy="136" r="0.9"/>
+    <circle cx="262" cy="140" r="0.9"/>
+    <circle cx="262" cy="144" r="0.9"/>
+    <circle cx="262" cy="148" r="0.9"/>
+    <circle cx="262" cy="152" r="0.9"/>
+    <circle cx="262" cy="156" r="0.9"/>
+    <circle cx="262" cy="160" r="0.9"/>
+    <circle cx="262" cy="164" r="0.9"/>
+    <circle cx="262" cy="168" r="0.9"/>
+    <circle cx="262" cy="172" r="0.9"/>
+    <circle cx="262" cy="176" r="0.9"/>
+    <circle cx="262" cy="180" r="0.9"/>
+  </g>
+  <text x="232" y="200" text-anchor="middle" class="mo">256-QAM</text>
+  <text x="232" y="214" text-anchor="middle" class="ts">8 bits</text>
+
+  <text x="40" y="240" class="t">More points, packed closer.</text>
+  <text x="40" y="256" class="t">Each rung up buys bits per symbol</text>
+  <text x="40" y="272" class="t">and costs a few dB of signal margin.</text>
+
+  <!-- right: MCS table -->
+  <rect x="300" y="86" width="576" height="210" rx="8" class="box"/>
+  <text x="316" y="106" class="mh">MCS</text>
+  <text x="356" y="106" class="mh">MODULATION</text>
+  <text x="456" y="106" class="mh">CODE</text>
+  <text x="586" y="106" text-anchor="end" class="mh">20 MHz 1SS</text>
+  <text x="686" y="106" text-anchor="end" class="mh">80 MHz 2SS</text>
+  <text x="860" y="106" text-anchor="end" class="mh">IEEE MIN, 20 MHz</text>
+  <line x1="312" y1="114" x2="864" y2="114" class="grid"/>
+
+  <text x="316" y="136" class="md">0</text>
+  <text x="356" y="136" class="md">BPSK</text>
+  <text x="456" y="136" class="md">1/2</text>
+  <text x="586" y="136" text-anchor="end" class="md">8.6</text>
+  <text x="686" y="136" text-anchor="end" class="md">72.1</text>
+  <text x="860" y="136" text-anchor="end" class="md">-82 dBm</text>
+  <text x="316" y="162" class="md">3</text>
+  <text x="356" y="162" class="md">16-QAM</text>
+  <text x="456" y="162" class="md">1/2</text>
+  <text x="586" y="162" text-anchor="end" class="md">34.4</text>
+  <text x="686" y="162" text-anchor="end" class="md">288.2</text>
+  <text x="860" y="162" text-anchor="end" class="md">-74 dBm</text>
+  <text x="316" y="188" class="md">5</text>
+  <text x="356" y="188" class="md">64-QAM</text>
+  <text x="456" y="188" class="md">2/3</text>
+  <text x="586" y="188" text-anchor="end" class="md">68.8</text>
+  <text x="686" y="188" text-anchor="end" class="md">576.5</text>
+  <text x="860" y="188" text-anchor="end" class="md">-66 dBm</text>
+  <text x="316" y="214" class="mt">7</text>
+  <text x="356" y="214" class="mt">64-QAM</text>
+  <text x="456" y="214" class="mt">5/6</text>
+  <text x="586" y="214" text-anchor="end" class="mt">86.0</text>
+  <text x="686" y="214" text-anchor="end" class="mt">720.6</text>
+  <text x="860" y="214" text-anchor="end" class="mt">-64 dBm</text>
+  <text x="316" y="240" class="md">9</text>
+  <text x="356" y="240" class="md">256-QAM</text>
+  <text x="456" y="240" class="md">5/6</text>
+  <text x="586" y="240" text-anchor="end" class="md">114.7</text>
+  <text x="686" y="240" text-anchor="end" class="md">960.8</text>
+  <text x="860" y="240" text-anchor="end" class="md">-57 dBm</text>
+  <rect x="308" y="251" width="560" height="24" rx="4" fill="rgba(245,165,36,0.10)" stroke="rgba(245,165,36,0.35)" stroke-width="1"/>
+  <text x="316" y="266" class="mo">11</text>
+  <text x="356" y="266" class="mo">1024-QAM</text>
+  <text x="456" y="266" class="mo">5/6</text>
+  <text x="586" y="266" text-anchor="end" class="mo">143.4</text>
+  <text x="686" y="266" text-anchor="end" class="mo">1201</text>
+  <text x="860" y="266" text-anchor="end" class="mo">-52 dBm</text>
+  <text x="316" y="288" class="ts">Mbps at 0.8 us guard interval. Sensitivity is the 802.11ax conformance floor. Real radios beat it.</text>
+
+  <text x="24" y="320" class="cap">Neither Central nor Mist shows the MCS. They show the Mbps. Read the table backwards.</text>
+</svg>

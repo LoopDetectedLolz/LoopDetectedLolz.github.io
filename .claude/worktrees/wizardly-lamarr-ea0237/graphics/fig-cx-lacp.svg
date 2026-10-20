@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 486" role="img" aria-label="LACP forming a two-port LAG between an access switch and a core switch. LACPDUs go both ways on each member, every 30 seconds or every second with lacp rate fast. Three stages: both ends active and aggregable, then in sync, then collecting and distributing, when show lacp interfaces reads ALFNCD on both ends. Gotchas: two passive ends never start, a new LAG on 10.18 is administratively down until no shutdown, and a static LAG sends no LACPDUs so a miscabled member still forwards.">
+  <defs>
+    <style>
+      .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+      .m{font-family:JetBrains Mono,ui-monospace,Menlo,monospace}
+      .hd{fill:#fff;font-size:15px;font-weight:700}
+      .bx{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
+      .who{fill:#EAF2F6;font-size:14px;font-weight:700}
+      .sub{fill:#8BA2AE;font-size:11px}
+      .lbl{fill:#EAF2F6;font-size:12.5px}
+      .det{fill:#8BA2AE;font-size:11.5px}
+      .note{fill:#B0C4CF;font-size:12px}
+      .port{fill:#B0C4CF;font-size:11px}
+    </style>
+    <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5ED2DA"/></marker>
+  </defs>
+
+  <text x="20" y="28" class="t hd">LACP: both ends have to agree before a member carries traffic</text>
+
+  <rect x="40" y="48" width="190" height="104" rx="10" class="bx"/>
+  <text x="56" y="72" class="t who">access-01</text>
+  <text x="56" y="92" class="m port">interface lag 1</text>
+  <text x="56" y="110" class="m port">lacp mode active</text>
+  <text x="56" y="128" class="m port">members 1/1/13-14</text>
+  <circle cx="214" cy="66" r="9" fill="#F5A524"/>
+  <text x="214" y="70" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <rect x="670" y="48" width="190" height="104" rx="10" class="bx"/>
+  <text x="686" y="72" class="t who">core</text>
+  <text x="686" y="92" class="m port">interface lag 1</text>
+  <text x="686" y="110" class="m port">lacp mode active</text>
+  <text x="686" y="128" class="m port">members 1/1/49-50</text>
+
+  <line x1="232" y1="84" x2="668" y2="84" stroke="#5ED2DA" stroke-width="2" marker-start="url(#at)" marker-end="url(#at)"/>
+  <line x1="232" y1="126" x2="668" y2="126" stroke="#5ED2DA" stroke-width="2" marker-start="url(#at)" marker-end="url(#at)"/>
+  <text x="450" y="110" class="t det" text-anchor="middle">LACPDUs both ways on each member: every 30 s, or 1 s with lacp rate fast</text>
+  <circle cx="450" cy="148" r="9" fill="#F5A524"/>
+  <text x="450" y="152" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">3</text>
+
+  <rect x="40" y="182" width="260" height="120" rx="10" class="bx"/>
+  <text x="56" y="206" class="t lbl" font-weight="700">1. Hello: both ends active</text>
+  <text x="56" y="226" class="t det">each sends system id, key and port</text>
+  <text x="95" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">A</text>
+  <text x="125" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">L</text>
+  <text x="155" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">F</text>
+  <text x="185" y="276" class="m" font-size="17" font-weight="700" fill="#8BA2AE" fill-opacity="0.35" text-anchor="middle">N</text>
+  <text x="215" y="276" class="m" font-size="17" font-weight="700" fill="#8BA2AE" fill-opacity="0.35" text-anchor="middle">C</text>
+  <text x="245" y="276" class="m" font-size="17" font-weight="700" fill="#8BA2AE" fill-opacity="0.35" text-anchor="middle">D</text>
+
+  <rect x="320" y="182" width="260" height="120" rx="10" class="bx"/>
+  <text x="336" y="206" class="t lbl" font-weight="700">2. In sync: same aggregation</text>
+  <text x="336" y="226" class="t det">each agrees the other belongs in lag 1</text>
+  <text x="375" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">A</text>
+  <text x="405" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">L</text>
+  <text x="435" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">F</text>
+  <text x="465" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">N</text>
+  <text x="495" y="276" class="m" font-size="17" font-weight="700" fill="#8BA2AE" fill-opacity="0.35" text-anchor="middle">C</text>
+  <text x="525" y="276" class="m" font-size="17" font-weight="700" fill="#8BA2AE" fill-opacity="0.35" text-anchor="middle">D</text>
+
+  <rect x="600" y="182" width="260" height="120" rx="10" class="bx"/>
+  <text x="616" y="206" class="t lbl" font-weight="700">3. Up: collecting, distributing</text>
+  <text x="616" y="226" class="t det">only now does the member carry traffic</text>
+  <text x="655" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">A</text>
+  <text x="685" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">L</text>
+  <text x="715" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">F</text>
+  <text x="745" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">N</text>
+  <text x="775" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">C</text>
+  <text x="805" y="276" class="m" font-size="17" font-weight="700" fill="#8CE05E" text-anchor="middle">D</text>
+
+  <circle cx="290" cy="202" r="9" fill="#F5A524"/>
+  <text x="290" y="206" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+
+  <text x="40" y="326" class="t det">A active, P passive · L long timeout, S short · F aggregable · N in sync · C collecting · D distributing</text>
+
+  <circle cx="30" cy="362" r="9" fill="#F5A524"/>
+  <text x="30" y="366" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">1</text>
+  <text x="48" y="366" class="t note">Passive on both ends: nobody starts, nothing forms. One end active is enough; both active is the habit.</text>
+  <circle cx="30" cy="390" r="9" fill="#F5A524"/>
+  <text x="30" y="394" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">2</text>
+  <text x="48" y="394" class="t note">A new LAG on 10.18 is administratively down. Nothing forms until no shutdown on interface lag 1.</text>
+  <circle cx="30" cy="418" r="9" fill="#F5A524"/>
+  <text x="30" y="422" class="t" font-size="11.5" font-weight="700" fill="#06202A" text-anchor="middle">3</text>
+  <text x="48" y="422" class="t note">No lacp mode means a static LAG: no LACPDUs, so a member cabled to the wrong box still forwards.</text>
+  <text x="48" y="452" class="t det">Proof: show lacp interfaces reads ALFNCD for actor and partner on every member; show lacp aggregates lists them.</text>
+</svg>

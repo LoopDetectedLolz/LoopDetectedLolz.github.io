@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="A dBm ladder from 30 dBm (1 W) down to -90 dBm (1 pW) with the 3 dB, 10 dB and doubling-distance rules, and a wavelength comparison for 2.4, 5 and 6 GHz">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}.lbl{fill:#B0C4CF;font-size:12px}.big{fill:#fff;font-size:20px;font-weight:700}
+    .eyebrow{fill:#F5A524;font-size:11px;letter-spacing:2px;font-weight:600}.mono{font-family:JetBrains Mono,ui-monospace,Menlo,monospace;font-size:12px}
+    .bx{fill:rgba(0,0,0,0.45);stroke:rgba(255,255,255,0.12)}.bt{fill:#fff;font-size:13px;font-weight:600}.mut{fill:#8BA2AE;font-size:11px}
+  </style></defs>
+  <text x="30" y="36" class="t eyebrow">LESSON 1: WHAT A RADIO ACTUALLY SENDS</text>
+  <text x="30" y="66" class="t big">Three anchors, two rules, and you can do the math in your head.</text>
+
+  <!-- the ladder -->
+  <g class="t">
+    <line x1="120" y1="96" x2="120" y2="306" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+    <g font-size="12">
+      <circle cx="120" cy="100" r="5" fill="#F5A524"/><text x="136" y="104" class="mono" fill="#fff">+30 dBm</text><text x="216" y="104" class="mut">1 W, legal ceiling for most of what we do</text>
+      <circle cx="120" cy="134" r="5" fill="#F5A524"/><text x="136" y="138" class="mono" fill="#fff">+20 dBm</text><text x="216" y="138" class="mut">100 mW, an enterprise AP radio</text>
+      <circle cx="120" cy="168" r="5" fill="#F5A524"/><text x="136" y="172" class="mono" fill="#fff">  0 dBm</text><text x="216" y="172" class="mut">1 mW, the reference</text>
+      <circle cx="120" cy="202" r="4" fill="#8BA2AE"/><text x="136" y="206" class="mono" fill="#B0C4CF">-30 dBm</text><text x="216" y="206" class="mut">1 microwatt</text>
+      <circle cx="120" cy="236" r="5" fill="#8CE05E"/><text x="136" y="240" class="mono" fill="#fff">-67 dBm</text><text x="216" y="240" class="mut">a good client signal, two ten-millionths of a mW</text>
+      <circle cx="120" cy="270" r="4" fill="#8BA2AE"/><text x="136" y="274" class="mono" fill="#B0C4CF">-90 dBm</text><text x="216" y="274" class="mut">1 picowatt, where the noise floor lives</text>
+    </g>
+    <text x="30" y="104" class="mut">strong</text><text x="30" y="274" class="mut">weak</text>
+  </g>
+
+  <!-- rules -->
+  <g class="t">
+    <rect x="560" y="92" width="310" height="58" rx="10" class="bx"/>
+    <text x="576" y="115" class="bt">3 dB is double, or half.</text>
+    <text x="576" y="137" class="lbl">10 dB is ten times, or a tenth. 23 dBm is 200 mW.</text>
+    <rect x="560" y="162" width="310" height="58" rx="10" class="bx"/>
+    <text x="576" y="185" class="bt">Double the distance, lose about 6 dB.</text>
+    <text x="576" y="207" class="lbl">Four times the distance, 12 dB. That is the lab.</text>
+    <rect x="560" y="232" width="310" height="74" rx="10" class="bx"/>
+    <text x="576" y="255" class="bt">Wavelength picks the behaviour.</text>
+    <text x="576" y="276" class="mono" fill="#B0C4CF">2.4 GHz  12.5 cm     5 GHz  6 cm     6 GHz  5 cm</text>
+    <text x="576" y="296" class="lbl">Shorter gets through gaps, loses more in walls.</text>
+  </g>
+
+  <text x="30" y="326" class="t mono" fill="#F5A524">An AP at +20 dBm heard at -67 dBm: 87 dB of path loss. That number is the whole design.</text>
+</svg>

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" role="img" aria-label="What ClearPass Profiler knows about a statically addressed device behind a firewall, with SNMP ARP polling enabled and without it">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .n{fill:#8BA2AE;font-size:10.5px;font-family:JetBrains Mono,ui-monospace,Menlo,monospace;letter-spacing:1.5px}
+    .row{font-size:12.5px}
+    .note{fill:#B0C4CF;font-size:12px}
+    .box{font-size:12.5px;font-weight:600}
+  </style></defs>
+
+  <text x="15" y="26" class="t hd">A static device behind a firewall gives Profiler three chances. Two of them are already gone.</text>
+
+  <text x="15" y="58" class="t n">WITHOUT SNMP ARP READ</text>
+  <g class="t">
+    <rect x="15" y="70" width="410" height="44" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="32" y="97" class="row" fill="#8BA2AE">DHCP fingerprint</text>
+    <text x="408" y="97" class="row" fill="#F5A524" text-anchor="end">nothing, the device has a static address</text>
+
+    <rect x="15" y="122" width="410" height="44" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="32" y="149" class="row" fill="#8BA2AE">Active scan</text>
+    <text x="408" y="149" class="row" fill="#F5A524" text-anchor="end">nothing, no address to aim at</text>
+
+    <rect x="15" y="174" width="410" height="44" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="32" y="201" class="row" fill="#8BA2AE">RADIUS attributes</text>
+    <text x="408" y="201" class="row" fill="#B0C4CF" text-anchor="end">a MAC, at auth time, too late</text>
+
+    <text x="15" y="248" class="t note" fill="#F5A524">Unknown device, generic role, and a re-auth needed before policy can be right.</text>
+  </g>
+
+  <text x="470" y="58" class="t n">WITH SNMP ARP READ</text>
+  <g class="t">
+    <rect x="470" y="70" width="415" height="44" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="487" y="97" class="row" fill="#8BA2AE">DHCP fingerprint</text>
+    <text x="868" y="97" class="row" fill="#8BA2AE" text-anchor="end">still nothing, and that is fine</text>
+
+    <rect x="470" y="122" width="415" height="44" rx="8" fill="#8CE05E" fill-opacity="0.12" stroke="#8CE05E" stroke-opacity="0.55"/>
+    <text x="487" y="149" class="row" fill="#8CE05E">ARP table off the L3 gateway</text>
+    <text x="868" y="149" class="row" fill="#B6F08F" text-anchor="end">IP bound to MAC, on a poll cycle</text>
+
+    <rect x="470" y="174" width="415" height="44" rx="8" fill="#8CE05E" fill-opacity="0.12" stroke="#8CE05E" stroke-opacity="0.55"/>
+    <text x="487" y="201" class="row" fill="#8CE05E">Active scan, now targeted</text>
+    <text x="868" y="201" class="row" fill="#B6F08F" text-anchor="end">category on the endpoint before auth</text>
+
+    <text x="470" y="248" class="t note" fill="#8CE05E">Classified on the first authentication attempt, with no client involvement at all.</text>
+  </g>
+
+  <rect x="15" y="266" width="870" height="52" rx="10" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+  <text x="32" y="290" class="t note">A DHCP relay pointed at ClearPass is the usual fix for a blind segment, and it does nothing here. There is no</text>
+  <text x="32" y="310" class="t note">DHCP conversation to relay. The gateway's ARP table is the only place that MAC and that IP appear together.</text>
+</svg>

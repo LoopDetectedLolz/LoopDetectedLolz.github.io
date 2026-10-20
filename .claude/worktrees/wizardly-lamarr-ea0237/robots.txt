@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://networkfieldnotes.com/sitemap.xml

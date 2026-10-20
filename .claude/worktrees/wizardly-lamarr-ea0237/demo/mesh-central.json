@@ -1,0 +1,25 @@
+{
+ "source": "aruba-central-classic",
+ "group": "Demo-Field",
+ "pulled": "2026-09-12T09:00:00",
+ "site": {"name": "Demo-Field"},
+ "aps": [
+  {"name": "Field-Portal", "serial": "DEMO000001", "mac": "00:00:5e:00:53:01", "model": "AP-735", "status": "Up", "mesh_role": "portal",
+   "radios": [{"mac": "00:00:5e:00:53:11", "band": "2.4", "channel": 6, "tx_dbm": 12, "ss": 2, "bw": "20MHz", "eirp_dbm": 17},
+              {"mac": "00:00:5e:00:53:12", "band": "5", "channel": 149, "tx_dbm": 21, "ss": 2, "bw": "80MHz", "eirp_dbm": 26.5, "noise_dbm": -96}]},
+  {"name": "Field-Point-A", "serial": "DEMO000002", "mac": "00:00:5e:00:53:02", "model": "AP-635", "status": "Up", "mesh_role": "point",
+   "radios": [{"mac": "00:00:5e:00:53:21", "band": "2.4", "channel": 1, "tx_dbm": 12, "ss": 2, "bw": "20MHz"},
+              {"mac": "00:00:5e:00:53:22", "band": "5", "channel": 149, "tx_dbm": 21, "ss": 2, "bw": "80MHz", "noise_dbm": -95}]},
+  {"name": "Field-Point-B", "serial": "DEMO000003", "mac": "00:00:5e:00:53:03", "model": "AP-505H", "status": "Up", "mesh_role": "point",
+   "radios": [{"mac": "00:00:5e:00:53:31", "band": "2.4", "channel": 11, "tx_dbm": 12, "ss": 2, "bw": "20MHz"},
+              {"mac": "00:00:5e:00:53:32", "band": "5", "channel": 149, "tx_dbm": 21, "ss": 2, "bw": "80MHz", "noise_dbm": -97}]}
+ ],
+ "pathloss": [
+  {"from": "DEMO000001", "to": "DEMO000002", "band": "5", "db": 84, "channel": 149, "bw": "80MHz"},
+  {"from": "DEMO000002", "to": "DEMO000001", "band": "5", "db": 86, "channel": 149, "bw": "80MHz"},
+  {"from": "DEMO000002", "to": "DEMO000003", "band": "5", "db": 91, "channel": 149, "bw": "80MHz"},
+  {"from": "DEMO000003", "to": "DEMO000002", "band": "5", "db": 93, "channel": 149, "bw": "80MHz"},
+  {"from": "DEMO000001", "to": "DEMO000002", "band": "2.4", "db": 70, "channel": 6, "bw": "20MHz"}
+ ],
+ "note": "Synthetic. Three APs and the loss between them, shaped like central-pull.py writes it."
+}

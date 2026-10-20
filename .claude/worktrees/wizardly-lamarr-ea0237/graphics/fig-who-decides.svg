@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-label="The roaming decision split between what the infrastructure can influence and what the client alone decides">
+  <defs><style>
+    .t{font-family:Instrument Sans,-apple-system,Helvetica,sans-serif}
+    .hd{fill:#fff;font-size:15px;font-weight:700}
+    .n{fill:#8BA2AE;font-size:10.5px;font-family:JetBrains Mono,ui-monospace,Menlo,monospace;letter-spacing:1.5px}
+    .row{font-size:12.5px}
+    .note{fill:#B0C4CF;font-size:12px}
+  </style></defs>
+
+  <text x="15" y="26" class="t hd">Everything on the left is input. Everything on the right is the decision.</text>
+
+  <text x="15" y="58" class="t n">WHAT YOU CAN SEND</text>
+  <g class="t">
+    <rect x="15" y="70" width="410" height="40" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="32" y="95" class="row" fill="#5ED2DA">802.11k</text><text x="408" y="95" class="row" fill="#B0C4CF" text-anchor="end">a neighbour list, so the scan is cheaper</text>
+
+    <rect x="15" y="118" width="410" height="40" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="32" y="143" class="row" fill="#5ED2DA">802.11v</text><text x="408" y="143" class="row" fill="#B0C4CF" text-anchor="end">a suggestion to move, freely ignored</text>
+
+    <rect x="15" y="166" width="410" height="40" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="32" y="191" class="row" fill="#5ED2DA">802.11r</text><text x="408" y="191" class="row" fill="#B0C4CF" text-anchor="end">a cheaper reassociation once decided</text>
+
+    <rect x="15" y="214" width="410" height="40" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.10"/>
+    <text x="32" y="239" class="row" fill="#5ED2DA">Band steering</text><text x="408" y="239" class="row" fill="#B0C4CF" text-anchor="end">an answer withheld, not an instruction</text>
+  </g>
+
+  <text x="470" y="58" class="t n">WHAT THE CLIENT KEEPS</text>
+  <g class="t">
+    <rect x="470" y="70" width="415" height="40" rx="8" fill="#8CE05E" fill-opacity="0.10" stroke="#8CE05E" stroke-opacity="0.45"/>
+    <text x="487" y="95" class="row" fill="#8CE05E">When to scan</text><text x="868" y="95" class="row" fill="#B6F08F" text-anchor="end">and how often to bother</text>
+
+    <rect x="470" y="118" width="415" height="40" rx="8" fill="#8CE05E" fill-opacity="0.10" stroke="#8CE05E" stroke-opacity="0.45"/>
+    <text x="487" y="143" class="row" fill="#8CE05E">Which BSSID wins</text><text x="868" y="143" class="row" fill="#B6F08F" text-anchor="end">on its own scoring, not yours</text>
+
+    <rect x="470" y="166" width="415" height="40" rx="8" fill="#8CE05E" fill-opacity="0.10" stroke="#8CE05E" stroke-opacity="0.45"/>
+    <text x="487" y="191" class="row" fill="#8CE05E">The roam threshold</text><text x="868" y="191" class="row" fill="#B6F08F" text-anchor="end">vendor by vendor, undocumented</text>
+
+    <rect x="470" y="214" width="415" height="40" rx="8" fill="#8CE05E" fill-opacity="0.10" stroke="#8CE05E" stroke-opacity="0.45"/>
+    <text x="487" y="239" class="row" fill="#8CE05E">Whether to try at all</text><text x="868" y="239" class="row" fill="#B6F08F" text-anchor="end">see the backoff and the disable timer</text>
+  </g>
+
+  <text x="15" y="284" class="t note">There is no frame that moves a client. "The AP would not let go" is nearly always a sentence about the client.</text>
+</svg>

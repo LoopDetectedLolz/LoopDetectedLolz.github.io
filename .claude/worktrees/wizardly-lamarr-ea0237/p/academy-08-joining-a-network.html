@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Joining a Network</title>
+<meta name="description" content="A client doesn&#x27;t connect. It climbs a ladder of a dozen exchanges, and every rung is somewhere it can fall off. This is the ladder in order, what each platform shows you for each rung, and a lab that breaks it three ways so you learn which rung each failure lands on.">
+<link rel="canonical" href="https://networkfieldnotes.com/p/academy-08-joining-a-network.html">
+<link rel="icon" type="image/svg+xml" href="/logo/nfn-favicon.svg">
+<link rel="icon" type="image/png" sizes="512x512" href="/logo/nfn-favicon-512.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="alternate" type="application/rss+xml" title="Network Field Notes" href="https://networkfieldnotes.com/rss.xml">
+<meta property="og:site_name" content="Network Field Notes">
+<meta property="og:title" content="Joining a Network">
+<meta property="og:description" content="A client doesn&#x27;t connect. It climbs a ladder of a dozen exchanges, and every rung is somewhere it can fall off. This is the ladder in order, what each platform shows you for each rung, and a lab that breaks it three ways so you learn which rung each failure lands on.">
+<meta property="og:url" content="https://networkfieldnotes.com/p/academy-08-joining-a-network.html">
+<meta property="og:image" content="https://networkfieldnotes.com/og/academy-08-joining-a-network.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Joining a Network">
+<meta name="twitter:description" content="A client doesn&#x27;t connect. It climbs a ladder of a dozen exchanges, and every rung is somewhere it can fall off. This is the ladder in order, what each platform shows you for each rung, and a lab that breaks it three ways so you learn which rung each failure lands on.">
+<meta name="twitter:image" content="https://networkfieldnotes.com/og/academy-08-joining-a-network.png">
+<meta property="og:type" content="article"><meta property="article:published_time" content="2026-09-26"><meta property="article:author" content="Dustin Burns"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Joining a Network", "description": "A client doesn't connect. It climbs a ladder of a dozen exchanges, and every rung is somewhere it can fall off. This is the ladder in order, what each platform shows you for each rung, and a lab that breaks it three ways so you learn which rung each failure lands on.", "datePublished": "2026-09-26", "image": "https://networkfieldnotes.com/og/academy-08-joining-a-network.png", "author": {"@type": "Person", "name": "Dustin Burns"}, "publisher": {"@type": "Person", "name": "Dustin Burns"}, "mainEntityOfPage": "https://networkfieldnotes.com/p/academy-08-joining-a-network.html", "keywords": "Wireless, Academy, ClearPass"}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>/* Network Field Notes. Built to DESIGN-KIT.md and matched to Blog Style.dc.html. */
+:root{
+  --ink:#061019; --navy:#0E2A3C; --blue:#2FA8E0; --blue-light:#4FBDEA;
+  --teal:#5ED2DA; --green:#8CE05E; --orange:#F5A524; --red:#F0705F; --text:#EAF2F6; --text-dim:#B0C4CF; --text-muted:#8BA2AE;
+  --solid:rgba(3,10,16,0.55); --line:rgba(255,255,255,0.10);
+  --r-pill:999px; --r-inner:16px; --r-chrome:22px; --r-card:26px; --r-hero:32px;
+  --s1:6px; --s2:10px; --s3:14px; --s4:20px; --s5:24px; --s6:28px; --s7:44px;
+  --gutter:20px; --maxw:1120px; --measure:68ch;
+  --ease:cubic-bezier(0.32,0.72,0,1);
+  --sans:'Instrument Sans',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --gb:6px; --veil:0.80;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0;overflow-x:hidden;overscroll-behavior-y:none}
+body{min-height:100vh;min-height:100svh;background:var(--ink);color:var(--text);font-family:var(--sans);
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.ground{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+  radial-gradient(900px 620px at 12% -6%,rgba(47,168,224,0.42),transparent 62%),
+  radial-gradient(760px 560px at 88% 8%,rgba(140,224,94,0.26),transparent 60%),
+  radial-gradient(1000px 700px at 60% 108%,rgba(23,138,168,0.34),transparent 62%),var(--ink)}
+/* topographic ground: .ground is the fallback floor, the canvas is the map, .gx-pane is the
+   glass, .gx-grain is the frost. Frost stays sharp on purpose; scatter lives on the pane. */
+#nfn-fx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block;
+  filter:blur(var(--gb));transform:scale(1.10);transform-origin:center}
+.gx-pane{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--veil);
+  background:linear-gradient(158deg,rgba(255,255,255,0.038) 0%,rgba(255,255,255,0.010) 36%,rgba(255,255,255,0) 60%),
+             radial-gradient(1500px 950px at 50% 122%,rgba(3,10,16,0.22),transparent 72%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -1px 0 rgba(255,255,255,0.04)}
+.gx-grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:calc(var(--veil) * 0.46);
+  mix-blend-mode:overlay;background-size:170px 170px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23n)'/%3E%3C/svg%3E")}
+.page{position:relative;z-index:1}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(var(--gutter),env(safe-area-inset-left));padding-right:max(var(--gutter),env(safe-area-inset-right))}
+.narrow{max-width:900px;margin:0 auto}
+
+/* glass: three levels, never nested */
+.g-chrome{background:rgba(255,255,255,0.07);-webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.16);border-radius:var(--r-chrome);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),inset 0 -1px 0 rgba(255,255,255,0.06),0 18px 44px -22px rgba(0,0,0,0.8)}
+.g-card{background:rgba(255,255,255,0.065);-webkit-backdrop-filter:blur(26px) saturate(175%);backdrop-filter:blur(26px) saturate(175%);
+  border:1px solid rgba(255,255,255,0.14);border-radius:var(--r-card);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 26px 54px -30px rgba(0,0,0,0.8)}
+.g-hero{background:rgba(255,255,255,0.075);-webkit-backdrop-filter:blur(34px) saturate(185%);backdrop-filter:blur(34px) saturate(185%);
+  border:1px solid rgba(255,255,255,0.17);border-radius:var(--r-hero);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.3),0 40px 80px -34px rgba(0,0,0,0.85)}
+.panel{background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+
+/* type */
+h1,h2,h3{margin:0;letter-spacing:-0.025em;text-wrap:pretty;font-weight:700}
+p{text-wrap:pretty;margin:0}
+.eyebrow{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.16em;color:var(--text-muted)}
+.h-hero{font-size:clamp(30px,6vw,46px);line-height:1.06;letter-spacing:-0.035em}
+.h-card{font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-0.02em}
+.meta{font-family:var(--mono);font-size:13px;color:var(--text-muted)}
+.dim{color:var(--text-dim)}
+a{color:#a9ea82;text-decoration:none}
+a:hover{color:#cbf4b3}
+
+/* header */
+.hdr{position:sticky;top:var(--s4);z-index:40;margin:var(--s4) 0 var(--s6)}
+.hdr-in{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2);padding:var(--s2) var(--s3) var(--s2) var(--s3);
+  transition:background 320ms var(--ease),transform 320ms var(--ease),box-shadow 320ms var(--ease)}
+.hdr.scrolled .hdr-in{background:rgba(255,255,255,0.11);transform:scale(0.985);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 22px 54px -22px rgba(0,0,0,0.9)}
+.brand{display:flex;align-items:center;gap:var(--s2);min-height:44px;color:var(--text);font-weight:700;font-size:17px;letter-spacing:-0.02em}
+.brand:hover{color:var(--text)}
+.brand .mk{width:38px;height:38px;border-radius:12px;background:var(--solid);border:1px solid var(--line);display:grid;place-items:center}
+.brand .mk img{width:26px;height:26px;display:block}
+.brand .wm{white-space:nowrap}
+.nav{margin-left:auto;display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 var(--s3);border-radius:var(--r-pill);
+  border:1px solid transparent;color:var(--text-dim);font-size:15px;font-weight:500;
+  transition:transform 180ms var(--ease),background 220ms var(--ease),color 220ms var(--ease)}
+.pill:hover{color:var(--text);background:rgba(255,255,255,0.06)}
+.pill:active{transform:scale(0.94)}
+.pill.on{position:relative;color:var(--text);font-weight:700;background:rgba(245,165,36,0.12);
+  border-color:rgba(245,165,36,0.9);border-bottom-color:transparent;
+  box-shadow:0 0 0 1px rgba(245,165,36,0.25),0 10px 26px -10px rgba(245,165,36,0.85),inset 0 1px 0 rgba(255,255,255,0.18)}
+.pill.on:hover{color:var(--text);background:rgba(245,165,36,0.16)}
+.pill.soft{background:rgba(255,255,255,0.10);color:var(--text)}
+.pill.outline{border-color:rgba(255,255,255,0.16);background:rgba(255,255,255,0.05);font-family:var(--sans);color:var(--text-muted)}
+.pill.outline svg{width:15px;height:15px}
+.search{display:none;margin:var(--s3) 0 0;width:100%}
+.search input{width:100%;min-height:44px;font:16px var(--sans);color:var(--text);background:var(--solid);border:1px solid var(--line);
+  border-radius:var(--r-pill);padding:0 var(--s4);outline:none}
+.search input:focus{border-color:rgba(79,189,234,0.55)}
+.search.open{display:block}
+
+/* status + category pills */
+a.tag{text-decoration:none;transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+@media (pointer:coarse){a.tag{min-height:38px}#qam-dl{display:inline-flex;align-items:center;min-height:38px}}
+a.tag:hover{transform:translateY(-1px);box-shadow:0 6px 16px -8px rgba(0,0,0,0.7)}
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--blue-light);border:1px solid rgba(79,189,234,0.45);background:rgba(47,168,224,0.10);border-radius:var(--r-pill);padding:5px 12px;white-space:nowrap}
+.tag.green{color:#bdf29c;border-color:rgba(140,224,94,0.45);background:rgba(140,224,94,0.10)}
+.tag.c-green{color:#bdf29c;border-color:rgba(140,224,94,0.55);background:rgba(140,224,94,0.12)}
+.tag.c-blue{color:#a8d9f2;border-color:rgba(79,189,234,0.6);background:rgba(47,168,224,0.14)}
+.tag.c-red{color:#ffb3a8;border-color:rgba(240,112,95,0.6);background:rgba(240,112,95,0.14)}
+.chip.c-green{color:#bdf29c;border-color:rgba(140,224,94,0.45)}
+.chip.c-blue{color:#a8d9f2;border-color:rgba(79,189,234,0.5)}
+.chip.c-red{color:#ffb3a8;border-color:rgba(240,112,95,0.5)}
+.chip.on.c-green{background:rgba(140,224,94,0.16)}
+.chip.on.c-blue{background:rgba(47,168,224,0.18)}
+.chip.on.c-red{background:rgba(240,112,95,0.18)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(140,224,94,0.18)}
+
+/* hero = featured post */
+.hero{position:relative;overflow:hidden;padding:var(--s7) var(--s7) var(--s6);margin-bottom:var(--s6)}
+.hero .h-hero{margin:var(--s4) 0 var(--s3);max-width:20ch}
+.hero .lede{max-width:var(--measure)}
+.lede{color:var(--text-dim);font-size:18px;line-height:1.55}
+.sheen{position:absolute;top:-40%;left:0;width:38%;height:180%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,0.13),transparent);filter:blur(14px);animation:nfnSheen 7s linear infinite}
+.glow{position:absolute;right:-8%;top:-30%;width:55%;height:160%;pointer-events:none;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(255,255,255,0.10),transparent 70%)}
+.row{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;margin-top:var(--s5)}
+.btn{display:inline-flex;align-items:center;min-height:46px;padding:0 var(--s5);border-radius:var(--r-pill);
+  border:1px solid rgba(255,255,255,0.16);background:rgba(255,255,255,0.06);color:var(--text);font-weight:600;font-size:16px;
+  transition:transform 180ms var(--ease),background 220ms var(--ease)}
+.btn:hover{background:rgba(255,255,255,0.11);color:var(--text)}
+.btn:active{transform:scale(0.94)}
+.btn.cta{background:linear-gradient(180deg,rgba(255,255,255,0.55),rgba(255,255,255,0) 55%),var(--green);color:#06202A;border-color:transparent;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.65),0 14px 30px -14px rgba(140,224,94,0.9)}
+.btn.cta:hover{color:#06202A}
+
+/* filter */
+/* the home page runs wider than an article, because it carries the rail */
+.wrap.wide{max-width:1320px}
+
+/* browse: category rail beside the grid above 1180, a scroller below it */
+.browse{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s4);margin-top:var(--s6)}
+@media (min-width:1180px){.browse{grid-template-columns:190px minmax(0,1fr);gap:var(--s6);align-items:start}}
+.browse-main .grid{margin-top:0}
+.cat-rail{display:flex;gap:var(--s2);overflow-x:auto;padding:2px 2px var(--s2);scrollbar-width:none}
+.cat-rail::-webkit-scrollbar{display:none}
+.cat-rail .eyebrow{display:none}
+@media (min-width:1180px){
+  .cat-rail{position:sticky;top:92px;flex-direction:column;gap:5px;overflow:visible;padding:0}
+  .cat-rail .eyebrow{display:block;margin:0 0 var(--s2) 13px}
+}
+.cat{--c:rgba(255,255,255,0.30);display:inline-flex;align-items:center;gap:10px;flex:none;min-height:40px;
+  padding:0 var(--s3);border:1px solid rgba(255,255,255,0.16);border-radius:var(--r-pill);
+  background:rgba(255,255,255,0.05);color:var(--text-muted);font:600 13.5px var(--sans);
+  white-space:nowrap;cursor:pointer;-webkit-appearance:none;appearance:none;
+  transition:background 220ms var(--ease),color 220ms var(--ease),transform 180ms var(--ease)}
+.cat i{width:3px;height:16px;border-radius:2px;background:var(--c);flex:none}
+.cat b{margin-left:auto;padding-left:8px;font:600 11.5px var(--mono);color:var(--text-muted);font-variant-numeric:tabular-nums}
+.cat:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.cat:active{transform:scale(0.96)}
+.cat.on{background:rgba(255,255,255,0.13);color:var(--text);border-color:rgba(255,255,255,0.26)}
+.cat.on i{box-shadow:0 0 10px var(--c)}
+.cat.on b{color:var(--text-dim)}
+@media (min-width:1180px){.cat{width:100%;border-radius:12px;min-height:42px}.cat i{height:18px}}
+
+/* a series collapses into one tile: name, part count, the parts as links */
+.series-card{gap:var(--s2)}
+.series-card:active{transform:none}
+.series-card .parts{font:600 11.5px var(--mono);color:var(--text-muted)}
+.series-list{list-style:none;margin:var(--s2) 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.series-list a{display:flex;gap:10px;align-items:baseline;padding:7px 9px;margin:0 -9px;border-radius:10px;
+  color:var(--text-dim);font-size:14.5px;line-height:1.45;text-decoration:none;
+  transition:background 200ms var(--ease),color 200ms var(--ease)}
+.series-list a:hover{background:rgba(255,255,255,0.07);color:var(--text)}
+.series-list b{font:600 11px var(--mono);color:var(--text-muted);min-width:13px;flex:none}
+
+.filter{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;margin:0 0 var(--s5)}
+.filter .eyebrow{margin-right:var(--s1)}
+.chip{display:inline-flex;align-items:center;min-height:38px;padding:0 var(--s3);border-radius:var(--r-pill);border:1px solid rgba(255,255,255,0.16);
+  background:rgba(255,255,255,0.05);color:var(--text-dim);font-size:14px;font-weight:500;cursor:pointer;
+  transition:transform 180ms var(--ease),background 220ms var(--ease),color 220ms var(--ease)}
+.chip:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.chip:active{transform:scale(0.94)}
+.chip.on{background:rgba(255,255,255,0.14);color:var(--text);border-color:rgba(255,255,255,0.28)}
+
+/* cards */
+.grid{margin-top:var(--s7);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:var(--s4);position:relative}
+.card{position:relative;display:flex;flex-direction:column;gap:var(--s3);padding:var(--s5);color:var(--text);
+  transition:transform 260ms var(--ease),background 260ms var(--ease)}
+.card:hover{color:var(--text)}
+.card:active{transform:scale(0.975)}
+@media (hover:hover){.card:hover{transform:translateY(-4px);background:rgba(255,255,255,0.10)}}
+.card.hidden{display:none}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s2)}
+.card .h-card{margin:var(--s1) 0 0}
+.card p{color:var(--text-dim);font-size:15px;line-height:1.55}
+.card-foot{margin-top:auto;padding-top:var(--s3);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:var(--s2);
+  font-family:var(--mono);font-size:12.5px;color:var(--text-muted)}
+.card-foot b{color:var(--green);font-weight:600}
+.src{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:14px;color:var(--text-dim)}
+.src svg{width:14px;height:14px;color:var(--green)}
+.empty{display:none;padding:var(--s7) var(--s5);text-align:center;color:var(--text-muted)}
+.empty.show{display:block}
+
+/* bottom band */
+.band{position:relative;margin-top:var(--s7);padding:var(--s6) var(--s6);display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}
+.band h3{font-size:22px;letter-spacing:-0.02em}
+.band p{color:var(--text-dim);margin-top:4px}
+.band .row{margin-top:0}
+
+/* post page */
+.backbar{margin:0 0 var(--s4)}
+.post-head{padding:var(--s7) var(--s7) var(--s6)}
+.post-head .h-hero{margin:var(--s4) 0 0;max-width:24ch}
+.post-body{padding:var(--s7);margin-top:var(--s4)}
+.prose{max-width:var(--measure);font-size:16.5px;line-height:1.65}
+.prose h2{font-size:26px;margin:var(--s7) 0 var(--s3);letter-spacing:-0.03em}
+.prose h2:first-child{margin-top:0}
+.prose h3{font-size:19px;margin:var(--s6) 0 var(--s2);font-weight:600}
+.prose p{margin:0 0 var(--s4)}
+.prose strong{color:#fff}
+.prose ul,.prose ol{margin:0 0 var(--s4);padding-left:var(--s4)}
+.prose li{margin:var(--s1) 0}
+.prose blockquote,.callout{margin:0 0 var(--s4);padding:var(--s3) var(--s4);border:1px solid rgba(140,224,94,0.45);
+  background:rgba(140,224,94,0.08);border-radius:var(--r-inner);color:#e6f6db}
+.prose blockquote p:last-child{margin:0}
+.prose pre{background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);padding:var(--s4) var(--s5);overflow-x:auto;
+  -webkit-overflow-scrolling:touch;margin:0 0 var(--s4)}
+.prose code,.prose pre{font-family:var(--mono);font-size:14px;line-height:1.7}
+.prose :not(pre)>code{background:var(--solid);border:1px solid var(--line);border-radius:8px;padding:1px 6px;color:var(--green);font-size:0.88em}
+.prose pre code{background:none;border:0;padding:0;color:#D3E3EC}
+.prose table{width:100%;border-collapse:collapse;margin:0 0 var(--s4);font-size:14.5px;display:block;overflow-x:auto}
+.prose th{background:var(--solid);color:var(--blue-light);text-align:left;padding:var(--s2) var(--s3);border:1px solid var(--line);font-family:var(--mono);font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase}
+.prose td{padding:var(--s2) var(--s3);border:1px solid var(--line);vertical-align:top;color:var(--text-dim)}
+.figure{margin:0 0 var(--s5);padding:var(--s4);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.figure svg{display:block;width:100%;height:auto;min-width:0}
+.figure figcaption{margin-top:var(--s3);font-family:var(--mono);font-size:11.5px;line-height:1.65;color:var(--text-muted)}
+/* body figures carry detail: let them scroll on a phone rather than shrink past reading size */
+@media (max-width:700px){figure.figure svg{min-width:600px}figure.figure{padding:var(--s3)}}
+.origin{margin:0 0 var(--s5)}
+.origin .eyebrow{display:block;color:var(--teal);margin-bottom:4px}
+.end{position:relative;margin-top:var(--s4);padding:var(--s6) var(--s7)}
+.end h3{font-size:22px}
+.end p{color:var(--text-dim);margin-top:4px}
+.postnav{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--s3);margin-top:var(--s4)}
+.pn{padding:var(--s3) var(--s4);color:var(--text);font-weight:600;font-size:15px;transition:transform 180ms var(--ease),background 220ms var(--ease)}
+.pn:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.pn:active{transform:scale(0.975)}
+.pn .eyebrow{display:block;margin-bottom:2px}
+
+/* about + socials */
+.about{padding:var(--s7);display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s5)}
+.about .prose{max-width:var(--measure)}
+.chips{display:flex;gap:var(--s1);flex-wrap:wrap}
+.chips .tag{color:var(--text-dim);border-color:var(--line);background:var(--solid)}
+.socials{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:var(--s4);margin-top:var(--s5)}
+.social{display:flex;align-items:center;gap:var(--s3);padding:var(--s5);color:var(--text);transition:transform 260ms var(--ease),background 260ms var(--ease)}
+.social:hover{background:rgba(255,255,255,0.10);color:var(--text)}
+.social:active{transform:scale(0.975)}
+.social b{display:block;font-size:17px}
+.social span{font-size:14px;color:var(--text-muted)}
+.social-ico{width:44px;height:44px;flex:0 0 44px;border-radius:var(--r-inner);background:var(--solid);display:grid;place-items:center;border:1px solid var(--line)}
+
+/* mascot: one Rig per page, fixed in the lower-right, above everything */
+.rig{position:fixed;z-index:60;display:block;width:104px;line-height:0;
+  right:max(20px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));
+  filter:drop-shadow(0 14px 24px rgba(0,0,0,0.55));transition:transform 200ms var(--ease)}
+.rig img{display:block;width:100%;height:auto}
+.rig:hover{transform:translateY(-4px)}
+.rig:active{transform:scale(0.92)}
+@media (prefers-reduced-motion:no-preference){.rig img{animation:botFloat 5s ease-in-out infinite}}
+@media (max-width:520px){.rig{width:84px}}
+/* the page always ends with room for him, so nothing is permanently covered */
+.page{min-height:100vh;min-height:100svh;display:flex;flex-direction:column}
+.page>main{flex:1 0 auto;width:100%;padding-bottom:calc(104px + 40px)}  /* width:100% because the auto side margins would otherwise stop the flex stretch */
+
+footer{padding:var(--s6) 0 var(--s4);color:var(--text-muted);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--s2);padding-right:calc(104px + 40px)}
+
+/* motion */
+@keyframes nfnSheen{0%{transform:translateX(-120%)}100%{transform:translateX(220%)}}
+@keyframes botFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes nfnRise{from{opacity:0;transform:translate3d(0,22px,0) scale(0.985)}to{opacity:1;transform:none}}
+@keyframes nfnPush{from{opacity:0.4;transform:translate3d(28px,0,0)}to{opacity:1;transform:none}}
+@keyframes nfnPop{from{opacity:0.4;transform:translate3d(-22px,0,0)}to{opacity:1;transform:none}}
+@keyframes nfnZoom{from{opacity:0;transform:scale(0.78)}60%{opacity:1}to{opacity:1;transform:none}}
+@keyframes nfnGenie{0%{opacity:0;transform:scale(0.07,0.02) skewX(-14deg)}35%{opacity:1;transform:scale(0.42,0.55) skewX(-7deg)}70%{transform:scale(0.92,1.03) skewX(-1.5deg)}to{opacity:1;transform:none}}
+.rise{animation:nfnRise 520ms var(--ease) both}
+.hero.rise{animation-duration:560ms}
+.zoom{animation:nfnZoom 480ms var(--ease) both;will-change:transform}
+.genie{animation:nfnGenie 560ms var(--ease) both;will-change:transform}
+.pop{animation:nfnPop 420ms var(--ease) both}
+@media (prefers-reduced-motion:reduce){
+  @keyframes nfnRise{from{opacity:0}to{opacity:1}}@keyframes nfnPush{from{opacity:0}to{opacity:1}}@keyframes nfnPop{from{opacity:0}to{opacity:1}}
+  @keyframes nfnZoom{from{opacity:0}to{opacity:1}}@keyframes nfnGenie{from{opacity:0}to{opacity:1}}
+  @keyframes nfnSheen{0%,100%{opacity:0}}@keyframes botFloat{0%,100%{transform:none}}
+}
+
+/* narrow screens */
+@media (max-width:700px){
+  .nav .cat{display:none}
+  /* six pills at 360 px: tighter, and a nav that would not fit scrolls sideways instead of clipping the last one */
+  .nav{flex:1 0 100%;margin-left:0;flex-wrap:nowrap;justify-content:space-between;gap:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{display:none}
+  .hdr .wrap{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+  .hdr-in{padding-left:8px;padding-right:8px}
+  .pill{padding:0 6px;font-size:13px;letter-spacing:-0.01em;white-space:nowrap;flex:0 0 auto}
+  .pill.outline{padding:0 8px;gap:0}.pill.outline span{display:none}
+  .hero{padding:var(--s6) var(--s4)}
+  .post-head,.post-body,.about,.end{padding:var(--s6) var(--s4)}
+  .band{padding:var(--s5) var(--s4)}
+}
+
+/* ── what the box said ─────────────────────────────────────────────────── */
+.term{margin:var(--s5) 0;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);overflow:hidden}
+.term-bar{display:flex;align-items:center;gap:6px;padding:9px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,0.03)}
+.term-bar i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.12)}
+.term-bar i:first-child{background:rgba(140,224,94,0.45)}
+.term-bar b{margin-left:8px;font:600 11px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}
+.prose .term pre{margin:0;border:0;border-radius:0;background:none;padding:var(--s3) var(--s4)}
+.term .ln{display:block;padding:0 6px;margin:0 -6px;border-radius:6px}
+.term .pr{color:var(--green);font-weight:500}
+.term .ln.hot{background:rgba(140,224,94,0.10);border-left:3px solid var(--green);border-radius:0 6px 6px 0;padding-left:3px;color:var(--text)}
+
+/* ── interactive widgets ───────────────────────────────────────────────── */
+.widget{margin:var(--s5) 0 var(--s4);padding:var(--s4) var(--s5);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+.w-head{display:flex;flex-direction:column;gap:4px;margin-bottom:var(--s4)}
+.w-head b{font-size:17px;letter-spacing:-0.01em}
+.w-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:var(--s3) var(--s4);margin-bottom:var(--s4)}
+.w-controls label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-dim)}
+.w-controls select,.w-controls input[type=number]{font:14px var(--sans);color:var(--text);background:rgba(3,10,16,0.7);border:1px solid var(--line);border-radius:10px;min-height:40px;padding:0 10px}
+.w-controls input[type=number]{width:96px;display:inline-block}
+.w-unit{display:flex;align-items:center;gap:8px}
+.w-slider>span b{color:var(--green);font-size:15px;margin-left:6px}
+.w-slider{grid-column:1/-1}
+.w-controls input[type=range]{width:100%;accent-color:var(--green);min-height:32px}
+.w-bar{position:relative;height:18px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid var(--line);overflow:hidden;display:flex}
+.w-fill{height:100%;background:var(--green);transition:width 240ms var(--ease)}
+.w-fill.other{background:var(--teal);opacity:0.8}
+.widget.tight .w-fill{background:var(--orange)}
+.widget.over .w-fill{background:var(--orange)}
+.widget.over .w-bar{border-color:rgba(245,165,36,0.6);box-shadow:0 0 0 3px rgba(245,165,36,0.15)}
+.w-read{margin-top:var(--s3);font-size:15px;color:var(--text)}
+.w-read b{color:var(--green)}
+.widget.over .w-read b:first-child{color:var(--orange)}
+.w-note{margin-top:var(--s2);font-size:13px;color:var(--text-dim);line-height:1.6}
+/* the 5 GHz spectrum strip in the channel 173 post. NOT .band: that is the call-to-action card */
+.spectrum{position:relative;height:64px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);overflow:hidden}
+.band-scan{position:absolute;left:0;top:0;bottom:0;width:90.6%;background:repeating-linear-gradient(135deg,rgba(94,210,218,0.10) 0 6px,transparent 6px 12px);border-right:2px dashed rgba(94,210,218,0.7);pointer-events:none}
+.blk{position:absolute;top:8px;bottom:8px;left:var(--l);width:var(--w);font:600 11px var(--mono);letter-spacing:0.04em;color:var(--text-dim);background:rgba(3,10,16,0.55);border:1px solid rgba(255,255,255,0.14);border-radius:8px;cursor:pointer;padding:0;overflow:hidden;white-space:nowrap;transition:transform 200ms var(--ease),background 200ms var(--ease)}
+.blk:hover{transform:translateY(-1px)}
+.blk.on{color:#06202A;background:var(--teal);border-color:var(--teal)}
+.blk.hot{color:#bdf29c;border-color:rgba(140,224,94,0.6);font-size:9px}
+.blk.hot.on{color:#06202A;background:var(--green);border-color:var(--green)}
+.band-axis{position:relative;height:18px;margin-top:6px;font:11px var(--mono);color:var(--text-muted)}
+.band-axis span{position:absolute;transform:translateX(-50%)}
+.band-axis span:nth-child(1){left:0;transform:none}.band-axis span:nth-child(2){left:26.85%}.band-axis span:nth-child(3){left:42.95%}
+.band-axis span:nth-child(4){left:77.18%}.band-axis span:nth-child(5){left:93.96%}.band-axis span:nth-child(6){left:100%;transform:translateX(-100%)}
+@media (max-width:520px){.band-axis span:nth-child(2),.band-axis span:nth-child(3),.band-axis span:nth-child(5){display:none}
+  /* the narrow blocks cannot hold 'U-NII-2A' at this width, so show the number alone */
+  .blk{font-size:0}.blk::after{content:attr(data-short);font:600 11px var(--mono);letter-spacing:0.04em}.blk.hot::after{font-size:11px}}
+
+/* ── field kit ─────────────────────────────────────────────────────────── */
+.kit{margin-top:var(--s5);padding:var(--s5)}
+.kit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:var(--s3);margin-top:var(--s3)}
+.kit-item{position:relative;display:flex;flex-direction:column;gap:8px;padding:var(--s4);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);min-height:120px;outline:none;transition:transform 200ms var(--ease),border-color 200ms var(--ease)}
+.kit-item:hover,.kit-item:focus{transform:translateY(-2px);border-color:rgba(140,224,94,0.45)}
+.kit-ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(140,224,94,0.10);border:1px solid rgba(140,224,94,0.3)}
+.kit-ico svg{width:22px;height:22px;fill:none;stroke:var(--green);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kit-item b{font-size:14px}
+.kit-line{font-size:13px;color:var(--text-dim);line-height:1.5;opacity:0;transform:translateY(4px);transition:opacity 220ms var(--ease),transform 220ms var(--ease)}
+.kit-item:hover .kit-line,.kit-item:focus .kit-line{opacity:1;transform:none}
+@media (hover:none){.kit-line{opacity:1;transform:none}}
+
+/* ── RF motif on radio posts ───────────────────────────────────────────── */
+.post-head{position:relative;overflow:hidden}
+.post-head.cat-Wireless::before,.post-head.cat-RF-survey::before{content:"";position:absolute;right:-90px;top:-120px;width:420px;height:420px;pointer-events:none;opacity:0.10;
+  background:repeating-radial-gradient(circle at center,var(--teal) 0 1.5px,transparent 1.5px 26px)}
+.post-head>*{position:relative}
+
+/* ── reading path ──────────────────────────────────────────────────────── */
+.series{padding:var(--s5);margin-bottom:var(--s4)}
+.series h3{margin:6px 0 var(--s3);font-size:18px}
+.series h3 .meta{margin-left:8px;font-weight:400}
+.ser-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:var(--s3)}
+.ser-step{position:relative;display:flex;flex-direction:column;gap:6px;padding:var(--s3) var(--s4);color:var(--text-dim);text-decoration:none;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);transition:transform 200ms var(--ease),border-color 200ms var(--ease)}
+.ser-step:hover{transform:translateY(-2px)}
+.ser-n{font:600 11px var(--mono);letter-spacing:0.12em;color:var(--text-muted)}
+.ser-t{font-size:14px;font-weight:600;color:var(--text)}
+.ser-tag{font:600 10px var(--mono);letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)}
+.ser-step.here{border-color:rgba(255,255,255,0.28);opacity:0.75}
+.ser-step.next{border-color:rgba(140,224,94,0.6);box-shadow:0 10px 26px -14px rgba(140,224,94,0.8)}
+.ser-step.next .ser-tag,.ser-step.next .ser-n{color:var(--green)}
+
+/* ── Rig reactions ─────────────────────────────────────────────────────── */
+.rig img{transition:opacity 220ms var(--ease)}
+.rig.swap img{opacity:0}
+
+/* ── Wireless Academy (orange, for Airheads) ───────────────────────────── */
+.tag.c-orange{color:#ffd28a;border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.14)}
+.tag.c-orange .dot{background:var(--orange);box-shadow:0 0 0 4px rgba(245,165,36,0.18)}
+.chip.c-orange{border-color:rgba(245,165,36,0.45);color:#ffd28a}
+.chip.on.c-orange{background:rgba(245,165,36,0.18);border-color:rgba(245,165,36,0.9);color:#ffe0ad}
+.acad-hero .glow{background:radial-gradient(circle at 80% 20%,rgba(245,165,36,0.28),transparent 60%)}
+.acad-hero .btn.cta{background:linear-gradient(180deg,#ffbf4d,var(--orange));color:#2a1600;box-shadow:0 12px 30px -12px rgba(245,165,36,0.9)}
+.acad-why{padding:var(--s5);margin:0 0 var(--s6);border-color:rgba(245,165,36,0.35)}
+.acad-why p{margin:8px 0 0;color:var(--text-dim);line-height:1.65}
+.lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--s4)}
+.lesson{display:flex;flex-direction:column;gap:10px;padding:var(--s5);color:var(--text);text-decoration:none;position:relative}
+.lesson b{font-size:18px;letter-spacing:-0.01em;line-height:1.25}
+.lesson p{margin:0;color:var(--text-dim);font-size:14px;line-height:1.6}
+.lesson .lab{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--text-dim);padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+.lesson .lab .eyebrow{color:#ffd28a}
+.lesson .ser-n{color:#ffd28a}
+.lesson.live{border-color:rgba(245,165,36,0.5);transition:transform 200ms var(--ease),box-shadow 200ms var(--ease)}
+.lesson.live:hover{transform:translateY(-3px);box-shadow:0 18px 40px -20px rgba(245,165,36,0.8)}
+.lesson.live .meta{margin-top:auto;padding-top:6px}
+.lesson.soon{opacity:0.6}
+.lesson.soon .ser-n{color:var(--text-muted)}
+.post-head.cat-Academy::before{content:"";position:absolute;right:-90px;top:-120px;width:420px;height:420px;pointer-events:none;opacity:0.10;
+  background:repeating-radial-gradient(circle at center,var(--orange) 0 1.5px,transparent 1.5px 26px)}
+.ser-step.next.acad{border-color:rgba(245,165,36,0.6)}
+
+/* ── Academy theme: orange ground, switch-chassis black glass ──────────── */
+body.acad{background:#07070A}
+body.acad .ground{background:
+  radial-gradient(900px 620px at 12% -6%,rgba(245,165,36,0.34),transparent 62%),
+  radial-gradient(760px 560px at 88% 8%,rgba(255,120,40,0.20),transparent 60%),
+  radial-gradient(1000px 700px at 60% 108%,rgba(160,80,20,0.28),transparent 62%),#07070A}
+body.acad .g-chrome,body.acad .g-card,body.acad .g-hero{background:rgba(6,6,9,0.62);border-color:rgba(255,255,255,0.10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.10),0 30px 70px -40px rgba(0,0,0,0.95)}
+body.acad .hdr.scrolled .hdr-in{background:rgba(6,6,9,0.78)}
+body.acad .panel,body.acad .search input,body.acad .term,body.acad .widget,body.acad .callout,body.acad .lesson .lab{background:rgba(0,0,0,0.45)}
+body.acad .btn.cta{background:linear-gradient(180deg,#ffbf4d,var(--orange));color:#2a1600;box-shadow:0 12px 30px -12px rgba(245,165,36,0.9)}
+body.acad .eyebrow{color:#ffd28a}
+body.acad .tag.green{color:#ffd28a;border-color:rgba(245,165,36,0.6);background:rgba(245,165,36,0.14)}
+body.acad .tag.green .dot{background:var(--orange);box-shadow:0 0 0 4px rgba(245,165,36,0.18)}
+body.acad .ser-step.next{border-color:rgba(245,165,36,0.6);box-shadow:0 10px 26px -14px rgba(245,165,36,0.8)}
+body.acad .ser-step.next .ser-tag,body.acad .ser-step.next .ser-n{color:#ffd28a}
+body.acad .term-bar i:first-child{background:rgba(245,165,36,0.55)}
+body.acad .term .pr{color:#ffd28a}
+body.acad .term .ln.hot{background:rgba(245,165,36,0.10);border-left-color:var(--orange)}
+body.acad .prose a{color:#ffd28a}
+body.acad .rig{filter:drop-shadow(0 14px 24px rgba(0,0,0,0.75))}
+body.acad .backbar .btn:hover{border-color:rgba(245,165,36,0.5)}
+body.acad .callout.origin{border-color:rgba(245,165,36,0.45)}
+body.acad .callout.origin .eyebrow{color:#ffd28a}
+
+/* ── on-the-air QAM banner ─────────────────────────────────────────────── */
+.qam{margin:0 0 var(--s6);padding:var(--s4) var(--s5) var(--s3);cursor:pointer;outline:none;overflow:hidden}
+.qam:focus-visible{box-shadow:0 0 0 2px rgba(140,224,94,0.6)}
+.qam-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);flex-wrap:wrap}
+.qam-ctl{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;font-size:12px;color:var(--text-dim)}
+.qam-ctl label{display:inline-flex;align-items:center;gap:8px}
+.qam-ctl select{font:13px var(--sans);color:var(--text);background:rgba(3,10,16,0.7);border:1px solid var(--line);border-radius:10px;min-height:38px;padding:0 8px}
+.qam-speed{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:100%}.qam-speed input{width:150px;max-width:40vw;accent-color:var(--green)}
+.qam-speed b{font:600 12px var(--mono);color:var(--green);min-width:84px;white-space:nowrap}
+.qam-band{font:10px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);padding:2px 7px;border:1px solid var(--line);border-radius:999px;white-space:nowrap}
+.qam[data-band="frames"] .qam-band{color:#ffd28a;border-color:rgba(245,165,36,0.5)}.qam[data-band="symbols"] .qam-band{color:var(--green);border-color:rgba(140,224,94,0.5)}.qam[data-band="waves"] .qam-band{color:var(--blue-light);border-color:rgba(79,189,234,0.5)}.qam[data-band="photons"] .qam-band{color:var(--teal);border-color:rgba(94,210,218,0.5)}
+.qam-ctl .chip{min-height:40px;padding:0 12px}
+.qam-ctl .chip.on{border-color:rgba(94,210,218,0.9);color:#bfeff2;background:rgba(94,210,218,0.14)}
+.qam canvas{display:block;width:100%;height:280px;margin-top:var(--s2);touch-action:pan-y;cursor:crosshair;border-radius:var(--r-inner)}
+.qam-rx{margin-top:8px;padding:8px 12px 10px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);cursor:default}
+.qam-rx-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px 14px;flex-wrap:wrap}
+.qam-rx-top a{font:11px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--blue-light);text-decoration:none;border-bottom:1px solid rgba(79,189,234,0.35)}
+.qam-rx-top a:hover{color:var(--text);border-color:var(--text)}
+.qam-key{display:flex;gap:10px;flex-wrap:wrap;font:10px var(--mono);letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted)}
+.qam-key i{font-style:normal;display:inline-flex;align-items:center;gap:5px}.qam-key i::before{content:"";width:8px;height:8px;border-radius:2px;background:currentColor}
+.qam-hex{margin-top:8px;font:12px var(--mono);line-height:1.45;color:var(--text-muted)}
+.qam-row{display:grid;grid-template-columns:38px repeat(16,minmax(22px,28px)) minmax(0,1fr);gap:0 3px;align-items:baseline}
+.qam-row .off{color:var(--text-muted);opacity:0.55;font-size:10px;line-height:inherit}
+.qam-row .asc{margin-left:14px;color:var(--text);white-space:pre;overflow:hidden;letter-spacing:0.04em}.qam-row .asc .garble{color:#ffd28a;background:rgba(245,165,36,0.16);border-radius:3px}
+.qam-hex i.pad{visibility:hidden}
+.qam-hex i{font-style:normal;text-align:center;border-radius:4px;opacity:0.28;transition:opacity 0.2s,background 0.2s}
+.qam-hex i.rx{opacity:1}
+.f-mac{color:#5ED2DA}.f-llc{color:#8BA2AE}.f-ip{color:#4FBDEA}.f-icmp{color:#8CE05E}.f-pay{color:#EAF2F6}.f-fcs{color:#B0C4CF}.f-bad{color:#ffd28a}
+.qam-hex i.bad{color:#ffd28a;background:rgba(245,165,36,0.18)}
+.qam-hex i.hl{background:rgba(255,255,255,0.12);opacity:1}
+.qam-fld{margin-top:6px;font:12px var(--mono);color:var(--text-dim);min-height:18px;line-height:1.5}
+.qam-hit{margin-top:6px;padding:6px 10px;font:12px var(--mono);color:var(--text-dim);line-height:1.55;border-left:2px solid var(--green);background:rgba(140,224,94,0.06);border-radius:0 8px 8px 0}.qam-hit b{color:var(--text)}.qam-hit b.ok{color:var(--green)}.qam-hit b.warn{color:#ffd28a}.qam-hit code{color:#D3E3EC}.qam-hit a{color:var(--text-muted);margin-left:6px;text-decoration:underline}
+.qam-hex i.sel{outline:1px solid rgba(140,224,94,0.9);outline-offset:-1px;opacity:1}
+.qam-lbrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;padding:8px 12px;font-size:12px;color:var(--text-dim);background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);cursor:default}.qam-lbrow label{display:inline-flex;align-items:center;gap:8px}.qam-lbrow input{width:130px;accent-color:var(--green)}.qam-lbrow b{font:600 12px var(--mono);color:var(--green);min-width:40px}.qam-lbrow[hidden]{display:none}
+.sim-intro{margin:0 0 var(--s4)}.sim-intro h1{margin:10px 0 12px}@media (max-width:700px){.sim-intro{padding:0 var(--s1)}.sim-intro .h-hero{font-size:30px}}.sim-intro .lede{max-width:820px}.sim-intro a{color:var(--blue-light)}
+.post-body video{display:block;width:100%;max-width:100%;margin:var(--s4) 0;border-radius:var(--r-inner);border:1px solid var(--line);background:#061019}
+.post-body img{display:block;width:100%;height:auto;border-radius:var(--r-inner);border:1px solid var(--line)}
+.post-body figure{margin:var(--s5) 0}
+.post-body figure video,.post-body figure img{margin:0}
+.post-body figcaption{margin-top:10px;font-size:13px;color:var(--text-muted);line-height:1.65}
+/* a dense figure stays legible on a phone by scrolling sideways, the way the tables do. the caption stays put. */
+.post-body figure.wide>.pan{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border-radius:var(--r-inner)}
+.post-body figure.wide img{min-width:620px}
+/* a tall photo would run a thousand pixels down the page at full column width */
+.post-body figure.portrait{max-width:420px;margin-inline:auto}
+.qam-app{display:grid;grid-template-columns:minmax(240px,2fr) 3fr;gap:10px;margin-top:8px;cursor:default}
+@media (max-width:760px){.qam-app{grid-template-columns:1fr}}
+.qam-tile{padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner);font-size:12.5px;color:var(--text-dim);line-height:1.5;min-height:110px}
+.qam-tile .eyebrow{display:block;margin-bottom:6px}.qam-tile p{margin:6px 0 0}.qam-tile b{color:var(--text)}.qam-tile b.ok{color:var(--green)}.qam-tile b.warn{color:#ffd28a}.qam-tile code{font-family:var(--mono);color:#D3E3EC}
+.qam-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px;margin-top:8px}.qam-metrics div{background:rgba(255,255,255,0.04);border-radius:8px;padding:6px 8px;text-align:center}.qam-metrics small{display:block;font:9px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:2px}.qam-metrics b{font:600 16px var(--mono)}.qam-metrics .meta{font-size:11px}.qam-stars{display:block;font-size:10px;color:#ffd28a;letter-spacing:1px}
+.qam-term{font:12px var(--mono);color:#D3E3EC;white-space:pre-wrap;margin:0;line-height:1.5}
+.qam-chat{display:flex;flex-direction:column;gap:6px}.qam-msg{max-width:82%;padding:6px 10px;border-radius:12px;background:rgba(255,255,255,0.06);color:var(--text);font-size:13px;line-height:1.4;align-self:flex-start}.qam-msg b{display:block;font:600 10px var(--mono);letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1px}.qam-msg.you{align-self:flex-end;background:rgba(79,189,234,0.16)}.qam-msg.pending{opacity:0.3}.qam-msg.sending{border:1px dashed rgba(255,255,255,0.35)}.qam-msg small{display:block;font:10px var(--mono);color:var(--text-muted);margin-top:3px}.qam-msg .qam-t{font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px;opacity:0.8}.qam-msg.delivered small{color:var(--green)}.qam-msg.retx small{color:#ffd28a}
+.qam-wave{display:block;width:100%;height:44px;margin-top:8px;background:rgba(255,255,255,0.03);border-radius:8px}
+.qam-avatar{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--navy);color:var(--text);align-items:center;justify-content:center;font:600 10px var(--sans);margin-right:8px;vertical-align:middle}.qam-lbrow .chip{min-height:40px;padding:0 10px;font-size:12px}.qam-lbnote{font-size:11px;color:var(--text-muted);flex-basis:100%}.qam-fld b{color:var(--text)}.qam-fld b.ok{color:var(--green)}.qam-fld b.warn{color:#ffd28a}.qam-fld code{color:#D3E3EC}
+.qam-ascii{display:flex;align-items:baseline;gap:12px;margin-top:6px;overflow:hidden}
+.qam-title{font:600 15px var(--sans);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qam-title.bad{color:var(--text)}
+.qam-title .garble{color:#ffd28a;background:rgba(245,165,36,0.16);border-radius:3px;padding:0 1px}
+@media (max-width:600px){.qam-hex{font-size:10px}.qam-row{grid-template-columns:repeat(16,minmax(0,1fr));gap:0 1px}.qam-row .off,.qam-row .asc,.qam-hex i.pad{display:none}.qam-key{display:none}.qam-title{font-size:14px}}
+.qam-stat{margin-top:8px;font-size:13px;color:var(--text-dim);line-height:1.6}.qam-stat b{color:var(--text)}.qam-stat b.warn{color:#ffd28a}
+.qam-time{margin-top:6px;font-size:13px;color:var(--text-dim);line-height:1.6}.qam-time b{color:var(--text)}
+.qam-table{margin-top:var(--s4);padding-top:var(--s3);border-top:1px solid var(--line);cursor:default}
+.qam-table .tbl{overflow-x:auto;margin-top:8px}.qam-table table{border-collapse:collapse;width:100%;font-size:13px;min-width:560px}
+.qam-table th,.qam-table td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}.qam-table th{font:600 10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+.qam-table tr[data-m]{cursor:pointer}.qam-table tr[data-m]:hover td{background:rgba(255,255,255,0.04)}.qam-table tr.on td{background:rgba(140,224,94,0.10);color:var(--text)}.qam-table tr.on td:first-child{box-shadow:inset 3px 0 0 var(--green)}
+.qam-table .meta{margin-top:8px;font-size:12px}
+.qam-hint{font:11px var(--mono);letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);text-align:center;margin-top:4px}
+.qam-x{margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid var(--line);color:var(--text-dim);font-size:14px;line-height:1.65;cursor:default}
+.qam-x p{margin:8px 0}.qam-x ol{margin:8px 0 0;padding-left:22px}.qam-x li{margin:6px 0}.qam-x code{font-family:var(--mono);font-size:12.5px;color:#D3E3EC;background:var(--solid);padding:1px 6px;border-radius:6px}
+.qam-x b{color:var(--text)}
+@media (max-width:600px){.qam canvas{height:260px}.qam-ctl{width:100%;justify-content:space-between}}
+
+/* ── QAM banner fullscreen (pseudo, works on iPhone too) ───────────────── */
+.qam.fs{position:fixed;inset:0;z-index:120;margin:0;border-radius:0;overflow:auto;padding:12px 14px;background:#061019;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;animation:none;opacity:1}
+.qam.fs canvas{touch-action:none;height:56vh}
+html.qam-fs,html.qam-fs body{overflow:hidden}
+html.qam-fs .rig{display:none}
+</style></head>
+<body class="acad">
+<div class="ground"></div>
+<canvas id="nfn-fx" aria-hidden="true"></canvas>
+<div class="gx-pane" aria-hidden="true"></div>
+<div class="gx-grain" aria-hidden="true"></div>
+<div class="page">
+<header class="hdr"><div class="wrap"><div class="hdr-in g-chrome">
+  <a class="brand" href="../"><span class="mk"><img src="../logo/nfn-mark-dark.svg" alt="" width="26" height="26"></span><span class="wm">Network Field Notes</span></a>
+  <nav class="nav"><a class="pill" href="../">Posts</a><a class="pill on" href="../academy.html">Academy</a><a class="pill" href="../tools.html">Tools</a><a class="pill" href="../about.html">About</a><a class="pill outline" href="../index.html#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Search</span></a></nav>
+  
+</div></div></header>
+<main class="wrap">
+<div class="narrow"><style>/* Academy progress, save codes, the self-check, and the read mark every post carries. Inlined by build-blog.py
+   (progress_scripts) on every post and lesson, academy.html and sandbox.html. Kit tokens only; orange is the Academy's accent. */
+
+/* the progress card at the end of a lesson */
+.prog{padding:var(--s5);margin-top:var(--s5)}
+.prog-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
+.prog-items{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:var(--s2)}
+.prog-items li{display:flex;align-items:center;gap:10px;min-height:54px;padding:8px 14px;background:var(--solid);border:1px solid var(--line);border-radius:var(--r-inner)}
+.prog-items li[hidden]{display:none}
+.prog-items span{font-weight:600;font-size:14.5px}
+.prog-items b{margin-left:auto;font:500 12px var(--mono);color:var(--text-muted);text-align:right}
+.prog-items li.done{border-color:rgba(245,165,36,0.5)}
+.prog-items li.done b{color:#ffd28a}
+.prog-items .nfn-btn{margin-left:auto}
+.pip{flex:none;display:inline-block;width:10px;height:10px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.35)}
+.pip.on,li.done>.pip{background:var(--orange);border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,165,36,0.18)}
+.prog-code:not(:empty){margin-top:var(--s4)}
+.prog-offer p{margin:0 0 var(--s2);font-size:14px;line-height:1.6;color:var(--text-dim)}
+
+/* buttons and the code panel, shared by the card, the question box and the code box */
+.nfn-btn{min-height:40px;padding:0 var(--s4);font-size:14px}
+.nfn-btn[disabled]{opacity:0.75;cursor:default}
+.nfn-btn.done{border-color:rgba(245,165,36,0.5);color:#ffd28a}
+.nfn-code{display:flex;flex-direction:column;gap:var(--s2)}
+.nfn-code-w{align-self:flex-start;max-width:100%;font:600 17px var(--mono);letter-spacing:0.02em;color:var(--text);padding:10px 14px;
+  background:rgba(0,0,0,0.45);border:1px solid rgba(245,165,36,0.45);border-radius:12px;overflow-wrap:anywhere;user-select:all}
+.nfn-code-row{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
+.nfn-say{font-size:13.5px;line-height:1.5;color:var(--text-dim)}
+.nfn-qr{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.nfn-qr[hidden]{display:none}
+.nfn-qr svg{width:176px;height:176px;border-radius:12px;display:block}
+.nfn-qr-cap{font-size:12.5px;color:var(--text-muted)}
+
+/* the self-check: each answer behind a reveal (plain <details>, so it works without JavaScript) */
+ol.selfcheck{padding-left:1.4em}
+ol.selfcheck>li{margin-bottom:var(--s4)}
+.sc-a{margin-top:8px}
+.sc-a summary{cursor:pointer;display:inline-flex;align-items:center;min-height:38px;padding:0 14px;border-radius:var(--r-pill);
+  border:1px solid rgba(255,255,255,0.16);font-size:13.5px;color:var(--text-dim);list-style:none;user-select:none}
+.sc-a summary::-webkit-details-marker{display:none}
+.sc-a[open] summary{color:var(--text);border-color:rgba(245,165,36,0.5)}
+.sc-body{margin-top:10px;padding:12px 14px;background:rgba(0,0,0,0.35);border-left:2px solid rgba(245,165,36,0.55);border-radius:0 12px 12px 0}
+.sc-body p{margin:0 0 10px}
+.sc-body p:last-child{margin-bottom:0}
+.sc-grade{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sc-grade[hidden]{display:none}
+ol.selfcheck>li.got .sc-got{background:rgba(245,165,36,0.18);border-color:rgba(245,165,36,0.9);color:#ffe0ad}
+.sc-say{font-size:13px;color:var(--text-muted)}
+.labdone{margin:var(--s3) 0}
+
+/* academy.html: pips on each lesson, the new-answer badge, the code box */
+.lesson .pips{display:inline-flex;gap:6px;align-items:center;margin-left:10px;vertical-align:1px}
+.lesson .pips[hidden],.ans-badge[hidden]{display:none}
+.ans-badge{align-self:flex-start;font:600 10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:var(--r-pill);
+  border:1px solid rgba(140,224,94,0.5);color:var(--green)}
+.codebox{margin-top:var(--s6);padding:var(--s5) var(--s6);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:var(--s5);align-items:start}
+.codebox[hidden]{display:none}
+.codebox h3{font-size:22px;letter-spacing:-0.02em}
+.codebox p{color:var(--text-dim);margin-top:4px;line-height:1.6}
+.cb-ui{display:flex;flex-direction:column;gap:var(--s3)}
+.cb-lead{margin:0;font-size:14px}
+.cb-restore{display:flex;flex-direction:column;gap:var(--s2)}
+.cb-f{display:flex;flex-direction:column;gap:6px}
+.cb-f span{font:10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+.cb-f input{width:100%;max-width:380px;min-height:44px;font:15px var(--mono);color:var(--text);background:rgba(3,10,16,0.8);border:1px solid var(--line);border-radius:11px;padding:10px 13px}
+.cb-f input:focus-visible,.nfn-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.cb-other{align-self:flex-start}
+@media (max-width:760px){.codebox{grid-template-columns:1fr;padding:var(--s5)}}
+
+/* sandbox.html: a dot on every lab that has passed */
+.sb-pill.passed::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(140,224,94,0.18)}
+
+/* every post: the read mark at the end and the changed line at the top. Green on field notes, orange in the Academy. */
+.readmark,.changed-note{--rm:var(--green);--rm-soft:rgba(140,224,94,0.45)}
+body.acad .readmark,body.acad .changed-note{--rm:var(--orange);--rm-soft:rgba(245,165,36,0.5)}
+.readmark{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;padding:var(--s4) var(--s5);margin-top:var(--s5)}
+.rm-label{display:inline-flex;align-items:center;gap:10px;min-height:44px;font-weight:600;font-size:15px;cursor:pointer}
+.rm-label input{width:20px;height:20px;accent-color:var(--rm);cursor:pointer}
+.rm-label input:disabled{cursor:default}
+.rm-say{font-size:13.5px;line-height:1.5;color:var(--text-dim)}
+.changed-note{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap;padding:var(--s4) var(--s5);margin-top:var(--s4);border-color:var(--rm-soft)}
+.changed-note[hidden]{display:none}
+.changed-note .eyebrow{color:var(--rm)}
+.cn-text{flex:1 1 280px;min-width:0}
+.cn-text p{margin:4px 0 0;font-size:14.5px;line-height:1.55;color:var(--text-dim)}
+.cn-text .cn-what{color:var(--text)}
+.prog-items [data-nfn-read][hidden]{display:none}
+</style><script>window.NFN_CFG={"api": "https://api.networkfieldnotes.com", "sitekey": "0x4AAAAAAE0IseyiQ4X9zk6r", "lesson": 8, "slug": "academy-08-joining-a-network"};</script><script>/* Network Field Notes: the Academy progress core.
+ *
+ * Pure functions: no DOM, no storage, no network. theme/progress.js uses it in the page,
+ * comments/worker.js uses it on the server, progresstest.js tests it. The page and the Worker run
+ * the same merge, so a push from any device lands the same way whatever order it arrives in.
+ *
+ * A progress record:
+ *   { "v": 1,
+ *     "w":    { "<lesson number>": { "read": "YYYY-MM-DD", "lab": "...", "game": "...", "check": [0|1, 0|1, 0|1] } },
+ *     "labs": { "<CX Sandbox lab id>": "YYYY-MM-DD" },
+ *     "seen": { "<question id>": "<ISO time the reader last saw that question's answers>" },
+ *     "p":    { "<post slug>": "YYYY-MM-DD the reader last marked it read" } }
+ *
+ * Merge rules: dates keep the earliest, checks OR together, seen and p keep the latest, anything else is
+ * dropped. p keeps the latest because "I read the update" has to be able to move a read date forward. That makes merge commutative, associative and idempotent, which progresstest.js proves.
+ * Nothing can be un-done by a merge, so the page never offers an undo that would not stick.
+ */
+(function (root, factory) {
+  var api = factory();
+  if (typeof module === "object" && module && module.exports) module.exports = api;
+  if (root) root.NFNProgressCore = api;
+})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  "use strict";
+  var V = 1;
+  var MAX_BYTES = 16384;            // the Worker refuses a record bigger than this
+  var MAX_LESSON = 60;              // room for a second track's numbering later
+  var CHECKS = 3;                   // every lesson ends with three questions
+  var FIELDS = ["read", "lab", "game"];
+  var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+  var TS_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/;
+  var LAB_RE = /^[a-z0-9][a-z0-9-]{0,60}$/;
+  var QID_RE = /^[1-9]\d{0,11}$/;
+  var LESSON_RE = /^[1-9]\d?$/;
+  var SLUG_RE = /^[a-z0-9][a-z0-9-]{0,100}$/;
+  var MAX_POSTS = 120;           // with the rest of a heavy record this stays under MAX_BYTES; the site has about 35 posts
+  var CODE_RE = /^[a-z]{3,8}(?:-[a-z]{3,8}){3}$/;
+
+  function isObj(o) { return !!o && typeof o === "object" && !Array.isArray(o); }
+
+  /* "Yagi Beacon, fresnel lobe" and "yagi-beacon-fresnel-lobe" are the same code */
+  function normaliseCode(s) {
+    return String(s == null ? "" : s).toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+  function isCodeShape(s) { return CODE_RE.test(String(s == null ? "" : s)); }
+
+  function today(d) { return (d || new Date()).toISOString().slice(0, 10); }
+  function nowIso(d) { return (d || new Date()).toISOString(); }
+  function emptyProgress() { return { labs: {}, p: {}, seen: {}, v: V, w: {} }; }   // already in canonical key order
+
+  function cleanLesson(x) {
+    if (!isObj(x)) return null;
+    var o = {}, any = false;
+    FIELDS.forEach(function (k) {
+      if (typeof x[k] === "string" && DATE_RE.test(x[k])) { o[k] = x[k]; any = true; }
+    });
+    if (Array.isArray(x.check)) {
+      var c = [], hit = false;
+      for (var i = 0; i < CHECKS; i++) {
+        var on = x.check[i] === 1 || x.check[i] === true;
+        c.push(on ? 1 : 0);
+        if (on) hit = true;
+      }
+      if (hit) { o.check = c; any = true; }
+    }
+    return any ? o : null;
+  }
+
+  /* anything in, a clean record out; never throws */
+  function validate(d) {
+    var out = emptyProgress();
+    if (!isObj(d)) return out;
+    if (isObj(d.w)) Object.keys(d.w).forEach(function (k) {
+      if (!LESSON_RE.test(k) || +k > MAX_LESSON) return;
+      var l = cleanLesson(d.w[k]);
+      if (l) out.w[k] = l;
+    });
+    if (isObj(d.labs)) Object.keys(d.labs).forEach(function (k) {
+      if (LAB_RE.test(k) && typeof d.labs[k] === "string" && DATE_RE.test(d.labs[k])) out.labs[k] = d.labs[k];
+    });
+    if (isObj(d.seen)) Object.keys(d.seen).forEach(function (k) {
+      if (QID_RE.test(k) && typeof d.seen[k] === "string" && TS_RE.test(d.seen[k])) out.seen[k] = d.seen[k];
+    });
+    if (isObj(d.p)) Object.keys(d.p).filter(function (k) {
+      return SLUG_RE.test(k) && typeof d.p[k] === "string" && DATE_RE.test(d.p[k]);
+    }).sort().slice(0, MAX_POSTS).forEach(function (k) { out.p[k] = d.p[k]; });
+    return canonical(out);
+  }
+
+  function earliest(a, b) { return !a ? (b || "") : !b ? a : (a < b ? a : b); }
+  function latest(a, b) { return !a ? (b || "") : !b ? a : (a > b ? a : b); }
+  function union(x, y) {
+    var s = {};
+    Object.keys(x).forEach(function (k) { s[k] = 1; });
+    Object.keys(y).forEach(function (k) { s[k] = 1; });
+    return Object.keys(s);
+  }
+
+  function merge(a, b) {
+    a = validate(a); b = validate(b);
+    var out = emptyProgress();
+    union(a.w, b.w).forEach(function (k) {
+      var x = a.w[k] || {}, y = b.w[k] || {}, o = {};
+      FIELDS.forEach(function (f) { var v = earliest(x[f], y[f]); if (v) o[f] = v; });
+      if (x.check || y.check) {
+        var c = [];
+        for (var i = 0; i < CHECKS; i++) c.push(((x.check && x.check[i]) || (y.check && y.check[i])) ? 1 : 0);
+        o.check = c;
+      }
+      out.w[k] = o;
+    });
+    union(a.labs, b.labs).forEach(function (k) { out.labs[k] = earliest(a.labs[k], b.labs[k]); });
+    union(a.seen, b.seen).forEach(function (k) { out.seen[k] = latest(a.seen[k], b.seen[k]); });
+    union(a.p, b.p).forEach(function (k) { out.p[k] = latest(a.p[k], b.p[k]); });
+    return validate(out);
+  }
+
+  /* same content, same string: keys sorted at every level */
+  function canonical(p) {
+    if (Array.isArray(p)) return p.map(canonical);
+    if (!isObj(p)) return p;
+    var r = {};
+    Object.keys(p).sort().forEach(function (k) { r[k] = canonical(p[k]); });
+    return r;
+  }
+  function serialise(p) { return JSON.stringify(validate(p)); }
+  function same(a, b) { return serialise(a) === serialise(b); }
+
+  /* what a lesson card or the progress card shows */
+  function lessonState(p, n) {
+    var l = (p && p.w && p.w[String(n)]) || {};
+    var checks = 0;
+    (l.check || []).forEach(function (x) { if (x) checks++; });
+    return { read: l.read || "", lab: l.lab || "", game: l.game || "", checks: checks };
+  }
+  function readCount(p) {
+    var n = 0;
+    Object.keys((p && p.w) || {}).forEach(function (k) { if (p.w[k].read) n++; });
+    return n;
+  }
+  function labCount(p, ids) {
+    var n = 0, labs = (p && p.labs) || {};
+    (ids || Object.keys(labs)).forEach(function (k) { if (labs[k]) n++; });
+    return n;
+  }
+
+  /* the date a post counts as read: the later of the post mark and, for a lesson, the lesson's read */
+  function postRead(p, slug, lesson) {
+    var a = (p && p.p && p.p[slug]) || "";
+    var b = lesson ? lessonState(p, lesson).read : "";
+    return latest(a, b);
+  }
+  /* true when the reader marked it read before the post's last noted change */
+  function changedSince(p, slug, lesson, changed) {
+    var r = postRead(p, slug, lesson);
+    return !!(r && changed && DATE_RE.test(changed) && r < changed);
+  }
+
+  return {
+    V: V, MAX_BYTES: MAX_BYTES, CHECKS: CHECKS,
+    normaliseCode: normaliseCode, isCodeShape: isCodeShape, today: today, nowIso: nowIso,
+    emptyProgress: emptyProgress, validate: validate, merge: merge, canonical: canonical,
+    serialise: serialise, same: same, lessonState: lessonState, readCount: readCount, labCount: labCount,
+    postRead: postRead, changedSince: changedSince
+  };
+});
+</script><script>/* Network Field Notes: Academy progress in the browser, and the save code.
+ *
+ * Progress lives in localStorage first ("nfn:progress", the record theme/progress-core.js describes). A save
+ * code ("nfn:code", four words) copies it to the comments Worker so a reader can pick up on another device and
+ * find the answers to their questions. No account, no email. No code exists until the reader asks a question,
+ * taps "Get a code", or accepts the one offer after their first lesson.
+ *
+ * Inlined on every post and lesson, academy.html and sandbox.html, after progress-core.js and after
+ * window.NFN_CFG = {api, sitekey, lesson, slug, changed}. An empty api keeps everything in this browser.
+ * On a post page the reader ticks "Mark as read" (p[slug] = today); if the post's front matter later carries
+ * `changed: YYYY-MM-DD | what changed` with a date after that mark, a line at the top says so until "Got it".
+ *
+ * window.NFNProgress
+ *   get()               a copy of the record          code()            the save code here, or ""
+ *   mark(field, i)      this lesson: "read" | "lab" | "game" | "check" (i = question 0 to 2)
+ *   lab(id)             a CX Sandbox lab passed        seen(ids)         the reader has seen these answers
+ *   markPost()          this post, read today (moves forward, never back)
+ *   questions()         the reader's own questions from the last pull, held and live, with answers
+ *   getCode(token)      make a code (Turnstile token)  useCode(words)    restore: adopt a code and merge into it
+ *   adopt(code)         take the fresh code a question came back with
+ *   addMine(q)          a question just asked, so it shows as waiting straight away
+ *   onChange(fn)        after any change or pull       renderCode(el, c) the words, Copy, Show QR
+ *   turnstileToken()    the token from any Turnstile widget on the page, then resetTurnstile()
+ * Games call mark("game") when their last level finishes; cxsim calls lab(id) when a lab passes.
+ */
+(function () {
+  "use strict";
+  var Core = window.NFNProgressCore;
+  if (!Core || window.NFNProgress) return;
+  var CFG = window.NFN_CFG || {};
+  var API = String(CFG.api || "").replace(/\/+$/, "");
+  var LESSON = CFG.lesson ? String(CFG.lesson) : "";
+  var SLUG = typeof CFG.slug === "string" ? CFG.slug : "";          // every post page: its slug
+  var CHANGED = typeof CFG.changed === "string" ? CFG.changed : ""; // the post's last noted change, YYYY-MM-DD
+  var K_DATA = "nfn:progress", K_CODE = "nfn:code", K_DIRTY = "nfn:dirty", K_OFFER = "nfn:offered";
+
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function save(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+  function parse(s) { try { return JSON.parse(s || "null"); } catch (e) { return null; } }
+
+  var data = Core.validate(parse(load(K_DATA)));
+  var code = Core.isCodeShape(load(K_CODE)) ? load(K_CODE) : "";
+  var dirty = !!code && load(K_DIRTY) === "1";
+  var mine = [], listeners = [], pushTimer = null, pulled = false;
+
+  function emit() { listeners.forEach(function (fn) { try { fn(); } catch (e) {} }); }
+  function persist() { save(K_DATA, JSON.stringify(data)); }
+  function setDirty(v) { dirty = !!v && !!code; save(K_DIRTY, dirty ? "1" : null); }
+
+  function change(patch) {
+    var next = Core.merge(data, patch);
+    if (Core.same(next, data)) return;
+    data = next; persist();
+    if (code) { setDirty(true); schedulePush(3000); }
+    emit();
+  }
+
+  function mark(field, i) {
+    if (!LESSON) return;
+    var l = {}, w = {};
+    if (field === "check") { if (!(i >= 0 && i < Core.CHECKS)) return; l.check = [0, 0, 0]; l.check[i] = 1; }
+    else if (field === "read" || field === "lab" || field === "game") l[field] = Core.today();
+    else return;
+    w[LESSON] = l;
+    change({ w: w });
+  }
+  function markPost() {
+    if (!SLUG) return;
+    var p = {}; p[SLUG] = Core.today();
+    change({ p: p });
+  }
+  function lab(id) { var labs = {}; labs[String(id)] = Core.today(); change({ labs: labs }); }
+  function seen(ids) {
+    var s = {}, t = Core.nowIso();
+    (ids || []).forEach(function (id) { s[String(id)] = t; });
+    if (Object.keys(s).length) change({ seen: s });
+  }
+
+  // ── the Worker ──────────────────────────────────────────────────────────
+  function post(path, body, keepalive) {
+    return fetch(API + path, {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify(body), keepalive: !!keepalive, cache: "no-store"
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) { d = d || {}; d._status = r.status; return d; });
+    });
+  }
+
+  function pull() {
+    if (!API || !code) return Promise.resolve(null);
+    return post("/v1/progress/pull", { code: code }).then(function (d) {
+      if (d._status === 200) {
+        var next = Core.merge(data, d.data);
+        var ahead = !Core.same(next, d.data);          // this browser holds something the server doesn't
+        data = next; persist();
+        mine = Array.isArray(d.questions) ? d.questions : [];
+        pulled = true;
+        if (ahead) { setDirty(true); schedulePush(1500); }
+        emit();
+      } else if (d._status === 404) {
+        // the code expired (a year unused): keep the progress, forget the code
+        code = ""; save(K_CODE, null); setDirty(false); mine = []; emit();
+      }
+      return d;
+    }).catch(function () { return null; });
+  }
+
+  function push(keepalive) {
+    if (!API || !code || !dirty) return;
+    clearTimeout(pushTimer); pushTimer = null;
+    post("/v1/progress/push", { code: code, data: data }, keepalive).then(function (d) {
+      if (d._status !== 200) return;
+      var next = Core.merge(data, d.data);
+      if (!Core.same(next, data)) { data = next; persist(); emit(); }
+      if (d.stored) setDirty(false);
+      else if (d.retry_after) schedulePush((+d.retry_after + 1) * 1000);
+    }).catch(function () {});
+  }
+  function schedulePush(ms) { clearTimeout(pushTimer); pushTimer = setTimeout(function () { push(false); }, ms); }
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") push(true); });
+  window.addEventListener("pagehide", function () { push(true); });
+
+  function adopt(c, serverData) {
+    code = c; save(K_CODE, c);
+    var next = Core.merge(data, serverData || {});
+    data = next; persist();
+    setDirty(!Core.same(next, serverData || {}));
+    if (dirty) schedulePush(1500);
+    emit();
+  }
+
+  function getCode(token) {
+    if (!API) return Promise.reject(new Error("Codes are switched off on this copy of the site."));
+    if (code) return Promise.resolve(code);
+    return post("/v1/progress/new", { token: token || "", data: data }).then(function (d) {
+      if (d._status === 201 && Core.isCodeShape(d.code)) { adopt(d.code, d.data); return code; }
+      throw new Error(d.error || "That didn't work. Try again in a minute.");
+    });
+  }
+
+  function useCode(words) {
+    var c = Core.normaliseCode(words);
+    if (!Core.isCodeShape(c)) return Promise.reject(new Error("That code doesn't look right. It's four words."));
+    if (!API) return Promise.reject(new Error("Codes are switched off on this copy of the site."));
+    return post("/v1/progress/pull", { code: c }).then(function (d) {
+      if (d._status !== 200) throw new Error(d.error || "That code doesn't look right.");
+      mine = Array.isArray(d.questions) ? d.questions : [];
+      pulled = true;
+      adopt(c, d.data);
+      return c;
+    });
+  }
+
+  function addMine(q) { if (q && q.id) { mine = mine.filter(function (x) { return x.id !== q.id; }).concat([q]); emit(); } }
+
+  // ── small UI pieces ─────────────────────────────────────────────────────
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function copyText(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t);
+    return new Promise(function (res, rej) {
+      var a = el("textarea"); a.value = t; a.setAttribute("readonly", ""); a.style.position = "fixed"; a.style.opacity = "0";
+      document.body.appendChild(a); a.select();
+      try { document.execCommand("copy") ? res() : rej(); } catch (e) { rej(e); }
+      document.body.removeChild(a);
+    });
+  }
+
+  var qrLoading = null;
+  function loadQR() {
+    if (window.qrcode) return Promise.resolve();
+    if (qrLoading) return qrLoading;
+    qrLoading = new Promise(function (res, rej) {
+      var s = document.createElement("script");
+      s.src = "/theme/vendor/qrcode.js";           // same origin, loaded only when somebody asks for the QR
+      s.onload = function () { res(); };
+      s.onerror = function () { qrLoading = null; rej(new Error("qr")); };
+      document.head.appendChild(s);
+    });
+    return qrLoading;
+  }
+  function restoreLink(c) { return location.origin + "/academy.html#code=" + c; }
+
+  function renderCode(host, c) {
+    host.textContent = "";
+    var box = el("div", "nfn-code");
+    box.appendChild(el("code", "nfn-code-w", c));
+    var row = el("div", "nfn-code-row");
+    var copy = el("button", "btn nfn-btn", "Copy"); copy.type = "button";
+    var show = el("button", "btn nfn-btn", "Show QR"); show.type = "button";
+    var qr = el("div", "nfn-qr"); qr.hidden = true;
+    copy.addEventListener("click", function () {
+      copyText(c).then(function () { copy.textContent = "Copied"; }, function () { copy.textContent = "Select and copy it"; });
+      setTimeout(function () { copy.textContent = "Copy"; }, 1800);
+    });
+    show.addEventListener("click", function () {
+      if (!qr.hidden) { qr.hidden = true; show.textContent = "Show QR"; return; }
+      loadQR().then(function () {
+        var q = window.qrcode(0, "M");
+        q.addData(restoreLink(c)); q.make();
+        qr.innerHTML = q.createSvgTag({ cellSize: 4, margin: 16, scalable: true, title: "Scan to open the Academy with this code" });
+        qr.appendChild(el("span", "nfn-qr-cap", "Scan it with the other device's camera."));
+        qr.hidden = false; show.textContent = "Hide QR";
+      }, function () {
+        qr.textContent = "The QR code didn't load. Type the four words instead.";
+        qr.hidden = false;
+      });
+    });
+    row.appendChild(copy); row.appendChild(show);
+    box.appendChild(row); box.appendChild(qr);
+    host.appendChild(box);
+  }
+
+  function turnstileToken() {
+    var inputs = document.querySelectorAll('[name="cf-turnstile-response"]');
+    for (var i = 0; i < inputs.length; i++) if (inputs[i].value) return inputs[i].value;
+    return "";
+  }
+  function resetTurnstile() { if (window.turnstile) { try { window.turnstile.reset(); } catch (e) {} } }
+
+  var loadedTurnstile = false;
+  function ensureTurnstile(host) {
+    // an invisible-unless-needed widget, for pages whose only Turnstile need is making a code
+    if (!CFG.sitekey || !host || host.querySelector(".cf-turnstile")) return;
+    var box = el("div", "cf-turnstile");
+    box.setAttribute("data-sitekey", CFG.sitekey);
+    box.setAttribute("data-theme", "dark");
+    box.setAttribute("data-appearance", "interaction-only");
+    host.appendChild(box);
+    if (loadedTurnstile || document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]')) { if (window.turnstile) { try { window.turnstile.render(box); } catch (e) {} } return; }
+    loadedTurnstile = true;
+    var s = document.createElement("script");
+    s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+    s.async = true; s.defer = true;
+    document.head.appendChild(s);
+  }
+
+  // ── lesson pages: the progress card, the self-check, "read" ─────────────
+  function lessonPage() {
+    var card = document.getElementById("prog");
+    var hasCheck = !!document.querySelector(".prose ol.selfcheck");
+
+    function paintCard() {
+      if (!card) return;
+      var st = Core.lessonState(data, LESSON);
+      var set = function (k, done, text) {
+        var li = card.querySelector('[data-k="' + k + '"]'); if (!li) return;
+        li.classList.toggle("done", !!done);
+        var b = li.querySelector("b"); if (b && text != null) b.textContent = text;
+      };
+      set("read", st.read, st.read ? "Done" : "");
+      card.querySelectorAll("[data-nfn-read]").forEach(function (b) { b.hidden = !!st.read; });
+      set("lab", st.lab, null);
+      set("check", st.checks === Core.CHECKS, st.checks + " of " + Core.CHECKS);
+      set("game", st.game, st.game ? "Done" : "Not yet");
+      card.querySelectorAll("[data-nfn-lab]").forEach(function (b) { labButton(b, st.lab); });
+      var note = card.querySelector(".prog-note");
+      if (note) note.textContent = code ? "Saved to your code" : "Saved in this browser";
+      var foot = card.querySelector(".prog-code");
+      if (!foot) return;
+      if (code) { if (foot.getAttribute("data-code") !== code) { foot.setAttribute("data-code", code); renderCode(foot, code); } return; }
+      foot.removeAttribute("data-code");
+      if (API && st.read && load(K_OFFER) !== "1") offer(foot); else foot.textContent = "";
+    }
+
+    function offer(foot) {
+      if (foot.querySelector(".prog-offer")) return;
+      foot.textContent = "";
+      var o = el("div", "prog-offer");
+      o.appendChild(el("p", "", "Want this on another device too? A code copies your progress so you can pick it up anywhere. No account, no email."));
+      var row = el("div", "nfn-code-row");
+      var yes = el("button", "btn nfn-btn", "Get a code"); yes.type = "button";
+      var no = el("button", "btn nfn-btn", "No thanks"); no.type = "button";
+      var say = el("span", "nfn-say"); say.setAttribute("role", "status");
+      yes.addEventListener("click", function () {
+        var tok = turnstileToken();
+        if (CFG.sitekey && !tok) { say.textContent = "Give the spam check a second, then try again."; return; }
+        yes.disabled = true; say.textContent = "Making your code.";
+        getCode(tok).then(function () { save(K_OFFER, "1"); resetTurnstile(); paintCard(); },
+          function (e) { yes.disabled = false; say.textContent = e.message; resetTurnstile(); });
+      });
+      no.addEventListener("click", function () { save(K_OFFER, "1"); foot.textContent = ""; });
+      row.appendChild(yes); row.appendChild(no); row.appendChild(say);
+      o.appendChild(row); foot.appendChild(o);
+    }
+
+    // self-check: a reveal per question, then Got it / Not yet
+    var qs = document.querySelectorAll(".prose ol.selfcheck > li");
+    function paintChecks() {
+      var l = (data.w && data.w[LESSON]) || {}, c = l.check || [];
+      qs.forEach(function (li, i) { li.classList.toggle("got", !!c[i]); var s = li.querySelector(".sc-say"); if (s && c[i]) s.textContent = "Got it."; });
+    }
+    qs.forEach(function (li, i) {
+      var d = li.querySelector("details"), grade = li.querySelector(".sc-grade"), say = li.querySelector(".sc-say");
+      if (!d || !grade) return;
+      d.addEventListener("toggle", function () { grade.hidden = !d.open; });
+      var got = li.querySelector(".sc-got"), not = li.querySelector(".sc-not");
+      if (got) got.addEventListener("click", function () { mark("check", i); if (say) say.textContent = "Got it."; });
+      if (not) not.addEventListener("click", function () { if (say) say.textContent = "Fair enough. Have another read of the section and come back to it."; });
+    });
+
+    // "I ran this lab": in the card, and anywhere a lesson put {{labdone}}
+    document.querySelectorAll("[data-nfn-lab]").forEach(function (b) {
+      b.addEventListener("click", function () { mark("lab"); });
+    });
+    function labButton(b, done) { b.disabled = !!done; b.textContent = done ? "Lab done" : "I ran this lab"; b.classList.toggle("done", !!done); }
+    function paintLabButtons() { var st = Core.lessonState(data, LESSON); document.querySelectorAll("[data-nfn-lab]").forEach(function (b) { labButton(b, st.lab); }); }
+
+    // read: the Three questions heading (or the end of the text) in view, after at least 30 seconds here
+    (function watchRead() {
+      if (Core.lessonState(data, LESSON).read) return;
+      var target = null;
+      document.querySelectorAll(".prose h2").forEach(function (h) { if (!target && /three questions/i.test(h.textContent)) target = h; });
+      if (!target) { var p = document.querySelector(".post-body .prose"); target = p && p.lastElementChild; }
+      if (!target || !("IntersectionObserver" in window)) return;
+      var t0 = Date.now(), reached = false, timer = null;
+      function check() { if (reached && Date.now() - t0 >= 30000) { io.disconnect(); clearTimeout(timer); mark("read"); } }
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          reached = true; check();
+          if (!timer) timer = setTimeout(check, Math.max(0, 30000 - (Date.now() - t0)) + 60);
+        });
+      });
+      io.observe(target);
+    })();
+
+    onChange(function () { paintCard(); paintChecks(); paintLabButtons(); });
+    paintCard(); paintChecks(); paintLabButtons();
+    if (card && !hasCheck) { var ck = card.querySelector('[data-k="check"]'); if (ck) ck.hidden = true; }
+  }
+
+  // ── academy.html: pips, counts, new-answer badges, the code box ─────────
+  function academyPage() {
+    var cards = document.querySelectorAll(".lesson.live[data-lesson]");
+    var readEl = document.getElementById("acad-read"), labsEl = document.getElementById("acad-labs");
+    var box = document.getElementById("codebox");
+
+    function answeredUnseen() {
+      var by = {};
+      mine.forEach(function (q) {
+        var last = "";
+        (q.answers || []).forEach(function (a) { if (a.is_author && a.created_at > last) last = a.created_at; });
+        if (last && !(data.seen[String(q.id)] >= last)) by[q.slug] = true;
+      });
+      return by;
+    }
+
+    function paint() {
+      var fresh = answeredUnseen();
+      cards.forEach(function (c) {
+        var n = c.getAttribute("data-lesson"), st = Core.lessonState(data, n);
+        var pips = c.querySelector(".pips"); if (!pips) return;
+        pips.textContent = "";
+        var any = false;
+        [["read", "Read", !!st.read], ["lab", "Lab", !!st.lab],
+         ["check", "Self-check", st.checks === Core.CHECKS, c.getAttribute("data-check") === "1"],
+         ["game", "Game", !!st.game, c.getAttribute("data-game") === "1"]].forEach(function (p) {
+          if (p.length > 3 && !p[3]) return;
+          var i = el("i", "pip" + (p[2] ? " on" : ""));
+          i.title = p[1] + (p[2] ? ": done" : ": not yet");
+          i.setAttribute("aria-label", i.title);
+          pips.appendChild(i);
+          if (p[2]) any = true;
+        });
+        pips.hidden = !any;
+        var badge = c.querySelector(".ans-badge");
+        if (badge) badge.hidden = !fresh[c.getAttribute("data-slug")];
+      });
+      var nRead = Core.readCount(data);
+      if (readEl) { readEl.textContent = nRead + " of " + (readEl.getAttribute("data-total") || cards.length) + " read"; readEl.hidden = !nRead; }
+      if (labsEl) {
+        var ids = (labsEl.getAttribute("data-labs") || "").split(",").filter(Boolean);
+        var nLabs = Core.labCount(data, ids);
+        labsEl.textContent = nLabs + " of " + ids.length + " labs passed"; labsEl.hidden = !nLabs;
+      }
+      if (box) paintBox();
+    }
+
+    function paintBox() {
+      var ui = box.querySelector(".cb-ui"); if (!ui) return;
+      if (!API) { box.hidden = true; return; }
+      if (code) {
+        if (ui.getAttribute("data-code") === code) return;
+        ui.setAttribute("data-code", code);
+        ui.textContent = "";
+        ui.appendChild(el("p", "cb-lead", "Your code. Type it, or scan the QR, on the other device."));
+        var holder = el("div"); ui.appendChild(holder); renderCode(holder, code);
+        var other = el("button", "btn nfn-btn cb-other", "Use a different code"); other.type = "button";
+        other.addEventListener("click", function () { ui.removeAttribute("data-code"); restoreForm(ui, true); });
+        ui.appendChild(other);
+        return;
+      }
+      if (ui.getAttribute("data-code") === "none") return;
+      ui.setAttribute("data-code", "none");
+      ui.textContent = "";
+      var get = el("button", "btn nfn-btn", "Get a code"); get.type = "button";
+      var say = el("span", "nfn-say"); say.setAttribute("role", "status");
+      get.addEventListener("click", function () {
+        var tok = turnstileToken();
+        if (CFG.sitekey && !tok) { say.textContent = "Give the spam check a second, then try again."; return; }
+        get.disabled = true; say.textContent = "Making your code.";
+        getCode(tok).then(function () { resetTurnstile(); }, function (e) { get.disabled = false; say.textContent = e.message; resetTurnstile(); });
+      });
+      var row = el("div", "nfn-code-row"); row.appendChild(get); row.appendChild(say);
+      ui.appendChild(row);
+      restoreForm(ui, false);
+      ensureTurnstile(ui);
+    }
+
+    function restoreForm(ui, switching) {
+      if (switching) ui.textContent = "";
+      var f = el("form", "cb-restore"); f.setAttribute("novalidate", "");
+      var lab = el("label", "cb-f");
+      lab.appendChild(el("span", "", "Have a code? Type it here."));
+      var inp = el("input"); inp.type = "text"; inp.autocomplete = "off"; inp.autocapitalize = "none"; inp.spellcheck = false;
+      inp.placeholder = "four words"; inp.setAttribute("aria-label", "Your save code");
+      lab.appendChild(inp); f.appendChild(lab);
+      var go = el("button", "btn nfn-btn", "Use it"); go.type = "submit";
+      var say = el("span", "nfn-say"); say.setAttribute("role", "status");
+      var row = el("div", "nfn-code-row"); row.appendChild(go); row.appendChild(say); f.appendChild(row);
+      f.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var c = Core.normaliseCode(inp.value);
+        if (code && c !== code && !window.confirm("This browser already has a code. Switch to this one? What's saved here comes with you.")) return;
+        go.disabled = true; say.textContent = "Checking.";
+        useCode(inp.value).then(function () { say.textContent = ""; }, function (err) { go.disabled = false; say.textContent = err.message; });
+      });
+      ui.appendChild(f);
+    }
+
+    // a QR scan lands here as academy.html#code=four-words-like-this
+    var m = /[#&]code=([a-z-]+)/i.exec(location.hash);
+    if (m) {
+      var c = Core.normaliseCode(m[1]);
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+      if (c && c !== code && (!code || window.confirm("Switch this browser to the code you scanned? What's saved here comes with you."))) {
+        useCode(c).then(null, function (err) { if (box) { var ui = box.querySelector(".cb-ui"); if (ui) { ui.removeAttribute("data-code"); var s = el("p", "nfn-say", err.message); ui.appendChild(s); } } });
+      }
+    }
+
+    onChange(paint);
+    paint();
+  }
+
+  // ── sandbox.html: a tick on every lab that has passed ───────────────────
+  function sandboxPage() {
+    function paint() {
+      document.querySelectorAll(".sb-pill[data-lab]").forEach(function (p) {
+        var on = !!(data.labs && data.labs[p.getAttribute("data-lab")]);
+        p.classList.toggle("passed", on);
+        if (on) p.setAttribute("title", "Lab passed"); else p.removeAttribute("title");
+      });
+    }
+    onChange(paint);
+    paint();
+  }
+
+  // ── every post: the read mark at the end, the changed line at the top ───
+  function shortDate(d) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ""); if (!m) return d || "";
+    return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][+m[2] - 1] + " " + (+m[3]) +
+      (m[1] !== String(new Date().getFullYear()) ? ", " + m[1] : "");
+  }
+  function postPage() {
+    var box = document.getElementById("readmark-box"), say = document.getElementById("readmark-say"),
+        note = document.getElementById("changed-note"), ack = document.getElementById("changed-ack"),
+        when = document.getElementById("changed-when");
+    if (box) box.addEventListener("change", function () { if (box.checked) markPost(); paint(); });
+    if (ack) ack.addEventListener("click", function () { markPost(); });
+    document.querySelectorAll("[data-nfn-read]").forEach(function (b) {
+      b.addEventListener("click", function () { mark("read"); markPost(); });
+    });
+    function paint() {
+      var read = Core.postRead(data, SLUG, LESSON), stale = Core.changedSince(data, SLUG, LESSON, CHANGED);
+      if (note) {
+        note.hidden = !stale;
+        if (stale && when) when.textContent = "You marked this read on " + shortDate(read) + ". It changed on " + shortDate(CHANGED) + ".";
+      }
+      if (box) {
+        box.checked = !!read;
+        box.disabled = !!read && !stale;
+        if (say) say.textContent = !read ? "Saved in this browser, and to your code if you have one." :
+          stale ? "Changed since you read it. Tick it again once you've read the update." : "Read on " + shortDate(read) + ".";
+        if (stale) box.checked = false, box.disabled = false;
+      }
+    }
+    onChange(paint);
+    paint();
+  }
+
+  function onChange(fn) { if (typeof fn === "function") listeners.push(fn); }
+
+  window.NFNProgress = {
+    core: Core,
+    get: function () { return JSON.parse(JSON.stringify(data)); },
+    code: function () { return code; },
+    pulled: function () { return pulled; },
+    mark: mark, lab: lab, seen: seen, markPost: markPost,
+    questions: function () { return mine.slice(); },
+    getCode: getCode, useCode: useCode, adopt: function (c) { if (Core.isCodeShape(c)) adopt(c, {}); }, addMine: addMine,
+    onChange: onChange, renderCode: renderCode, turnstileToken: turnstileToken, resetTurnstile: resetTurnstile,
+    _push: function () { setDirty(true); push(false); }       // for tests
+  };
+
+  function boot() {
+    if (LESSON) lessonPage();
+    if (SLUG) postPage();
+    if (document.getElementById("codebox") || document.querySelector(".lesson.live[data-lesson]")) academyPage();
+    if (document.querySelector(".sb-pill[data-lab]")) sandboxPage();
+    pull();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+})();
+</script>
+  <div class="backbar"><a class="btn" href="../academy.html"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6l-6 6 6 6"/></svg>&nbsp;Academy</a></div>
+  <article>
+    <header class="post-head g-hero cat-Academy" data-view="zoom">
+      <div class="row" style="margin:0"><a class="tag c-orange" href="../index.html#cat=Academy" title="All Academy posts">Academy</a><span class="meta">Lesson 8 &#183; 11 min</span></div>
+      <h1 class="h-hero">Joining a Network</h1>
+    </header>
+    
+    <div class="post-body g-card" data-rise>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Lesson 8: Joining a network. A vertical ladder of the join sequence. Left column, the frames between client and AP: probe, 802.11 authentication, association, EAPOL-Start and EAP identity, the EAP method round trips, EAP-Success, the 4-way handshake highlighted, DHCP, then a green first data frame. Right column, the RADIUS leg to ClearPass: Access-Request, N Access-Challenges, Access-Accept carrying the PMK material, with a note that PSK has no RADIUS leg. Caption: every rung is a place it can fail.">
+  <defs>
+    <style>
+      .eb { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; fill: #F5A524; }
+      .hl { font-family: 'Instrument Sans', sans-serif; font-size: 22px; font-weight: 600; fill: #EAF2F6; }
+      .t  { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #B0C4CF; }
+      .tw { font-family: 'Instrument Sans', sans-serif; font-size: 12px; fill: #EAF2F6; }
+      .ts { font-family: 'Instrument Sans', sans-serif; font-size: 11px; fill: #8BA2AE; }
+      .mh { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.5px; fill: #8BA2AE; }
+      .m  { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #EAF2F6; }
+      .mo { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #F5A524; font-weight: 600; }
+      .mt { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #5ED2DA; }
+      .mg { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #8CE05E; font-weight: 600; }
+      .cap { font-family: 'Instrument Sans', sans-serif; font-size: 13px; fill: #F5A524; }
+      .box { fill: rgba(0,0,0,0.45); stroke: rgba(255,255,255,0.12); stroke-width: 1; }
+      .rail { stroke: rgba(255,255,255,0.18); stroke-width: 2; }
+      .rung { stroke: rgba(255,255,255,0.25); stroke-width: 1.5; }
+      .rungo { stroke: #F5A524; stroke-width: 2; }
+      .rungg { stroke: #8CE05E; stroke-width: 2; }
+      .link { stroke: #5ED2DA; stroke-width: 1.2; stroke-dasharray: 3 3; fill: none; }
+    </style>
+  </defs>
+
+  <text x="24" y="36" class="eb">LESSON 8: JOINING A NETWORK</text>
+  <text x="24" y="66" class="hl">Connected is not one event. It's a ladder, and every rung can fail.</text>
+
+  <rect x="24" y="82" width="528" height="214" rx="8" class="box"/>
+  <text x="40" y="98" class="mh">CLIENT AND AP, OVER THE AIR</text>
+  <text x="536" y="98" text-anchor="end" class="mh">FRAMES</text>
+  <line x1="48" y1="110" x2="48" y2="270" class="rail"/>
+  <line x1="74" y1="110" x2="74" y2="270" class="rail"/>
+  <rect x="572" y="82" width="304" height="214" rx="8" class="box"/>
+  <text x="588" y="98" class="mh">RADIUS LEG TO CLEARPASS</text>
+  <line x1="48" y1="116" x2="74" y2="116" class="rung"/>
+  <text x="88" y="120" class="tw">Probe request / response</text>
+  <text x="536" y="120" text-anchor="end" class="m">2</text>
+  <line x1="48" y1="136" x2="74" y2="136" class="rung"/>
+  <text x="88" y="140" class="tw">802.11 authentication (SAE: 4)</text>
+  <text x="536" y="140" text-anchor="end" class="m">2</text>
+  <line x1="48" y1="156" x2="74" y2="156" class="rung"/>
+  <text x="88" y="160" class="tw">Association request / response</text>
+  <text x="536" y="160" text-anchor="end" class="m">2</text>
+  <line x1="48" y1="176" x2="74" y2="176" class="rung"/>
+  <text x="88" y="180" class="tw">EAPOL-Start, EAP identity</text>
+  <text x="536" y="180" text-anchor="end" class="m">3</text>
+  <path d="M552 176 C 562 176 562 176 572 176" class="link"/>
+  <circle cx="572" cy="176" r="2.5" fill="#5ED2DA"/>
+  <text x="588" y="180" class="mt">Access-Request</text>
+  <line x1="48" y1="196" x2="74" y2="196" class="rung"/>
+  <text x="88" y="200" class="tw">EAP-TLS or PEAP round trips</text>
+  <text x="536" y="200" text-anchor="end" class="m">2N</text>
+  <path d="M552 196 C 562 196 562 196 572 196" class="link"/>
+  <circle cx="572" cy="196" r="2.5" fill="#5ED2DA"/>
+  <text x="588" y="200" class="mt">Access-Challenge x N</text>
+  <line x1="48" y1="216" x2="74" y2="216" class="rung"/>
+  <text x="88" y="220" class="tw">EAP-Success</text>
+  <text x="536" y="220" text-anchor="end" class="m">1</text>
+  <path d="M552 216 C 562 216 562 216 572 216" class="link"/>
+  <circle cx="572" cy="216" r="2.5" fill="#5ED2DA"/>
+  <text x="588" y="220" class="mt">Access-Accept + PMK material</text>
+  <rect x="32" y="227" width="512" height="20" rx="4" fill="rgba(245,165,36,0.10)" stroke="rgba(245,165,36,0.35)" stroke-width="1"/>
+  <line x1="48" y1="236" x2="74" y2="236" class="rungo"/>
+  <text x="88" y="240" class="mo">4-way handshake  M1 M2 M3 M4</text>
+  <text x="536" y="240" text-anchor="end" class="mo">4</text>
+  <line x1="48" y1="256" x2="74" y2="256" class="rung"/>
+  <text x="88" y="260" class="tw">DHCP discover, offer, request, ack</text>
+  <text x="536" y="260" text-anchor="end" class="m">4</text>
+  <line x1="48" y1="276" x2="74" y2="276" class="rungg"/>
+  <circle cx="61" cy="276" r="4" fill="#8CE05E"/>
+  <text x="88" y="280" class="mg">First data frame the user asked for</text>
+  <text x="536" y="280" text-anchor="end" class="mg">PSK 14 / EAP 18+2N</text>
+  <text x="588" y="240" class="ts">Login Status: Accept, Reject or Timeout</text>
+  <text x="588" y="260" class="ts">No row at all: it never got in the door</text>
+  <text x="588" y="280" class="ts">PSK: no RADIUS leg. PMK from the passphrase.</text>
+  <text x="24" y="322" class="cap">Every rung is a place it can fail, and each one fails on a different screen. Learn the order.</text>
+</svg></div>
+      
+      <div class="callout origin"><span class="eyebrow">Where this came from</span>Wireless Academy, lesson 8. Fundamentals first, then a lab on real gear</div>
+      <div class="prose"><p>Last week was whether the radio can hear the AP through the noise. This week is what happens once it can, because "connected" is not one event. It's a ladder.</p>
+<p>The user says the Wi-Fi is down. The helpdesk says the password is wrong. The RADIUS admin says nothing hit the server. The DHCP admin says the scope has leases. All four are looking at a different rung of the same ladder, and the fix depends on which rung the client fell off. Learn the rungs in order and the platform screens stop being a pile of events and start being a story with a page number.</p>
+<h2>The ladder</h2>
+<p><strong>Discovery.</strong> On 2.4 and 5 GHz the client either listens for beacons, one channel at a time for a beacon interval, 100 TU or 102.4 ms by default, or sends a probe request and gets a probe response. Two frames. On 6 GHz the client isn't allowed to blind-probe every channel, so the AP announces itself with FILS Discovery frames or unsolicited probe responses about every 20 ms, and its 2.4 and 5 GHz beacons carry a Reduced Neighbor Report pointing at the 6 GHz radio. Discovery is the rung that leaves nothing on the AP when it fails, because the client never talked to it.</p>
+<p><strong>802.11 authentication.</strong> Two frames, sequence 1 and 2, with a status code. Open system, which is what WPA2-PSK and Enterprise use here, proves nothing; it's there so the state machine can move. WPA3-Personal replaces it with SAE, four authentication frames, commit and confirm each way, and the PMK falls out of that exchange instead of the passphrase.</p>
+<p><strong>Association.</strong> Request and response, another status code, and an AID if it's zero. The client is now authenticated and associated, and on an RSN network every data frame it sends is dropped until the keys exist. Capability mismatches fail here. Status code 43 is the client offering no AKM the AP is configured for.</p>
+<p><strong>EAP, enterprise only.</strong> The client may send EAPOL-Start; the AP sends an EAP identity request either way and the client answers with an identity. The AP wraps that in a RADIUS Access-Request to ClearPass, ClearPass answers with an Access-Challenge, and that pair repeats for every step of the method. EAP-TLS is a certificate exchange both ways inside those round trips; PEAP-MSCHAPv2 is a TLS tunnel with a password challenge inside. It ends with an Access-Accept carrying the key material in MS-MPPE-Recv-Key and MS-MPPE-Send-Key, or an Access-Reject. The AP turns the accept into EAP-Success and the first 256 bits of the master session key become the PMK.</p>
+<p><strong>PSK, where it differs.</strong> No RADIUS leg. Both ends compute the PMK from the passphrase and the SSID, PBKDF2 with 4096 iterations, 256 bits out. The AP can't tell a wrong passphrase from a right one until the next rung.</p>
+<p><strong>The 4-way handshake.</strong> Four EAPOL-Key frames. Message 1, AP to client, carries the ANonce. Message 2 carries the SNonce and a MIC. Both ends now have the PMK, both nonces and both MAC addresses, so both derive the same PTK. Message 3 carries the group key, the GTK, encrypted with the PTK. Message 4 says the keys are installed. A wrong PSK fails at message 2, because the MIC doesn't check. The AP's answer is a deauth, and the client's answer is usually to try again, because computers are very patient.</p>
+<p><strong>DHCP.</strong> Discover, offer, request, ack. Four messages, and they're encrypted data frames, so the radio thinks the client is on. The user is still watching it spin.</p>
+<p>Then the first frame the user actually asked for. Every rung above it needs something different: the right channel, a status code of zero, a certificate the server trusts, a passphrase both ends agree on, a DHCP server that can hear a broadcast. And every rung fails on a different screen.</p>
+<h2>The number that matters</h2>
+<p>Count the exchanges between the first probe and the first useful frame. N is the number of EAP request and response pairs after the identity exchange, which is the same as the number of RADIUS Access-Challenge round trips.</p>
+<pre><code>PSK:      2 probe + 2 auth + 2 assoc + 4 EAPOL-Key + 4 DHCP        = 14 on the air, 0 to RADIUS
+EAP-TLS:  2 + 2 + 2 + 1 EAPOL-Start + 2 identity + 2N + 1 EAP-Success + 4 + 4
+                                                                     = 18 + 2N on the air, N + 1 RADIUS round trips
+          with N = 8:  34 frames on the air, 18 RADIUS packets on the wire
+</code></pre>
+<p>N = 8 is the model's placeholder for a client certificate with a short chain; count yours off the capture in the lab and replace it. The point is the ratio. Enterprise more than doubles the ladder, and the extra rungs cross the wire to a server with its own queue, its own certificate checks and its own idea of a timeout. A roam is this ladder again, minus discovery, every time the client moves. 802.11r, OKC and PMK caching exist to skip the EAP rungs on the second climb, and if you know the count you know what they're saving.</p>
+<h2>What the gear shows you</h2>
+<p><strong>Aruba, on the box.</strong> <code>show ap association</code> lists every client with <code>auth</code> and <code>assoc</code> columns and a flags string; <code>S</code> is an SAE client, <code>E</code> an enterprise one. <code>show ap debug client-table</code> has the <code>Assoc_State</code> column, which the doc says shows whether the client is currently authorized and/or associated. On an AOS 8 controller <code>show auth-tracebuf mac &lt;mac&gt;</code> is the authentication state machine per client: the doc example shows <code>station-up</code>, <code>wpa2-key1</code>, <code>wpa2-key2</code> with <code>mic failure</code> against it, and <code>station-data-ready</code> at the end, which is the line you want. <code>show auth-tracebuf failures</code> keeps only the bad ones. For the 802.11 frames themselves, an AOS 8 controller has <code>show ap remote debug mgmt-frames ap-name &lt;name&gt; client-mac &lt;mac&gt;</code> and Instant has <code>show ap debug mgmt-frames</code>, both with <code>stype</code>, <code>SA</code>, <code>DA</code>, <code>BSS</code>, <code>signal</code> and <code>Misc</code> columns and the status in <code>Misc</code>. On AOS 10 the same two views are <code>show ap debug auth-trace-buf</code>, which prints <code>eap-req</code>, <code>eap-resp</code>, <code>rad-req</code> and <code>rad-resp</code> lines with the RADIUS server named, and <code>show ap debug mgmt-frames</code>. Central's own Tools &gt; Commands page lists them as <code>auth-trace-buf+</code> and <code>mgmt-frames+</code>, and that plus is Central's marker for a command that takes optional filters, not part of the command; it runs them without it. Both arrived in 10.3.1.0.</p>
+<p><strong>Aruba Central.</strong> Open the client. The Summary has a Connection section with Channel, Band, Client Capabilities and Client Max Speed, and a Network section with Auth Server and DHCP Server, a fast way to check the client is talking to the ClearPass you think it is. The Events tab is the join as a table, Occurred On, Event Type, Description, filterable by type. Under Analyze, Live Events streams the client with a Packet Capture toggle and a Download PCAP button. Under Manage &gt; Overview, Wi-Fi Connectivity is the ladder for the whole site: a summary bar with Association, Authentication, DHCP and DNS success percentages, and a Connection Problems tile that splits authentication failures by type and by server. The AI Insights that match are Clients with High 802.1X Authentication Failures, Clients with High Wi-Fi Security Key-Exchange Failures and Clients with Significant Number of DHCP Server Connection Problems. The ladder again, in three cards.</p>
+<p><strong>Mist.</strong> Open the client, follow Client Insights, and the Client Events section is the ladder with a color on every rung, with tabs for all, good, neutral or bad. A clean join reads Association, Authorization &amp; Association on 802.1X, DHCP Success, Gateway ARP Success, DNS Success. The bad list has Association Failure, Authorization Failure, SAE Auth Failure, DHCP Timed Out, DHCP Denied and DNS Failure; 802.11 Auth Denied sits in neutral. When Authorization Failure, Association Failure or a DHCP failure fires, Mist takes a Dynamic Packet Capture on its own, pins a paperclip to the event, and Download Packet Capture hands you the pcap. The Successful Connects SLE is the same thing site-wide, classifiers Association, Authorization, DHCP, ARP and DNS, with DHCP split into Discover Unresponsive, Renew Unresponsive, Nack and Incomplete. Time to Connect, next to it, is defined as the seconds from the association frame to the moment the client can move data, which is this lesson's number measured. From the API, <code>GET /api/v1/sites/{site_id}/clients/{client_mac}/events</code> returns the events with <code>type</code>, <code>text</code>, <code>ssid</code>, <code>bssid</code>, <code>band</code> and <code>timestamp</code>; the spec's own example is a <code>CLIENT_DNS_OK</code> with the text <code>Status code 0 "Successful"</code>.</p>
+<p><strong>ClearPass.</strong> Monitoring &gt; Live Monitoring &gt; Access Tracker is the RADIUS leg and nothing else. One row per request: Server Name, Source, Username, Service, Login Status and Request Timestamp, and Login Status is Accept, Reject or Timeout. Click the row and Request Details opens on Summary, where you read which Service matched, then Input, what the AP sent and what ClearPass computed from it, and Output, what went back to the AP with the enforcement profile. Accounting only appears if accounting packets arrived. On a reject there's an Alerts tab with the reason; the 6.12 guide only documents that tab for TACACS+ sessions, but Juniper's ClearPass troubleshooting page sends you there for a RADIUS reject and so do I. The rule that saves the most time: no row at all means ClearPass never accepted the packet, and you go to Monitoring &gt; Event Viewer, Authentication category, and look for Request from Unknown NAD or a shared secret complaint. Access Tracker can only show you what got in the door.</p>
+<p><strong>Sidekick.</strong> The Sidekick 2 with Ekahau Analyzer on a phone takes a packet capture on the AP's channel, and Wireshark then shows the whole ladder as frames, which is the only view that includes the probes. Five minutes per capture is plenty for a join.</p>
+<h2>The lab</h2>
+<p>One AP on each platform, one 802.1X SSID pointed at the ClearPass lab, EAP-TLS if you have certs on the laptop, PEAP if you don't, one laptop. Under an hour.</p>
+<ol>
+<li>Pin the channel and power, same as every lab so far.</li>
+<li>Forget the network on the laptop, start Live Events on Central with Packet Capture on, or a Sidekick capture on the channel, and join. Read it top to bottom in the Events tab and in <code>show auth-tracebuf mac &lt;mac&gt;</code> on AOS 8 or <code>show ap debug auth-trace-buf</code> on AOS 10. Count the <code>rad-req</code> lines and take one off for the identity. That's your N.</li>
+<li>Same join on the Mist AP. Read it in Client Events, and compare the gap from Association to DNS Success with the Time to Connect SLE.</li>
+<li>Open Access Tracker, find the row by username, open it. Summary for Service and Login Status, Output for the enforcement profile, Input for the NAS IP the AP used.</li>
+<li>Break one: wrong password, or on EAP-TLS an expired or untrusted certificate. Join again on both platforms and find it in all three places.</li>
+<li>Break two: change the RADIUS shared secret on the AP only. Join again. Notice which of the three places is empty.</li>
+<li>Break three: move the client VLAN somewhere with no DHCP, or block UDP 67 on the way to the server. Join again.</li>
+<li>Put it all back and do one clean join so you leave with a good capture next to three bad ones.</li>
+</ol>
+<p><strong>What you should see.</strong> On the clean join, the ladder in order on every platform, with the RADIUS leg visible only in ClearPass and the AP's trace buffer. Break one is Login Status Reject with the reason on Alerts, Authorization Failure on Mist with a paperclip, and on Aruba a <code>rad-resp</code> with no <code>station-data-ready</code> after it. Break two is the useful one: the client sees the same failure as break one, but Access Tracker has no row, and the AP trace shows <code>rad-req</code> lines with nothing coming back. The evidence moved to Event Viewer. Break three fools people: ClearPass says Accept, the handshake finishes, Aruba's client table says associated, Mist says Authorization &amp; Association in green, then DHCP Timed Out in red with Discover Unresponsive under the Successful Connects SLE. Everything below the DHCP rung is fine and the user still can't get on. The frame counts are what the model expects; measured ones go in when I have them.</p>
+<p><strong>What means it's broken.</strong> A reject with a Service you didn't expect means the request matched the wrong service; the fix is in the service rules, not the auth source. Nothing in Access Tracker and nothing in Event Viewer means the packet never left the AP: check the server IP and the AP's route before you touch ClearPass. A <code>mic failure</code> on <code>wpa2-key2</code> with PSK is the passphrase; after a clean Accept on 802.1X it means the two ends derived different PMKs, and in my experience that's the supplicant or the driver. DHCP failures on one platform and a clean join on the other with the same VLAN is a switch port, not a wireless problem.</p>
+<h2>Three questions</h2>
+<ol>
+<li>A client is associated, the AP shows it, and Access Tracker shows Accept, but the user has no IP. Which rung, and which screen proves it?</li>
+<li>You change the shared secret on the AP and get the password wrong on the laptop in the same afternoon. Which one leaves a row in Access Tracker?</li>
+<li>On PSK, the client keeps associating and getting deauthed a second later. Where in the ladder is it failing and why can't the AP tell you sooner?</li>
+</ol>
+<p>Answers: DHCP; Mist Client Events with DHCP Timed Out, or Central's Wi-Fi Connectivity DHCP stage, and Access Tracker can't show it because ClearPass was done two rungs earlier. The wrong password, as a Reject; the wrong shared secret leaves nothing, and you find it in Event Viewer. The 4-way handshake, at message 2, because with PSK the AP has no way to check the passphrase until the client's MIC arrives, so association always succeeds first.</p>
+<h2>Next lesson</h2>
+<p>Roaming, and why the client decides. Everything in this lesson happens again every time the laptop moves, and 802.11k, v and r are three ways to make the second climb shorter.</p></div>
+      
+    </div>
+    <section class="prog g-card" id="prog" data-rise aria-label="Your progress on this lesson">
+  <div class="prog-head"><span class="eyebrow">Your progress</span><span class="meta prog-note">Saved in this browser</span></div>
+  <ul class="prog-items">
+    <li data-k="read"><i class="pip"></i><span>Read</span><b></b><button type="button" class="btn nfn-btn" data-nfn-read>Mark as read</button></li>
+    <li data-k="lab"><i class="pip"></i><span>Lab</span><button type="button" class="btn nfn-btn" data-nfn-lab>I ran this lab</button></li>
+    
+    
+  </ul>
+  <div class="prog-code"></div>
+</section>
+<section class="series g-card" data-rise><span class="eyebrow">Reading path</span><h3>Wireless Academy <span class="meta">part 8 of 12</span></h3><div class="ser-steps"><a class="ser-step" href="academy-01-what-a-radio-actually-sends.html"><span class="ser-n">1</span><span class="ser-t">What a Radio Actually Sends</span></a><a class="ser-step" href="academy-02-bands-channels-widths.html"><span class="ser-n">2</span><span class="ser-t">Bands, Channels and Widths</span></a><a class="ser-step" href="academy-03-the-link-budget.html"><span class="ser-n">3</span><span class="ser-t">The Link Budget</span></a><a class="ser-step" href="academy-04-modulation-and-data-rates.html"><span class="ser-n">4</span><span class="ser-t">Modulation and Data Rates</span></a><a class="ser-step" href="academy-05-airtime-is-the-only-resource.html"><span class="ser-n">5</span><span class="ser-t">Airtime Is the Only Resource</span></a><a class="ser-step" href="academy-06-interference-from-yourself.html"><span class="ser-n">6</span><span class="ser-t">Interference From Yourself</span></a><a class="ser-step" href="academy-07-noise-snr-and-why-rssi-lies.html"><span class="ser-n">7</span><span class="ser-t">Noise, SNR, and Why RSSI Lies</span></a><a class="ser-step here" href="academy-08-joining-a-network.html"><span class="ser-n">8</span><span class="ser-t">Joining a Network</span><span class="ser-tag">You are here</span></a><a class="ser-step next" href="academy-09-roaming-the-client-decides.html"><span class="ser-n">9</span><span class="ser-t">Roaming: the Client Decides</span><span class="ser-tag">Next</span></a><a class="ser-step" href="academy-10-capacity-not-coverage.html"><span class="ser-n">10</span><span class="ser-t">Capacity, Not Coverage</span></a><a class="ser-step" href="academy-11-surveys-and-what-a-heatmap-cant-see.html"><span class="ser-n">11</span><span class="ser-t">Surveys and What a Heatmap Can&#x27;t See</span></a><a class="ser-step" href="academy-12-a-troubleshooting-method.html"><span class="ser-n">12</span><span class="ser-t">A Troubleshooting Method</span></a></div></section>
+    
+    <section class="q-wrap g-card" id="qa" data-rise data-slug="academy-08-joining-a-network" data-api="https://api.networkfieldnotes.com" data-sitekey="0x4AAAAAAE0IseyiQ4X9zk6r">
+  <style>
+  .q-wrap{padding:var(--s5);margin-top:var(--s5)}
+  .q-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:var(--s3)}
+  .q-head h3{font-size:19px;letter-spacing:-0.02em}
+  .q-head .meta{font-family:var(--mono);font-size:12px;color:var(--text-muted)}
+  .q-list{list-style:none;margin:0 0 var(--s5);padding:0;display:flex;flex-direction:column;gap:var(--s3)}
+  .q-item{padding:var(--s4);border:1px solid var(--line);border-radius:var(--r-inner);background:var(--solid)}
+  .q-item.q-wait{border-color:rgba(245,165,36,0.45)}
+  .q-who{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .q-who b{font-size:14.5px}
+  .q-tag{font:600 10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.22);color:var(--text-dim)}
+  .q-tag.q-author{border-color:rgba(140,224,94,0.45);color:var(--green)}
+  .q-tag.q-waiting{border-color:rgba(245,165,36,0.55);color:#ffd28a}
+  .q-when{font-family:var(--mono);font-size:11.5px;color:var(--text-muted)}
+  .q-body p{font-size:15px;line-height:1.7;color:var(--text-dim);margin:0 0 10px;overflow-wrap:anywhere}
+  .q-body p:last-child{margin-bottom:0}
+  .q-ans{list-style:none;margin:var(--s3) 0 0;padding:0 0 0 var(--s4);border-left:2px solid rgba(140,224,94,0.35);display:flex;flex-direction:column;gap:var(--s3)}
+  .q-ans .q-body p{color:var(--text)}
+  .q-empty,.q-off{font-size:14.5px;color:var(--text-muted);margin:0 0 var(--s5)}
+  .q-form{display:flex;flex-direction:column;gap:var(--s3)}
+  .q-form[hidden],.q-list[hidden]{display:none}
+  .q-f{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .q-f span{font:10px var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted)}
+  .q-wrap input[type=text],.q-wrap textarea{width:100%;min-height:46px;font:15px var(--sans);color:var(--text);background:rgba(3,10,16,0.8);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .q-wrap textarea{min-height:120px;line-height:1.6;resize:vertical}
+  .q-wrap input:focus-visible,.q-wrap textarea:focus-visible,.q-wrap button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .q-name{max-width:320px}
+  .q-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+  .q-actions{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+  .q-note{font-size:12.5px;line-height:1.6;color:var(--text-muted);margin:0}
+  .q-say{font-size:13.5px;line-height:1.6}
+  .q-say.q-ok{color:var(--green)}
+  .q-say.q-bad{color:#ffd28a}
+  .q-done{margin-top:var(--s3);padding:var(--s4);border:1px solid rgba(140,224,94,0.35);border-radius:var(--r-inner);background:rgba(140,224,94,0.06)}
+  .q-done p{margin:0 0 var(--s3);font-size:14.5px;line-height:1.65;color:var(--text)}
+  .q-done[hidden]{display:none}
+  </style>
+
+  <div class="q-head"><h3>Ask about this lesson</h3><span class="meta" id="q-count"></span></div>
+  <ul class="q-list" id="q-list"></ul>
+  <p class="q-empty" id="q-empty" hidden>No questions on this lesson yet.</p>
+
+  <form class="q-form" id="q-form" novalidate>
+    <label class="q-f"><span>Your question</span><textarea id="q-body" maxlength="2000" required placeholder="What didn't add up, and what gear you're on."></textarea></label>
+    <label class="q-f q-name"><span>Name</span><input type="text" id="q-name" maxlength="60" autocomplete="nickname" placeholder="Optional, shown with the question"></label>
+    <input class="q-hp" type="text" id="q-website" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="Leave this empty">
+    <div id="q-cap"></div>
+    <div class="q-actions">
+      <button class="btn cta" type="submit" id="q-send">Send</button>
+      <span class="q-say" id="q-say" role="status"></span>
+    </div>
+    <p class="q-note">Questions show up here once I've answered them. Add a name if you want it shown. No account and no email; your code is how you find the answer again.</p>
+  </form>
+  <div class="q-done" id="q-done" hidden></div>
+  <p class="q-off" id="q-offline" hidden>Questions are offline at the moment.</p>
+
+  <script>
+  (function () {
+  // waits for the page to finish parsing, so the progress script is always there when this runs
+  function start() {
+    var root = document.getElementById("qa");
+    if (!root) return;
+    var API = root.dataset.api, SLUG = root.dataset.slug, KEY = root.dataset.sitekey;
+    var list = document.getElementById("q-list"), count = document.getElementById("q-count"),
+        empty = document.getElementById("q-empty"), form = document.getElementById("q-form"),
+        say = document.getElementById("q-say"), send = document.getElementById("q-send"),
+        cap = document.getElementById("q-cap"), offline = document.getElementById("q-offline"),
+        done = document.getElementById("q-done");
+    var P = window.NFNProgress || null;
+    var publicRows = [];
+
+    function when(iso) {
+      var then = Date.parse(iso), mins = Math.round((Date.now() - then) / 60000);
+      if (isNaN(then)) return "";
+      if (mins < 1) return "just now";
+      if (mins < 60) return mins + (mins === 1 ? " minute ago" : " minutes ago");
+      var hrs = Math.round(mins / 60);
+      if (hrs < 24) return hrs + (hrs === 1 ? " hour ago" : " hours ago");
+      var days = Math.round(hrs / 24);
+      if (days < 8) return days + (days === 1 ? " day ago" : " days ago");
+      return new Date(then).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    }
+    function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    function body(text) {
+      var d = el("div", "q-body");
+      String(text || "").split(/\n{2,}/).forEach(function (para) { d.appendChild(el("p", "", para)); });   // textContent, never innerHTML
+      return d;
+    }
+    function who(name, tags, at) {
+      var w = el("div", "q-who");
+      w.appendChild(el("b", "", name));
+      tags.forEach(function (t) { w.appendChild(el("span", "q-tag " + t[0], t[1])); });
+      w.appendChild(el("span", "q-when", when(at)));
+      return w;
+    }
+
+    function render() {
+      var mine = P ? P.questions().filter(function (q) { return q.slug === SLUG; }) : [];
+      var mineIds = {}; mine.forEach(function (q) { mineIds[q.id] = q; });
+      var roots = publicRows.filter(function (r) { return !r.parent_id; });
+      var kids = {}; publicRows.forEach(function (r) { if (r.parent_id) (kids[r.parent_id] = kids[r.parent_id] || []).push(r); });
+      var waiting = mine.filter(function (q) { return q.state === "held"; });
+      var seenIds = [];
+      list.textContent = "";
+
+      waiting.forEach(function (q) {
+        var li = el("li", "q-item q-wait");
+        li.appendChild(who(q.name || "You", [["q-waiting", "Waiting for an answer"]], q.created_at));
+        li.appendChild(body(q.body));
+        list.appendChild(li);
+      });
+      roots.forEach(function (r) {
+        var li = el("li", "q-item");
+        var tags = [];
+        if (r.is_author) tags.push(["q-author", "Author"]);
+        if (mineIds[r.id]) tags.push(["", "Yours"]);
+        li.appendChild(who(r.name || (r.is_author ? "Dustin" : "A reader"), tags, r.created_at));
+        li.appendChild(body(r.body));
+        var ans = kids[r.id] || [];
+        if (ans.length) {
+          var ul = el("ul", "q-ans");
+          ans.forEach(function (a) {
+            var ai = el("li", "");
+            ai.appendChild(who(a.name || "Dustin", a.is_author ? [["q-author", "Author"]] : [], a.created_at));
+            ai.appendChild(body(a.body));
+            ul.appendChild(ai);
+          });
+          li.appendChild(ul);
+          if (mineIds[r.id]) seenIds.push(r.id);
+        }
+        list.appendChild(li);
+      });
+      var n = roots.length;
+      count.textContent = n ? n + (n === 1 ? " question" : " questions") : "";
+      empty.hidden = n > 0 || waiting.length > 0;
+      if (P && seenIds.length) P.seen(seenIds);     // clears the "New answer" badge on the Academy page
+    }
+
+    function load() {
+      return fetch(API + "/v1/comments?slug=" + encodeURIComponent(SLUG), { cache: "no-store" })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { publicRows = d.comments || []; render(); })
+        .catch(function () { form.hidden = true; empty.hidden = true; list.hidden = true; count.textContent = ""; offline.hidden = false; });
+    }
+
+    if (KEY) {
+      var box = document.createElement("div");
+      box.className = "cf-turnstile";
+      box.setAttribute("data-sitekey", KEY);
+      box.setAttribute("data-theme", "dark");
+      box.setAttribute("data-appearance", "interaction-only");    // most readers never see it
+      cap.appendChild(box);
+      var s = document.createElement("script");
+      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+      s.async = true; s.defer = true;
+      document.head.appendChild(s);
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var text = document.getElementById("q-body").value.trim();
+      if (text.length < 2) { say.className = "q-say q-bad"; say.textContent = "Write the question first."; return; }
+      var token = (form.querySelector('[name="cf-turnstile-response"]') || {}).value || "";
+      if (KEY && !token) { say.className = "q-say q-bad"; say.textContent = "Give the spam check a second, then send."; return; }
+      var had = P ? P.code() : "";
+      send.disabled = true; say.className = "q-say"; say.textContent = "Sending.";
+      fetch(API + "/v1/comments", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          slug: SLUG,
+          name: document.getElementById("q-name").value,
+          body: text,
+          website: document.getElementById("q-website").value,
+          token: token,
+          code: had
+        })
+      }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          send.disabled = false;
+          if (window.turnstile) { try { window.turnstile.reset(); } catch (err) {} }
+          if (!res.ok) { say.className = "q-say q-bad"; say.textContent = res.d.error || "That didn't go through."; return; }
+          document.getElementById("q-body").value = "";
+          say.className = "q-say"; say.textContent = "";
+          if (P && res.d.code) P.adopt(res.d.code);
+          if (P && res.d.question) P.addMine(res.d.question);
+          var c = P ? P.code() : "";
+          done.textContent = "";
+          if (res.d.code && c) {
+            done.appendChild(el("p", "", "Got it. I usually answer within a day. This is your code. It brings your answer and your progress back on any device."));
+            var holder = el("div"); done.appendChild(holder); P.renderCode(holder, c);
+          } else if (c) {
+            done.appendChild(el("p", "", "Got it. I usually answer within a day. It's saved under your code, so the answer shows up on any device you use it on."));
+          } else {
+            done.appendChild(el("p", "", "Got it. I usually answer within a day, and it shows up here once I have."));
+          }
+          done.hidden = false;
+          render();
+        })
+        .catch(function () {
+          send.disabled = false; say.className = "q-say q-bad";
+          say.textContent = "Couldn't reach the question box. Try again in a minute.";
+        });
+    });
+
+    if (P) P.onChange(render);
+    load();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+  })();
+  </script>
+</section>
+
+    <section class="end g-card" data-rise>
+      <h3>More field notes</h3>
+      <div class="postnav"><a class="pn g-card" href="pmf-broke-the-printers.html"><span class="eyebrow">Older</span>Your WPA3 Transition SSID Didn&#x27;t Break the Printers. PMF Did.</a><a class="pn g-card" href="academy-09-roaming-the-client-decides.html"><span class="eyebrow">Newer</span>Roaming: the Client Decides</a></div>
+    </section>
+  </article>
+</div>
+</main>
+<a class="rig" href="../socials.html" data-origin="genie" aria-label="Where else to find me"><img src="../character/nfn-bot-think.svg" alt="" width="104" height="104"></a>
+<footer><div class="wrap">
+  <span>&copy; 2026 Dustin Burns. Personal site. Configs are placeholders; customers are never named.</span>
+  <span><a href="/rss.xml">RSS</a></span>
+</div></footer>
+</div>
+<script>/* Network Field Notes. Only opacity and transform are animated. */
+(function () {
+  var KEY = 'nfn:origin';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
+
+  /* header tightens past 12px */
+  var hdr = $('.hdr');
+  if (hdr) {
+    var onScroll = function () { hdr.classList.toggle('scrolled', (window.scrollY || 0) > 12); };
+    onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  /* entrance, staggered 60ms, capped at 340ms */
+  $$('[data-rise]').forEach(function (el, i) {
+    el.style.animationDelay = Math.min(i * 60, 340) + 'ms';
+    el.classList.add('rise');
+  });
+
+
+  /* Rig reacts: sleeps when the tab is hidden, thinks when search is empty, waves at the bottom */
+  var rig = $('.rig img');
+  if (rig && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var base = rig.getAttribute('src'), dir = base.replace(/[^\/]+$/, '');
+    var pose = function (n) { return dir + 'nfn-bot-' + n + '.svg'; };
+    ['sleep', 'think', 'wave'].forEach(function (n) { var i = new Image(); i.src = pose(n); });
+    var cur = base, timer = null;
+    var setPose = function (src) {
+      if (src === cur) return; cur = src;
+      var a = rig.parentNode; a.classList.add('swap');
+      setTimeout(function () { rig.setAttribute('src', src); a.classList.remove('swap'); }, 220);
+    };
+    document.addEventListener('visibilitychange', function () {
+      setPose(document.hidden ? pose('sleep') : base);
+    });
+    window.addEventListener('nfn:empty', function (e) { setPose(e.detail ? pose('think') : base); });
+    var waved = false;
+    window.addEventListener('scroll', function () {
+      var atEnd = window.innerHeight + window.scrollY >= document.body.scrollHeight - 40;
+      if (atEnd && !waved) {
+        waved = true; setPose(pose('wave'));
+        clearTimeout(timer); timer = setTimeout(function () { setPose(base); waved = false; }, 3500);
+      }
+    }, { passive: true });
+  }
+
+  /* remember where a card or mascot was tapped, in page coordinates */
+  $$('[data-origin]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      var r = e.currentTarget.getBoundingClientRect();
+      try {
+        sessionStorage.setItem(KEY, JSON.stringify({
+          x: r.left + r.width / 2 + window.scrollX, y: r.top + r.height / 2 + window.scrollY,
+          kind: e.currentTarget.getAttribute('data-origin') || 'zoom'
+        }));
+      } catch (err) {}
+    });
+  });
+
+  /* incoming view: pin transform-origin to the tapped point */
+  var view = $('[data-view]');
+  if (view) {
+    var saved = null;
+    try { var raw = sessionStorage.getItem(KEY); if (raw) { saved = JSON.parse(raw); sessionStorage.removeItem(KEY); } } catch (err) {}
+    var wants = view.getAttribute('data-view');
+    var cls = wants === 'genie' ? 'genie' : wants === 'zoom' ? 'zoom' : 'pop';
+    if (saved && saved.kind === wants) {
+      var clamp = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
+      var box = view.getBoundingClientRect();
+      view.style.transformOrigin = clamp(saved.x - (box.left + window.scrollX), 0, box.width) + 'px ' +
+                                   clamp(saved.y - (box.top + window.scrollY), 0, box.height) + 'px';
+    }
+    view.classList.add(cls);
+  }
+
+  /* index only: category filter + search */
+  var grid = $('#posts');
+  if (!grid) return;
+  var cards = $$('.card[data-cat]', grid), chips = $$('.cat[data-cat]'), empty = $('.empty');
+  var input = $('#q'), box = $('.search'), toggle = $('#search-toggle');
+  var cat = 'all', q = '';
+
+  function apply() {
+    var shown = 0;
+    cards.forEach(function (c) {
+      /* data-cat is pipe separated: a series tile sits in every category its parts do */
+      var okCat = cat === 'all' ||
+        ('|' + (c.getAttribute('data-cat') || '') + '|').indexOf('|' + cat + '|') !== -1;
+      var on;
+      if (c.hasAttribute('data-series')) {
+        /* a series tile stands in for its parts, but a search wants the parts themselves */
+        on = okCat && !q;
+      } else {
+        var okQ = !q || (c.getAttribute('data-text') || '').indexOf(q) !== -1;
+        /* the featured post lives in the hero; only surface its card while a filter or search is active */
+        var okFeat = !c.hasAttribute('data-featured') || cat !== 'all' || !!q;
+        /* a post inside a series hides behind its tile until someone searches */
+        var okSeries = !c.hasAttribute('data-inseries') || !!q;
+        on = okCat && okQ && okFeat && okSeries;
+      }
+      c.classList.toggle('hidden', !on); if (on) shown++;
+    });
+    chips.forEach(function (ch) { ch.classList.toggle('on', ch.getAttribute('data-cat') === cat); });
+    if (empty) empty.classList.toggle('show', shown === 0);
+    try { window.dispatchEvent(new CustomEvent('nfn:empty', { detail: shown === 0 && !!q })); } catch (e) {}
+  }
+  chips.forEach(function (ch) {
+    ch.addEventListener('click', function () {
+      cat = ch.getAttribute('data-cat');
+      /* keep the URL honest so back/forward and the nav agree with the chips */
+      var h = cat === 'all' ? '' : '#cat=' + encodeURIComponent(cat);
+      if (history.replaceState) history.replaceState(null, '', location.pathname + h); else location.hash = h;
+      apply();
+      /* the tab takes you to the posts, but only when they are not already in view */
+      var r = grid.getBoundingClientRect();
+      if (r.top > window.innerHeight * 0.4) {
+        var soft = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: window.scrollY + r.top - 92, behavior: soft ? 'smooth' : 'auto' });
+      }
+    });
+  });
+  if (toggle && box && input) {
+    toggle.addEventListener('click', function (e) {
+      e.preventDefault(); box.classList.toggle('open');
+      if (box.classList.contains('open')) input.focus();
+    });
+    input.addEventListener('input', function () { q = input.value.trim().toLowerCase(); apply(); });
+  }
+  /* deep link: index.html#cat=NAC, on load AND on every hash change (nav pills, back/forward) */
+  function fromHash() {
+    var h = location.hash || '';
+    var m = h.match(/cat=([^&]+)/);
+    cat = m ? decodeURIComponent(m[1]) : 'all';
+    if (h.indexOf('search') !== -1 && box) { box.classList.add('open'); if (input) input.focus(); }
+    apply();
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+<script>/* Network Field Notes: the topographic ground.
+   A hypsometric elevation map on a canvas behind every page, drifting on a clock-derived
+   phase so it resumes mid-motion on a reload instead of restarting. Settings are fixed
+   here; the tuning surface lives in the preview, not on the live site.
+   Falls back to the .ground gradients when WebGL is missing, and renders one still frame
+   under prefers-reduced-motion. */
+(function () {
+  var cv = document.getElementById("nfn-fx");
+  if (!cv) return;
+
+  var TINT = 0.44,    // how far the flat elevation classes pull away from the site gradients
+      SCALE = 1.20,   // terrain scale: low means big sweeping landforms
+      BANDS = 13,     // contour interval, and every fifth boundary is an index contour
+      AMT = 0.75,     // contour brightness
+      WT = 0.70,      // line weight, in screen pixels
+      SPEED = 3.00,   // drift multiplier
+      CYCLE = 600;    // seconds; every term in the terrain is a whole multiple of this
+
+  function off() { cv.style.display = "none"; }
+
+  var gl = null;
+  try {
+    gl = cv.getContext("webgl", { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: "low-power" });
+  } catch (e) { gl = null; }
+  if (!gl) { off(); return; }
+
+  var deriv = gl.getExtension("OES_standard_derivatives");
+
+  var VERT = "attribute vec2 a;void main(){gl_Position=vec4(a,0.0,1.0);}";
+
+  var FRAG = [
+    deriv ? "#extension GL_OES_standard_derivatives : enable\n#define HAS_FW 1" : "",
+    "precision highp float;",
+    "uniform vec2 uRes;uniform float uPh;",
+    "const float TINT=" + TINT.toFixed(3) + ",SCALE=" + SCALE.toFixed(3) + ",BANDS=" + BANDS.toFixed(1) +
+      ",AMT=" + AMT.toFixed(3) + ",WT=" + WT.toFixed(3) + ";",
+
+    "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}",
+    "float vn(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.0-2.0*f);",
+    " return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x),u.y);}",
+    "float fbm(vec2 p){float s=0.0,a=0.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);",
+    " for(int i=0;i<5;i++){s+=a*vn(p);p=m*p;a*=0.5;}return s;}",
+
+    /* terrain: two-stage domain warp, so contours curl like a survey rather than lying in stripes */
+    "float H(vec2 p,vec2 dr){vec2 q=vec2(fbm(p+dr),fbm(p+dr+vec2(5.2,1.3)));",
+    " return fbm(p+(1.35+0.22*sin(uPh*2.0))*q+dr*0.55);}",
+
+    /* the site's own three radial gradients, so the map sits on the ground the site already has */
+    "float rg(vec2 px,vec2 c,vec2 r,float stop){return clamp(1.0-length((px-c)/r)/stop,0.0,1.0);}",
+    "vec3 ground(vec2 px,vec2 res){vec3 col=vec3(0.0235,0.0627,0.0980);",
+    " col=mix(col,vec3(0.1843,0.6588,0.8784),0.42*rg(px,vec2(res.x*0.12,res.y*-0.06),res.y*vec2(1.10,0.76),0.62));",
+    " col=mix(col,vec3(0.5490,0.8784,0.3686),0.26*rg(px,vec2(res.x*0.88,res.y*0.08),res.y*vec2(0.93,0.68),0.60));",
+    " col=mix(col,vec3(0.0902,0.5412,0.6588),0.34*rg(px,vec2(res.x*0.60,res.y*1.08),res.y*vec2(1.22,0.86),0.62));",
+    " return col;}",
+
+    /* hypsometric ramp, sampled at the CLASS so every band is one flat tone */
+    "vec3 hyps(float t){",
+    " vec3 c0=vec3(0.014,0.038,0.062);",
+    " vec3 c1=vec3(0.028,0.112,0.176);",
+    " vec3 c2=vec3(0.050,0.212,0.262);",
+    " vec3 c3=vec3(0.112,0.300,0.232);",
+    " vec3 c=mix(c0,c1,smoothstep(0.00,0.36,t));",
+    " c=mix(c,c2,smoothstep(0.32,0.70,t));",
+    " return mix(c,c3,smoothstep(0.66,1.00,t));}",
+
+    "void main(){",
+    " vec2 px=vec2(gl_FragCoord.x,uRes.y-gl_FragCoord.y);",
+    " vec2 uv=px/uRes.y;",
+    /* both harmonics are whole multiples of the cycle, so the wrap is invisible */
+    " vec2 dr=vec2(cos(uPh),sin(uPh))*0.30+vec2(cos(3.0*uPh+1.7),sin(2.0*uPh+0.6))*0.11;",
+    " float h=H(uv*SCALE,dr);",
+    /* fbm lands around 0.48 give or take 0.12, never 0 to 1, so remap before classing it */
+    " h=clamp((h-0.26)*2.05,0.0,1.0);",
+    " float e=h*BANDS;",
+    "#ifdef HAS_FW",
+    " float w=max(fwidth(e),1e-4);",
+    "#else",
+    " float ep=1.6/uRes.y;",
+    " float w=max(abs(H((uv+vec2(ep,0.0))*SCALE,dr)-h)+abs(H((uv+vec2(0.0,ep))*SCALE,dr)-h),1e-4)*BANDS;",
+    "#endif",
+
+    /* flat elevation classes: floor() before the ramp is what makes the step hard */
+    " float lvl=clamp(floor(e)/BANDS,0.0,1.0);",
+    " vec3 col=mix(ground(px,uRes),hyps(lvl),TINT);",
+
+    /* contours on the integer crossings, widths in screen pixels, every fifth one an index line */
+    " float fr=fract(e);float d=min(fr,1.0-fr);",
+    " float idx=step(mod(floor(e+0.5),5.0),0.5);",
+    " float wdt=w*WT*mix(1.0,2.6,idx);",
+    " float line=1.0-smoothstep(wdt,wdt+w*1.15,d);",
+    " vec3 lcol=mix(vec3(0.252,0.560,0.652),vec3(0.560,0.830,0.878),idx);",
+    " col+=lcol*line*(0.07+0.36*AMT)*mix(0.70,1.0,idx);",
+
+    " col+=(hash(gl_FragCoord.xy+uPh)-0.5)/255.0;",
+    " gl_FragColor=vec4(col,1.0);}"
+  ].join("\n") + "\n";
+
+  function sh(type, src) {
+    var s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+  }
+  var vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, FRAG);
+  if (!vs || !fs) { off(); return; }
+  var pr = gl.createProgram();
+  gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { off(); return; }
+  gl.useProgram(pr);
+
+  var buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  var loc = gl.getAttribLocation(pr, "a");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  var uRes = gl.getUniformLocation(pr, "uRes"), uPh = gl.getUniformLocation(pr, "uPh");
+  var W = 0, H = 0;
+
+  function resize() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var s = (window.innerWidth < 760 ? 0.66 : 0.92) - 6 * 0.013;
+    var w = Math.max(2, Math.round(window.innerWidth * dpr * s));
+    var h = Math.max(2, Math.round(window.innerHeight * dpr * s));
+    var cap = 1600, m = Math.max(w, h);
+    if (m > cap) { w = Math.round(w * cap / m); h = Math.round(h * cap / m); }
+    if (w === W && h === H) return;
+    W = w; H = h; cv.width = w; cv.height = h;
+    gl.viewport(0, 0, w, h);
+    gl.uniform2f(uRes, w, h);
+  }
+
+  function draw() {
+    gl.uniform1f(uPh, (((Date.now() / 1000) * SPEED % CYCLE) / CYCLE) * Math.PI * 2);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var last = 0, running = false;
+
+  function frame(now) {
+    if (!running) return;
+    requestAnimationFrame(frame);
+    if (now - last < 33) return;      /* 30 fps is plenty for something this slow */
+    last = now;
+    resize(); draw();
+  }
+  function still() { resize(); draw(); }
+  function start() {
+    if (reduced.matches) { running = false; still(); return; }
+    if (running) return;
+    running = true; last = 0; requestAnimationFrame(frame);
+  }
+  function stop() { running = false; }
+
+  window.addEventListener("resize", function () { if (!running) still(); });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stop(); else start();   /* resumes at the clock's phase, not where it paused */
+  });
+  if (reduced.addEventListener) reduced.addEventListener("change", function () { stop(); start(); });
+
+  start();
+})();
+</script>
+</body></html>
