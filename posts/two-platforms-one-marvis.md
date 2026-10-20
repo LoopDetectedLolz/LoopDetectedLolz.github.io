@@ -68,15 +68,30 @@ Mist prices it as an add-on per capability: Wireless Assurance, Marvis, Premium 
 
 ## What I can build now
 
-None of this needs me to wait on anything. Both clouds have public APIs, and the four tools below are Postman collections and short Python scripts, not AI.
+None of this needs me to wait on anything. Both clouds have public APIs, and the four tools below are Postman collections and short Python scripts, not AI. Grouped by when I'd reach for each one.
 
-**Copilot readiness check.** The New Central API's device inventory already carries the subscription tier per device. A script that pulls every device, counts Foundation versus Advanced, and prints the gap to 100 percent per tenant turns the licensing question into a number on the first call instead of a surprise on the demo. Run it before every Copilot conversation.
+| When | Tool | What it answers | Where the data comes from |
+|---|---|---|---|
+| Before a Copilot conversation | License gap report | How many devices need Advanced before Copilot lights up | New Central device inventory |
+| Monthly, on a Mist site | Self-driving scorecard | Which actions are on, which still recommend, what got fixed | Mist Marvis Actions |
+| After a survey or a complaint | Roam quality report | Which floors and AP pairs produce the bad roams | Central roaming CSV export |
+| Every week, per customer | Feature watch | What shipped on their platform that they'd care about | Release notes and product updates |
 
-**Mist self-driving audit.** The Mist API exposes Marvis Actions and their self-driving settings per site. A monthly pull that lists which actions are enabled where, flags sites still in recommend mode, and exports the AI Validated history gives a customer a one-page record of what the network fixed on its own. That page is the thing that gets the next action turned on.
+### License gap report
 
-**Release-note watcher.** The job behind the tracker page already diffs the Central release notes and Mist product updates every week. Filtered per customer, so a Mist-only shop never hears about Copilot and an Aruba campus gets a note the week Missing VLAN reaches Central, it becomes a service rather than a blog page.
+The New Central inventory already carries the subscription tier per device. A script that pulls every device, counts Foundation against Advanced, and prints the gap to 100 percent per tenant turns the licensing question into a number on the first call instead of a surprise at the demo. I'd run it before every Copilot conversation.
 
-**Roaming report.** October added CSV export of roaming and association events per client in Central. Piped through a short script that groups by floor and AP pair, it's a roam-quality report I can hand over after a survey, and a baseline to compare against when Client Roaming Optimization ships.
+### Self-driving scorecard
+
+The Mist API exposes Marvis Actions and their self-driving settings per site. A monthly pull that lists which actions are enabled where, flags sites still in recommend mode, and exports the AI Validated history gives a customer a one-page record of what the network fixed on its own. That page is usually what gets the next action turned on.
+
+### Roam quality report
+
+October added CSV export of roaming and association events per client in Central. Piped through a short script that groups by floor and AP pair, it's a roam-quality report I can hand over after a survey, and a baseline to compare against when Client Roaming Optimization ships.
+
+### Feature watch
+
+The job behind the tracker page already diffs the Central release notes and Mist product updates every week. Filtered per customer, so a Mist-only shop never hears about Copilot and an Aruba campus gets a note the week Missing VLAN reaches Central, it stops being a blog page and becomes a service.
 
 Each of those is a follow-up post with the code. This one is the map.
 
