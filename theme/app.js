@@ -7,7 +7,15 @@
   /* header tightens past 12px */
   var hdr = $('.hdr');
   if (hdr) {
-    var onScroll = function () { hdr.classList.toggle('scrolled', (window.scrollY || 0) > 12); };
+    /* hides on the way down, comes back as soon as you scroll up (or near the top) */
+    var lastY = window.scrollY || 0, away = false;
+    var onScroll = function () {
+      var y = window.scrollY || 0, dy = y - lastY;
+      hdr.classList.toggle('scrolled', y > 12);
+      if (y < 160 || dy < -6) { if (away) { away = false; hdr.classList.remove('away'); } }
+      else if (dy > 6 && y > 160) { if (!away) { away = true; hdr.classList.add('away'); } }
+      if (Math.abs(dy) > 6) lastY = y;
+    };
     onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
   }
 

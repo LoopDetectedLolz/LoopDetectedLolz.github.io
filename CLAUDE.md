@@ -147,6 +147,7 @@ First person, short blunt sentences, contractions always, casual section headers
 - Old `#/post/<slug>` links redirect to `p/<slug>.html`. Keep that redirect in `theme/app.js`.
 - A dense figure in a post goes in `<figure class="wide"><div class="pan">`: the pan scrolls sideways on a phone so the figure stays legible instead of shrinking to nothing, and the caption stays put outside it. Same idea as the tables.
 - `.band` is the call-to-action card. The 5 GHz spectrum strip in the channel 173 post is `.spectrum`: it used to be `.band` too, and its `height:64px;overflow:hidden` silently clipped every CTA card on the site, including the one under the simulator, until 2026-09-11. Two components, two names.
+- `html,body` use `overflow-x:clip`, not `hidden`: `hidden` silently breaks `position:sticky` on the header (it never stuck until 2026-10-20). The header hides on scroll-down past 160px and returns on the first scroll-up (`.hdr.away`, toggled in `theme/app.js`).
 - Category deep links are `index.html#cat=NAC`. The nav pills use them, and `app.js` listens for `hashchange`, so a filter change from any page works without a reload.
 - `build-blog.py` still finishes the HTML when `rsvg-convert` is missing; it warns and keeps the existing `og/*.png`. Run it on the Mac (Homebrew librsvg) to refresh OG cards.
 - Run a new post through `linkedin.com/post-inspector` before sharing it. LinkedIn caches the first scrape for weeks.
