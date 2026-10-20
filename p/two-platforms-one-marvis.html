@@ -1324,50 +1324,45 @@ body.acad .readmark,body.acad .changed-note{--rm:var(--orange);--rm-soft:rgba(24
     </header>
     
     <div class="post-body g-card" data-rise>
-      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Two rails, Central and Mist, run the full width and never meet. A bar labelled Marvis spans both. Below each rail, what that platform has in release notes versus what was only announced.">
-<defs>
+      <div class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Two rails, New Central and Juniper Mist, run the full width and never meet. A bar labelled Marvis spans both. Under each rail, what is in release notes on the left and what was only announced on the right.">
 <style>
-.ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}
-.h{font:700 24px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}
-.l{font:600 13px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
-.s{font:500 11.5px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#B0C4CF}
-.m{font:500 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8BA2AE}
-.c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
-.box{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
+.hp-ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}
+.hp-h{font:700 24px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}
+.hp-l{font:600 13.5px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
+.hp-s{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#B0C4CF}
+.hp-m{font:500 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8BA2AE}
+.hp-c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
+.hp-tie{stroke-dasharray:4 4}
+.hp-box{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.14)}
+.hp-ann{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.3);stroke-dasharray:6 5}
+@media (prefers-reduced-motion: no-preference){
+  .hp-rail{stroke-dasharray:820;stroke-dashoffset:820;animation:hpDraw 1.4s cubic-bezier(0.32,0.72,0,1) forwards}
+  .hp-rail.b{animation-delay:.25s}
+  .hp-fade{opacity:0;animation:hpFade .6s ease-out forwards}
+  .hp-f1{animation-delay:.9s}.hp-f2{animation-delay:1.1s}.hp-f3{animation-delay:1.3s}.hp-f4{animation-delay:1.5s}.hp-f5{animation-delay:1.7s}
+  .hp-mv{opacity:0;transform:scale(.92);transform-origin:450px 186px;animation:hpPop .7s cubic-bezier(0.32,0.72,0,1) 1.3s forwards}
+  .hp-ann{animation:hpCrawl 6s linear infinite}
+  .hp-tie{animation:hpCrawl 3s linear infinite}
+}
+@keyframes hpDraw{to{stroke-dashoffset:0}}
+@keyframes hpFade{to{opacity:1}}
+@keyframes hpPop{to{opacity:1;transform:scale(1)}}
+@keyframes hpCrawl{to{stroke-dashoffset:-22}}
 </style>
-</defs>
-<text class="ey" x="40" y="36">INVESTOR DAY, SEP 30 2026</text>
-<text class="h" x="40" y="66">Two platforms that never converge, one Marvis between them</text>
-<!-- Central rail -->
-<rect x="40" y="96" width="820" height="4" rx="2" fill="#4FBDEA"/>
-<text class="l" x="40" y="88">New Central</text>
-<text class="m" x="860" y="88" text-anchor="end">app-ca, app-prod2, GreenLake</text>
-<!-- Mist rail -->
-<rect x="40" y="276" width="820" height="4" rx="2" fill="#5ED2DA"/>
-<text class="l" x="40" y="298">Juniper Mist</text>
-<text class="m" x="860" y="298" text-anchor="end">manage.mist.com and friends</text>
-<!-- Marvis bar -->
-<rect x="330" y="166" width="240" height="40" rx="20" fill="#8CE05E"/>
-<text x="450" y="191" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-weight="700" font-size="15" fill="#06202A">Marvis, shared AI engine</text>
-<line x1="450" y1="100" x2="450" y2="166" stroke="#8CE05E" stroke-width="2" stroke-dasharray="4 4"/>
-<line x1="450" y1="206" x2="450" y2="214" stroke="#8CE05E" stroke-width="2" stroke-dasharray="4 4"/><line x1="450" y1="234" x2="450" y2="276" stroke="#8CE05E" stroke-width="2" stroke-dasharray="4 4"/>
-<!-- Central side boxes -->
-<rect class="box" x="40" y="110" width="250" height="48" rx="10"/>
-<text class="l" x="56" y="130">In release notes</text>
-<text class="s" x="56" y="148">Copilot, Agentic-Mesh, App Experience</text>
-<rect class="box" x="590" y="110" width="270" height="48" rx="10" stroke-dasharray="5 4"/>
-<text class="l" x="606" y="130">Announced only</text>
-<text class="s" x="606" y="148">Five autonomous actions, port fixes</text>
-<!-- Mist side boxes -->
-<rect class="box" x="40" y="218" width="250" height="48" rx="10"/>
-<text class="l" x="56" y="238">In release notes</text>
-<text class="s" x="56" y="256">Nine self-driving actions, Minis, CX switches</text>
-<rect class="box" x="590" y="218" width="270" height="48" rx="10" stroke-dasharray="5 4"/>
-<text class="l" x="606" y="238">Announced only</text>
-<text class="s" x="606" y="256">Roaming Optimization, agentic mesh</text>
-<!-- shared hardware note -->
-<text class="c" x="450" y="226" text-anchor="middle">Shared: AP 723H, CX 5420 / 6300 / 6400</text>
-<text class="c" x="40" y="326">Solid box: in a release note. Dashed box: on a stage. The post is about the difference.</text>
+<text class="hp-ey" x="40" y="36">INVESTOR DAY, SEP 30 2026</text>
+<text class="hp-h" x="40" y="66">Two platforms that never converge, one Marvis between them</text>
+<text class="hp-l" x="40" y="90">New Central</text><text class="hp-m" x="860" y="90" text-anchor="end">GreenLake, Copilot, AirMatch</text>
+<line class="hp-rail" x1="40" y1="100" x2="860" y2="100" stroke="#4FBDEA" stroke-width="4" stroke-linecap="round"/>
+<line class="hp-rail b" x1="40" y1="276" x2="860" y2="276" stroke="#5ED2DA" stroke-width="4" stroke-linecap="round"/>
+<text class="hp-l" x="40" y="300">Juniper Mist</text><text class="hp-m" x="860" y="300" text-anchor="end">Marvis, Minis, Wired Assurance</text>
+<line class="hp-tie" x1="450" y1="100" x2="450" y2="164" stroke="#8CE05E" stroke-width="2"/><line class="hp-tie" x1="450" y1="208" x2="450" y2="216" stroke="#8CE05E" stroke-width="2"/><line class="hp-tie" x1="450" y1="240" x2="450" y2="276" stroke="#8CE05E" stroke-width="2"/>
+<g class="hp-mv"><rect x="320" y="164" width="260" height="44" rx="22" fill="#8CE05E"/><text x="450" y="192" text-anchor="middle" font-family="'Instrument Sans',-apple-system,Helvetica,sans-serif" font-weight="700" font-size="16" fill="#06202A">Marvis, the shared AI engine</text></g>
+<g class="hp-fade hp-f1"><rect class="hp-box" x="40" y="112" width="262" height="46" rx="12"/><text class="hp-l" x="56" y="131">In release notes</text><text class="hp-s" x="56" y="149">Copilot, Agentic-Mesh, App Experience</text></g>
+<g class="hp-fade hp-f2"><rect class="hp-ann" x="598" y="112" width="262" height="46" rx="12"/><text class="hp-l" x="614" y="131">Announced only</text><text class="hp-s" x="614" y="149">Five autonomous actions, port fixes</text></g>
+<g class="hp-fade hp-f3"><rect class="hp-box" x="40" y="218" width="262" height="46" rx="12"/><text class="hp-l" x="56" y="237">In release notes</text><text class="hp-s" x="56" y="255">Nine self-driving actions, Minis, CX</text></g>
+<g class="hp-fade hp-f4"><rect class="hp-ann" x="598" y="218" width="262" height="46" rx="12"/><text class="hp-l" x="614" y="237">Announced only</text><text class="hp-s" x="614" y="255">Roaming Optimization, agentic mesh</text></g>
+<g class="hp-fade hp-f5"><text class="hp-c" x="450" y="232" text-anchor="middle">Shared: AP 723H, CX 5420 / 6300 / 6400</text></g>
+<text class="hp-c" x="40" y="328">Solid box: in a release note. Dashed box: announced on a stage. The post is about the difference.</text>
 </svg></div>
       
       <div class="callout origin"><span class="eyebrow">Where this came from</span>A design call where the AI slide came up again, and a release note that didn&#x27;t match it</div>
@@ -1376,186 +1371,275 @@ body.acad .readmark,body.acad .changed-note{--rm:var(--orange);--rm-soft:rgba(24
 <p>Two weeks after that, on October 15, New Central shipped its monthly release. It's a real release with real Copilot work in it. It also contains none of the five autonomous actions HPE announced for both platforms back in May. That gap is the post.</p>
 <h2>What "share Marvis" means in practice</h2>
 <p>The useful way to read the Investor Day line is as a description of what has already happened, not a plan.</p>
-<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="What crossed between the platforms. From Mist to Central: LEM became the Application Experience Predictor (Jan 2026, select availability). From Central to Mist: AOS-CX 5420, 6300 and 6400 switches (Sep 2026). Shared by both: the AP 723H (May 2026) and Marvis as the AI engine. Promised but not shipped: Marvis Actions in Central, agentic mesh in Mist.">
-<style>.ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}.h{font:700 20px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}.l{font:700 14px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}.s{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#B0C4CF}.m{font:600 10.5px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8BA2AE;letter-spacing:1px}.c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}.box{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}</style>
-<defs><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5ED2DA"/></marker><marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8CE05E"/></marker></defs>
-<text class="ey" x="40" y="36">WHAT ACTUALLY CROSSED OVER</text><text class="h" x="40" y="62">Features traded, hardware shared, announcements still in transit</text>
-<rect class="box" x="40" y="84" width="200" height="220" rx="14" stroke="#4FBDEA"/><text class="l" x="140" y="110" text-anchor="middle">New Central</text>
-<rect class="box" x="660" y="84" width="200" height="220" rx="14" stroke="#5ED2DA"/><text class="l" x="760" y="110" text-anchor="middle">Juniper Mist</text>
-<line x1="648" y1="140" x2="252" y2="140" stroke="#8CE05E" stroke-width="2.5" marker-end="url(#ag)"/>
-<text class="m" x="450" y="130" text-anchor="middle">SHIPPED JAN 2026, SELECT AVAILABILITY</text><text class="s" x="450" y="161" text-anchor="middle">Mist LEM becomes Central's Application Experience Predictor</text>
-<line x1="252" y1="190" x2="648" y2="190" stroke="#8CE05E" stroke-width="2.5" marker-end="url(#ag)"/>
-<text class="m" x="450" y="180" text-anchor="middle">SHIPPED SEP 2026</text><text class="s" x="450" y="211" text-anchor="middle">AOS-CX 5420, 6300 and 6400 managed by Mist (10.18.1002+)</text>
-<line x1="252" y1="236" x2="648" y2="236" stroke="#5ED2DA" stroke-width="2.5" marker-start="url(#ab)" marker-end="url(#ab)"/>
-<text class="m" x="450" y="226" text-anchor="middle">SHARED SINCE MAY 2026</text><text class="s" x="450" y="257" text-anchor="middle">AP 723H runs on either. Marvis named as the AI engine for both.</text>
-<line x1="648" y1="282" x2="252" y2="282" stroke="#F5A524" stroke-width="2" stroke-dasharray="6 5"/>
-<text class="m" x="450" y="272" text-anchor="middle" fill="#F5A524">PROMISED, NOT IN RELEASE NOTES</text><text class="s" x="450" y="303" text-anchor="middle">Marvis Actions and port remediation in Central; agentic mesh in Mist</text>
-<text class="s" x="140" y="140" text-anchor="middle">Copilot, Agentic-Mesh</text><text class="s" x="140" y="160" text-anchor="middle">AirMatch, AI Insights</text><text class="s" x="140" y="190" text-anchor="middle">Radio auto-recovery</text>
-<text class="s" x="760" y="140" text-anchor="middle">Marvis, Minis, LEM</text><text class="s" x="760" y="160" text-anchor="middle">Nine self-driving actions</text><text class="s" x="760" y="190" text-anchor="middle">Access Assurance dry run</text>
-<text class="c" x="40" y="328">Solid green: in a release note. Teal: shared. Dashed: announced at Discover (Jun 2026) or earlier, no release note by Oct 15, 2026.</text>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-label="Four lanes between New Central and Juniper Mist. Shipped Jan 2026: Mist LEM became Central's Application Experience Predictor. Shipped Sep 2026: AOS-CX 5420, 6300 and 6400 managed by Mist. Shared since May 2026: the AP 723H and Marvis. Announced, not in release notes: Marvis Actions in Central and agentic mesh in Mist.">
+<style>
+.sw-ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}
+.sw-h{font:700 22px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}
+.sw-l{font:700 15px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
+.sw-t{font:600 14px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
+.sw-d{font:500 13px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#B0C4CF}
+.sw-m{font:600 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8BA2AE;letter-spacing:1.5px}
+.sw-c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
+.sw-col{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.14)}
+.sw-lane{fill:rgba(255,255,255,0.03);stroke:rgba(255,255,255,0.08)}
+.sw-ann{stroke-dasharray:7 6}
+@media (prefers-reduced-motion: no-preference){
+  .sw-arrow{stroke-dasharray:400;stroke-dashoffset:400;animation:swDraw 1.1s cubic-bezier(0.32,0.72,0,1) forwards}
+  .sw-a1{animation-delay:.3s}.sw-a2{animation-delay:.7s}.sw-a3{animation-delay:1.1s}
+  .sw-ann{stroke-dashoffset:0;animation:swCrawl 5s linear infinite}
+  .sw-tip{opacity:0;animation:swFade .4s ease-out forwards}
+  .sw-t1{animation-delay:1.2s}.sw-t2{animation-delay:1.6s}.sw-t3{animation-delay:2s}
+}
+@keyframes swDraw{to{stroke-dashoffset:0}}
+@keyframes swFade{to{opacity:1}}
+@keyframes swCrawl{to{stroke-dashoffset:-26}}
+</style>
+<text class="sw-ey" x="40" y="36">WHAT ACTUALLY CROSSED OVER</text><text class="sw-h" x="40" y="64">Features traded, hardware shared, announcements still in transit</text>
+<rect class="sw-col" x="40" y="92" width="170" height="396" rx="16" stroke="#4FBDEA"/><text class="sw-l" x="125" y="120" text-anchor="middle">New Central</text>
+<rect class="sw-col" x="690" y="92" width="170" height="396" rx="16" stroke="#5ED2DA"/><text class="sw-l" x="775" y="120" text-anchor="middle">Juniper Mist</text>
+<text class="sw-d" x="125" y="150" text-anchor="middle">Copilot</text><text class="sw-d" x="125" y="170" text-anchor="middle">Agentic-Mesh</text><text class="sw-d" x="125" y="190" text-anchor="middle">AirMatch, AI Insights</text><text class="sw-d" x="125" y="210" text-anchor="middle">Radio auto-recovery</text>
+<text class="sw-d" x="775" y="150" text-anchor="middle">Marvis, Minis</text><text class="sw-d" x="775" y="170" text-anchor="middle">LEM</text><text class="sw-d" x="775" y="190" text-anchor="middle">Nine self-driving actions</text><text class="sw-d" x="775" y="210" text-anchor="middle">Access Assurance dry run</text>
+<rect class="sw-lane" x="226" y="92" width="448" height="88" rx="12"/>
+<text class="sw-m" x="450" y="114" text-anchor="middle">SHIPPED JAN 2026, SELECT AVAILABILITY</text>
+<line class="sw-arrow sw-a1" x1="248" y1="132" x2="652" y2="132" stroke="#8CE05E" stroke-width="3" stroke-linecap="round"/>
+<g class="sw-tip sw-t1"><path d="M262 124 L248 132 L262 140" fill="none" stroke="#8CE05E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text class="sw-t" x="450" y="154" text-anchor="middle">Mist's LEM, announced for Central in Dec,</text><text class="sw-d" x="450" y="172" text-anchor="middle">arrives as the Application Experience Predictor</text>
+<rect class="sw-lane" x="226" y="192" width="448" height="88" rx="12"/>
+<text class="sw-m" x="450" y="214" text-anchor="middle">SHIPPED SEP 2026</text>
+<line class="sw-arrow sw-a2" x1="248" y1="232" x2="652" y2="232" stroke="#8CE05E" stroke-width="3" stroke-linecap="round"/>
+<g class="sw-tip sw-t2"><path d="M638 224 L652 232 L638 240" fill="none" stroke="#8CE05E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text class="sw-t" x="450" y="254" text-anchor="middle">AOS-CX 5420, 6300 and 6400</text><text class="sw-d" x="450" y="272" text-anchor="middle">managed by Mist, 10.18.1002 or later</text>
+<rect class="sw-lane" x="226" y="292" width="448" height="88" rx="12"/>
+<text class="sw-m" x="450" y="314" text-anchor="middle">SHARED SINCE MAY 2026</text>
+<line class="sw-arrow sw-a3" x1="248" y1="332" x2="652" y2="332" stroke="#5ED2DA" stroke-width="3" stroke-linecap="round"/>
+<g class="sw-tip sw-t3"><path d="M262 324 L248 332 L262 340" fill="none" stroke="#5ED2DA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M638 324 L652 332 L638 340" fill="none" stroke="#5ED2DA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text class="sw-t" x="450" y="354" text-anchor="middle">AP 723H runs on either cloud.</text><text class="sw-d" x="450" y="372" text-anchor="middle">Marvis named as the AI engine for both.</text>
+<rect class="sw-lane" x="226" y="392" width="448" height="88" rx="12"/>
+<text class="sw-m" x="450" y="414" text-anchor="middle" fill="#F5A524">ANNOUNCED, NOT IN RELEASE NOTES</text>
+<line class="sw-ann" x1="248" y1="432" x2="652" y2="432" stroke="#F5A524" stroke-width="2.5"/>
+<text class="sw-t" x="450" y="454" text-anchor="middle">Marvis Actions and port remediation in Central;</text><text class="sw-d" x="450" y="472" text-anchor="middle">agentic mesh in Mist</text>
+<text class="sw-c" x="40" y="510">Green: in a release note. Teal: shared. Dashed: announced at Discover (Jun 2026) or earlier, no release note by Oct 15, 2026.</text>
 </svg><figcaption>Two features crossed over and shipped, two pieces of hardware are shared, and the promises are still dashed lines.</figcaption></figure>
-<p>Mist's Large Experience Model, the thing that correlates Zoom and Teams call quality with the network, turned up in Central in January as the Application Experience Predictor. It launched in Select Availability and the October notes say it has been "enhanced" with more client detail. There's still no release note calling it GA, and I couldn't find a documented AOS 10 or license requirement for it. That's one feature, one direction.</p>
+<p>In December HPE said Mist's Large Experience Model, the thing that correlates Zoom and Teams call quality with the network, was coming to Central. In January the Application Experience Predictor arrived, which is that capability under a Central name; HPE's doc for it doesn't say LEM, so that lineage is the press release's, not the manual's. It launched in Select Availability and the October notes say it has been "enhanced" with more client detail. There's still no release note calling it GA, and I couldn't find a documented AOS 10 or license requirement for it. That's one feature, one direction.</p>
 <p>In the other direction, Mist started managing AOS-CX switches in September. The 5420, 6300 and 6400 families on 10.18.1002 or later show up in Mist Wired Assurance like an EX would. That's a bigger deal than it sounds, because it means a Mist shop can keep buying the Aruba switch its cabling closets were designed around.</p>
 <p>The AP 723H has run on either cloud since May. And Marvis is now the name on the AI in both products.</p>
 <p>What hasn't crossed over is the part the slide leads with. Marvis Actions in Central were called available at Discover in June. No Central release note has shown them. The "agentic mesh" that was introduced for Central in 2025 has, per one executive quoted after Investor Day, moved to Mist. No Mist product update shows it under that name either. Those two are the dashed lines on the figure, and I'd keep them dashed until a release note says otherwise.</p>
 <h2>The scorecard, as of today</h2>
 <p>I keep a data file for this. Every New Central release note since the Copilot launch, every Mist product update, and the HPE press releases behind the announcements, each capability marked as GA, Select Availability, Partial, Announced or Not Found, with the license tier the vendor documents for it. Here's where it stands.</p>
-<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 390" role="img" aria-label="Scorecard of twelve AI capabilities across Classic Central, New Central and Mist as of October 2026, each cell showing GA, select availability, partial, announced or not found, with the license tier beneath.">
-<style>.ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}.h{font:700 20px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}.r{font:600 13.5px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}.hd{font:600 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#B0C4CF;letter-spacing:1.5px}.st{font:700 10px 'JetBrains Mono',ui-monospace,Menlo,monospace;letter-spacing:1px}.t{font:500 11px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}.c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}</style>
-<text class="ey" x="40" y="36">SCORECARD, OCTOBER 2026</text><text class="h" x="40" y="62">Where each capability actually is, and what it costs to light up</text>
-<text class="hd" x="260" y="86">CLASSIC CENTRAL</text>
-<text class="hd" x="470" y="86">NEW CENTRAL</text>
-<text class="hd" x="680" y="86">JUNIPER MIST</text>
-<line x1="40" y1="94" x2="860" y2="94" stroke="rgba(255,255,255,0.18)"/>
-<rect x="40" y="96" width="820" height="22" fill="rgba(255,255,255,0.03)"/>
-<text class="r" x="48" y="111">Natural-language search</text>
-<rect x="260" y="100" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="267" y="110" fill="#06202A">GA</text>
-<text class="t" x="292" y="110">Foundation</text>
-<rect x="470" y="100" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="477" y="110" fill="#06202A">GA</text>
-<text class="t" x="502" y="110">Foundation</text>
-<rect x="680" y="100" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="687" y="110" fill="#06202A">GA</text>
-<text class="t" x="712" y="110">Marvis</text>
-<text class="r" x="48" y="133">Conversational assistant</text>
-<rect x="260" y="122" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="267" y="132" fill="#8BA2AE">NOT FOUND</text>
-<rect x="470" y="122" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="477" y="132" fill="#06202A">GA</text>
-<text class="t" x="502" y="132">Advanced, 100% (FAQ: 90%)</text>
-<rect x="680" y="122" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="687" y="132" fill="#06202A">GA</text>
-<text class="t" x="712" y="132">Marvis</text>
-<rect x="40" y="140" width="820" height="22" fill="rgba(255,255,255,0.03)"/>
-<text class="r" x="48" y="155">Natural language to CLI</text>
-<rect x="260" y="144" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="267" y="154" fill="#8BA2AE">NOT FOUND</text>
-<rect x="470" y="144" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="477" y="154" fill="#06202A">GA</text>
-<text class="t" x="502" y="154">Advanced, 100% (FAQ: 90%)</text>
-<rect x="680" y="144" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="687" y="154" fill="#8BA2AE">NOT FOUND</text>
-<text class="r" x="48" y="177">Root cause, recommendations</text>
-<rect x="260" y="166" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="267" y="176" fill="#06202A">GA</text>
-<text class="t" x="292" y="176">Foundation, some Adv.</text>
-<rect x="470" y="166" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="477" y="176" fill="#06202A">GA</text>
-<text class="t" x="502" y="176">Found.; pills need Adv.</text>
-<rect x="680" y="166" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="687" y="176" fill="#06202A">GA</text>
-<text class="t" x="712" y="176">Marvis</text>
-<rect x="40" y="184" width="820" height="22" fill="rgba(255,255,255,0.03)"/>
-<text class="r" x="48" y="199">Agentic troubleshooting</text>
-<rect x="260" y="188" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="267" y="198" fill="#8BA2AE">NOT FOUND</text>
-<rect x="470" y="188" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="477" y="198" fill="#06202A">GA</text>
-<text class="t" x="502" y="198">Advanced, 100% (FAQ: 90%)</text>
-<rect x="680" y="188" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="687" y="198" fill="#06202A">GA</text>
-<text class="t" x="712" y="198">Marvis</text>
-<text class="r" x="48" y="221">Self-driving actions</text>
-<rect x="260" y="210" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="267" y="220" fill="#8BA2AE">NOT FOUND</text>
-<rect x="470" y="210" width="62" height="14" rx="7" fill="none" stroke="#5ED2DA"/>
-<text class="st" x="477" y="220" fill="#5ED2DA">PARTIAL</text>
-<text class="t" x="532" y="220">Radio auto-recovery only</text>
-<rect x="680" y="210" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="687" y="220" fill="#06202A">GA</text>
-<text class="t" x="712" y="220">Marvis, 9 actions</text>
-<rect x="40" y="228" width="820" height="22" fill="rgba(255,255,255,0.03)"/>
-<text class="r" x="48" y="243">Synthetic client tests</text>
-<rect x="260" y="232" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="267" y="242" fill="#8BA2AE">NOT FOUND</text>
-<rect x="470" y="232" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="477" y="242" fill="#8BA2AE">NOT FOUND</text>
-<rect x="680" y="232" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="687" y="242" fill="#06202A">GA</text>
-<text class="t" x="712" y="242">Marvis for Wireless</text>
-<text class="r" x="48" y="265">App experience prediction</text>
-<rect x="260" y="254" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="267" y="264" fill="#8BA2AE">NOT FOUND</text>
-<rect x="470" y="254" width="56" height="14" rx="7" fill="none" stroke="#4FBDEA"/>
-<text class="st" x="477" y="264" fill="#4FBDEA">SELECT</text>
-<text class="t" x="526" y="264">Not documented</text>
-<rect x="680" y="254" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="687" y="264" fill="#06202A">GA</text>
-<text class="t" x="712" y="264">Marvis for Wireless</text>
-<rect x="40" y="272" width="820" height="22" fill="rgba(255,255,255,0.03)"/>
-<text class="r" x="48" y="287">Rogue DHCP fix</text>
-<rect x="260" y="276" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="267" y="286" fill="#8BA2AE">NOT FOUND</text>
-<rect x="470" y="276" width="74" height="14" rx="7" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/>
-<text class="st" x="477" y="286" fill="#F5A524">ANNOUNCED</text>
-<rect x="680" y="276" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="687" y="286" fill="#06202A">GA</text>
-<text class="t" x="712" y="286">Marvis for Wired, EX</text>
-<text class="r" x="48" y="309">Missing VLAN fix</text>
-<rect x="260" y="298" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="267" y="308" fill="#8BA2AE">NOT FOUND</text>
-<rect x="470" y="298" width="74" height="14" rx="7" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/>
-<text class="st" x="477" y="308" fill="#F5A524">ANNOUNCED</text>
-<rect x="680" y="298" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="687" y="308" fill="#06202A">GA</text>
-<text class="t" x="712" y="308">Marvis for Wireless</text>
-<rect x="40" y="316" width="820" height="22" fill="rgba(255,255,255,0.03)"/>
-<text class="r" x="48" y="331">NAC policy dry run</text>
-<rect x="260" y="320" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="267" y="330" fill="#8BA2AE">NOT FOUND</text>
-<rect x="470" y="320" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="477" y="330" fill="#8BA2AE">NOT FOUND</text>
-<rect x="680" y="320" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="687" y="330" fill="#06202A">GA</text>
-<text class="t" x="712" y="330">Access Assurance</text>
-<text class="r" x="48" y="353">Client-side telemetry</text>
-<rect x="260" y="342" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="267" y="352" fill="#8BA2AE">NOT FOUND</text>
-<rect x="470" y="342" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
-<text class="st" x="477" y="352" fill="#8BA2AE">NOT FOUND</text>
-<rect x="680" y="342" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
-<text class="st" x="687" y="352" fill="#06202A">GA</text>
-<text class="t" x="712" y="352">Marvis Client</text>
-<text class="c" x="40" y="380">Release notes through Oct 15 (Central) and Sep 9 (Mist). Tier is what the vendor documents; blank means it documents nothing.</text>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 730" role="img" aria-label="Scorecard of twelve AI capabilities in three groups, the assistant, autonomy, and experience and client, across Classic Central, New Central and Mist as of October 2026. Each cell shows GA, select availability, partial, announced or not found, with the license tier beneath.">
+<style>
+.sc-ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}
+.sc-h{font:700 22px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}
+.sc-g{font:700 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#5ED2DA;letter-spacing:2.5px}
+.sc-r{font:600 14px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
+.sc-hd{font:600 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#B0C4CF;letter-spacing:1.5px}
+.sc-st{font:700 10px 'JetBrains Mono',ui-monospace,Menlo,monospace;letter-spacing:1px}
+.sc-t{font:500 11.5px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
+.sc-c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
+.sc-ann{stroke-dasharray:4 3}
+@media (prefers-reduced-motion: no-preference){
+  .sc-row{opacity:0;animation:scIn .5s ease-out forwards}
+  .sc-ann{animation:scPulse 2.6s ease-in-out infinite}
+}
+@keyframes scIn{to{opacity:1}}
+@keyframes scPulse{0%,100%{opacity:1}50%{opacity:.55}}
+</style>
+<text class="sc-ey" x="40" y="36">SCORECARD, OCTOBER 2026</text><text class="sc-h" x="40" y="64">Where each capability actually is, and what it costs to light up</text>
+<text class="sc-hd" x="262" y="92">CLASSIC CENTRAL</text>
+<text class="sc-hd" x="470" y="92">NEW CENTRAL</text>
+<text class="sc-hd" x="678" y="92">JUNIPER MIST</text>
+<line x1="40" y1="100" x2="860" y2="100" stroke="rgba(255,255,255,0.18)"/>
+<text class="sc-g" x="40" y="121">THE ASSISTANT</text>
+<g class="sc-row" style="animation-delay:0.08s">
+<rect x="40" y="130" width="820" height="42" rx="6" fill="rgba(255,255,255,0.03)"/>
+<text class="sc-r" x="48" y="155">Natural-language search</text>
+<rect x="262" y="135" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="270" y="146" fill="#06202A">GA</text>
+<text class="sc-t" x="262" y="165">Foundation</text>
+<rect x="470" y="135" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="478" y="146" fill="#06202A">GA</text>
+<text class="sc-t" x="470" y="165">Foundation</text>
+<rect x="678" y="135" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="686" y="146" fill="#06202A">GA</text>
+<text class="sc-t" x="678" y="165">Marvis</text>
+</g>
+<g class="sc-row" style="animation-delay:0.16s">
+<text class="sc-r" x="48" y="197">Conversational assistant</text>
+<rect x="262" y="177" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="270" y="188" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="177" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="478" y="188" fill="#06202A">GA</text>
+<text class="sc-t" x="470" y="207">Advanced on 100% of devices</text>
+<rect x="678" y="177" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="686" y="188" fill="#06202A">GA</text>
+<text class="sc-t" x="678" y="207">Marvis</text>
+</g>
+<g class="sc-row" style="animation-delay:0.24s">
+<rect x="40" y="214" width="820" height="42" rx="6" fill="rgba(255,255,255,0.03)"/>
+<text class="sc-r" x="48" y="239">Natural language to CLI</text>
+<rect x="262" y="219" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="270" y="230" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="219" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="478" y="230" fill="#06202A">GA</text>
+<text class="sc-t" x="470" y="249">Advanced on 100% of devices</text>
+<rect x="678" y="219" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="686" y="230" fill="#8BA2AE">NOT FOUND</text>
+</g>
+<g class="sc-row" style="animation-delay:0.32s">
+<text class="sc-r" x="48" y="281">Root cause, recommendations</text>
+<rect x="262" y="261" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="270" y="272" fill="#06202A">GA</text>
+<text class="sc-t" x="262" y="291">Foundation, some Advanced</text>
+<rect x="470" y="261" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="478" y="272" fill="#06202A">GA</text>
+<text class="sc-t" x="470" y="291">Foundation; pills need Advanced</text>
+<rect x="678" y="261" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="686" y="272" fill="#06202A">GA</text>
+<text class="sc-t" x="678" y="291">Marvis</text>
+</g>
+<g class="sc-row" style="animation-delay:0.40s">
+<rect x="40" y="298" width="820" height="42" rx="6" fill="rgba(255,255,255,0.03)"/>
+<text class="sc-r" x="48" y="323">Agentic troubleshooting</text>
+<rect x="262" y="303" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="270" y="314" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="303" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="478" y="314" fill="#06202A">GA</text>
+<text class="sc-t" x="470" y="333">Advanced on 100% of devices</text>
+<rect x="678" y="303" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="686" y="314" fill="#06202A">GA</text>
+<text class="sc-t" x="678" y="333">Marvis</text>
+</g>
+<text class="sc-g" x="40" y="361">AUTONOMY</text>
+<g class="sc-row" style="animation-delay:0.48s">
+<text class="sc-r" x="48" y="395">Self-driving actions</text>
+<rect x="262" y="375" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="270" y="386" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="375" width="70" height="16" rx="8" fill="none" stroke="#5ED2DA"/>
+<text class="sc-st" x="478" y="386" fill="#5ED2DA">PARTIAL</text>
+<text class="sc-t" x="470" y="405">Radio auto-recovery only</text>
+<rect x="678" y="375" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="686" y="386" fill="#06202A">GA</text>
+<text class="sc-t" x="678" y="405">Marvis, nine actions</text>
+</g>
+<g class="sc-row" style="animation-delay:0.56s">
+<rect x="40" y="412" width="820" height="42" rx="6" fill="rgba(255,255,255,0.03)"/>
+<text class="sc-r" x="48" y="437">Synthetic client tests</text>
+<rect x="262" y="417" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="270" y="428" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="417" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="478" y="428" fill="#8BA2AE">NOT FOUND</text>
+<rect x="678" y="417" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="686" y="428" fill="#06202A">GA</text>
+<text class="sc-t" x="678" y="447">Marvis for Wireless</text>
+</g>
+<g class="sc-row" style="animation-delay:0.64s">
+<text class="sc-r" x="48" y="479">Rogue DHCP fix</text>
+<rect x="262" y="459" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="270" y="470" fill="#8BA2AE">NOT FOUND</text>
+<rect class="sc-ann" x="470" y="459" width="83" height="16" rx="8" fill="none" stroke="#F5A524"/>
+<text class="sc-st" x="478" y="470" fill="#F5A524">ANNOUNCED</text>
+<rect x="678" y="459" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="686" y="470" fill="#06202A">GA</text>
+<text class="sc-t" x="678" y="489">Marvis for Wired, EX</text>
+</g>
+<g class="sc-row" style="animation-delay:0.72s">
+<rect x="40" y="496" width="820" height="42" rx="6" fill="rgba(255,255,255,0.03)"/>
+<text class="sc-r" x="48" y="521">Missing VLAN fix</text>
+<rect x="262" y="501" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="270" y="512" fill="#8BA2AE">NOT FOUND</text>
+<rect class="sc-ann" x="470" y="501" width="83" height="16" rx="8" fill="none" stroke="#F5A524"/>
+<text class="sc-st" x="478" y="512" fill="#F5A524">ANNOUNCED</text>
+<rect x="678" y="501" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="686" y="512" fill="#06202A">GA</text>
+<text class="sc-t" x="678" y="531">Marvis for Wireless</text>
+</g>
+<g class="sc-row" style="animation-delay:0.80s">
+<text class="sc-r" x="48" y="563">NAC policy dry run</text>
+<rect x="262" y="543" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="270" y="554" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="543" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="478" y="554" fill="#8BA2AE">NOT FOUND</text>
+<rect x="678" y="543" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="686" y="554" fill="#06202A">GA</text>
+<text class="sc-t" x="678" y="573">Access Assurance</text>
+</g>
+<text class="sc-g" x="40" y="601">EXPERIENCE AND CLIENT</text>
+<g class="sc-row" style="animation-delay:0.88s">
+<rect x="40" y="610" width="820" height="42" rx="6" fill="rgba(255,255,255,0.03)"/>
+<text class="sc-r" x="48" y="635">App experience prediction</text>
+<rect x="262" y="615" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="270" y="626" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="615" width="63" height="16" rx="8" fill="none" stroke="#4FBDEA"/>
+<text class="sc-st" x="478" y="626" fill="#4FBDEA">SELECT</text>
+<text class="sc-t" x="470" y="645">Not documented</text>
+<rect x="678" y="615" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="686" y="626" fill="#06202A">GA</text>
+<text class="sc-t" x="678" y="645">Marvis for Wireless</text>
+</g>
+<g class="sc-row" style="animation-delay:0.96s">
+<text class="sc-r" x="48" y="677">Client-side telemetry</text>
+<rect x="262" y="657" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="270" y="668" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="657" width="83" height="16" rx="8" fill="none" stroke="#8BA2AE"/>
+<text class="sc-st" x="478" y="668" fill="#8BA2AE">NOT FOUND</text>
+<rect x="678" y="657" width="37" height="16" rx="8" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="sc-st" x="686" y="668" fill="#06202A">GA</text>
+<text class="sc-t" x="678" y="687">Marvis Client</text>
+</g>
+<text class="sc-c" x="40" y="718">Release notes through Oct 15 (Central) and Sep 9 (Mist). Tier is what the vendor documents; blank means it documents nothing.</text>
 </svg><figcaption>Twelve capabilities, three platforms, October 2026. Shape is status, small text is the tier.</figcaption></figure>
 <p>The pattern is obvious once it's on one page. Central's AI story is Copilot: the assistant, the natural-language-to-CLI, the Agentic-Mesh pills that turn an 802.11r problem into a recommendation. All of that is GA and all of it needs Advanced. Mist's AI story is autonomy: nine self-driving actions, Minis running synthetic tests from the APs and now the EX switches, and a NAC dry run that lets you test an Access Assurance policy before it enforces. Classic Central has search and AI Insights and is losing the rest to New Central on a date nobody has published.</p>
 <p>Neither column is wrong for every customer. They are different products with different ideas about what AI in a network should do, which is exactly what Investor Day said.</p>
 <h2>Announced versus shipped</h2>
 <p>In May HPE announced five autonomous actions for both platforms: Dynamic Capacity Optimization, Missing VLAN, Rogue DHCP protection, real-time DFS and Client Roaming Optimization. No dates per platform. Here's the ladder five months later.</p>
-<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="The five autonomous actions HPE announced in May 2026 as a ladder. On the Mist side four rungs are filled with ship dates; on the Central side all five are hollow, still announced only. Central has radio auto-recovery and an improved Rogue DHCP alert beneath.">
-<style>.ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}.h{font:700 20px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}.r{font:600 13px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}.hd{font:600 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#B0C4CF;letter-spacing:1.5px}.st{font:700 9.5px 'JetBrains Mono',ui-monospace,Menlo,monospace;letter-spacing:1px}.t{font:500 11px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}.c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}</style>
-<text class="ey" x="40" y="36">ANNOUNCED MAY 2026, FOR BOTH PLATFORMS</text><text class="h" x="40" y="62">Five autonomous actions. Where each one is, five months on.</text>
-<text class="hd" x="330" y="92">JUNIPER MIST</text><text class="hd" x="620" y="92">NEW CENTRAL</text>
-<line x1="40" y1="100" x2="860" y2="100" stroke="rgba(255,255,255,0.18)"/>
-<text class="r" x="48" y="124">Dynamic Capacity Optimization</text>
-<rect x="330" y="113" width="52" height="16" rx="8" fill="#8CE05E"/><text class="st" x="338" y="124" fill="#06202A">GA</text>
-<text class="t" x="390" y="124">Apr 2026</text>
-<rect x="620" y="113" width="92" height="16" rx="8" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/><text class="st" x="628" y="124" fill="#F5A524">ANNOUNCED</text>
-<text class="t" x="720" y="124">not in release notes</text>
-<text class="r" x="48" y="154">Rogue DHCP Server</text>
-<rect x="330" y="143" width="52" height="16" rx="8" fill="#8CE05E"/><text class="st" x="338" y="154" fill="#06202A">GA</text>
-<text class="t" x="390" y="154">Apr 2026</text>
-<rect x="620" y="143" width="92" height="16" rx="8" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/><text class="st" x="628" y="154" fill="#F5A524">ANNOUNCED</text>
-<text class="t" x="720" y="154">not in release notes</text>
-<text class="r" x="48" y="184">Real-time DFS</text>
-<rect x="330" y="173" width="52" height="16" rx="8" fill="#8CE05E"/><text class="st" x="338" y="184" fill="#06202A">GA</text>
-<text class="t" x="390" y="184">Apr 2026, cannot be turned off</text>
-<rect x="620" y="173" width="92" height="16" rx="8" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/><text class="st" x="628" y="184" fill="#F5A524">ANNOUNCED</text>
-<text class="t" x="720" y="184">not in release notes</text>
-<text class="r" x="48" y="214">Missing VLAN</text>
-<rect x="330" y="203" width="52" height="16" rx="8" fill="#8CE05E"/><text class="st" x="338" y="214" fill="#06202A">GA</text>
-<text class="t" x="390" y="214">Sep 2026, off by default</text>
-<rect x="620" y="203" width="92" height="16" rx="8" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/><text class="st" x="628" y="214" fill="#F5A524">ANNOUNCED</text>
-<text class="t" x="720" y="214">not in release notes</text>
-<text class="r" x="48" y="244">Client Roaming Optimization</text>
-<rect x="330" y="233" width="92" height="16" rx="8" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/><text class="st" x="338" y="244" fill="#F5A524">ANNOUNCED</text>
-<text class="t" x="430" y="244">no ship date anywhere</text>
-<rect x="620" y="233" width="92" height="16" rx="8" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/><text class="st" x="628" y="244" fill="#F5A524">ANNOUNCED</text>
-<text class="t" x="720" y="244">not in release notes</text>
-<line x1="40" y1="262" x2="860" y2="262" stroke="rgba(255,255,255,0.12)"/>
-<text class="t" x="48" y="282">What Central does drive itself: radio auto-recovery (on by default) and AirMatch. Oct 15 improved the Rogue DHCP alert, which is a better alert, not a fix.</text>
-<text class="c" x="40" y="326">Mist dates from Juniper product updates (Apr 15 and Sep 9, 2026). Central checked through the Oct 15, 2026 release notes.</text>
+<figure class="figure panel"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-label="A ladder with five rungs, one per autonomous action HPE announced in May 2026. The Mist half of four rungs is filled green with a ship date. The Central half of every rung is a dashed outline, still announced only. Client Roaming Optimization is dashed on both sides.">
+<style>
+.ld-ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}
+.ld-h{font:700 22px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}
+.ld-r{font:600 14.5px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
+.ld-hd{font:600 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#B0C4CF;letter-spacing:1.5px}
+.ld-on{font:700 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#06202A}
+.ld-off{font:700 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#F5A524;letter-spacing:1px}
+.ld-t{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#B0C4CF}
+.ld-c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
+.ld-rail{stroke:rgba(255,255,255,0.22);stroke-width:6;stroke-linecap:round}
+.ld-ann{fill:rgba(245,165,36,0.06);stroke:#F5A524;stroke-width:1.5;stroke-dasharray:7 5}
+.ld-ga{fill:#8CE05E}
+@media (prefers-reduced-motion: no-preference){
+  .ld-ga{transform-box:fill-box;transform:scaleX(0);transform-origin:left center;animation:ldFill .6s cubic-bezier(0.32,0.72,0,1) forwards}
+  .ld-lbl{opacity:0;animation:ldIn .4s ease-out forwards}
+  .ld-ann{animation:ldCrawl 6s linear infinite}
+}
+@keyframes ldFill{to{transform:scaleX(1)}}
+@keyframes ldIn{to{opacity:1}}
+@keyframes ldCrawl{to{stroke-dashoffset:-24}}
+</style>
+<text class="ld-ey" x="40" y="36">ANNOUNCED MAY 2026, FOR BOTH PLATFORMS</text><text class="ld-h" x="40" y="64">Five autonomous actions. Where each one is, five months on.</text>
+<text class="ld-hd" x="330" y="98">JUNIPER MIST</text><text class="ld-hd" x="836" y="98" text-anchor="end">NEW CENTRAL</text>
+<line class="ld-rail" x1="322" y1="106" x2="322" y2="440"/><line class="ld-rail" x1="590" y1="106" x2="590" y2="440"/><line class="ld-rail" x1="858" y1="106" x2="858" y2="440"/>
+<text class="ld-r" x="40" y="145">Dynamic Capacity Optimization</text>
+<rect class="ld-ga" x="330" y="120" width="252" height="40" rx="10" style="animation-delay:0.30s"/>
+<g class="ld-lbl" style="animation-delay:0.70s"><text class="ld-on" x="346" y="137">SHIPPED</text><text class="ld-on" x="346" y="152" font-weight="500">Apr 2026</text></g>
+<rect class="ld-ann" x="598" y="120" width="252" height="40" rx="10"/><text class="ld-off" x="614" y="137">ANNOUNCED</text><text class="ld-t" x="614" y="152">not in release notes</text>
+<text class="ld-r" x="40" y="207">Rogue DHCP Server</text>
+<rect class="ld-ga" x="330" y="182" width="252" height="40" rx="10" style="animation-delay:0.65s"/>
+<g class="ld-lbl" style="animation-delay:1.05s"><text class="ld-on" x="346" y="199">SHIPPED</text><text class="ld-on" x="346" y="214" font-weight="500">Apr 2026</text></g>
+<rect class="ld-ann" x="598" y="182" width="252" height="40" rx="10"/><text class="ld-off" x="614" y="199">ANNOUNCED</text><text class="ld-t" x="614" y="214">not in release notes</text>
+<text class="ld-r" x="40" y="269">Real-time DFS</text>
+<rect class="ld-ga" x="330" y="244" width="252" height="40" rx="10" style="animation-delay:1.00s"/>
+<g class="ld-lbl" style="animation-delay:1.40s"><text class="ld-on" x="346" y="261">SHIPPED</text><text class="ld-on" x="346" y="276" font-weight="500">Apr 2026, always on</text></g>
+<rect class="ld-ann" x="598" y="244" width="252" height="40" rx="10"/><text class="ld-off" x="614" y="261">ANNOUNCED</text><text class="ld-t" x="614" y="276">not in release notes</text>
+<text class="ld-r" x="40" y="331">Missing VLAN</text>
+<rect class="ld-ga" x="330" y="306" width="252" height="40" rx="10" style="animation-delay:1.35s"/>
+<g class="ld-lbl" style="animation-delay:1.75s"><text class="ld-on" x="346" y="323">SHIPPED</text><text class="ld-on" x="346" y="338" font-weight="500">Sep 2026, off by default</text></g>
+<rect class="ld-ann" x="598" y="306" width="252" height="40" rx="10"/><text class="ld-off" x="614" y="323">ANNOUNCED</text><text class="ld-t" x="614" y="338">not in release notes</text>
+<text class="ld-r" x="40" y="393">Client Roaming Optimization</text>
+<rect class="ld-ann" x="330" y="368" width="252" height="40" rx="10"/><text class="ld-off" x="346" y="385">ANNOUNCED</text><text class="ld-t" x="346" y="400">no ship date anywhere</text>
+<rect class="ld-ann" x="598" y="368" width="252" height="40" rx="10"/><text class="ld-off" x="614" y="385">ANNOUNCED</text><text class="ld-t" x="614" y="400">not in release notes</text>
+<line x1="40" y1="432" x2="860" y2="432" stroke="rgba(255,255,255,0.12)"/>
+<text class="ld-t" x="40" y="456">What Central does drive itself today: radio auto-recovery (on by default) and AirMatch.</text>
+<text class="ld-t" x="40" y="476">Oct 15 improved the Rogue DHCP alert with thresholds and auto-close. A better alert, not yet the autonomous fix.</text>
+<text class="ld-c" x="40" y="508">Mist dates from Juniper product updates (Apr 15 and Sep 9, 2026). Central checked through the Oct 15, 2026 release notes.</text>
 </svg><figcaption>Four of five shipped on Mist, three of them before the announcement. Zero of five in Central's release notes.</figcaption></figure>
 <p>Mist had three of them in April, a month before the press release, and added Missing VLAN in September. Central has none of them through October 15. What Central's October release did do is improve the Rogue DHCP Server alert, with thresholds, a summary and auto-close. That's a better alert. It is not the autonomous fix from May, and the release note doesn't claim it is.</p>
 <p>I want to be fair about what did ship. Copilot can now sit in a side panel next to whatever page you're on, draw its answers as donut, bar and tunnel charts, run three queries at once, and take exact date and time ranges. I tried it on the lab tenant.</p>
@@ -1566,8 +1650,8 @@ body.acad .readmark,body.acad .changed-note{--rm:var(--orange);--rm-soft:rgba(24
 
 <p>That's a better Copilot. It's still an assistant, which is what it's meant to be. The thing that recommends and the thing that acts on its own are different products, and only one of them has shipped on the Central side.</p>
 <h2>The licensing footnote</h2>
-<p>There is no Copilot SKU. After the 90-day trial, Copilot and Agentic-Mesh need Advanced subscriptions on your devices. HPE's Copilot licensing page says 100 percent of them. HPE's subscriptions FAQ says 90 percent. Both pages still disagreed at the last check in October. A tenant that mixes Foundation on the switches with Advanced on the APs won't light up what the demo showed, and which number applies decides whether a customer is one subscription short or fifty.</p>
-<p>The October release at least made the count easy. Device inventory now shows Subscription Tier as its own column, so you can filter for Foundation and see what's holding you back. Get HPE to confirm the percentage in writing before you quote it. I'm not going to guess which page wins.</p>
+<p>There is no Copilot SKU. After the 90-day trial, Copilot and Agentic-Mesh need an Advanced subscription on 100 percent of the devices in the account. That's the Copilot licensing page and, as of this week, the subscriptions FAQ too; the FAQ said 90 percent until recently, and an older copy of it under the previous doc tree still does. The 90 percent figure now applies only to the three insights that need Advanced. A tenant that mixes Foundation on the switches with Advanced on the APs won't light up what the demo showed, and one Foundation switch is enough.</p>
+<p>The October release at least made the count easy. Device inventory now shows Subscription Tier as its own column, so you can filter for Foundation and see what's holding you back. If a quote hinges on it, get the current number from HPE in writing, because that page has moved once already.</p>
 <p>Mist prices it the other way, an add-on per capability. Wireless Assurance, Marvis, Premium Analytics. Minis and the self-driving actions ride on the Marvis subscription with no extra SKU. It's more line items and less ambiguity.</p>
 <h2>What I tell customers</h2>
 <p>If the estate is Aruba and the ask is an assistant that explains the network in English and writes CX config for you, New Central is the answer and the AI is here today. Budget for Advanced on everything and treat the autonomous actions as roadmap until they're in a release note.</p>

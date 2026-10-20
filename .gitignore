@@ -37,3 +37,6 @@ node_modules/
 
 # local wrangler dev secrets for comments/qatest.mjs, test values only
 comments/.dev.vars
+
+# iCloud conflict copies
+* 2.*
