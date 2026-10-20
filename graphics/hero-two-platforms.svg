@@ -1,45 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Two rails, Central and Mist, run the full width and never meet. A bar labelled Marvis spans both. Below each rail, what that platform has in release notes versus what was only announced.">
-<defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Two rails, New Central and Juniper Mist, run the full width and never meet. A bar labelled Marvis spans both. Under each rail, what is in release notes on the left and what was only announced on the right.">
 <style>
-.ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}
-.h{font:700 24px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}
-.l{font:600 13px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
-.s{font:500 11.5px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#B0C4CF}
-.m{font:500 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8BA2AE}
-.c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
-.box{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
+.hp-ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}
+.hp-h{font:700 24px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}
+.hp-l{font:600 13.5px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
+.hp-s{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#B0C4CF}
+.hp-m{font:500 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8BA2AE}
+.hp-c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
+.hp-tie{stroke-dasharray:4 4}
+.hp-box{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.14)}
+.hp-ann{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.3);stroke-dasharray:6 5}
+@media (prefers-reduced-motion: no-preference){
+  .hp-rail{stroke-dasharray:820;stroke-dashoffset:820;animation:hpDraw 1.4s cubic-bezier(0.32,0.72,0,1) forwards}
+  .hp-rail.b{animation-delay:.25s}
+  .hp-fade{opacity:0;animation:hpFade .6s ease-out forwards}
+  .hp-f1{animation-delay:.9s}.hp-f2{animation-delay:1.1s}.hp-f3{animation-delay:1.3s}.hp-f4{animation-delay:1.5s}.hp-f5{animation-delay:1.7s}
+  .hp-mv{opacity:0;transform:scale(.92);transform-origin:450px 186px;animation:hpPop .7s cubic-bezier(0.32,0.72,0,1) 1.3s forwards}
+  .hp-ann{animation:hpCrawl 6s linear infinite}
+  .hp-tie{animation:hpCrawl 3s linear infinite}
+}
+@keyframes hpDraw{to{stroke-dashoffset:0}}
+@keyframes hpFade{to{opacity:1}}
+@keyframes hpPop{to{opacity:1;transform:scale(1)}}
+@keyframes hpCrawl{to{stroke-dashoffset:-22}}
 </style>
-</defs>
-<text class="ey" x="40" y="36">INVESTOR DAY, SEP 30 2026</text>
-<text class="h" x="40" y="66">Two platforms that never converge, one Marvis between them</text>
-<!-- Central rail -->
-<rect x="40" y="96" width="820" height="4" rx="2" fill="#4FBDEA"/>
-<text class="l" x="40" y="88">New Central</text>
-<text class="m" x="860" y="88" text-anchor="end">app-ca, app-prod2, GreenLake</text>
-<!-- Mist rail -->
-<rect x="40" y="276" width="820" height="4" rx="2" fill="#5ED2DA"/>
-<text class="l" x="40" y="298">Juniper Mist</text>
-<text class="m" x="860" y="298" text-anchor="end">manage.mist.com and friends</text>
-<!-- Marvis bar -->
-<rect x="330" y="166" width="240" height="40" rx="20" fill="#8CE05E"/>
-<text x="450" y="191" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-weight="700" font-size="15" fill="#06202A">Marvis, shared AI engine</text>
-<line x1="450" y1="100" x2="450" y2="166" stroke="#8CE05E" stroke-width="2" stroke-dasharray="4 4"/>
-<line x1="450" y1="206" x2="450" y2="214" stroke="#8CE05E" stroke-width="2" stroke-dasharray="4 4"/><line x1="450" y1="234" x2="450" y2="276" stroke="#8CE05E" stroke-width="2" stroke-dasharray="4 4"/>
-<!-- Central side boxes -->
-<rect class="box" x="40" y="110" width="250" height="48" rx="10"/>
-<text class="l" x="56" y="130">In release notes</text>
-<text class="s" x="56" y="148">Copilot, Agentic-Mesh, App Experience</text>
-<rect class="box" x="590" y="110" width="270" height="48" rx="10" stroke-dasharray="5 4"/>
-<text class="l" x="606" y="130">Announced only</text>
-<text class="s" x="606" y="148">Five autonomous actions, port fixes</text>
-<!-- Mist side boxes -->
-<rect class="box" x="40" y="218" width="250" height="48" rx="10"/>
-<text class="l" x="56" y="238">In release notes</text>
-<text class="s" x="56" y="256">Nine self-driving actions, Minis, CX switches</text>
-<rect class="box" x="590" y="218" width="270" height="48" rx="10" stroke-dasharray="5 4"/>
-<text class="l" x="606" y="238">Announced only</text>
-<text class="s" x="606" y="256">Roaming Optimization, agentic mesh</text>
-<!-- shared hardware note -->
-<text class="c" x="450" y="226" text-anchor="middle">Shared: AP 723H, CX 5420 / 6300 / 6400</text>
-<text class="c" x="40" y="326">Solid box: in a release note. Dashed box: on a stage. The post is about the difference.</text>
+<text class="hp-ey" x="40" y="36">INVESTOR DAY, SEP 30 2026</text>
+<text class="hp-h" x="40" y="66">Two platforms that never converge, one Marvis between them</text>
+<text class="hp-l" x="40" y="90">New Central</text><text class="hp-m" x="860" y="90" text-anchor="end">GreenLake, Copilot, AirMatch</text>
+<line class="hp-rail" x1="40" y1="100" x2="860" y2="100" stroke="#4FBDEA" stroke-width="4" stroke-linecap="round"/>
+<line class="hp-rail b" x1="40" y1="276" x2="860" y2="276" stroke="#5ED2DA" stroke-width="4" stroke-linecap="round"/>
+<text class="hp-l" x="40" y="300">Juniper Mist</text><text class="hp-m" x="860" y="300" text-anchor="end">Marvis, Minis, Wired Assurance</text>
+<line class="hp-tie" x1="450" y1="100" x2="450" y2="164" stroke="#8CE05E" stroke-width="2"/><line class="hp-tie" x1="450" y1="208" x2="450" y2="216" stroke="#8CE05E" stroke-width="2"/><line class="hp-tie" x1="450" y1="240" x2="450" y2="276" stroke="#8CE05E" stroke-width="2"/>
+<g class="hp-mv"><rect x="320" y="164" width="260" height="44" rx="22" fill="#8CE05E"/><text x="450" y="192" text-anchor="middle" font-family="'Instrument Sans',-apple-system,Helvetica,sans-serif" font-weight="700" font-size="16" fill="#06202A">Marvis, the shared AI engine</text></g>
+<g class="hp-fade hp-f1"><rect class="hp-box" x="40" y="112" width="262" height="46" rx="12"/><text class="hp-l" x="56" y="131">In release notes</text><text class="hp-s" x="56" y="149">Copilot, Agentic-Mesh, App Experience</text></g>
+<g class="hp-fade hp-f2"><rect class="hp-ann" x="598" y="112" width="262" height="46" rx="12"/><text class="hp-l" x="614" y="131">Announced only</text><text class="hp-s" x="614" y="149">Five autonomous actions, port fixes</text></g>
+<g class="hp-fade hp-f3"><rect class="hp-box" x="40" y="218" width="262" height="46" rx="12"/><text class="hp-l" x="56" y="237">In release notes</text><text class="hp-s" x="56" y="255">Nine self-driving actions, Minis, CX</text></g>
+<g class="hp-fade hp-f4"><rect class="hp-ann" x="598" y="218" width="262" height="46" rx="12"/><text class="hp-l" x="614" y="237">Announced only</text><text class="hp-s" x="614" y="255">Roaming Optimization, agentic mesh</text></g>
+<g class="hp-fade hp-f5"><text class="hp-c" x="450" y="232" text-anchor="middle">Shared: AP 723H, CX 5420 / 6300 / 6400</text></g>
+<text class="hp-c" x="40" y="328">Solid box: in a release note. Dashed box: announced on a stage. The post is about the difference.</text>
 </svg>

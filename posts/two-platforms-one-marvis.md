@@ -19,7 +19,7 @@ The useful way to read the Investor Day line is as a description of what has alr
 
 {{figure: fig-ai-swap.svg | Two features crossed over and shipped, two pieces of hardware are shared, and the promises are still dashed lines.}}
 
-Mist's Large Experience Model, the thing that correlates Zoom and Teams call quality with the network, turned up in Central in January as the Application Experience Predictor. It launched in Select Availability and the October notes say it has been "enhanced" with more client detail. There's still no release note calling it GA, and I couldn't find a documented AOS 10 or license requirement for it. That's one feature, one direction.
+In December HPE said Mist's Large Experience Model, the thing that correlates Zoom and Teams call quality with the network, was coming to Central. In January the Application Experience Predictor arrived, which is that capability under a Central name; HPE's doc for it doesn't say LEM, so that lineage is the press release's, not the manual's. It launched in Select Availability and the October notes say it has been "enhanced" with more client detail. There's still no release note calling it GA, and I couldn't find a documented AOS 10 or license requirement for it. That's one feature, one direction.
 
 In the other direction, Mist started managing AOS-CX switches in September. The 5420, 6300 and 6400 families on 10.18.1002 or later show up in Mist Wired Assurance like an EX would. That's a bigger deal than it sounds, because it means a Mist shop can keep buying the Aruba switch its cabling closets were designed around.
 
@@ -56,9 +56,9 @@ That's a better Copilot. It's still an assistant, which is what it's meant to be
 
 ## The licensing footnote
 
-There is no Copilot SKU. After the 90-day trial, Copilot and Agentic-Mesh need Advanced subscriptions on your devices. HPE's Copilot licensing page says 100 percent of them. HPE's subscriptions FAQ says 90 percent. Both pages still disagreed at the last check in October. A tenant that mixes Foundation on the switches with Advanced on the APs won't light up what the demo showed, and which number applies decides whether a customer is one subscription short or fifty.
+There is no Copilot SKU. After the 90-day trial, Copilot and Agentic-Mesh need an Advanced subscription on 100 percent of the devices in the account. That's the Copilot licensing page and, as of this week, the subscriptions FAQ too; the FAQ said 90 percent until recently, and an older copy of it under the previous doc tree still does. The 90 percent figure now applies only to the three insights that need Advanced. A tenant that mixes Foundation on the switches with Advanced on the APs won't light up what the demo showed, and one Foundation switch is enough.
 
-The October release at least made the count easy. Device inventory now shows Subscription Tier as its own column, so you can filter for Foundation and see what's holding you back. Get HPE to confirm the percentage in writing before you quote it. I'm not going to guess which page wins.
+The October release at least made the count easy. Device inventory now shows Subscription Tier as its own column, so you can filter for Foundation and see what's holding you back. If a quote hinges on it, get the current number from HPE in writing, because that page has moved once already.
 
 Mist prices it the other way, an add-on per capability. Wireless Assurance, Marvis, Premium Analytics. Minis and the self-driving actions ride on the Marvis subscription with no extra SKU. It's more line items and less ambiguity.
 

@@ -1,18 +1,49 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="What crossed between the platforms. From Mist to Central: LEM became the Application Experience Predictor (Jan 2026, select availability). From Central to Mist: AOS-CX 5420, 6300 and 6400 switches (Sep 2026). Shared by both: the AP 723H (May 2026) and Marvis as the AI engine. Promised but not shipped: Marvis Actions in Central, agentic mesh in Mist.">
-<style>.ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}.h{font:700 20px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}.l{font:700 14px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}.s{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#B0C4CF}.m{font:600 10.5px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8BA2AE;letter-spacing:1px}.c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}.box{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}</style>
-<defs><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5ED2DA"/></marker><marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8CE05E"/></marker></defs>
-<text class="ey" x="40" y="36">WHAT ACTUALLY CROSSED OVER</text><text class="h" x="40" y="62">Features traded, hardware shared, announcements still in transit</text>
-<rect class="box" x="40" y="84" width="200" height="220" rx="14" stroke="#4FBDEA"/><text class="l" x="140" y="110" text-anchor="middle">New Central</text>
-<rect class="box" x="660" y="84" width="200" height="220" rx="14" stroke="#5ED2DA"/><text class="l" x="760" y="110" text-anchor="middle">Juniper Mist</text>
-<line x1="648" y1="140" x2="252" y2="140" stroke="#8CE05E" stroke-width="2.5" marker-end="url(#ag)"/>
-<text class="m" x="450" y="130" text-anchor="middle">SHIPPED JAN 2026, SELECT AVAILABILITY</text><text class="s" x="450" y="161" text-anchor="middle">Mist LEM becomes Central's Application Experience Predictor</text>
-<line x1="252" y1="190" x2="648" y2="190" stroke="#8CE05E" stroke-width="2.5" marker-end="url(#ag)"/>
-<text class="m" x="450" y="180" text-anchor="middle">SHIPPED SEP 2026</text><text class="s" x="450" y="211" text-anchor="middle">AOS-CX 5420, 6300 and 6400 managed by Mist (10.18.1002+)</text>
-<line x1="252" y1="236" x2="648" y2="236" stroke="#5ED2DA" stroke-width="2.5" marker-start="url(#ab)" marker-end="url(#ab)"/>
-<text class="m" x="450" y="226" text-anchor="middle">SHARED SINCE MAY 2026</text><text class="s" x="450" y="257" text-anchor="middle">AP 723H runs on either. Marvis named as the AI engine for both.</text>
-<line x1="648" y1="282" x2="252" y2="282" stroke="#F5A524" stroke-width="2" stroke-dasharray="6 5"/>
-<text class="m" x="450" y="272" text-anchor="middle" fill="#F5A524">PROMISED, NOT IN RELEASE NOTES</text><text class="s" x="450" y="303" text-anchor="middle">Marvis Actions and port remediation in Central; agentic mesh in Mist</text>
-<text class="s" x="140" y="140" text-anchor="middle">Copilot, Agentic-Mesh</text><text class="s" x="140" y="160" text-anchor="middle">AirMatch, AI Insights</text><text class="s" x="140" y="190" text-anchor="middle">Radio auto-recovery</text>
-<text class="s" x="760" y="140" text-anchor="middle">Marvis, Minis, LEM</text><text class="s" x="760" y="160" text-anchor="middle">Nine self-driving actions</text><text class="s" x="760" y="190" text-anchor="middle">Access Assurance dry run</text>
-<text class="c" x="40" y="328">Solid green: in a release note. Teal: shared. Dashed: announced at Discover (Jun 2026) or earlier, no release note by Oct 15, 2026.</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-label="Four lanes between New Central and Juniper Mist. Shipped Jan 2026: Mist LEM became Central's Application Experience Predictor. Shipped Sep 2026: AOS-CX 5420, 6300 and 6400 managed by Mist. Shared since May 2026: the AP 723H and Marvis. Announced, not in release notes: Marvis Actions in Central and agentic mesh in Mist.">
+<style>
+.sw-ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}
+.sw-h{font:700 22px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}
+.sw-l{font:700 15px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
+.sw-t{font:600 14px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
+.sw-d{font:500 13px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#B0C4CF}
+.sw-m{font:600 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8BA2AE;letter-spacing:1.5px}
+.sw-c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
+.sw-col{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.14)}
+.sw-lane{fill:rgba(255,255,255,0.03);stroke:rgba(255,255,255,0.08)}
+.sw-ann{stroke-dasharray:7 6}
+@media (prefers-reduced-motion: no-preference){
+  .sw-arrow{stroke-dasharray:400;stroke-dashoffset:400;animation:swDraw 1.1s cubic-bezier(0.32,0.72,0,1) forwards}
+  .sw-a1{animation-delay:.3s}.sw-a2{animation-delay:.7s}.sw-a3{animation-delay:1.1s}
+  .sw-ann{stroke-dashoffset:0;animation:swCrawl 5s linear infinite}
+  .sw-tip{opacity:0;animation:swFade .4s ease-out forwards}
+  .sw-t1{animation-delay:1.2s}.sw-t2{animation-delay:1.6s}.sw-t3{animation-delay:2s}
+}
+@keyframes swDraw{to{stroke-dashoffset:0}}
+@keyframes swFade{to{opacity:1}}
+@keyframes swCrawl{to{stroke-dashoffset:-26}}
+</style>
+<text class="sw-ey" x="40" y="36">WHAT ACTUALLY CROSSED OVER</text><text class="sw-h" x="40" y="64">Features traded, hardware shared, announcements still in transit</text>
+<rect class="sw-col" x="40" y="92" width="170" height="396" rx="16" stroke="#4FBDEA"/><text class="sw-l" x="125" y="120" text-anchor="middle">New Central</text>
+<rect class="sw-col" x="690" y="92" width="170" height="396" rx="16" stroke="#5ED2DA"/><text class="sw-l" x="775" y="120" text-anchor="middle">Juniper Mist</text>
+<text class="sw-d" x="125" y="150" text-anchor="middle">Copilot</text><text class="sw-d" x="125" y="170" text-anchor="middle">Agentic-Mesh</text><text class="sw-d" x="125" y="190" text-anchor="middle">AirMatch, AI Insights</text><text class="sw-d" x="125" y="210" text-anchor="middle">Radio auto-recovery</text>
+<text class="sw-d" x="775" y="150" text-anchor="middle">Marvis, Minis</text><text class="sw-d" x="775" y="170" text-anchor="middle">LEM</text><text class="sw-d" x="775" y="190" text-anchor="middle">Nine self-driving actions</text><text class="sw-d" x="775" y="210" text-anchor="middle">Access Assurance dry run</text>
+<rect class="sw-lane" x="226" y="92" width="448" height="88" rx="12"/>
+<text class="sw-m" x="450" y="114" text-anchor="middle">SHIPPED JAN 2026, SELECT AVAILABILITY</text>
+<line class="sw-arrow sw-a1" x1="248" y1="132" x2="652" y2="132" stroke="#8CE05E" stroke-width="3" stroke-linecap="round"/>
+<g class="sw-tip sw-t1"><path d="M262 124 L248 132 L262 140" fill="none" stroke="#8CE05E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text class="sw-t" x="450" y="154" text-anchor="middle">Mist's LEM, announced for Central in Dec,</text><text class="sw-d" x="450" y="172" text-anchor="middle">arrives as the Application Experience Predictor</text>
+<rect class="sw-lane" x="226" y="192" width="448" height="88" rx="12"/>
+<text class="sw-m" x="450" y="214" text-anchor="middle">SHIPPED SEP 2026</text>
+<line class="sw-arrow sw-a2" x1="248" y1="232" x2="652" y2="232" stroke="#8CE05E" stroke-width="3" stroke-linecap="round"/>
+<g class="sw-tip sw-t2"><path d="M638 224 L652 232 L638 240" fill="none" stroke="#8CE05E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text class="sw-t" x="450" y="254" text-anchor="middle">AOS-CX 5420, 6300 and 6400</text><text class="sw-d" x="450" y="272" text-anchor="middle">managed by Mist, 10.18.1002 or later</text>
+<rect class="sw-lane" x="226" y="292" width="448" height="88" rx="12"/>
+<text class="sw-m" x="450" y="314" text-anchor="middle">SHARED SINCE MAY 2026</text>
+<line class="sw-arrow sw-a3" x1="248" y1="332" x2="652" y2="332" stroke="#5ED2DA" stroke-width="3" stroke-linecap="round"/>
+<g class="sw-tip sw-t3"><path d="M262 324 L248 332 L262 340" fill="none" stroke="#5ED2DA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M638 324 L652 332 L638 340" fill="none" stroke="#5ED2DA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text class="sw-t" x="450" y="354" text-anchor="middle">AP 723H runs on either cloud.</text><text class="sw-d" x="450" y="372" text-anchor="middle">Marvis named as the AI engine for both.</text>
+<rect class="sw-lane" x="226" y="392" width="448" height="88" rx="12"/>
+<text class="sw-m" x="450" y="414" text-anchor="middle" fill="#F5A524">ANNOUNCED, NOT IN RELEASE NOTES</text>
+<line class="sw-ann" x1="248" y1="432" x2="652" y2="432" stroke="#F5A524" stroke-width="2.5"/>
+<text class="sw-t" x="450" y="454" text-anchor="middle">Marvis Actions and port remediation in Central;</text><text class="sw-d" x="450" y="472" text-anchor="middle">agentic mesh in Mist</text>
+<text class="sw-c" x="40" y="510">Green: in a release note. Teal: shared. Dashed: announced at Discover (Jun 2026) or earlier, no release note by Oct 15, 2026.</text>
 </svg>

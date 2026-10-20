@@ -74,7 +74,7 @@
     {
       "id": "2026-01", "label": "Jan 26", "date": "Jan 2026", "title": "Experience prediction reaches Central",
       "changes": [
-        { "p": "new", "text": "Application Experience Predictor (built on Mist LEM) in Select Availability. Client roaming events on floorplans. STP Anomaly Recommender gets a TCN action card.", "src": "https://arubanetworking.hpe.com/techdocs/new-central/content/whats-new/2025/nov-dec.htm" }
+        { "p": "new", "text": "Application Experience Predictor in Select Availability, the LEM capability HPE announced for Central in December. Client roaming events on floorplans. STP Anomaly Recommender gets a TCN action card.", "src": "https://arubanetworking.hpe.com/techdocs/new-central/content/whats-new/2025/nov-dec.htm" }
       ]
     },
     {
@@ -128,7 +128,8 @@
       "changes": [
         { "p": "new", "text": "Copilot opens as a side panel, draws donut, bar and tunnel charts, and runs three queries at once with exact time ranges (Oct 15).", "src": "https://arubanetworking.hpe.com/techdocs/hpe-central/content/release-notes/new-capabilities-october-15th-2026.html" },
         { "p": "new", "text": "AP Health insight splits in two. Switch Offline root cause now flags a missing subscription. App Experience Predictor adds client detail, status unchanged.", "src": "https://arubanetworking.hpe.com/techdocs/hpe-central/content/release-notes/improvements-october-15th-2026.html" },
-        { "p": "new", "text": "Rogue DHCP alert gains thresholds, a summary and auto-close. The May autonomous actions are still not in release notes.", "src": "https://arubanetworking.hpe.com/techdocs/hpe-central/content/release-notes/improvements-october-15th-2026.html" }
+        { "p": "new", "text": "Rogue DHCP alert gains thresholds, a summary and auto-close. The May autonomous actions are still not in release notes.", "src": "https://arubanetworking.hpe.com/techdocs/hpe-central/content/release-notes/improvements-october-15th-2026.html" },
+        { "p": "new", "text": "The subscriptions FAQ now says Copilot needs Advanced on 100% of devices, matching the licensing page; it said 90% until October.", "src": "https://arubanetworking.hpe.com/techdocs/hpe-central/content/frequently-asked-questions-faq/subscriptions-faq.html" }
       ]
     },
     {
@@ -146,16 +147,16 @@
       "new": [ { "at": "2024-03", "s": "ga", "t": "GenAI AI Search", "tier": "Foundation" }, { "at": "2026-05", "s": "ga", "t": "AI Search, finds APs by BSSID", "tier": "Foundation" } ],
       "mist": [ { "at": "2020-06", "s": "ga", "t": "Marvis queries", "tier": "Marvis subscription" } ] } },
     { "id": "assistant", "name": "Conversational assistant", "cells": {
-      "new": [ { "at": "2025-mid", "s": "ann", "t": "Networking copilot promised for Q3 2025", "tier": "" }, { "at": "2025-q4", "s": "ga", "t": "HPE Networking Copilot", "tier": "Advanced subscription, admin or operator roles" }, { "at": "2026-spring", "s": "ga", "t": "Copilot, 90-day trial then Advanced on every device", "tier": "Advanced on 100% of devices (FAQ says 90%)" }, { "at": "2026-10", "s": "ga", "t": "Copilot side panel, charts, three queries at once", "tier": "Advanced on 100% of devices (FAQ says 90%)" } ],
+      "new": [ { "at": "2025-mid", "s": "ann", "t": "Networking copilot promised for Q3 2025", "tier": "" }, { "at": "2025-q4", "s": "ga", "t": "HPE Networking Copilot", "tier": "Advanced subscription, admin or operator roles" }, { "at": "2026-spring", "s": "ga", "t": "Copilot, 90-day trial then Advanced on every device", "tier": "Advanced on 100% of devices" }, { "at": "2026-10", "s": "ga", "t": "Copilot side panel, charts, three queries at once", "tier": "Advanced on 100% of devices" } ],
       "mist": [ { "at": "2021", "s": "ga", "t": "Marvis Conversational Interface", "tier": "Marvis subscription" }, { "at": "2023-spring", "s": "ga", "t": "Adds LLM answers from documentation", "tier": "Marvis subscription" }, { "at": "2026-06", "s": "ga", "t": "Agentic Marvis Conversational Assistant", "tier": "Marvis subscription" } ] } },
     { "id": "nl2cli", "name": "Natural language to CLI", "cells": {
-      "new": [ { "at": "2025-q4", "s": "ga", "t": "Copilot translates to AOS-CX CLI", "tier": "Same as Copilot" }, { "at": "2026-spring", "s": "ga", "t": "Copilot translates to AOS-CX CLI", "tier": "Advanced on 100% of devices (FAQ says 90%)" } ] } },
+      "new": [ { "at": "2025-q4", "s": "ga", "t": "Copilot translates to AOS-CX CLI", "tier": "Same as Copilot" }, { "at": "2026-spring", "s": "ga", "t": "Copilot translates to AOS-CX CLI", "tier": "Advanced on 100% of devices" } ] } },
     { "id": "rca", "name": "Root cause and recommendations", "cells": {
       "classic": [ { "at": "2020-06", "s": "ga", "t": "AI Insights", "tier": "Foundation; some insights Advanced" } ],
       "new": [ { "at": "2024-03", "s": "ga", "t": "AI Insights", "tier": "Foundation; 3 insights need Advanced on 90%" }, { "at": "2026-01", "s": "ga", "t": "AI Insights; STP Anomaly Recommender adds a TCN action card", "tier": "Foundation; 3 insights need Advanced on 90%" }, { "at": "2026-02", "s": "ga", "t": "Insights plus Agentic-Mesh pills, ORCA for OSPF and RADIUS", "tier": "Insights Foundation; pills need Advanced" }, { "at": "2026-10", "s": "ga", "t": "AI Insights; AP Health split in two, Switch Offline flags missing subscriptions", "tier": "Insights Foundation; pills need Advanced" } ],
       "mist": [ { "at": "2020-06", "s": "ga", "t": "Marvis Actions (recommend)", "tier": "Marvis subscription" } ] } },
     { "id": "agentic", "name": "Agentic troubleshooting", "cells": {
-      "new": [ { "at": "2025-mid", "s": "ann", "t": "Agentic mesh announced", "tier": "" }, { "at": "2026-02", "s": "ga", "t": "Agentic-Mesh, 802.11r first", "tier": "Advanced on 100% of devices (FAQ says 90%)" }, { "at": "2026-spring", "s": "ga", "t": "Agentic-Mesh plus Troubleshooting Agent", "tier": "Advanced on 100% of devices (FAQ says 90%)" } ],
+      "new": [ { "at": "2025-mid", "s": "ann", "t": "Agentic mesh announced", "tier": "" }, { "at": "2026-02", "s": "ga", "t": "Agentic-Mesh, 802.11r first", "tier": "Advanced on 100% of devices" }, { "at": "2026-spring", "s": "ga", "t": "Agentic-Mesh plus Troubleshooting Agent", "tier": "Advanced on 100% of devices" } ],
       "mist": [ { "at": "2025-08", "s": "ann", "t": "Agentic AI framework for Marvis announced", "tier": "" }, { "at": "2026-06", "s": "ga", "t": "Multi-agent root cause in Marvis", "tier": "Marvis subscription" } ] } },
     { "id": "selfdrive", "name": "Self-driving actions", "cells": {
       "new": [ { "at": "2025-q4", "s": "ann", "t": "HPE blog says Marvis Actions are in Central; no release note", "tier": "" }, { "at": "2026-spring", "s": "part", "t": "Radio auto-recovery only, on by default", "tier": "Foundation (AP Health insight)" }, { "at": "2026-05", "s": "part", "t": "Radio auto-recovery; five more actions announced", "tier": "Foundation (AP Health insight)" }, { "at": "2026-06", "s": "part", "t": "Radio auto-recovery; Marvis port remediation announced, not in release notes", "tier": "Foundation (AP Health insight)" } ],
@@ -200,7 +201,7 @@
       "mist": [ { "at": "2020-06", "t": "Marvis flags it and suggests the fix. You make the change." }, { "at": "2025-08", "t": "Self-driving per action. Port Stuck is on by default." }, { "at": "2026-spring", "t": "Self-driving RF and rogue DHCP. DFS cannot be turned off; Port Stuck and WAN start on." }, { "at": "2026-09", "t": "Wired self-driving adds Missing VLAN and loops, off by default" } ] } },
     { "id": "license", "name": "Licensing clarity", "cells": {
       "classic": [ { "at": "2020-06", "t": "Foundation or Advanced per device" } ],
-      "new": [ { "at": "2023-spring", "t": "Foundation or Advanced per device" }, { "at": "2025-q4", "t": "Copilot gated by tier and role" }, { "at": "2026-02", "t": "Agentic-Mesh needs Advanced. HPE's licensing page says 100% of devices; its subscriptions FAQ says 90%." }, { "at": "2026-spring", "t": "90-day Copilot trial, then Advanced on every device (100% per the licensing page, 90% per the FAQ). No separate Copilot license." }, { "at": "2026-10", "t": "Same rule. Inventory now shows Subscription Tier as its own column, which at least makes the count easy." } ],
+      "new": [ { "at": "2023-spring", "t": "Foundation or Advanced per device" }, { "at": "2025-q4", "t": "Copilot gated by tier and role" }, { "at": "2026-02", "t": "Agentic-Mesh needs Advanced. HPE's licensing page says 100% of devices; its subscriptions FAQ said 90% at the time." }, { "at": "2026-spring", "t": "90-day Copilot trial, then Advanced on every device (100% per the licensing page; the FAQ still said 90%). No separate Copilot license." }, { "at": "2026-10", "t": "Licensing page and subscriptions FAQ now agree: Advanced on 100% of devices for Copilot and Agentic-Mesh; 90% applies to the Advanced insights only. Inventory shows Subscription Tier as its own column." } ],
       "mist": [ { "at": "2020-06", "t": "An add-on per capability: Wireless Assurance, Marvis, Premium Analytics" }, { "at": "2024-03", "t": "Add-on per capability. Minis rides on Marvis for Wireless, no extra SKU." }, { "at": "2025-08", "t": "Add-on per capability. Minis and self-driving ride on Marvis, no extra SKU." } ] } },
     { "id": "proof", "name": "Proving it before production", "cells": {
       "classic": [ { "at": "2020-06", "t": "Real devices and real clients" } ],

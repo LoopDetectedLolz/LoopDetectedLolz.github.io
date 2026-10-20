@@ -1,34 +1,49 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="The five autonomous actions HPE announced in May 2026 as a ladder. On the Mist side four rungs are filled with ship dates; on the Central side all five are hollow, still announced only. Central has radio auto-recovery and an improved Rogue DHCP alert beneath.">
-<style>.ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}.h{font:700 20px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}.r{font:600 13px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}.hd{font:600 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#B0C4CF;letter-spacing:1.5px}.st{font:700 9.5px 'JetBrains Mono',ui-monospace,Menlo,monospace;letter-spacing:1px}.t{font:500 11px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}.c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}</style>
-<text class="ey" x="40" y="36">ANNOUNCED MAY 2026, FOR BOTH PLATFORMS</text><text class="h" x="40" y="62">Five autonomous actions. Where each one is, five months on.</text>
-<text class="hd" x="330" y="92">JUNIPER MIST</text><text class="hd" x="620" y="92">NEW CENTRAL</text>
-<line x1="40" y1="100" x2="860" y2="100" stroke="rgba(255,255,255,0.18)"/>
-<text class="r" x="48" y="124">Dynamic Capacity Optimization</text>
-<rect x="330" y="113" width="52" height="16" rx="8" fill="#8CE05E"/><text class="st" x="338" y="124" fill="#06202A">GA</text>
-<text class="t" x="390" y="124">Apr 2026</text>
-<rect x="620" y="113" width="92" height="16" rx="8" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/><text class="st" x="628" y="124" fill="#F5A524">ANNOUNCED</text>
-<text class="t" x="720" y="124">not in release notes</text>
-<text class="r" x="48" y="154">Rogue DHCP Server</text>
-<rect x="330" y="143" width="52" height="16" rx="8" fill="#8CE05E"/><text class="st" x="338" y="154" fill="#06202A">GA</text>
-<text class="t" x="390" y="154">Apr 2026</text>
-<rect x="620" y="143" width="92" height="16" rx="8" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/><text class="st" x="628" y="154" fill="#F5A524">ANNOUNCED</text>
-<text class="t" x="720" y="154">not in release notes</text>
-<text class="r" x="48" y="184">Real-time DFS</text>
-<rect x="330" y="173" width="52" height="16" rx="8" fill="#8CE05E"/><text class="st" x="338" y="184" fill="#06202A">GA</text>
-<text class="t" x="390" y="184">Apr 2026, cannot be turned off</text>
-<rect x="620" y="173" width="92" height="16" rx="8" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/><text class="st" x="628" y="184" fill="#F5A524">ANNOUNCED</text>
-<text class="t" x="720" y="184">not in release notes</text>
-<text class="r" x="48" y="214">Missing VLAN</text>
-<rect x="330" y="203" width="52" height="16" rx="8" fill="#8CE05E"/><text class="st" x="338" y="214" fill="#06202A">GA</text>
-<text class="t" x="390" y="214">Sep 2026, off by default</text>
-<rect x="620" y="203" width="92" height="16" rx="8" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/><text class="st" x="628" y="214" fill="#F5A524">ANNOUNCED</text>
-<text class="t" x="720" y="214">not in release notes</text>
-<text class="r" x="48" y="244">Client Roaming Optimization</text>
-<rect x="330" y="233" width="92" height="16" rx="8" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/><text class="st" x="338" y="244" fill="#F5A524">ANNOUNCED</text>
-<text class="t" x="430" y="244">no ship date anywhere</text>
-<rect x="620" y="233" width="92" height="16" rx="8" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/><text class="st" x="628" y="244" fill="#F5A524">ANNOUNCED</text>
-<text class="t" x="720" y="244">not in release notes</text>
-<line x1="40" y1="262" x2="860" y2="262" stroke="rgba(255,255,255,0.12)"/>
-<text class="t" x="48" y="282">What Central does drive itself: radio auto-recovery (on by default) and AirMatch. Oct 15 improved the Rogue DHCP alert, which is a better alert, not a fix.</text>
-<text class="c" x="40" y="326">Mist dates from Juniper product updates (Apr 15 and Sep 9, 2026). Central checked through the Oct 15, 2026 release notes.</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-label="A ladder with five rungs, one per autonomous action HPE announced in May 2026. The Mist half of four rungs is filled green with a ship date. The Central half of every rung is a dashed outline, still announced only. Client Roaming Optimization is dashed on both sides.">
+<style>
+.ld-ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}
+.ld-h{font:700 22px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}
+.ld-r{font:600 14.5px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
+.ld-hd{font:600 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#B0C4CF;letter-spacing:1.5px}
+.ld-on{font:700 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#06202A}
+.ld-off{font:700 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#F5A524;letter-spacing:1px}
+.ld-t{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#B0C4CF}
+.ld-c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
+.ld-rail{stroke:rgba(255,255,255,0.22);stroke-width:6;stroke-linecap:round}
+.ld-ann{fill:rgba(245,165,36,0.06);stroke:#F5A524;stroke-width:1.5;stroke-dasharray:7 5}
+.ld-ga{fill:#8CE05E}
+@media (prefers-reduced-motion: no-preference){
+  .ld-ga{transform-box:fill-box;transform:scaleX(0);transform-origin:left center;animation:ldFill .6s cubic-bezier(0.32,0.72,0,1) forwards}
+  .ld-lbl{opacity:0;animation:ldIn .4s ease-out forwards}
+  .ld-ann{animation:ldCrawl 6s linear infinite}
+}
+@keyframes ldFill{to{transform:scaleX(1)}}
+@keyframes ldIn{to{opacity:1}}
+@keyframes ldCrawl{to{stroke-dashoffset:-24}}
+</style>
+<text class="ld-ey" x="40" y="36">ANNOUNCED MAY 2026, FOR BOTH PLATFORMS</text><text class="ld-h" x="40" y="64">Five autonomous actions. Where each one is, five months on.</text>
+<text class="ld-hd" x="330" y="98">JUNIPER MIST</text><text class="ld-hd" x="836" y="98" text-anchor="end">NEW CENTRAL</text>
+<line class="ld-rail" x1="322" y1="106" x2="322" y2="440"/><line class="ld-rail" x1="590" y1="106" x2="590" y2="440"/><line class="ld-rail" x1="858" y1="106" x2="858" y2="440"/>
+<text class="ld-r" x="40" y="145">Dynamic Capacity Optimization</text>
+<rect class="ld-ga" x="330" y="120" width="252" height="40" rx="10" style="animation-delay:0.30s"/>
+<g class="ld-lbl" style="animation-delay:0.70s"><text class="ld-on" x="346" y="137">SHIPPED</text><text class="ld-on" x="346" y="152" font-weight="500">Apr 2026</text></g>
+<rect class="ld-ann" x="598" y="120" width="252" height="40" rx="10"/><text class="ld-off" x="614" y="137">ANNOUNCED</text><text class="ld-t" x="614" y="152">not in release notes</text>
+<text class="ld-r" x="40" y="207">Rogue DHCP Server</text>
+<rect class="ld-ga" x="330" y="182" width="252" height="40" rx="10" style="animation-delay:0.65s"/>
+<g class="ld-lbl" style="animation-delay:1.05s"><text class="ld-on" x="346" y="199">SHIPPED</text><text class="ld-on" x="346" y="214" font-weight="500">Apr 2026</text></g>
+<rect class="ld-ann" x="598" y="182" width="252" height="40" rx="10"/><text class="ld-off" x="614" y="199">ANNOUNCED</text><text class="ld-t" x="614" y="214">not in release notes</text>
+<text class="ld-r" x="40" y="269">Real-time DFS</text>
+<rect class="ld-ga" x="330" y="244" width="252" height="40" rx="10" style="animation-delay:1.00s"/>
+<g class="ld-lbl" style="animation-delay:1.40s"><text class="ld-on" x="346" y="261">SHIPPED</text><text class="ld-on" x="346" y="276" font-weight="500">Apr 2026, always on</text></g>
+<rect class="ld-ann" x="598" y="244" width="252" height="40" rx="10"/><text class="ld-off" x="614" y="261">ANNOUNCED</text><text class="ld-t" x="614" y="276">not in release notes</text>
+<text class="ld-r" x="40" y="331">Missing VLAN</text>
+<rect class="ld-ga" x="330" y="306" width="252" height="40" rx="10" style="animation-delay:1.35s"/>
+<g class="ld-lbl" style="animation-delay:1.75s"><text class="ld-on" x="346" y="323">SHIPPED</text><text class="ld-on" x="346" y="338" font-weight="500">Sep 2026, off by default</text></g>
+<rect class="ld-ann" x="598" y="306" width="252" height="40" rx="10"/><text class="ld-off" x="614" y="323">ANNOUNCED</text><text class="ld-t" x="614" y="338">not in release notes</text>
+<text class="ld-r" x="40" y="393">Client Roaming Optimization</text>
+<rect class="ld-ann" x="330" y="368" width="252" height="40" rx="10"/><text class="ld-off" x="346" y="385">ANNOUNCED</text><text class="ld-t" x="346" y="400">no ship date anywhere</text>
+<rect class="ld-ann" x="598" y="368" width="252" height="40" rx="10"/><text class="ld-off" x="614" y="385">ANNOUNCED</text><text class="ld-t" x="614" y="400">not in release notes</text>
+<line x1="40" y1="432" x2="860" y2="432" stroke="rgba(255,255,255,0.12)"/>
+<text class="ld-t" x="40" y="456">What Central does drive itself today: radio auto-recovery (on by default) and AirMatch.</text>
+<text class="ld-t" x="40" y="476">Oct 15 improved the Rogue DHCP alert with thresholds and auto-close. A better alert, not yet the autonomous fix.</text>
+<text class="ld-c" x="40" y="508">Mist dates from Juniper product updates (Apr 15 and Sep 9, 2026). Central checked through the Oct 15, 2026 release notes.</text>
 </svg>
