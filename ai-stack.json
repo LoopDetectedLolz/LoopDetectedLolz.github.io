@@ -1,0 +1,214 @@
+{
+  "asOf": "2026-10-20",
+  "lastChecked": {
+    "newCentral": "2026-10-15 release notes (latest as of Oct 20)",
+    "mist": "2026-09-09 product update (latest found as of Oct 20)"
+  },
+  "platforms": [
+    { "id": "classic", "name": "Classic Central", "short": "Classic" },
+    { "id": "new", "name": "New Central", "short": "New Central", "since": "2023-spring" },
+    { "id": "mist", "name": "Juniper Mist", "short": "Mist" }
+  ],
+  "statuses": {
+    "ga": "GA",
+    "sa": "Select availability",
+    "part": "Partial",
+    "ann": "Announced",
+    "none": "Not found"
+  },
+  "notches": [
+    {
+      "id": "2020-06", "label": "2020", "date": "2020 and earlier", "title": "The baseline",
+      "changes": [
+        { "p": "classic", "text": "Aruba ESP (announced Jun 2020) brings AI Insights, AI Search and AI Assist to Central. AOS 10 and cloud AirMatch follow that fall.", "src": "https://www.techtarget.com/it-infrastructure/news/252484407/Aruba-Central-touches-more-devices-gets-better-analytics" },
+        { "p": "mist", "text": "Mist already ships RRM, SLEs, Marvis queries (GA 2018) and Marvis Actions (Nov 2019), Missing VLAN among them.", "src": "https://www.juniper.net/documentation/us/en/software/mist/mist-management/topics/topic-map/mist-subscription-types.html" }
+      ]
+    },
+    {
+      "id": "2021", "label": "2021", "date": "Mar to May 2021", "title": "Marvis learns to talk",
+      "changes": [
+        { "p": "mist", "text": "Marvis Conversational Interface launches as the next generation of the Marvis assistant.", "src": "https://www.juniper.net/documentation/us/en/software/mist/product-updates/2021/may-11th-2021-updates.html" },
+        { "p": "mist", "text": "Marvis Client for Android, available by request through support.", "src": "https://www.juniper.net/content/dam/www/assets/additional-resources/jp/ja/20210325-introducing-new-mist-features.pdf" }
+      ]
+    },
+    {
+      "id": "2023-spring", "label": "2023", "date": "Apr to May 2023", "title": "New Central is announced, Marvis gets an LLM",
+      "changes": [
+        { "p": "new", "text": "Next-gen Central announced at Atmosphere. It sits next to Classic behind a UI toggle.", "src": "https://www.hpe.com/us/en/newsroom/press-release/2023/04/hpe-aruba-networking-simplifies-it-operations-with-aiops-driven-cloud-management-and-new-network-as-a-service-capabilities-available-on-hpe-greenlake.html" },
+        { "p": "mist", "text": "Marvis starts answering documentation questions through an LLM, and Zoom call data arrives as a beta.", "src": "https://www.businesswire.com/news/home/20230517005248/en" }
+      ]
+    },
+    {
+      "id": "2024-03", "label": "Early 24", "date": "Jan to Mar 2024", "title": "GenAI search and Marvis Minis",
+      "changes": [
+        { "p": "classic", "text": "GenAI AI Search lands in Central, all tiers. Classic gets it in 2.5.8 along with AI power-save recommendations.", "src": "https://arubanetworking.hpe.com/techdocs/central/latest/content/whats_new/central258.htm" },
+        { "p": "mist", "text": "Zoom call root cause with Shapley feature ranking (Jan 25). Teams queries landed in Nov 2023.", "src": "https://www.juniper.net/documentation/us/en/software/mist/product-updates/2024/january-25th-2024-updates.html" },
+        { "p": "mist", "text": "Marvis Minis GA. APs run synthetic client tests on user VLANs every hour, no clients needed. Included with Marvis for Wireless.", "src": "https://juniper.net/documentation/us/en/software/mist/product-updates/2024/march-18th-2024-updates.html" }
+      ]
+    },
+    {
+      "id": "2025-mid", "label": "Mid 25", "date": "Apr to Jun 2025", "title": "LEM ships, HPE pitches an agentic mesh",
+      "changes": [
+        { "p": "mist", "text": "LEM experience correlation GA for orgs with Zoom or Teams integrated (Apr 14). Needs Marvis for Wireless.", "src": "https://www.juniper.net/documentation/us/en/software/mist/product-updates/2025/april-14th-2025-updates.html" },
+        { "p": "mist", "text": "Client-to-cloud Minis, a self-driving Marvis Actions dashboard and Marvis Client for Windows and macOS announced (May 7).", "src": "https://www.businesswire.com/news/home/20250507044237/en" },
+        { "p": "new", "text": "GreenLake Intelligence announced: an agentic mesh and a conversational networking copilot, promised for Q3 2025.", "src": "https://www.hpe.com/us/en/newsroom/press-release/2025/06/hpe-reimagines-hybrid-it-operations-with-greenlake-intelligence.html" }
+      ]
+    },
+    {
+      "id": "2025-08", "label": "Aug 25", "date": "Aug 2025", "title": "Mist starts driving itself",
+      "changes": [
+        { "p": "mist", "text": "First self-driving actions GA: switch port stuck, AP non-compliant firmware, WAN edge non-compliant. Port Stuck self-drives by default; the other two are opt-in.", "src": "https://www.juniper.net/documentation/us/en/software/mist/product-updates/2025/august-6th-2025-updates.html" },
+        { "p": "mist", "text": "Marvis Client for iOS with certificate onboarding (needs Access Assurance). Minis add auth server probing.", "src": "https://www.juniper.net/documentation/us/en/software/mist/product-updates/2025/august-6th-2025-updates.html" },
+        { "p": "mist", "text": "HPE announces an agentic AI framework for Marvis.", "src": "https://www.hpe.com/us/en/newsroom/press-release/2025/08/hpe-accelerates-self-driving-network-operations-with-new-mist-agentic-ai-native-innovations.html" }
+      ]
+    },
+    {
+      "id": "2025-q4", "label": "Late 25", "date": "Sep to Dec 2025", "title": "Copilot ships, the platforms start trading features",
+      "changes": [
+        { "p": "new", "text": "HPE Networking Copilot appears in release notes: natural-language queries, chat history, NL to CLI for AOS-CX. Gated by tier and role.", "src": "https://arubanetworking.hpe.com/techdocs/new-central/content/whats-new/2025/oct.htm" },
+        { "p": "mist", "text": "Org Insights NOC dashboard in Beta (Sep 23). Intermittent WAN Connectivity self-drives by default (Nov 12).", "src": "https://www.juniper.net/documentation/us/en/software/mist/product-updates/2025/november-12th-2025-updates.html" },
+        { "p": "both", "text": "HPE announces LEM for Central, agentic mesh and Central's NOC views for Mist, and dual-platform Wi-Fi 7 APs.", "src": "https://www.hpe.com/us/en/newsroom/press-release/2025/12/hpe-disrupts-networking-with-new-ai-native-advances-for-self-driving-operations.html" },
+        { "p": "new", "text": "An HPE blog the same day says Marvis Actions and LEM are now in Central. No Central release note backs the Marvis part.", "src": "https://www.hpe.com/us/en/newsroom/blog-post/2025/12/hpe-networking-unites-microservices-and-agentic-ai-to-deliver-self-driving-networks.html" }
+      ]
+    },
+    {
+      "id": "2026-01", "label": "Jan 26", "date": "Jan 2026", "title": "Experience prediction reaches Central",
+      "changes": [
+        { "p": "new", "text": "Application Experience Predictor (built on Mist LEM) in Select Availability. Client roaming events on floorplans. STP Anomaly Recommender gets a TCN action card.", "src": "https://arubanetworking.hpe.com/techdocs/new-central/content/whats-new/2025/nov-dec.htm" }
+      ]
+    },
+    {
+      "id": "2026-02", "label": "Feb 26", "date": "Feb 2026", "title": "Agentic-Mesh and the global dashboard",
+      "changes": [
+        { "p": "new", "text": "Copilot Agentic-Mesh for 802.11r: detection, root cause, then a recommendation pill. Capability scales with license type and percentage.", "src": "https://arubanetworking.hpe.com/techdocs/new-central/content/whats-new/2026/jan.htm" },
+        { "p": "new", "text": "ORCA troubleshooting for OSPF peer down and RADIUS alerts. Global Network Monitoring dashboard.", "src": "https://arubanetworking.hpe.com/techdocs/new-central/content/whats-new/2026/jan.htm" }
+      ]
+    },
+    {
+      "id": "2026-spring", "label": "Apr 26", "date": "Mar to Apr 2026", "title": "Copilot trial and the Advanced rule, Mist tunes RF on its own",
+      "changes": [
+        { "p": "new", "text": "90-day Copilot trial, then Advanced on every device. There is no separate Copilot license. Radio auto-recovery on by default.", "src": "https://arubanetworking.hpe.com/techdocs/new-central/content/whats-new/2026/feb.htm" },
+        { "p": "new", "text": "Copilot Troubleshooting Agent turns alerts into root cause plus a recommended action.", "src": "https://arubanetworking.hpe.com/techdocs/new-central/content/whats-new/2026/mar.htm" },
+        { "p": "mist", "text": "Self-driving DFS Optimization, Dynamic Capacity Optimization and Rogue DHCP Server. Missing VLAN now triggers Minis tests.", "src": "https://www.juniper.net/documentation/us/en/software/mist/product-updates/2026/april-15th-2026-updates.html" }
+      ]
+    },
+    {
+      "id": "2026-05", "label": "May 26", "date": "May 2026", "title": "Autonomous networking announced for both",
+      "changes": [
+        { "p": "both", "text": "HPE announces Dynamic Capacity Optimization, autonomous Missing VLAN, Rogue DHCP protection, real-time DFS and Client Roaming Optimization for Mist and Central. No dates per platform.", "src": "https://www.hpe.com/us/en/newsroom/press-release/2026/05/hpe-moves-self-driving-networks-from-vision-to-reality-with-autonomous-networking-capabilities.html" },
+        { "p": "mist", "text": "NAC policy dry run for Mist Access Assurance announced. It shipped June 2. This is the sandbox people attribute to Central.", "src": "https://www.hpe.com/us/en/newsroom/press-release/2026/05/hpe-moves-self-driving-networks-from-vision-to-reality-with-autonomous-networking-capabilities.html" },
+        { "p": "both", "text": "AP 723H GA, the first AP that runs on either Central or Mist.", "src": "https://www.hpe.com/us/en/newsroom/press-release/2026/05/hpe-moves-self-driving-networks-from-vision-to-reality-with-autonomous-networking-capabilities.html" }
+      ]
+    },
+    {
+      "id": "2026-06", "label": "Jun 26", "date": "Jun 2026", "title": "Agentic Marvis ships, Discover promises Marvis in Central",
+      "changes": [
+        { "p": "mist", "text": "Agentic AI in the Marvis Conversational Assistant GA. LEM correlation for every org, no Zoom or Teams needed. Wired Minis on EX (Junos 25.4R2+). Dry Run mode for Access Assurance policy rules.", "src": "https://www.juniper.net/documentation/us/en/software/mist/product-updates/2026/june-2nd-2026-updates.html" },
+        { "p": "both", "text": "Discover 2026: HPE lists Marvis self-driving for Central (wired port remediation) as available, and CX switches managed by Mist. No Central release note shows Marvis yet.", "src": "https://www.hpe.com/us/en/newsroom/press-release/2026/06/hpe-expands-self-driving-networks-across-edge-campus-data-center-and-ai-factories.html" }
+      ]
+    },
+    {
+      "id": "2026-summer", "label": "Aug 26", "date": "Jul to Aug 2026", "title": "Polish on both sides",
+      "changes": [
+        { "p": "mist", "text": "Global login across Mist clouds with an AIOps view for advanced-tier MSPs. Intra-AP roams counted in call-quality root cause.", "src": "https://www.juniper.net/documentation/us/en/software/mist/product-updates/2026/july-23rd-2026-updates.html" },
+        { "p": "new", "text": "Contextual Copilot queries from device pages and live connectivity insights (Jul 23).", "src": "https://arubanetworking.hpe.com/techdocs/hpe-central/content/release-notes/improvements-july-23rd-2026.html" },
+        { "p": "new", "text": "Copilot prompt bookmarks (Aug 18).", "src": "https://arubanetworking.hpe.com/techdocs/hpe-central/content/release-notes/improvements-august-18th-2026.html" }
+      ]
+    },
+    {
+      "id": "2026-09", "label": "Sep 26", "date": "Sep 2026", "title": "Mist manages CX, HPE says the platforms stay separate",
+      "changes": [
+        { "p": "mist", "text": "AOS-CX 5420, 6300 and 6400 manageable in Mist (10.18.1002+). Self-driving Missing VLAN and Loop Detected, off by default.", "src": "https://www.juniper.net/documentation/us/en/software/mist/product-updates/2026/september-9th-2026-updates.html" },
+        { "p": "new", "text": "Sept 16 release notes carry no AI items. None of the May autonomous actions have shipped in Central yet.", "src": "https://arubanetworking.hpe.com/techdocs/hpe-central/content/release-notes/new-capabilities-september-16th-2026.html" },
+        { "p": "both", "text": "Press coverage of HPE's Sep 30 Investor Day: Mist and Central stay two platforms that share Marvis, APs and CX switching. Reported by two outlets; no HPE page carries the quote.", "src": "https://fierce-network.com/wireless/hpe-wont-merge-aruba-central-and-mist-platforms-will-share-ai-applications-and-hardware" }
+      ]
+    },
+    {
+      "id": "2026-10", "label": "Oct 26", "date": "Oct 2026", "title": "Copilot grows; autonomous actions still announced",
+      "changes": [
+        { "p": "new", "text": "Copilot opens as a side panel, draws donut, bar and tunnel charts, and runs three queries at once with exact time ranges (Oct 15).", "src": "https://arubanetworking.hpe.com/techdocs/hpe-central/content/release-notes/new-capabilities-october-15th-2026.html" },
+        { "p": "new", "text": "AP Health insight splits in two. Switch Offline root cause now flags a missing subscription. App Experience Predictor adds client detail, status unchanged.", "src": "https://arubanetworking.hpe.com/techdocs/hpe-central/content/release-notes/improvements-october-15th-2026.html" },
+        { "p": "new", "text": "Rogue DHCP alert gains thresholds, a summary and auto-close. The May autonomous actions are still not in release notes.", "src": "https://arubanetworking.hpe.com/techdocs/hpe-central/content/release-notes/improvements-october-15th-2026.html" }
+      ]
+    },
+    {
+      "id": "roadmap", "label": "Next", "date": "Announced, not shipped", "roadmap": true, "title": "Announced, not yet in release notes",
+      "changes": [
+        { "p": "new", "text": "The five autonomous actions from May 2026, and Marvis wired port remediation from Discover. No release dates.", "src": "https://www.hpe.com/us/en/newsroom/press-release/2026/06/hpe-expands-self-driving-networks-across-edge-campus-data-center-and-ai-factories.html" },
+        { "p": "mist", "text": "Agentic mesh under that name. Mist has its own Org Insights NOC dashboard in Beta since Sep 2025; Central's views have not shipped as such.", "src": "https://www.hpe.com/us/en/newsroom/press-release/2025/12/hpe-disrupts-networking-with-new-ai-native-advances-for-self-driving-operations.html" },
+        { "p": "classic", "text": "No end date published. Monitoring, reporting, troubleshooting and AI operations are leaving Classic for New Central. Onboarding, config and the Classic APIs stay.", "src": "https://arubanetworking.hpe.com/techdocs/hpe-central/content/frequently-asked-questions-faq/day-2-workflow-migration-from-hpe-classic-central-faq.html" }
+      ]
+    }
+  ],
+  "features": [
+    { "id": "search", "name": "Natural-language search", "cells": {
+      "classic": [ { "at": "2020-06", "s": "ga", "t": "AI Search", "tier": "Foundation" }, { "at": "2024-03", "s": "ga", "t": "GenAI search bar (2.5.8)", "tier": "Foundation" } ],
+      "new": [ { "at": "2024-03", "s": "ga", "t": "GenAI AI Search", "tier": "Foundation" }, { "at": "2026-05", "s": "ga", "t": "AI Search, finds APs by BSSID", "tier": "Foundation" } ],
+      "mist": [ { "at": "2020-06", "s": "ga", "t": "Marvis queries", "tier": "Marvis subscription" } ] } },
+    { "id": "assistant", "name": "Conversational assistant", "cells": {
+      "new": [ { "at": "2025-mid", "s": "ann", "t": "Networking copilot promised for Q3 2025", "tier": "" }, { "at": "2025-q4", "s": "ga", "t": "HPE Networking Copilot", "tier": "Advanced subscription, admin or operator roles" }, { "at": "2026-spring", "s": "ga", "t": "Copilot, 90-day trial then Advanced on every device", "tier": "Advanced on 100% of devices (FAQ says 90%)" }, { "at": "2026-10", "s": "ga", "t": "Copilot side panel, charts, three queries at once", "tier": "Advanced on 100% of devices (FAQ says 90%)" } ],
+      "mist": [ { "at": "2021", "s": "ga", "t": "Marvis Conversational Interface", "tier": "Marvis subscription" }, { "at": "2023-spring", "s": "ga", "t": "Adds LLM answers from documentation", "tier": "Marvis subscription" }, { "at": "2026-06", "s": "ga", "t": "Agentic Marvis Conversational Assistant", "tier": "Marvis subscription" } ] } },
+    { "id": "nl2cli", "name": "Natural language to CLI", "cells": {
+      "new": [ { "at": "2025-q4", "s": "ga", "t": "Copilot translates to AOS-CX CLI", "tier": "Same as Copilot" }, { "at": "2026-spring", "s": "ga", "t": "Copilot translates to AOS-CX CLI", "tier": "Advanced on 100% of devices (FAQ says 90%)" } ] } },
+    { "id": "rca", "name": "Root cause and recommendations", "cells": {
+      "classic": [ { "at": "2020-06", "s": "ga", "t": "AI Insights", "tier": "Foundation; some insights Advanced" } ],
+      "new": [ { "at": "2024-03", "s": "ga", "t": "AI Insights", "tier": "Foundation; 3 insights need Advanced on 90%" }, { "at": "2026-01", "s": "ga", "t": "AI Insights; STP Anomaly Recommender adds a TCN action card", "tier": "Foundation; 3 insights need Advanced on 90%" }, { "at": "2026-02", "s": "ga", "t": "Insights plus Agentic-Mesh pills, ORCA for OSPF and RADIUS", "tier": "Insights Foundation; pills need Advanced" }, { "at": "2026-10", "s": "ga", "t": "AI Insights; AP Health split in two, Switch Offline flags missing subscriptions", "tier": "Insights Foundation; pills need Advanced" } ],
+      "mist": [ { "at": "2020-06", "s": "ga", "t": "Marvis Actions (recommend)", "tier": "Marvis subscription" } ] } },
+    { "id": "agentic", "name": "Agentic troubleshooting", "cells": {
+      "new": [ { "at": "2025-mid", "s": "ann", "t": "Agentic mesh announced", "tier": "" }, { "at": "2026-02", "s": "ga", "t": "Agentic-Mesh, 802.11r first", "tier": "Advanced on 100% of devices (FAQ says 90%)" }, { "at": "2026-spring", "s": "ga", "t": "Agentic-Mesh plus Troubleshooting Agent", "tier": "Advanced on 100% of devices (FAQ says 90%)" } ],
+      "mist": [ { "at": "2025-08", "s": "ann", "t": "Agentic AI framework for Marvis announced", "tier": "" }, { "at": "2026-06", "s": "ga", "t": "Multi-agent root cause in Marvis", "tier": "Marvis subscription" } ] } },
+    { "id": "selfdrive", "name": "Self-driving actions", "cells": {
+      "new": [ { "at": "2025-q4", "s": "ann", "t": "HPE blog says Marvis Actions are in Central; no release note", "tier": "" }, { "at": "2026-spring", "s": "part", "t": "Radio auto-recovery only, on by default", "tier": "Foundation (AP Health insight)" }, { "at": "2026-05", "s": "part", "t": "Radio auto-recovery; five more actions announced", "tier": "Foundation (AP Health insight)" }, { "at": "2026-06", "s": "part", "t": "Radio auto-recovery; Marvis port remediation announced, not in release notes", "tier": "Foundation (AP Health insight)" } ],
+      "mist": [ { "at": "2025-mid", "s": "ann", "t": "Self-driving Marvis Actions dashboard announced", "tier": "" }, { "at": "2025-08", "s": "ga", "t": "Port stuck, AP and WAN non-compliant", "tier": "Marvis; Port Stuck on by default, rest opt-in" }, { "at": "2025-q4", "s": "ga", "t": "Adds Intermittent WAN Connectivity, on by default", "tier": "Marvis; Port Stuck and WAN on by default" }, { "at": "2026-spring", "s": "ga", "t": "Adds DFS, Dynamic Capacity, Rogue DHCP", "tier": "Marvis; DFS cannot be turned off" }, { "at": "2026-09", "s": "ga", "t": "Adds Missing VLAN and Loop Detected, off by default", "tier": "Marvis; DFS cannot be turned off" } ] } },
+    { "id": "minis", "name": "Synthetic client testing", "cells": {
+      "mist": [ { "at": "2024-03", "s": "ga", "t": "Marvis Minis on APs, hourly", "tier": "Included with Marvis for Wireless" }, { "at": "2026-06", "s": "ga", "t": "Minis on APs and EX switches (Junos 25.4R2+)", "tier": "Marvis for Wireless; Marvis for Wired on EX" } ] } },
+    { "id": "appexp", "name": "App experience prediction", "cells": {
+      "new": [ { "at": "2025-q4", "s": "ann", "t": "LEM coming to Central", "tier": "" }, { "at": "2026-01", "s": "sa", "t": "Application Experience Predictor", "tier": "Not documented" }, { "at": "2026-10", "s": "sa", "t": "Application Experience Predictor, more client detail", "tier": "Not documented" } ],
+      "mist": [ { "at": "2023-spring", "s": "sa", "t": "Zoom integration (beta)", "tier": "Marvis subscription" }, { "at": "2024-03", "s": "ga", "t": "Zoom and Teams call root cause", "tier": "Marvis subscription" }, { "at": "2025-mid", "s": "ga", "t": "LEM correlation, needs Zoom or Teams integrated", "tier": "Marvis for Wireless" }, { "at": "2026-06", "s": "ga", "t": "LEM correlation for every org", "tier": "Marvis for Wireless" } ] } },
+    { "id": "roaming", "name": "Roaming visibility and tuning", "cells": {
+      "new": [ { "at": "2026-01", "s": "ga", "t": "Roaming events on floorplans", "tier": "Needs placed APs on floorplans" }, { "at": "2026-05", "s": "ga", "t": "Floorplan roaming; Roaming Optimization announced", "tier": "Needs placed APs on floorplans" }, { "at": "2026-10", "s": "ga", "t": "Floorplan roaming plus CSV export; Roaming Optimization still announced", "tier": "Needs placed APs on floorplans" } ],
+      "mist": [ { "at": "2026-05", "s": "ann", "t": "Client Roaming Optimization announced", "tier": "" }, { "at": "2026-summer", "s": "ga", "t": "Intra-AP roams in call-quality root cause", "tier": "Marvis for Wireless" } ] } },
+    { "id": "rf", "name": "AI RF optimization", "cells": {
+      "classic": [ { "at": "2020-06", "s": "ga", "t": "AirMatch for AOS 10 (late 2020)", "tier": "Foundation" } ],
+      "new": [ { "at": "2024-03", "s": "ga", "t": "AirMatch", "tier": "Foundation (Classic subscriptions carry over)" }, { "at": "2026-05", "s": "ga", "t": "AirMatch; autonomous DFS and capacity announced", "tier": "Foundation (Classic subscriptions carry over)" } ],
+      "mist": [ { "at": "2020-06", "s": "ga", "t": "RRM", "tier": "Wireless Assurance" }, { "at": "2026-spring", "s": "ga", "t": "RRM plus self-driving DFS and capacity", "tier": "Wireless Assurance + Marvis" } ] } },
+    { "id": "dhcp", "name": "Rogue DHCP protection", "cells": {
+      "new": [ { "at": "2026-05", "s": "ann", "t": "Autonomous Rogue DHCP announced", "tier": "" }, { "at": "2026-10", "s": "ann", "t": "Rogue DHCP alert improved; autonomous fix still announced only", "tier": "" } ],
+      "mist": [ { "at": "2026-spring", "s": "ga", "t": "Self-driving on EX with DHCP snooping", "tier": "Marvis for Wired; not on CX" } ] } },
+    { "id": "vlan", "name": "Missing VLAN fix", "cells": {
+      "new": [ { "at": "2026-05", "s": "ann", "t": "Autonomous Missing VLAN announced", "tier": "" } ],
+      "mist": [ { "at": "2020-06", "s": "ga", "t": "Marvis Action flags it", "tier": "Marvis for Wireless" }, { "at": "2026-spring", "s": "ga", "t": "Detection now confirmed by Minis", "tier": "Marvis for Wireless" }, { "at": "2026-09", "s": "ga", "t": "Self-driving, off by default", "tier": "Marvis for Wireless (per Juniper's table)" } ] } },
+    { "id": "noc", "name": "Global NOC dashboard", "cells": {
+      "new": [ { "at": "2026-02", "s": "ga", "t": "Global Network Monitoring", "tier": "Not documented" } ],
+      "mist": [ { "at": "2025-q4", "s": "part", "t": "Org Insights NOC dashboard (Beta); Central's views announced", "tier": "Not documented" }, { "at": "2026-summer", "s": "ga", "t": "Org Insights (Beta), plus global login across clouds", "tier": "AIOps view for advanced-tier MSPs" } ] } },
+    { "id": "nac", "name": "NAC policy dry run", "cells": {
+      "mist": [ { "at": "2026-05", "s": "ann", "t": "Policy dry run announced", "tier": "" }, { "at": "2026-06", "s": "ga", "t": "Dry Run mode for auth policy rules", "tier": "Mist Access Assurance" } ] } },
+    { "id": "client", "name": "Client-side telemetry", "cells": {
+      "mist": [ { "at": "2021", "s": "sa", "t": "Marvis Client for Android, by request", "tier": "Marvis Client per device" }, { "at": "2025-mid", "s": "ga", "t": "Marvis Client for Android, Windows and macOS", "tier": "Marvis Client per device" }, { "at": "2025-08", "s": "ga", "t": "Adds iOS with certificate onboarding", "tier": "Marvis Client; iOS app needs Access Assurance" } ] } },
+    { "id": "cross", "name": "Cross-platform hardware", "cells": {
+      "new": [ { "at": "2025-q4", "s": "ann", "t": "Dual-platform Wi-Fi 7 APs announced", "tier": "" }, { "at": "2026-05", "s": "ga", "t": "AP 723H runs on Central or Mist", "tier": "" } ],
+      "mist": [ { "at": "2025-q4", "s": "ann", "t": "Dual-platform Wi-Fi 7 APs announced", "tier": "" }, { "at": "2026-05", "s": "ga", "t": "AP 723H runs on Central or Mist", "tier": "" }, { "at": "2026-06", "s": "ga", "t": "AP 723H; CX in Mist announced", "tier": "" }, { "at": "2026-09", "s": "ga", "t": "AP 723H; CX 5420, 6300M/F, 6405, 6410 in Mist", "tier": "Wired Assurance, AOS-CX 10.18.1002+" } ] } }
+  ],
+  "benefits": [
+    { "id": "fit", "name": "Who it fits", "cells": {
+      "classic": [ { "at": "2020-06", "t": "Aruba estates built on groups and templates" }, { "at": "2025-q4", "t": "Tenants that have not migrated. Config still lives here." } ],
+      "new": [ { "at": "2023-spring", "t": "Announced as the next Central" }, { "at": "2025-q4", "t": "Aruba shops that want Copilot and the new AI stack" } ],
+      "mist": [ { "at": "2020-06", "t": "Teams that want AI ops first, and Juniper EX, SRX, SSR estates" }, { "at": "2026-09", "t": "AI ops first, and now AOS-CX 5420, 6300 and 6400 as well" } ] } },
+    { "id": "autonomy", "name": "How far autonomy goes", "cells": {
+      "classic": [ { "at": "2020-06", "t": "Insights and recommendations. AirMatch tunes RF on its own; other changes are yours." } ],
+      "new": [ { "at": "2023-spring", "t": "Insights, plus AirMatch RF tuning. Other changes are yours." }, { "at": "2026-02", "t": "Recommendation pills you choose to apply" }, { "at": "2026-spring", "t": "Radio auto-recovery and AirMatch run by themselves. Everything else you apply." }, { "at": "2026-05", "t": "Five autonomous actions announced, none in release notes yet" }, { "at": "2026-10", "t": "Still radio auto-recovery and AirMatch. Five announced actions, none in release notes through Oct 15." } ],
+      "mist": [ { "at": "2020-06", "t": "Marvis flags it and suggests the fix. You make the change." }, { "at": "2025-08", "t": "Self-driving per action. Port Stuck is on by default." }, { "at": "2026-spring", "t": "Self-driving RF and rogue DHCP. DFS cannot be turned off; Port Stuck and WAN start on." }, { "at": "2026-09", "t": "Wired self-driving adds Missing VLAN and loops, off by default" } ] } },
+    { "id": "license", "name": "Licensing clarity", "cells": {
+      "classic": [ { "at": "2020-06", "t": "Foundation or Advanced per device" } ],
+      "new": [ { "at": "2023-spring", "t": "Foundation or Advanced per device" }, { "at": "2025-q4", "t": "Copilot gated by tier and role" }, { "at": "2026-02", "t": "Agentic-Mesh needs Advanced. HPE's licensing page says 100% of devices; its subscriptions FAQ says 90%." }, { "at": "2026-spring", "t": "90-day Copilot trial, then Advanced on every device (100% per the licensing page, 90% per the FAQ). No separate Copilot license." }, { "at": "2026-10", "t": "Same rule. Inventory now shows Subscription Tier as its own column, which at least makes the count easy." } ],
+      "mist": [ { "at": "2020-06", "t": "An add-on per capability: Wireless Assurance, Marvis, Premium Analytics" }, { "at": "2024-03", "t": "Add-on per capability. Minis rides on Marvis for Wireless, no extra SKU." }, { "at": "2025-08", "t": "Add-on per capability. Minis and self-driving ride on Marvis, no extra SKU." } ] } },
+    { "id": "proof", "name": "Proving it before production", "cells": {
+      "classic": [ { "at": "2020-06", "t": "Real devices and real clients" } ],
+      "new": [ { "at": "2023-spring", "t": "Real devices and real clients" }, { "at": "2026-spring", "t": "90-day Copilot trial on your own tenant" } ],
+      "mist": [ { "at": "2020-06", "t": "Real devices and real clients" }, { "at": "2024-03", "t": "Minis test user VLANs and app reachability with no clients present" }, { "at": "2025-08", "t": "Minis add auth server probing" }, { "at": "2026-06", "t": "Minis on APs and EX, plus NAC dry run before enforcing" } ] } },
+    { "id": "path", "name": "Where it is heading", "cells": {
+      "classic": [ { "at": "2020-06", "t": "The only Central there is" }, { "at": "2023-spring", "t": "New Central coexists behind a UI toggle" }, { "at": "2025-q4", "t": "Monitoring, reporting, troubleshooting and AI are moving out to New Central. Config stays. No date published." } ],
+      "new": [ { "at": "2023-spring", "t": "Successor to Classic, built on GreenLake" }, { "at": "2025-q4", "t": "Picking up Mist features: LEM first, Marvis Actions promised" }, { "at": "2026-05", "t": "Shares the AP 723H with Mist" }, { "at": "2026-09", "t": "Stays its own platform, per Investor Day coverage. Shares Marvis, APs and CX with Mist." } ],
+      "mist": [ { "at": "2020-06", "t": "Juniper's AI-native cloud" }, { "at": "2025-q4", "t": "HPE-owned since Jul 2025. Picking up Central's agentic mesh and NOC views." }, { "at": "2026-09", "t": "Manages Aruba CX switches and the AP 723H. Stays its own platform, per Investor Day coverage." } ] } }
+  ]
+}

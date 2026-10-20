@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 390" role="img" aria-label="Scorecard of twelve AI capabilities across Classic Central, New Central and Mist as of October 2026, each cell showing GA, select availability, partial, announced or not found, with the license tier beneath.">
+<style>.ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}.h{font:700 20px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}.r{font:600 13.5px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}.hd{font:600 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#B0C4CF;letter-spacing:1.5px}.st{font:700 10px 'JetBrains Mono',ui-monospace,Menlo,monospace;letter-spacing:1px}.t{font:500 11px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}.c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}</style>
+<text class="ey" x="40" y="36">SCORECARD, OCTOBER 2026</text><text class="h" x="40" y="62">Where each capability actually is, and what it costs to light up</text>
+<text class="hd" x="260" y="86">CLASSIC CENTRAL</text>
+<text class="hd" x="470" y="86">NEW CENTRAL</text>
+<text class="hd" x="680" y="86">JUNIPER MIST</text>
+<line x1="40" y1="94" x2="860" y2="94" stroke="rgba(255,255,255,0.18)"/>
+<rect x="40" y="96" width="820" height="22" fill="rgba(255,255,255,0.03)"/>
+<text class="r" x="48" y="111">Natural-language search</text>
+<rect x="260" y="100" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="267" y="110" fill="#06202A">GA</text>
+<text class="t" x="292" y="110">Foundation</text>
+<rect x="470" y="100" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="477" y="110" fill="#06202A">GA</text>
+<text class="t" x="502" y="110">Foundation</text>
+<rect x="680" y="100" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="687" y="110" fill="#06202A">GA</text>
+<text class="t" x="712" y="110">Marvis</text>
+<text class="r" x="48" y="133">Conversational assistant</text>
+<rect x="260" y="122" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="267" y="132" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="122" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="477" y="132" fill="#06202A">GA</text>
+<text class="t" x="502" y="132">Advanced, 100% (FAQ: 90%)</text>
+<rect x="680" y="122" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="687" y="132" fill="#06202A">GA</text>
+<text class="t" x="712" y="132">Marvis</text>
+<rect x="40" y="140" width="820" height="22" fill="rgba(255,255,255,0.03)"/>
+<text class="r" x="48" y="155">Natural language to CLI</text>
+<rect x="260" y="144" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="267" y="154" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="144" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="477" y="154" fill="#06202A">GA</text>
+<text class="t" x="502" y="154">Advanced, 100% (FAQ: 90%)</text>
+<rect x="680" y="144" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="687" y="154" fill="#8BA2AE">NOT FOUND</text>
+<text class="r" x="48" y="177">Root cause, recommendations</text>
+<rect x="260" y="166" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="267" y="176" fill="#06202A">GA</text>
+<text class="t" x="292" y="176">Foundation, some Adv.</text>
+<rect x="470" y="166" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="477" y="176" fill="#06202A">GA</text>
+<text class="t" x="502" y="176">Found.; pills need Adv.</text>
+<rect x="680" y="166" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="687" y="176" fill="#06202A">GA</text>
+<text class="t" x="712" y="176">Marvis</text>
+<rect x="40" y="184" width="820" height="22" fill="rgba(255,255,255,0.03)"/>
+<text class="r" x="48" y="199">Agentic troubleshooting</text>
+<rect x="260" y="188" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="267" y="198" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="188" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="477" y="198" fill="#06202A">GA</text>
+<text class="t" x="502" y="198">Advanced, 100% (FAQ: 90%)</text>
+<rect x="680" y="188" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="687" y="198" fill="#06202A">GA</text>
+<text class="t" x="712" y="198">Marvis</text>
+<text class="r" x="48" y="221">Self-driving actions</text>
+<rect x="260" y="210" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="267" y="220" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="210" width="62" height="14" rx="7" fill="none" stroke="#5ED2DA"/>
+<text class="st" x="477" y="220" fill="#5ED2DA">PARTIAL</text>
+<text class="t" x="532" y="220">Radio auto-recovery only</text>
+<rect x="680" y="210" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="687" y="220" fill="#06202A">GA</text>
+<text class="t" x="712" y="220">Marvis, 9 actions</text>
+<rect x="40" y="228" width="820" height="22" fill="rgba(255,255,255,0.03)"/>
+<text class="r" x="48" y="243">Synthetic client tests</text>
+<rect x="260" y="232" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="267" y="242" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="232" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="477" y="242" fill="#8BA2AE">NOT FOUND</text>
+<rect x="680" y="232" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="687" y="242" fill="#06202A">GA</text>
+<text class="t" x="712" y="242">Marvis for Wireless</text>
+<text class="r" x="48" y="265">App experience prediction</text>
+<rect x="260" y="254" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="267" y="264" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="254" width="56" height="14" rx="7" fill="none" stroke="#4FBDEA"/>
+<text class="st" x="477" y="264" fill="#4FBDEA">SELECT</text>
+<text class="t" x="526" y="264">Not documented</text>
+<rect x="680" y="254" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="687" y="264" fill="#06202A">GA</text>
+<text class="t" x="712" y="264">Marvis for Wireless</text>
+<rect x="40" y="272" width="820" height="22" fill="rgba(255,255,255,0.03)"/>
+<text class="r" x="48" y="287">Rogue DHCP fix</text>
+<rect x="260" y="276" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="267" y="286" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="276" width="74" height="14" rx="7" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/>
+<text class="st" x="477" y="286" fill="#F5A524">ANNOUNCED</text>
+<rect x="680" y="276" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="687" y="286" fill="#06202A">GA</text>
+<text class="t" x="712" y="286">Marvis for Wired, EX</text>
+<text class="r" x="48" y="309">Missing VLAN fix</text>
+<rect x="260" y="298" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="267" y="308" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="298" width="74" height="14" rx="7" fill="none" stroke="#F5A524" stroke-dasharray="3 2"/>
+<text class="st" x="477" y="308" fill="#F5A524">ANNOUNCED</text>
+<rect x="680" y="298" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="687" y="308" fill="#06202A">GA</text>
+<text class="t" x="712" y="308">Marvis for Wireless</text>
+<rect x="40" y="316" width="820" height="22" fill="rgba(255,255,255,0.03)"/>
+<text class="r" x="48" y="331">NAC policy dry run</text>
+<rect x="260" y="320" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="267" y="330" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="320" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="477" y="330" fill="#8BA2AE">NOT FOUND</text>
+<rect x="680" y="320" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="687" y="330" fill="#06202A">GA</text>
+<text class="t" x="712" y="330">Access Assurance</text>
+<text class="r" x="48" y="353">Client-side telemetry</text>
+<rect x="260" y="342" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="267" y="352" fill="#8BA2AE">NOT FOUND</text>
+<rect x="470" y="342" width="74" height="14" rx="7" fill="none" stroke="#8BA2AE"/>
+<text class="st" x="477" y="352" fill="#8BA2AE">NOT FOUND</text>
+<rect x="680" y="342" width="32" height="14" rx="7" fill="#8CE05E" stroke="#8CE05E"/>
+<text class="st" x="687" y="352" fill="#06202A">GA</text>
+<text class="t" x="712" y="352">Marvis Client</text>
+<text class="c" x="40" y="380">Release notes through Oct 15 (Central) and Sep 9 (Mist). Tier is what the vendor documents; blank means it documents nothing.</text>
+</svg>

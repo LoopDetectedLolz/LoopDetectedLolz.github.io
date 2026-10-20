@@ -1,0 +1,303 @@
+<style>
+/* AI stack timeline: one instrument panel, data from ai-stack.json. Kit tokens only. */
+.ais-intro{display:grid;gap:var(--s3);margin-bottom:var(--s5)}
+.ais-intro h1{margin:0}
+.ais-intro .lede{max-width:66ch}
+.ais-note{border:1px solid rgba(255,255,255,0.12);background:rgba(3,10,16,0.55);border-radius:16px;padding:14px 20px;color:var(--text-dim);font-size:15px;max-width:66ch}
+.ais-note b{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal);display:block;margin-bottom:4px;font-weight:600}
+.ais{--p-classic:#9AAEB9;--p-new:#4FBDEA;--p-mist:#5ED2DA;--ais-line:rgba(255,255,255,0.10);--ais-line2:rgba(255,255,255,0.18);--ais-solid:#08161f;
+  background:var(--ais-solid);border:1px solid var(--ais-line);border-radius:22px;padding:clamp(16px,3vw,28px);display:grid;gap:24px;min-width:0;margin-block:var(--s4)}
+.ais .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-muted)}
+.ais-head{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:flex-end;justify-content:space-between}
+.ais-now{display:grid;gap:2px;min-width:0}
+.ais-date{font-family:var(--mono);font-size:13px;color:var(--teal);letter-spacing:0.04em}
+.ais-title{font-size:clamp(20px,2.6vw,26px);font-weight:600;letter-spacing:-0.012em;line-height:1.2;text-wrap:balance}
+.ais-ctrl{display:flex;gap:8px}
+.ais-btn{appearance:none;border:1px solid var(--ais-line2);background:rgba(255,255,255,0.06);color:var(--text);border-radius:999px;height:40px;min-width:40px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font:500 13px var(--sans);transition:background .2s var(--ease),border-color .2s var(--ease),transform .2s var(--ease)}
+.ais-btn:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.3)}
+.ais-btn:active{transform:scale(0.96)}
+.ais-btn:disabled{opacity:.35;cursor:default}
+.ais-btn.play{border-color:rgba(140,224,94,0.55);background:rgba(140,224,94,0.12);color:#d4f7bf;min-width:96px}
+.ais-btn svg{width:16px;height:16px;fill:currentColor}
+.ais-track-wrap{padding:8px 14px 0}
+.ais-track{position:relative;height:66px;touch-action:none;cursor:pointer;outline:none}
+.ais-track:focus-visible{outline:2px solid var(--teal);outline-offset:6px;border-radius:10px}
+.ais-rail,.ais-rail-road,.ais-fill{position:absolute;top:14px;height:4px;border-radius:4px}
+.ais-rail{left:0;background:rgba(255,255,255,0.12)}
+.ais-rail-road{right:0;background:repeating-linear-gradient(90deg,rgba(245,165,36,0.65) 0 6px,transparent 6px 12px)}
+.ais-fill{left:0;background:linear-gradient(90deg,var(--blue),var(--teal));box-shadow:0 0 14px rgba(94,210,218,0.5);transition:width .7s var(--ease)}
+.ais-notch{position:absolute;top:0;transform:translateX(-50%);width:32px;height:32px;padding:0;border:0;background:none;cursor:pointer;display:grid;place-items:center}
+.ais-notch i{width:10px;height:10px;border-radius:50%;background:var(--navy);border:2px solid rgba(255,255,255,0.35);transition:all .35s var(--ease)}
+.ais-notch.past i{background:var(--teal);border-color:var(--teal)}
+.ais-notch.road i{border-style:dashed;border-color:var(--orange);background:var(--ink)}
+.ais-notch.road.past i{background:var(--orange)}
+.ais-notch span{position:absolute;top:34px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;color:var(--text-muted);white-space:nowrap;transition:color .3s}
+.ais-notch.active span{color:var(--text);font-weight:600}
+.ais-notch.road span{color:var(--orange)}
+.ais-thumb{position:absolute;top:2px;width:28px;height:28px;margin-left:-14px;border-radius:50%;pointer-events:none;background:rgba(255,255,255,0.14);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,0.75);box-shadow:0 0 0 6px rgba(94,210,218,0.14),0 6px 18px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.6);transition:left .7s var(--ease)}
+.ais-track.dragging .ais-thumb,.ais-track.dragging .ais-fill{transition:none}
+@media (max-width:700px){.ais-notch span{display:none}.ais-notch.active span,.ais-notch:first-of-type span,.ais-notch.road span{display:block}}
+.ais-callout{border:1px solid rgba(94,210,218,0.28);background:linear-gradient(180deg,rgba(94,210,218,0.07),rgba(94,210,218,0.02));border-radius:16px;padding:20px;display:grid;gap:14px;overflow:hidden}
+.ais-callout.road{border-color:rgba(245,165,36,0.45);border-style:dashed;background:linear-gradient(180deg,rgba(245,165,36,0.07),rgba(245,165,36,0.02))}
+.ais-changes{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.ais-changes li{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:baseline}
+.ais-changes .who{font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.ais .who.classic{color:var(--p-classic)}.ais .who.new{color:var(--p-new)}.ais .who.mist{color:var(--p-mist)}.ais .who.both{color:var(--text-dim)}
+.ais-changes p{margin:0;font-size:15px;color:var(--text);min-width:0}
+.ais-changes a{font-family:var(--mono);font-size:11.5px;margin-left:6px;white-space:nowrap}
+.ais .slide-next{animation:aisNext .55s var(--ease)}
+.ais .slide-prev{animation:aisPrev .55s var(--ease)}
+@keyframes aisNext{from{transform:translateX(28px);opacity:0}to{transform:none;opacity:1}}
+@keyframes aisPrev{from{transform:translateX(-28px);opacity:0}to{transform:none;opacity:1}}
+.ais-tally{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ais-tally div{border:1px solid var(--ais-line);border-radius:16px;padding:10px 14px;display:grid;background:rgba(255,255,255,0.03)}
+.ais-tally .n{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.ais-tally .l{font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted)}
+.ais-tally .classic .n{color:var(--p-classic)}.ais-tally .new .n{color:var(--p-new)}.ais-tally .mist .n{color:var(--p-mist)}
+@media (max-width:520px){.ais-tally .n{font-size:22px}.ais-tally div{padding:8px 10px}}
+.ais-sec{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
+.ais-sec h3{margin:0;font-size:19px;letter-spacing:-0.01em}
+.ais-legend{display:flex;flex-wrap:wrap;gap:6px}
+.ais-mx{overflow-x:auto;border:1px solid var(--ais-line);border-radius:16px;-webkit-overflow-scrolling:touch}
+.ais-grid{min-width:780px}
+.ais-hrow,.ais-rowc{display:grid;grid-template-columns:190px repeat(3,minmax(0,1fr))}
+.ais-hrow{background:rgba(255,255,255,0.04);border-bottom:1px solid var(--ais-line2)}
+.ais-hrow div{padding:10px 14px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);display:flex;align-items:center;gap:8px}
+.ais-hrow .dot{width:8px;height:8px;border-radius:50%}
+.ais-row{display:grid;grid-template-rows:1fr;transition:grid-template-rows .55s var(--ease),opacity .45s var(--ease)}
+.ais-row.gone{grid-template-rows:0fr;opacity:0}
+.ais-rowin{min-height:0;overflow:hidden}
+.ais-rowc{border-bottom:1px solid var(--ais-line)}
+.ais-row:last-child .ais-rowc{border-bottom:0}
+.ais-row.enter .ais-rowc{animation:aisRowIn .7s var(--ease)}
+@keyframes aisRowIn{from{transform:translateX(-22px);background:rgba(140,224,94,0.16)}to{transform:none;background:transparent}}
+.ais-fname{padding:12px 14px;font-weight:600;font-size:14.5px;line-height:1.3;position:sticky;left:0;background:var(--ais-solid);z-index:1;border-right:1px solid var(--ais-line)}
+.ais-cell{padding:10px 14px;perspective:600px;min-width:0;position:relative}
+.ais-cellin{display:grid;gap:3px;justify-items:start;transform-origin:50% 0}
+.ais-cell.flip .ais-cellin{animation:aisFlip .6s var(--ease)}
+@keyframes aisFlip{0%{transform:rotateX(-88deg);opacity:.15}100%{transform:none;opacity:1}}
+.ais-cell .t{font-size:14px;line-height:1.35;color:var(--text)}
+.ais-cell .tier{font-family:var(--mono);font-size:11px;line-height:1.35;color:var(--text-muted)}
+.ais-cell.nil .t{color:var(--text-muted)}
+.ais-cell.fresh::after{content:"";position:absolute;inset:5px;border-radius:12px;border:1px solid rgba(140,224,94,0.45);box-shadow:0 0 18px rgba(140,224,94,0.14) inset;pointer-events:none}
+.ais .st{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;border-radius:999px;padding:1px 8px;border:1px solid;white-space:nowrap}
+.ais .st.ga{color:#bdf29c;border-color:rgba(140,224,94,0.55);background:rgba(140,224,94,0.12)}
+.ais .st.sa{color:#a8d9f2;border-color:rgba(79,189,234,0.6);background:rgba(47,168,224,0.14)}
+.ais .st.part{color:#b5eef1;border-color:rgba(94,210,218,0.55);background:rgba(94,210,218,0.10)}
+.ais .st.ann{color:#ffd28a;border-color:rgba(245,165,36,0.7);border-style:dashed;background:rgba(245,165,36,0.08)}
+.ais .st.none{color:var(--text-muted);border-color:var(--ais-line);background:transparent}
+.ais-key{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase}
+.ais-key i{width:14px;height:10px;border-radius:4px;border:1px solid rgba(140,224,94,0.6)}
+.ais-fine{font-size:13px;color:var(--text-muted);margin:0}
+.ais-sources{display:grid;gap:6px;font-size:13.5px;padding:0;margin:0;list-style:none}
+.ais-sources li{min-width:0;overflow-wrap:anywhere}
+.ais-sources .d{font-family:var(--mono);font-size:11px;color:var(--text-muted);margin-right:8px}
+.ais-foot{font-family:var(--mono);font-size:12px;color:var(--text-muted);display:flex;flex-wrap:wrap;gap:6px 18px}
+.ais-after{display:grid;gap:var(--s3);max-width:66ch}
+.ais-after h2{margin:var(--s4) 0 0}
+@media (prefers-reduced-motion:reduce){.ais *{animation:none!important;transition:none!important}}
+</style>
+
+<section class="ais-intro">
+  <span class="tag green"><span class="dot"></span>Tracker</span>
+  <h1 class="h-hero">The AI slide, release by release</h1>
+  <p class="lede">Classic Central, New Central and Mist on one timeline. Drag through it and see what actually shipped, what's in select availability, and what was only announced. Every cell carries the license tier the vendor documents for it.</p>
+  <div class="ais-note"><b>How to read it</b>GA means it's in a release note. Select availability means a handful of customers have it. Announced means a press release or a keynote, and nothing else yet. The data file behind this page is checked against the New Central release notes and the Mist product updates every week.</div>
+</section>
+
+<section class="ais g-card" id="explorer" aria-label="AI feature timeline">
+  <div class="ais-head">
+    <div class="ais-now">
+      <span class="eyebrow">Timeline</span>
+      <span class="ais-date" id="aisDate">Loading</span>
+      <span class="ais-title" id="aisTitle">Reading the release data</span>
+    </div>
+    <div class="ais-ctrl">
+      <button class="ais-btn" id="aisPrev" aria-label="Previous release" type="button"><svg viewBox="0 0 16 16"><path d="M10.5 2.5 4 8l6.5 5.5z"/></svg></button>
+      <button class="ais-btn play" id="aisPlay" type="button" aria-pressed="false"><svg viewBox="0 0 16 16" id="aisPlayIcon"><path d="M4 2.5v11L13 8z"/></svg><span id="aisPlayLabel">Play</span></button>
+      <button class="ais-btn" id="aisNext" aria-label="Next release" type="button"><svg viewBox="0 0 16 16"><path d="M5.5 2.5 12 8l-6.5 5.5z"/></svg></button>
+    </div>
+  </div>
+  <div class="ais-track-wrap">
+    <div class="ais-track" id="aisTrack" role="slider" tabindex="0" aria-label="Release timeline" aria-valuemin="0">
+      <div class="ais-rail" id="aisRail"></div>
+      <div class="ais-rail-road" id="aisRailRoad"></div>
+      <div class="ais-fill" id="aisFill"></div>
+      <div class="ais-thumb" id="aisThumb"></div>
+    </div>
+  </div>
+  <div class="ais-callout" id="aisCallout" aria-live="polite">
+    <span class="eyebrow" id="aisCalloutHead">What changed</span>
+    <ul class="ais-changes" id="aisChanges"></ul>
+  </div>
+  <div class="ais-tally" id="aisTally"></div>
+  <div class="ais-sec"><h3>Feature comparison</h3><div class="ais-legend" id="aisLegend"></div></div>
+  <div class="ais-mx"><div class="ais-grid" id="aisFeatures"></div></div>
+  <p class="ais-fine"><span class="ais-key"><i></i>New at this notch</span>&nbsp; "Not found" means I didn't find it in that platform's release notes or docs. Tier text is what the vendor documents; where it says nothing, so does the cell.</p>
+  <div class="ais-sec"><h3>Benefits comparison</h3></div>
+  <div class="ais-mx"><div class="ais-grid" id="aisBenefits"></div></div>
+  <div class="ais-sec"><h3>Sources</h3></div>
+  <ul class="ais-sources" id="aisSources"></ul>
+  <div class="ais-foot" id="aisFoot"></div>
+</section>
+
+<section class="ais-after">
+  <h2>How I'd scope it</h2>
+  <p>Ask which features the customer saw in the demo, then check each one against the table at today's notch. Select availability and announced are not GA, and the gap matters when someone expects it on day one.</p>
+  <p>Licensing is the other conversation. There's no separate Copilot license. After the 90-day trial you need Advanced on every device: 100% per the licensing page, 90% per the subscriptions FAQ. A tenant that mixes Foundation and Advanced won't light up what the demo showed. Get HPE to confirm which number applies before you quote it.</p>
+  <p>When Central's autonomous actions do ship, I'd run them the way Mist does today. Start in recommend, watch what it would have done for a few weeks, then enable actions one at a time per site. Mist keeps an "AI Validated" status after each fix, which is a good model for what to ask HPE about.</p>
+  <p>Classic isn't getting any of this, and it's losing what it had. HPE's Day-2 FAQ says monitoring, reporting, troubleshooting and AI operations are moving to New Central, while onboarding and config stay in Classic. No date is published. If a customer wants the AI features, that's the real migration conversation.</p>
+  <p>The field note that goes with this page is <a href="p/two-platforms-one-marvis.html">Two Platforms, One Marvis</a>.</p>
+</section>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function(id){ return document.getElementById(id); };
+  var D, N, idxOf = {}, cur = -1, timer = null, cellEls = {}, rowEls = {}, prevKey = {};
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function host(u){ try { return new URL(u).hostname.replace(/^www\./,''); } catch(e){ return 'source'; } }
+  function pos(i){ return N < 2 ? 0 : (i / (N - 1)) * 100; }
+  function at(list, i){ if (!list) return null; var v = null; for (var k = 0; k < list.length; k++){ var j = idxOf[list[k].at]; if (j != null && j <= i) v = list[k]; } return v; }
+  function fmtDate(s){ var d = new Date(s + 'T12:00:00'); return isNaN(d) ? s : d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+  function build(){
+    N = D.notches.length;
+    D.notches.forEach(function(n, i){ idxOf[n.id] = i; });
+    var lastShip = N - 1;
+    for (var i = N - 1; i >= 0; i--){ if (!D.notches[i].roadmap){ lastShip = i; break; } }
+    D._today = lastShip;
+    var track = $('aisTrack');
+    track.setAttribute('aria-valuemax', N - 1);
+    $('aisRail').style.width = pos(lastShip) + '%';
+    $('aisRailRoad').style.left = pos(lastShip) + '%';
+    D.notches.forEach(function(n, i){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'ais-notch' + (n.roadmap ? ' road' : '');
+      b.style.left = pos(i) + '%'; b.tabIndex = -1;
+      b.setAttribute('aria-label', n.date + ': ' + n.title);
+      b.innerHTML = '<i></i><span>' + esc(n.label) + '</span>';
+      b.addEventListener('click', function(e){ e.stopPropagation(); stop(); go(i); });
+      track.insertBefore(b, $('aisThumb'));
+    });
+    $('aisLegend').innerHTML = ['ga','sa','part','ann','none'].map(function(s){ return '<span class="st ' + s + '">' + esc(D.statuses[s]) + '</span>'; }).join('');
+    function header(first){
+      return '<div class="ais-hrow"><div>' + first + '</div>' + D.platforms.map(function(p){ return '<div><span class="dot" style="background:var(--p-' + p.id + ')"></span>' + esc(p.name) + '</div>'; }).join('') + '</div>';
+    }
+    function rows(list, kind){
+      return list.map(function(f){
+        return '<div class="ais-row" data-k="' + kind + ':' + f.id + '"><div class="ais-rowin"><div class="ais-rowc"><div class="ais-fname">' + esc(f.name) + '</div>' +
+          D.platforms.map(function(p){ return '<div class="ais-cell" data-c="' + kind + ':' + f.id + ':' + p.id + '"><div class="ais-cellin"></div></div>'; }).join('') + '</div></div></div>';
+      }).join('');
+    }
+    $('aisFeatures').innerHTML = header('Feature') + rows(D.features, 'f');
+    $('aisBenefits').innerHTML = header('Benefit') + rows(D.benefits, 'b');
+    document.querySelectorAll('[data-c]').forEach(function(el){ cellEls[el.getAttribute('data-c')] = el; });
+    document.querySelectorAll('[data-k]').forEach(function(el){ rowEls[el.getAttribute('data-k')] = el; });
+    $('aisTally').innerHTML = D.platforms.map(function(p){ return '<div class="' + p.id + '"><span class="n" id="ais-t-' + p.id + '">0</span><span class="l">' + esc(p.short) + ' shipping</span></div>'; }).join('');
+    var seen = {}, src = [];
+    D.notches.forEach(function(n){ n.changes.forEach(function(c){ if (c.src && !seen[c.src]){ seen[c.src] = 1; src.push({u:c.src, d:n.date}); } }); });
+    $('aisSources').innerHTML = src.map(function(s){ return '<li><span class="d">' + esc(s.d) + '</span><a href="' + esc(s.u) + '" target="_blank" rel="noopener">' + esc(host(s.u) + new URL(s.u).pathname.replace(/\/$/,'')) + '</a></li>'; }).join('');
+    $('aisFoot').innerHTML = '<span>Data as of ' + esc(fmtDate(D.asOf)) + '</span><span>New Central: ' + esc(D.lastChecked.newCentral) + '</span><span>Mist: ' + esc(D.lastChecked.mist) + '</span>';
+  }
+  function tween(el, to){
+    var from = parseInt(el.textContent, 10) || 0;
+    if (reduce || from === to){ el.textContent = to; return; }
+    var t0 = performance.now(), dur = 600;
+    (function step(t){ var k = Math.min(1, (t - t0) / dur); el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); })(t0);
+  }
+  function retrigger(el, cls){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+  function go(i, opts){
+    opts = opts || {};
+    i = Math.max(0, Math.min(N - 1, i));
+    if (i === cur && !opts.force) return;
+    var dir = cur < 0 ? 0 : (i > cur ? 1 : -1);
+    var animate = cur >= 0 && !reduce;
+    cur = i;
+    var n = D.notches[i];
+    $('aisFill').style.width = pos(Math.min(i, D._today)) + '%';
+    $('aisThumb').style.left = pos(i) + '%';
+    document.querySelectorAll('.ais-notch').forEach(function(b, k){ b.classList.toggle('past', k <= i); b.classList.toggle('active', k === i); });
+    var track = $('aisTrack');
+    track.setAttribute('aria-valuenow', i);
+    track.setAttribute('aria-valuetext', n.date + ', ' + n.title);
+    $('aisPrev').disabled = i === 0; $('aisNext').disabled = i === N - 1 && !timer;
+    $('aisDate').textContent = n.date;
+    $('aisTitle').textContent = n.title;
+    var co = $('aisCallout');
+    co.classList.toggle('road', !!n.roadmap);
+    $('aisCalloutHead').textContent = n.roadmap ? 'Announced, waiting on release notes' : 'What changed at this notch';
+    var names = {}; D.platforms.forEach(function(p){ names[p.id] = p.short; }); names.both = 'Both';
+    $('aisChanges').innerHTML = n.changes.map(function(c){
+      return '<li><span class="who ' + esc(c.p) + '">' + esc(names[c.p] || c.p) + '</span><p>' + esc(c.text) +
+        (c.src ? '<a href="' + esc(c.src) + '" target="_blank" rel="noopener">' + esc(host(c.src)) + '</a>' : '') + '</p></li>'; }).join('');
+    if (animate) retrigger(co, dir > 0 ? 'slide-next' : 'slide-prev');
+    var shipping = {}; D.platforms.forEach(function(p){ shipping[p.id] = 0; });
+    function paint(list, kind){
+      list.forEach(function(f){
+        var visible = false;
+        D.platforms.forEach(function(p){
+          var key = kind + ':' + f.id + ':' + p.id;
+          var v = at(f.cells[p.id], i);
+          var el = cellEls[key], html, sig, nil;
+          var pre = p.since && i < idxOf[p.since];
+          if (pre){ nil = true; html = '<span class="st none">Not launched</span>'; sig = 'pre'; }
+          else if (kind === 'f'){
+            var s = v ? v.s : 'none';
+            if (s !== 'none') visible = true;
+            if (s === 'ga' || s === 'sa' || s === 'part') shipping[p.id]++;
+            nil = s === 'none';
+            html = '<span class="st ' + s + '">' + esc(D.statuses[s]) + '</span>' + (v && v.t ? '<span class="t">' + esc(v.t) + '</span>' : '') + (v && v.tier ? '<span class="tier">' + esc(v.tier) + '</span>' : '');
+            sig = v ? [s, v.t, v.tier].join('|') : 'none';
+          } else {
+            if (v) visible = true; nil = !v;
+            html = '<span class="t">' + esc(v ? v.t : 'Nothing yet') + '</span>'; sig = v ? v.t : '';
+          }
+          el.classList.toggle('nil', nil);
+          el.classList.toggle('fresh', !!(v && v.at === n.id));
+          if (prevKey[key] !== sig){ el.firstChild.innerHTML = html; if (animate && prevKey[key] !== undefined) retrigger(el, 'flip'); prevKey[key] = sig; }
+        });
+        var row = rowEls[kind + ':' + f.id];
+        var wasGone = row.classList.contains('gone');
+        row.classList.toggle('gone', !visible);
+        if (visible && wasGone && animate) retrigger(row, 'enter');
+      });
+    }
+    paint(D.features, 'f'); paint(D.benefits, 'b');
+    D.platforms.forEach(function(p){ tween($('ais-t-' + p.id), shipping[p.id]); });
+    if (!opts.noHash){ try { history.replaceState(null, '', '#n-' + n.id); } catch(e){} }
+  }
+  function stop(){
+    if (timer){ clearInterval(timer); timer = null; }
+    $('aisPlay').setAttribute('aria-pressed','false'); $('aisPlayLabel').textContent = 'Play';
+    $('aisPlayIcon').innerHTML = '<path d="M4 2.5v11L13 8z"/>';
+    if (cur >= 0) $('aisNext').disabled = cur === N - 1;
+  }
+  function play(){
+    if (timer){ stop(); return; }
+    if (cur >= N - 1) go(0);
+    $('aisPlay').setAttribute('aria-pressed','true'); $('aisPlayLabel').textContent = 'Pause';
+    $('aisPlayIcon').innerHTML = '<path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/>';
+    timer = setInterval(function(){ if (cur >= N - 1){ stop(); return; } go(cur + 1); }, reduce ? 2600 : 3400);
+  }
+  function wire(){
+    $('aisPrev').addEventListener('click', function(){ stop(); go(cur - 1); });
+    $('aisNext').addEventListener('click', function(){ stop(); go(cur + 1); });
+    $('aisPlay').addEventListener('click', play);
+    var track = $('aisTrack'), dragging = false;
+    function fromX(x){ var r = track.getBoundingClientRect(); return Math.round(((x - r.left) / r.width) * (N - 1)); }
+    track.addEventListener('pointerdown', function(e){ if (e.target.closest('.ais-notch')) return; stop(); dragging = true; track.classList.add('dragging'); try { track.setPointerCapture(e.pointerId); } catch(err){} go(fromX(e.clientX)); });
+    track.addEventListener('pointermove', function(e){ if (dragging) go(fromX(e.clientX)); });
+    function end(){ if (!dragging) return; dragging = false; track.classList.remove('dragging'); }
+    track.addEventListener('pointerup', end); track.addEventListener('pointercancel', end);
+    track.addEventListener('keydown', function(e){
+      var k = e.key, t = null;
+      if (k === 'ArrowRight' || k === 'ArrowUp') t = cur + 1; else if (k === 'ArrowLeft' || k === 'ArrowDown') t = cur - 1;
+      else if (k === 'Home') t = 0; else if (k === 'End') t = N - 1;
+      if (t != null){ e.preventDefault(); stop(); go(t); }
+    });
+  }
+  function start(data){ D = data; build(); wire(); var h = (location.hash || '').replace(/^#n-/, ''); var i = (h && idxOf[h] != null) ? idxOf[h] : D._today; go(i, {noHash:true}); }
+  fetch('ai-stack.json', {cache:'no-cache'}).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(start)
+    .catch(function(){ $('aisDate').textContent = 'Data file missing'; $('aisTitle').textContent = 'The timeline could not load ai-stack.json. Reload the page to try again.'; });
+})();
+</script>

@@ -1455,6 +1455,14 @@ tools += f'''
     <a href="cx-guide.html"><b>Releases and hardening</b><span>What changed 10.15 to 10.18, habits, CIS by number</span></a>
   </nav>
 </section>
+<section class="cx-strip g-card" id="ai" data-rise>
+  <span class="eyebrow">Cloud management</span>
+  <h2>The AI slide, release by release</h2>
+  <p>Classic Central, New Central and Mist on one timeline, built from release notes rather than keynotes. Shipped, select availability, or announced, with the license tier in every cell. Checked weekly.</p>
+  <nav class="cx-strip-l" aria-label="AI tracker">
+    <a href="ai-stack.html"><b>Central and Mist AI timeline</b><span>Drag through it and watch each platform pick features up</span></a>
+  </nav>
+</section>
 <script>{SIM_JS}</script>
 ''' + widget("tools").replace("<!-- qam:here (the build and the lab put the simulator widget here) -->", qam, 1) + '''
 <section class="band g-card" data-rise>
@@ -1466,6 +1474,15 @@ tools += f'''
 </section>
 ''' + foot("nfn-bot-think.svg")
 open(os.path.join(ROOT, "tools.html"), "w", encoding="utf-8").write(tools)
+
+# ── AI stack timeline: Classic Central, New Central and Mist, release by release ─────────────
+# theme/widgets/ai-stack.html is the panel; ai-stack.json at the root is the data, kept current by a weekly
+# drafts-only check against the New Central release notes and the Mist product updates.
+AIS_DESC = "Classic Central, New Central and Mist on one timeline: what shipped, what is in select availability, what was only announced, and the license tier behind each cell."
+ais = head("Central and Mist AI timeline · " + SITE["name"], AIS_DESC, BASE_URL + "/ai-stack.html", BASE_URL + "/og/ai-stack.png", active="tools")
+ais += open(os.path.join(ROOT, "theme", "widgets", "ai-stack.html"), encoding="utf-8").read()
+ais += foot("nfn-bot-think.svg")
+open(os.path.join(ROOT, "ai-stack.html"), "w", encoding="utf-8").write(ais)
 print("  + tools.html (%d KB of model in the page)" % (len(SIM_JS) // 1024))
 
 # ── socials (genie target) ──────────────────────────────────────────────────
@@ -1622,6 +1639,7 @@ og_card("Paste an AOS-CX config, get findings back. It never leaves your browser
 og_card("Build an AOS-CX access switch config block by block, every block explained and checked", "CX Sandbox", os.path.join(ROOT, "og", "cx-build.png"))
 og_card("AOS-CX 10.15 to 10.18: what changed, the habits that matter, and CIS hardening by control number", "CX Sandbox", os.path.join(ROOT, "og", "cx-guide.png"))
 og_card("Planning tools that show their working: capacity, aiming, mesh, and what happened", "Tools", os.path.join(ROOT, "og", "tools.png"))
+og_card("Central and Mist AI, release by release: shipped, select availability, or just announced", "Tracker", os.path.join(ROOT, "og", "ai-stack.png"))
 rasterize(os.path.join(ROOT, "logo", "nfn-favicon.svg"), os.path.join(ROOT, "apple-touch-icon.png"), 180, 180)
 
 # ── sitemap, feed, housekeeping ─────────────────────────────────────────────
@@ -1635,6 +1653,7 @@ urls = ['<url><loc>%s/</loc><changefreq>weekly</changefreq><priority>1.0</priori
         '<url><loc>%s/cx-build.html</loc><priority>0.6</priority></url>' % BASE_URL,
         '<url><loc>%s/cx-guide.html</loc><priority>0.6</priority></url>' % BASE_URL,
         '<url><loc>%s/tools.html</loc><priority>0.8</priority></url>' % BASE_URL,
+        '<url><loc>%s/ai-stack.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>' % BASE_URL,
         '<url><loc>%s/socials.html</loc><priority>0.3</priority></url>' % BASE_URL]
 urls += ['<url><loc>%s/p/%s.html</loc><lastmod>%s</lastmod><priority>0.8</priority></url>'
          % (BASE_URL, p["slug"], p["date"]) for p in posts]

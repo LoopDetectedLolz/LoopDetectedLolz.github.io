@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-label="Two rails, Central and Mist, run the full width and never meet. A bar labelled Marvis spans both. Below each rail, what that platform has in release notes versus what was only announced.">
+<defs>
+<style>
+.ey{font:700 12px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8CE05E;letter-spacing:3px}
+.h{font:700 24px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#fff}
+.l{font:600 13px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#EAF2F6}
+.s{font:500 11.5px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#B0C4CF}
+.m{font:500 11px 'JetBrains Mono',ui-monospace,Menlo,monospace;fill:#8BA2AE}
+.c{font:500 12px 'Instrument Sans',-apple-system,Helvetica,sans-serif;fill:#8BA2AE}
+.box{fill:rgba(3,10,16,0.55);stroke:rgba(255,255,255,0.12)}
+</style>
+</defs>
+<text class="ey" x="40" y="36">INVESTOR DAY, SEP 30 2026</text>
+<text class="h" x="40" y="66">Two platforms that never converge, one Marvis between them</text>
+<!-- Central rail -->
+<rect x="40" y="96" width="820" height="4" rx="2" fill="#4FBDEA"/>
+<text class="l" x="40" y="88">New Central</text>
+<text class="m" x="860" y="88" text-anchor="end">app-ca, app-prod2, GreenLake</text>
+<!-- Mist rail -->
+<rect x="40" y="276" width="820" height="4" rx="2" fill="#5ED2DA"/>
+<text class="l" x="40" y="298">Juniper Mist</text>
+<text class="m" x="860" y="298" text-anchor="end">manage.mist.com and friends</text>
+<!-- Marvis bar -->
+<rect x="330" y="166" width="240" height="40" rx="20" fill="#8CE05E"/>
+<text x="450" y="191" text-anchor="middle" font-family="Instrument Sans,-apple-system,Helvetica,sans-serif" font-weight="700" font-size="15" fill="#06202A">Marvis, shared AI engine</text>
+<line x1="450" y1="100" x2="450" y2="166" stroke="#8CE05E" stroke-width="2" stroke-dasharray="4 4"/>
+<line x1="450" y1="206" x2="450" y2="214" stroke="#8CE05E" stroke-width="2" stroke-dasharray="4 4"/><line x1="450" y1="234" x2="450" y2="276" stroke="#8CE05E" stroke-width="2" stroke-dasharray="4 4"/>
+<!-- Central side boxes -->
+<rect class="box" x="40" y="110" width="250" height="48" rx="10"/>
+<text class="l" x="56" y="130">In release notes</text>
+<text class="s" x="56" y="148">Copilot, Agentic-Mesh, App Experience</text>
+<rect class="box" x="590" y="110" width="270" height="48" rx="10" stroke-dasharray="5 4"/>
+<text class="l" x="606" y="130">Announced only</text>
+<text class="s" x="606" y="148">Five autonomous actions, port fixes</text>
+<!-- Mist side boxes -->
+<rect class="box" x="40" y="218" width="250" height="48" rx="10"/>
+<text class="l" x="56" y="238">In release notes</text>
+<text class="s" x="56" y="256">Nine self-driving actions, Minis, CX switches</text>
+<rect class="box" x="590" y="218" width="270" height="48" rx="10" stroke-dasharray="5 4"/>
+<text class="l" x="606" y="238">Announced only</text>
+<text class="s" x="606" y="256">Roaming Optimization, agentic mesh</text>
+<!-- shared hardware note -->
+<text class="c" x="450" y="226" text-anchor="middle">Shared: AP 723H, CX 5420 / 6300 / 6400</text>
+<text class="c" x="40" y="326">Solid box: in a release note. Dashed box: on a stage. The post is about the difference.</text>
+</svg>
