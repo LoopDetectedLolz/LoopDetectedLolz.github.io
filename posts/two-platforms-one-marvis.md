@@ -4,74 +4,82 @@ slug: two-platforms-one-marvis
 date: 2026-10-20
 tags: Central, Mist, AI, Design
 hero: hero-two-platforms.svg
-summary: At Investor Day HPE said Central and Mist never become one platform. Two weeks later New Central shipped a roomier Copilot and still none of the autonomous actions it announced in May. If you pick platforms for customers, plan from the release notes, not the keynote. I built a page that tracks them.
-origin: A design call where the AI slide came up again, and a release note that didn't match it
+summary: HPE said at Investor Day that Central and Mist stay two platforms sharing one AI engine. Here's where that stack stands in October, what I'm using on my own tenants today, what I'm waiting on that would help my customers, and the tools I can build around it now without waiting for anything.
+origin: A design call where the AI slide came up again, and a tracker page I built so I'd stop re-reading release notes
+changed: 2026-10-20 | Rewritten as a monthly status update: adds the tracker page and four tools to build on the public APIs.
 ---
-Every New Central design call I've been on this year gets to the same slide. Copilot, autonomous actions, Marvis inside Central, self-driving everything. It's a good slide. Then somebody asks which platform they should buy for the AI, and I've learned to answer with a question of my own: which of those features did you see in a release note, and which did you see on a stage?
+Every New Central design call I've been on this year gets to the AI slide. Copilot, autonomous actions, Marvis in Central, self-driving everything. It's a good slide and most of it is real. The question I get after it is which platform to buy for the AI, and the honest answer in October 2026 is that it depends on which AI you mean. This is my attempt to write that answer down once, with the release notes beside it, so I can point people at it instead of re-explaining it on every call.
 
-At the end of September HPE held its Investor Day, and the networking leadership was asked the question every Aruba and Mist customer has been asking since the Juniper deal closed. Do the two platforms merge? The answer, as reported by two outlets, was that they don't. Central and Mist stay two products. What they share is Marvis as the AI engine, the access points, and the CX switches. I can't link you to an HPE page that says it, because there isn't one yet, so take it as press coverage rather than a vendor statement. It matches what the release notes have been saying for a year, which is why I believe it.
+At the end of September HPE held its [Investor Day](https://fierce-network.com/wireless/hpe-wont-merge-aruba-central-and-mist-platforms-will-share-ai-applications-and-hardware), and the networking leadership got the question every Aruba and Mist customer has been asking since the Juniper deal closed: do the two platforms merge? As reported by two outlets, the answer was no. Central and Mist stay two products, and over time they become equally capable because they share the building blocks: Marvis as the AI engine, the access points, and the CX switches. I can't link an HPE page with the quote, so treat it as press coverage. It matches what the release notes have been showing for a year, which is why I believe it, and it's good news for anyone who has both.
 
-Two weeks after that, on October 15, New Central shipped its monthly release. It's a real release with real Copilot work in it. It also contains none of the five autonomous actions HPE announced for both platforms back in May. That gap is the post.
+## What I'm using today
 
-## What "share Marvis" means in practice
-
-The useful way to read the Investor Day line is as a description of what has already happened, not a plan.
-
-{{figure: fig-ai-swap.svg | Two features crossed over and shipped, two pieces of hardware are shared, and the promises are still dashed lines.}}
-
-In December HPE said Mist's Large Experience Model, the thing that correlates Zoom and Teams call quality with the network, was coming to Central. In January the Application Experience Predictor arrived, which is that capability under a Central name; HPE's doc for it doesn't say LEM, so that lineage is the press release's, not the manual's. It launched in Select Availability and the October notes say it has been "enhanced" with more client detail. There's still no release note calling it GA, and I couldn't find a documented AOS 10 or license requirement for it. That's one feature, one direction.
-
-In the other direction, Mist started managing AOS-CX switches in September. The 5420, 6300 and 6400 families on 10.18.1002 or later show up in Mist Wired Assurance like an EX would. That's a bigger deal than it sounds, because it means a Mist shop can keep buying the Aruba switch its cabling closets were designed around.
-
-The AP 723H has run on either cloud since May. And Marvis is now the name on the AI in both products.
-
-What hasn't crossed over is the part the slide leads with. Marvis Actions in Central were called available at Discover in June. No Central release note has shown them. The "agentic mesh" that was introduced for Central in 2025 has, per one executive quoted after Investor Day, moved to Mist. No Mist product update shows it under that name either. Those two are the dashed lines on the figure, and I'd keep them dashed until a release note says otherwise.
-
-## The scorecard, as of today
-
-I keep a data file for this. Every New Central release note since the Copilot launch, every Mist product update, and the HPE press releases behind the announcements, each capability marked as GA, Select Availability, Partial, Announced or Not Found, with the license tier the vendor documents for it. Here's where it stands.
-
-{{figure: fig-ai-scorecard.svg | Twelve capabilities, three platforms, October 2026. Shape is status, small text is the tier.}}
-
-The pattern is obvious once it's on one page. Central's AI story is Copilot: the assistant, the natural-language-to-CLI, the Agentic-Mesh pills that turn an 802.11r problem into a recommendation. All of that is GA and all of it needs Advanced. Mist's AI story is autonomy: nine self-driving actions, Minis running synthetic tests from the APs and now the EX switches, and a NAC dry run that lets you test an Access Assurance policy before it enforces. Classic Central has search and AI Insights and is losing the rest to New Central on a date nobody has published.
-
-Neither column is wrong for every customer. They are different products with different ideas about what AI in a network should do, which is exactly what Investor Day said.
-
-## Announced versus shipped
-
-In May HPE announced five autonomous actions for both platforms: Dynamic Capacity Optimization, Missing VLAN, Rogue DHCP protection, real-time DFS and Client Roaming Optimization. No dates per platform. Here's the ladder five months later.
-
-{{figure: fig-ai-ladder.svg | Four of five shipped on Mist, three of them before the announcement. Zero of five in Central's release notes.}}
-
-Mist had three of them in April, a month before the press release, and added Missing VLAN in September. Central has none of them through October 15. What Central's October release did do is improve the Rogue DHCP Server alert, with thresholds, a summary and auto-close. That's a better alert. It is not the autonomous fix from May, and the release note doesn't claim it is.
-
-I want to be fair about what did ship. Copilot can now sit in a side panel next to whatever page you're on, draw its answers as donut, bar and tunnel charts, run three queries at once, and take exact date and time ranges. I tried it on the lab tenant.
+On my lab tenant, Copilot is the thing I reach for most. The [October 15 release](https://arubanetworking.hpe.com/techdocs/hpe-central/content/release-notes/new-capabilities-october-15th-2026.html) let it sit in a side panel next to whatever page you're on, draw its answers as donut, bar and tunnel charts, and [run three queries at once](https://arubanetworking.hpe.com/techdocs/hpe-central/content/release-notes/improvements-october-15th-2026.html) with exact date and time ranges. I asked it for clients by band.
 
 <figure>
 <img src="../media/ai-central-copilot-chart.png" alt="HPE Networking Copilot answer in New Central: Current Band Distribution, 2.4 GHz 17 clients 74 percent, 5 GHz 6 clients 26 percent, with an AP Connected Clients Trend chart below" width="1400" height="416" loading="lazy">
-<figcaption>Copilot on a two-AP lab tenant, after 71 seconds of thinking. The answer is right, the chart is the client trend rather than the band split I asked for, and the client table it appended below is why I cropped it.</figcaption>
+<figcaption>Copilot on a two-AP lab tenant, 71 seconds of thinking. The band split is right, the chart it chose is the client trend, and it appended a full client table below, which is why I cropped it.</figcaption>
 </figure>
 
-That's a better Copilot. It's still an assistant, which is what it's meant to be. The thing that recommends and the thing that acts on its own are different products, and only one of them has shipped on the Central side.
+On the Mist side, my lab site has Marvis Actions with self-driving available per action. That's the screen I show customers who ask what "self-driving" means in practice: a toggle per problem type, and you decide which ones the network is allowed to fix on its own. Port Stuck and Intermittent WAN start on, DFS Optimization is always on, everything else waits for you, per Juniper's [self-driving page](https://www.juniper.net/documentation/us/en/software/mist/mist-aiops/topics/concept/self-driving-marvis-actions.html).
 
-## The licensing footnote
+Those two screens are the two philosophies. Central's AI, today, is an assistant that explains the network and writes CX config for you. Mist's AI, today, is a set of actions the network takes with a human watching. Both are useful. They're useful for different customers.
 
-There is no Copilot SKU. After the 90-day trial, Copilot and Agentic-Mesh need an Advanced subscription on 100 percent of the devices in the account. That's the Copilot licensing page and, as of this week, the subscriptions FAQ too; the FAQ said 90 percent until recently, and an older copy of it under the previous doc tree still does. The 90 percent figure now applies only to the three insights that need Advanced. A tenant that mixes Foundation on the switches with Advanced on the APs won't light up what the demo showed, and one Foundation switch is enough.
+## What's crossed over
 
-The October release at least made the count easy. Device inventory now shows Subscription Tier as its own column, so you can filter for Foundation and see what's holding you back. If a quote hinges on it, get the current number from HPE in writing, because that page has moved once already.
+The Investor Day line reads best as a description of what has already happened.
 
-Mist prices it the other way, an add-on per capability. Wireless Assurance, Marvis, Premium Analytics. Minis and the self-driving actions ride on the Marvis subscription with no extra SKU. It's more line items and less ambiguity.
+{{figure: fig-ai-swap.svg | Two features crossed over and shipped, two pieces of hardware are shared, and the announced items are still in transit.}}
 
-## What I tell customers
+In [December](https://www.hpe.com/us/en/newsroom/press-release/2025/12/hpe-disrupts-networking-with-new-ai-native-advances-for-self-driving-operations.html) HPE said Mist's Large Experience Model, the thing that correlates Zoom and Teams call quality with the network, was coming to Central. In [January](https://arubanetworking.hpe.com/techdocs/new-central/content/whats-new/2025/nov-dec.htm) the Application Experience Predictor arrived in Select Availability, which is that capability under a Central name; the Predictor's own doc doesn't say LEM, so that lineage comes from the press release, not the manual. The October notes say it has been enhanced with more client detail.
 
-If the estate is Aruba and the ask is an assistant that explains the network in English and writes CX config for you, New Central is the answer and the AI is here today. Budget for Advanced on everything and treat the autonomous actions as roadmap until they're in a release note.
+In the other direction, Mist started [managing AOS-CX switches](https://www.juniper.net/documentation/us/en/software/mist/product-updates/2026/september-9th-2026-updates.html) in September. The 5420, 6300 and 6400 families on 10.18.1002 or later show up in Wired Assurance like an EX would. For a Mist shop that already owns Aruba closets, that's the feature of the year.
 
-If the ask is a network that fixes known problems on its own, with a human watching, Mist is the one that does it today, and it now manages the CX switches most Aruba shops already own. Run every action in recommend mode first, then turn them on one site at a time. Mist's own defaults are a good hint: Port Stuck and Intermittent WAN start on, the rest start off, and DFS Optimization is the one you can't turn off.
+The [AP 723H](https://www.hpe.com/us/en/newsroom/press-release/2026/05/hpe-moves-self-driving-networks-from-vision-to-reality-with-autonomous-networking-capabilities.html) has run on either cloud since May, and Marvis is now the name on the AI in both products.
 
-If the estate is Classic Central, the AI conversation is really the migration conversation. Classic keeps onboarding and config. Monitoring, troubleshooting and AI operations are moving to New Central on a schedule HPE hasn't published.
+## Where it stands this month
 
-And if someone shows you a slide, ask for the release note. I made that easier on myself with a page that keeps the whole table current, checked every week against the Central release notes and the Mist product updates, with a timeline you can drag through to watch each platform pick features up. [It's here](../ai-stack.html), and it's where the figures in this post came from.
+I got tired of re-reading release notes before every call, so I built a page that does it for me. Every New Central release note since Copilot launched, every Mist product update, and the HPE press releases behind the announcements, each capability marked as GA, Select Availability, Partial, Announced or Not Found, with the license tier the vendor documents for it. It's checked against the sources every week.
+
+<figure>
+<img src="../media/ai-stack-tracker.png" alt="The Central and Mist AI timeline page on Network Field Notes, showing the release slider and the feature comparison grid" width="1400" height="900" loading="lazy">
+<figcaption>The tracker. Drag the slider and watch each platform pick features up. <a href="../ai-stack.html">It lives here</a> and it's where the figures in this post come from.</figcaption>
+</figure>
+
+{{figure: fig-ai-scorecard.svg | Twelve capabilities, three platforms, October 2026. Shape is status, small text is the tier.}}
+
+Read down the columns and the two philosophies show up again. Central: the assistant, natural language to CLI, the Agentic-Mesh pills that turn an 802.11r problem into a recommendation, all GA, all on Advanced. Mist: nine self-driving actions, Minis running synthetic tests from the APs and now the EX switches, and a NAC dry run that lets you test an Access Assurance policy before it enforces. Classic Central keeps search and AI Insights and is handing the rest to New Central on a schedule that [hasn't been published](https://arubanetworking.hpe.com/techdocs/hpe-central/content/frequently-asked-questions-faq/day-2-workflow-migration-from-hpe-classic-central-faq.html).
+
+## What I'm waiting on
+
+In May HPE announced five autonomous actions for both platforms: Dynamic Capacity Optimization, Missing VLAN, Rogue DHCP protection, real-time DFS and Client Roaming Optimization. No dates per platform, which is normal for an announcement. Here's where each one is five months later.
+
+{{figure: fig-ai-ladder.svg | Four of the five are shipping on Mist. On Central they're still on the announced list, which is where I'm watching.}}
+
+Mist had three of them in [April](https://www.juniper.net/documentation/us/en/software/mist/product-updates/2026/april-15th-2026-updates.html), before the announcement, and added Missing VLAN in September. Central's October release improved the Rogue DHCP Server alert with thresholds, a summary and auto-close, which is a better alert and a sensible step toward the autonomous version. The five actions themselves, and the Marvis wired port remediation HPE listed for Central at [Discover](https://www.hpe.com/us/en/newsroom/press-release/2026/06/hpe-expands-self-driving-networks-across-edge-campus-data-center-and-ai-factories.html), haven't reached a Central release note as of October 15.
+
+Why I care: my Aruba customers are the ones who'd benefit most. A campus on CX and AOS 10 with a small IT team is exactly where Missing VLAN and Rogue DHCP fixing themselves pays off, and today that customer has to buy the Mist experience to get it. When those land in Central, the recommendation changes for a lot of accounts, and I'd like to be ready for that week rather than reading about it afterwards. That's what the tracker is for.
+
+## Counting your tenant
+
+There's no Copilot SKU. After the 90-day trial, Copilot and Agentic-Mesh need an Advanced subscription on 100 percent of the devices in the account. That's on the [Copilot licensing page](https://arubanetworking.hpe.com/techdocs/hpe-central/content/operations/networking-copilot-licensing.html) and, as of this month, on the [subscriptions FAQ](https://arubanetworking.hpe.com/techdocs/hpe-central/content/frequently-asked-questions-faq/subscriptions-faq.html) too; the FAQ said 90 percent until recently and an older copy under the previous doc tree still does. The 90 percent rule now applies only to the three insights that need Advanced. One Foundation switch in a tenant is enough to hold Copilot back, so it's worth counting before the demo. October added Subscription Tier as its own inventory column, so the count is a filter now instead of a spreadsheet.
+
+Mist prices it as an add-on per capability: Wireless Assurance, Marvis, Premium Analytics. Minis and the self-driving actions ride on the Marvis subscription with no extra SKU. More line items, less to explain.
+
+## What I can build now
+
+None of this needs me to wait on anything. Both clouds have public APIs, and the four tools below are Postman collections and short Python scripts, not AI.
+
+**Copilot readiness check.** The New Central API's device inventory already carries the subscription tier per device. A script that pulls every device, counts Foundation versus Advanced, and prints the gap to 100 percent per tenant turns the licensing question into a number on the first call instead of a surprise on the demo. Run it before every Copilot conversation.
+
+**Mist self-driving audit.** The Mist API exposes Marvis Actions and their self-driving settings per site. A monthly pull that lists which actions are enabled where, flags sites still in recommend mode, and exports the AI Validated history gives a customer a one-page record of what the network fixed on its own. That page is the thing that gets the next action turned on.
+
+**Release-note watcher.** The job behind the tracker page already diffs the Central release notes and Mist product updates every week. Filtered per customer, so a Mist-only shop never hears about Copilot and an Aruba campus gets a note the week Missing VLAN reaches Central, it becomes a service rather than a blog page.
+
+**Roaming report.** October added CSV export of roaming and association events per client in Central. Piped through a short script that groups by floor and AP pair, it's a roam-quality report I can hand over after a survey, and a baseline to compare against when Client Roaming Optimization ships.
+
+Each of those is a follow-up post with the code. This one is the map.
 
 ## Bottom line
 
-HPE said it plainly at Investor Day, and the release notes had been saying it for a year: Central and Mist are two platforms that share an AI engine, an AP family and a switch line. Central's AI is an assistant and it has shipped. Mist's AI is autonomy and it has shipped. The five autonomous actions promised for Central in May are still announced rather than released as of October 15, 2026. Buy the one that does what the customer actually asked for, and read the release note before the keynote.
+Central and Mist are two platforms sharing one AI engine, one AP family and one switch line, and HPE said so out loud at Investor Day. Central's AI is an assistant and it's here. Mist's AI is autonomy and it's here. The autonomous actions announced for Central in May are the next thing I'm watching for, because they'd change the recommendation for a lot of Aruba customers. Pick by the problem the customer actually has, count the tenant before promising Copilot, and keep the [tracker](../ai-stack.html) open.
