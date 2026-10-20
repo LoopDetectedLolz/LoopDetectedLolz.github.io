@@ -556,6 +556,8 @@ html.qam-fs .rig{display:none}
 .ais-intro{display:grid;gap:var(--s3);margin-bottom:var(--s5)}
 .ais-intro h1{margin:0}
 .ais-intro .lede{max-width:66ch}
+.ais-latest{margin:0;font-size:15px;color:var(--text-dim);max-width:66ch;min-height:1.6em}
+.ais-latest b{color:var(--teal);font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;margin-right:8px}
 .ais-note{border:1px solid rgba(255,255,255,0.12);background:rgba(3,10,16,0.55);border-radius:16px;padding:14px 20px;color:var(--text-dim);font-size:15px;max-width:66ch}
 .ais-note b{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal);display:block;margin-bottom:4px;font-weight:600}
 .ais{--p-classic:#9AAEB9;--p-new:#4FBDEA;--p-mist:#5ED2DA;--ais-line:rgba(255,255,255,0.10);--ais-line2:rgba(255,255,255,0.18);--ais-solid:#08161f;
@@ -655,6 +657,7 @@ html.qam-fs .rig{display:none}
   <span class="tag green"><span class="dot"></span>Tracker</span>
   <h1 class="h-hero">The AI slide, release by release</h1>
   <p class="lede">Classic Central, New Central and Mist on one timeline. Drag through it and see what actually shipped, what's in select availability, and what was only announced. Every cell carries the license tier the vendor documents for it.</p>
+  <p class="ais-latest" id="aisLatest"></p>
   <div class="ais-note"><b>How to read it</b>GA means it's in a release note. Select availability means a handful of customers have it. Announced means a press release or a keynote, and nothing else yet. The data file behind this page is checked against the New Central release notes and the Mist product updates every week.</div>
 </section>
 
@@ -719,6 +722,8 @@ html.qam-fs .rig{display:none}
     var lastShip = N - 1;
     for (var i = N - 1; i >= 0; i--){ if (!D.notches[i].roadmap){ lastShip = i; break; } }
     D._today = lastShip;
+    var L = D.notches[lastShip]; var first = L.changes && L.changes[0];
+    $('aisLatest').innerHTML = '<b>' + esc(L.date) + '</b>' + esc(L.title) + (first ? '. ' + esc(first.text) : '');
     var track = $('aisTrack');
     track.setAttribute('aria-valuemax', N - 1);
     $('aisRail').style.width = pos(lastShip) + '%';
