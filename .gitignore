@@ -40,3 +40,6 @@ comments/.dev.vars
 
 # iCloud conflict copies
 * 2.*
+
+# Claude Code worktrees
+.claude/worktrees/
