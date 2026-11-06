@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" font-family="Inter,Segoe UI,system-ui,sans-serif">
+  <rect width="900" height="340" fill="#0B0F14"/>
+  <text x="20" y="36" fill="#8FDB69" font-size="12" font-weight="700" letter-spacing="1.5">PROBE AND AUTH SNR THRESHOLDS</text>
+  <text x="20" y="66" fill="#fff" font-size="20" font-weight="700">A floor decides who gets ignored, not which AP a Mac picks</text>
+  <rect x="20" y="82" width="640" height="234" rx="8" fill="#141C26" stroke="#243040"/>
+  <text x="32" y="102" fill="#8A99AB" font-size="11">Open plan floor, top down</text>
+  <rect x="140" y="236" width="90" height="70" fill="none" stroke="#8A99AB" stroke-width="2"/>
+  <line x1="230" y1="250" x2="230" y2="272" stroke="#141C26" stroke-width="4"/>
+  <line x1="230" y1="250" x2="218" y2="268" stroke="#8A99AB" stroke-width="1.5"/>
+  <text x="32" y="226" fill="#8A99AB" font-size="11">Corner office, door shut</text>
+  <circle cx="300" cy="200" r="110" fill="none" stroke="#7AB8E8" stroke-width="1.5" opacity="0.8"/>
+  <circle cx="480" cy="200" r="110" fill="none" stroke="#7AB8E8" stroke-width="1.5" opacity="0.8"/>
+  <circle cx="300" cy="200" r="66" fill="#8FDB69" fill-opacity="0.08" stroke="#8FDB69" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <circle cx="480" cy="200" r="66" fill="#8FDB69" fill-opacity="0.08" stroke="#8FDB69" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <circle cx="300" cy="200" r="7" fill="#7AB8E8"/>
+  <circle cx="480" cy="200" r="7" fill="#7AB8E8"/>
+  <text x="300" y="182" fill="#fff" font-size="12" text-anchor="middle">AP 1</text>
+  <text x="480" y="182" fill="#fff" font-size="12" text-anchor="middle">AP 2</text>
+  <rect x="381" y="206" width="18" height="11" rx="1" fill="#E0B34E"/>
+  <rect x="377" y="217" width="26" height="3" fill="#E0B34E"/>
+  <text x="390" y="236" fill="#E0B34E" font-size="11" text-anchor="middle">Mac between APs</text>
+  <rect x="166" y="268" width="18" height="11" rx="1" fill="#F0705F"/>
+  <rect x="162" y="279" width="26" height="3" fill="#F0705F"/>
+  <text x="175" y="298" fill="#F0705F" font-size="11" text-anchor="middle">Stranded</text>
+  <rect x="676" y="82" width="204" height="234" rx="8" fill="#141C26" stroke="#243040"/>
+  <line x1="692" y1="110" x2="716" y2="110" stroke="#7AB8E8" stroke-width="2"/>
+  <text x="724" y="106" fill="#fff" font-size="11">AP still hears a Mac</text>
+  <text x="724" y="120" fill="#fff" font-size="11">above 25 dB</text>
+  <line x1="692" y1="148" x2="716" y2="148" stroke="#8FDB69" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="724" y="152" fill="#fff" font-size="11">Usable cell</text>
+  <rect x="694" y="180" width="16" height="10" rx="1" fill="#E0B34E"/>
+  <text x="724" y="180" fill="#fff" font-size="11">Inside both 25 dB</text>
+  <text x="724" y="194" fill="#fff" font-size="11">rings: a 25 floor</text>
+  <text x="724" y="208" fill="#fff" font-size="11">changes nothing</text>
+  <rect x="694" y="238" width="16" height="10" rx="1" fill="#F0705F"/>
+  <text x="724" y="238" fill="#fff" font-size="11">One AP in reach, just</text>
+  <text x="724" y="252" fill="#fff" font-size="11">outside its 25 dB ring:</text>
+  <text x="724" y="266" fill="#fff" font-size="11">now ignored</text>
+  <text x="20" y="332" fill="#8A99AB" font-size="12">Raise the floor to 25 dB and the Mac in the middle still sees two APs. The corner office loses its only one.</text>
+</svg>
